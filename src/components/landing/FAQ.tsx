@@ -1,0 +1,94 @@
+import { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+
+const ITEMS = [
+  {
+    q: "Fungerar det med Sirvoy och Booking.com?",
+    a: "Ja. StayBoost hämtar dina bokningar automatiskt. Har du ett annat system kan du lägga in bokningar manuellt på under en minut.",
+  },
+  {
+    q: "Behöver mina gäster ladda ner en app?",
+    a: "Nej. Allt sker via vanliga SMS och en webblänk som öppnas direkt i mobilen. Inget konto, ingen inloggning.",
+  },
+  {
+    q: "Hur lång tid tar det att komma igång?",
+    a: "En kväll. Koppla bokningarna, välj bland färdiga mallar, klart. De flesta skickar sitt första automatiska meddelande samma dag.",
+  },
+  {
+    q: "Vad händer om en gäst svarar på ett SMS?",
+    a: "Du får svaret direkt i din inkorg i StayBoost och kan svara därifrån — eller låta automatiken hantera vanliga svar som \"JA\" på ett tillval.",
+  },
+  {
+    q: "Kan jag skriva mina egna meddelanden?",
+    a: "Självklart. Mallarna är en start — varje meddelande går att redigera, och du kan bygga egna flöden med dina egna ord.",
+  },
+  {
+    q: "Vad kostar SMS:en?",
+    a: "SMS ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per SMS — inga påslag, inga överraskningar.",
+  },
+];
+
+export function FAQ() {
+  const [open, setOpen] = useState<number | null>(0);
+
+  return (
+    <section id="faq" className="py-20 md:py-32">
+      <div className="mx-auto max-w-3xl px-6">
+        <div className="text-center">
+          <p className="eyebrow">Vanliga frågor</p>
+          <h2 className="mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
+            Frågor vi får varje vecka.
+          </h2>
+        </div>
+
+        <div className="mt-12 border-t border-[color:var(--line)]">
+          {ITEMS.map((item, i) => {
+            const isOpen = open === i;
+            return (
+              <div key={i} className="border-b border-[color:var(--line)]">
+                <button
+                  onClick={() => setOpen(isOpen ? null : i)}
+                  className="flex w-full items-center justify-between gap-4 py-6 text-left"
+                  aria-expanded={isOpen}
+                >
+                  <span className="font-[Fraunces] text-lg font-semibold md:text-xl">
+                    {item.q}
+                  </span>
+                  <motion.span
+                    animate={{ rotate: isOpen ? 180 : 0 }}
+                    transition={{ duration: 0.25 }}
+                    className="shrink-0 text-[color:var(--brass)]"
+                    aria-hidden
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                      <path
+                        d="M6 9l6 6 6-6"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </motion.span>
+                </button>
+                <AnimatePresence initial={false}>
+                  {isOpen && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="overflow-hidden"
+                    >
+                      <p className="pb-6 pr-8 text-[color:var(--ink)]/75">{item.a}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
