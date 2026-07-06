@@ -4,6 +4,12 @@ import { motion } from "framer-motion";
 import { PhoneMockup } from "@/components/landing/PhoneMockup";
 import { RevenueCalculator } from "@/components/landing/RevenueCalculator";
 import { FAQ } from "@/components/landing/FAQ";
+import { ProductTour } from "@/components/landing/ProductTour";
+import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
+import { LeadMagnet } from "@/components/landing/LeadMagnet";
+import { StickyMobileCTA } from "@/components/landing/StickyMobileCTA";
+
+const BRAND_NAME = "StayBoost";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -17,13 +23,17 @@ function Index() {
       <SocialProof />
       <Problem />
       <HowItWorks />
+      <ProductTour />
       <Features />
+      <FeaturesGrid />
+      <LeadMagnet />
       <RevenueCalculator />
       <Testimonial />
       <Pricing />
       <FAQ />
       <FinalCTA />
       <Footer />
+      <StickyMobileCTA />
     </main>
   );
 }
@@ -48,16 +58,16 @@ function Header() {
     >
       <div className="mx-auto flex max-w-[1120px] items-center justify-between gap-4 px-6 py-4">
         <a href="#" className="font-[Fraunces] text-2xl font-semibold tracking-tight">
-          StayBoost
+          {BRAND_NAME}
         </a>
         <nav className="hidden items-center gap-8 text-sm md:flex">
           <a href="#sa-funkar-det" className="hover:text-[color:var(--brass)]">Så funkar det</a>
-          <a href="#funktioner" className="hover:text-[color:var(--brass)]">Funktioner</a>
+          <a href="#produkten" className="hover:text-[color:var(--brass)]">Produkten</a>
           <a href="#pris" className="hover:text-[color:var(--brass)]">Pris</a>
           <a href="#faq" className="hover:text-[color:var(--brass)]">FAQ</a>
         </nav>
         {/* TODO: signup-länk */}
-        <a href="#" className="btn-primary text-sm" style={{ padding: "12px 22px" }}>
+        <a href="#hero-form" className="btn-primary text-sm" style={{ padding: "12px 22px" }}>
           Prova gratis
         </a>
       </div>
@@ -82,12 +92,30 @@ function FadeUp({ children, delay = 0 }: { children: ReactNode; delay?: number }
 /* ---------- Hero ---------- */
 function Hero() {
   return (
-    <section className="relative overflow-hidden pb-24 pt-16 md:pb-32 md:pt-24">
-      <div className="mx-auto grid max-w-[1120px] items-center gap-16 px-6 md:grid-cols-[55fr_45fr]">
+    <section
+      id="hero-form"
+      className="relative overflow-hidden pb-24 pt-16 md:pb-32 md:pt-24"
+    >
+      {/* TODO: byt till riktigt kvällsfoto från anläggningen */}
+      <div
+        className="absolute inset-0 -z-10 bg-cover bg-center"
+        style={{ backgroundImage: "url('/hero-glamping.jpg')" }}
+        aria-hidden
+      />
+      <div
+        className="absolute inset-0 -z-10 md:bg-[linear-gradient(90deg,rgba(30,58,45,0.92)_0%,rgba(30,58,45,0.75)_45%,rgba(30,58,45,0.15)_100%)] bg-[linear-gradient(180deg,rgba(30,58,45,0.9)_0%,rgba(30,58,45,0.6)_60%,rgba(247,244,238,0.85)_100%)]"
+        aria-hidden
+      />
+      {/* Alt-text bakgrund: glamping-tält vid Göta kanal i skymning, med lyktljus. */}
+      <span className="sr-only">
+        Bakgrundsbild: glamping-tält vid Göta kanal i skymning, med varmt lyktljus.
+      </span>
+
+      <div className="relative mx-auto grid max-w-[1120px] items-center gap-16 px-6 md:grid-cols-[55fr_45fr]">
         <div>
           <FadeUp>
             <h1
-              className="text-[color:var(--ink)]"
+              className="text-white"
               style={{ fontSize: "clamp(2.5rem, 6vw, 5rem)" }}
             >
               Dina gäster vill köpa mer.{" "}
@@ -97,10 +125,10 @@ function Hero() {
             </h1>
           </FadeUp>
           <FadeUp delay={0.1}>
-            <p className="mt-6 max-w-xl text-[color:var(--ink)]/80">
-              StayBoost skickar rätt meddelande vid rätt tillfälle — incheckningsinfo,
-              lokala tips och tillval gästen faktiskt vill ha. Automatiskt, via SMS, utan
-              app.
+            <p className="mt-6 max-w-xl text-white/85">
+              {BRAND_NAME} sköter gästresan och driften i samma system — automatiska SMS,
+              tillval med betalning, digital incheckning, och arbetsvyer för frukost och
+              städ som alltid vet exakt vad som gäller. Utan app. Igång på en kväll.
             </p>
           </FadeUp>
           <FadeUp delay={0.2}>
@@ -109,18 +137,23 @@ function Hero() {
               <a href="#" className="btn-primary">
                 Prova gratis i 14 dagar
               </a>
-              <a href="#sa-funkar-det" className="btn-ghost">
+              <a
+                href="#sa-funkar-det"
+                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/50 bg-white/10 px-7 py-3.5 font-semibold text-white backdrop-blur transition hover:bg-white/20"
+              >
                 Se hur det funkar →
               </a>
             </div>
-            <p className="mt-3 text-[0.85rem] text-[color:var(--ink)]/60">
+            <p className="mt-3 text-[0.85rem] text-white/70">
               Inget kort. Igång på en kväll.
             </p>
           </FadeUp>
         </div>
 
         <FadeUp delay={0.15}>
-          <PhoneMockup />
+          <div className="rounded-[52px] p-1 ring-1 ring-white/25 [box-shadow:0_30px_80px_-20px_rgba(0,0,0,0.5)]">
+            <PhoneMockup />
+          </div>
         </FadeUp>
       </div>
     </section>
@@ -131,19 +164,11 @@ function Hero() {
 function SocialProof() {
   return (
     <section className="border-y border-[color:var(--line)] bg-white/60">
-      <div className="mx-auto max-w-[1120px] px-6 py-8">
-        <p className="text-center text-sm text-[color:var(--ink)]/60">
-          Byggt för glampingar, B&amp;B och små hotell i Sverige
+      <div className="mx-auto max-w-[1120px] px-6 py-6">
+        <p className="text-center text-sm text-[color:var(--ink)]/70">
+          I skarp drift på <strong className="font-semibold text-[color:var(--ink)]">Bergs Slussar Glamping</strong> vid Göta kanal —
+          byggd av ägaren, testad av riktiga gäster.
         </p>
-        <div className="mt-4 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-[0.85rem] font-medium uppercase tracking-wider text-[color:var(--ink)]/45">
-          <span>Bergs Slussar Glamping</span>
-          <span aria-hidden>·</span>
-          <span>Sjöstugan B&amp;B</span>
-          <span aria-hidden>·</span>
-          <span>Kanalhotellet</span>
-          <span aria-hidden>·</span>
-          <span>Skogsbyn Stugor</span>
-        </div>
       </div>
     </section>
   );
@@ -163,9 +188,9 @@ function Problem() {
       body: "Sen utcheckning, frukostkorg, ved. Gästen hade sagt ja — om någon frågat i rätt ögonblick.",
     },
     {
-      icon: "⭐",
-      title: "Omdömen som aldrig skrivs",
-      body: "Nöjda gäster åker hem och glömmer. Utan omdömen syns du inte, och utan synlighet inga bokningar.",
+      icon: "📝",
+      title: "Lappar, grupptråden och huvudet",
+      body: "Vem städar Tält 2? Hur många frukostar i morgon? Var allergin gluten eller laktos? Driften bor i ditt minne — tills den inte gör det.",
     },
   ];
   return (
@@ -228,7 +253,6 @@ function HowItWorks() {
         </div>
 
         <div className="relative mt-16 grid gap-12 md:grid-cols-3 md:gap-8">
-          {/* connecting line */}
           <div
             className="pointer-events-none absolute left-8 top-8 hidden h-[calc(100%-4rem)] w-px bg-[color:var(--brass)]/40 md:block md:left-0 md:top-8 md:h-px md:w-full"
             aria-hidden
@@ -461,7 +485,6 @@ function Pricing() {
               boxShadow: "0 20px 60px rgba(20,36,28,0.12)",
             }}
           >
-            {/* Toggle */}
             <div className="mx-auto mb-6 inline-flex w-full items-center justify-center rounded-full border border-[color:var(--line)] bg-[color:var(--bg)] p-1 text-sm">
               <button
                 onClick={() => setAnnual(false)}
@@ -515,11 +538,11 @@ function Pricing() {
               {[
                 "Obegränsade meddelanden och gäster",
                 "Alla tillvalsfunktioner",
-                "Gästhubb",
+                "Gästhubb + digital incheckning",
+                "Frukost- och städvyer med rollinloggning",
                 "Sirvoy- & Booking.com-koppling",
                 "Svensk support",
-                "Ingen startavgift",
-                "Ingen bindningstid",
+                "Ingen startavgift, ingen bindningstid",
               ].map((f) => (
                 <li key={f} className="flex items-start gap-3">
                   <span className="mt-0.5 text-[color:var(--brass)]" aria-hidden>
@@ -576,15 +599,18 @@ function Footer() {
     <footer className="bg-[color:var(--forest)] pb-10 pt-16 text-white/70">
       <div className="mx-auto grid max-w-[1120px] gap-10 px-6 md:grid-cols-3">
         <div>
-          <div className="font-[Fraunces] text-xl font-semibold text-white">StayBoost</div>
+          <div className="font-[Fraunces] text-xl font-semibold text-white">{BRAND_NAME}</div>
           <p className="mt-3 max-w-xs text-sm">
-            Gästkommunikation och merförsäljning för små boenden i Sverige.
+            Gästresa, tillval, incheckning, frukost och städ — hela driften för små
+            boenden i ett system.
           </p>
         </div>
         <div className="text-sm">
           <div className="mb-3 font-semibold text-white">Länkar</div>
           <ul className="space-y-2">
             <li><a href="#sa-funkar-det" className="hover:text-white">Så funkar det</a></li>
+            <li><a href="#produkten" className="hover:text-white">Produkten</a></li>
+            <li><a href="#mallar" className="hover:text-white">Gratis mallar</a></li>
             <li><a href="#pris" className="hover:text-white">Pris</a></li>
             <li><a href="#faq" className="hover:text-white">FAQ</a></li>
             {/* TODO: sidor för policy/villkor */}
