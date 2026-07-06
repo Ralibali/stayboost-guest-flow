@@ -94,16 +94,16 @@ function Hero() {
   return (
     <section
       id="hero-form"
-      className="relative overflow-hidden pb-24 pt-16 md:pb-32 md:pt-24"
+      className="relative overflow-hidden bg-[color:var(--forest)] pb-24 pt-16 md:pb-32 md:pt-24"
     >
       {/* TODO: byt till riktigt kvällsfoto från anläggningen */}
       <div
-        className="absolute inset-0 -z-10 bg-cover bg-center"
+        className="absolute inset-0 -z-10 bg-cover bg-center opacity-70 md:opacity-100"
         style={{ backgroundImage: "url('/hero-glamping.jpg')" }}
         aria-hidden
       />
       <div
-        className="absolute inset-0 -z-10 md:bg-[linear-gradient(90deg,rgba(30,58,45,0.92)_0%,rgba(30,58,45,0.75)_45%,rgba(30,58,45,0.15)_100%)] bg-[linear-gradient(180deg,rgba(30,58,45,0.9)_0%,rgba(30,58,45,0.6)_60%,rgba(247,244,238,0.85)_100%)]"
+        className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(20,40,30,0.85)_0%,rgba(20,40,30,0.75)_100%)] md:bg-[linear-gradient(90deg,rgba(30,58,45,0.92)_0%,rgba(30,58,45,0.75)_45%,rgba(30,58,45,0.15)_100%)]"
         aria-hidden
       />
       {/* Alt-text bakgrund: glamping-tält vid Göta kanal i skymning, med lyktljus. */}
