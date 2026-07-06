@@ -69,23 +69,29 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "StayBoost — Gästkommunikation och merförsäljning för små boenden" },
+      { title: "StayBoost — Hela driften för små boenden i ett system" },
       {
         name: "description",
         content:
-          "Automatiska SMS till dina gäster och tillval som säljer sig själva. För glampingar, B&B och små hotell. Prova gratis i 14 dagar.",
+          "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system. Prova gratis i 14 dagar.",
       },
       {
         property: "og:title",
-        content: "StayBoost — Gästkommunikation och merförsäljning för små boenden",
+        content: "StayBoost — Hela driften för små boenden i ett system",
       },
       {
         property: "og:description",
         content:
-          "Automatiska SMS till dina gäster och tillval som säljer sig själva. För glampingar, B&B och små hotell.",
+          "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "StayBoost — Hela driften för små boenden i ett system" },
+      {
+        name: "twitter:description",
+        content:
+          "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
+      },
     ],
     links: [
       { rel: "stylesheet", href: appCss },

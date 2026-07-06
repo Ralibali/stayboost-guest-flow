@@ -26,10 +26,35 @@ const ITEMS = [
     q: "Vad kostar SMS:en?",
     a: "SMS ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per SMS — inga påslag, inga överraskningar.",
   },
+  {
+    q: "Funkar det för min personal?",
+    a: "Ja — det är halva poängen. Frukost- och städvyerna har egna enkla inloggningar, funkar i mobilen och finns på flera språk. Personalen ser exakt vad som ska göras: antal portioner, allergier, handdukar per tält.",
+  },
+  {
+    q: "Kan gäster hyra saker själva, som SUP eller bastu?",
+    a: "Ja. Skapa ett tillval med kodlås: gästen betalar i mobilen och får koden direkt. Perfekt för SUP, bastu, cyklar och annat som inte kräver att du är på plats.",
+  },
+  {
+    q: "Vi använder inte Sirvoy — funkar det ändå?",
+    a: "Ja. Booking.com och manuell inmatning stöds, och fler kopplingar är på väg. Säg till vilken du behöver.",
+  },
 ];
 
 export function FAQ() {
   const [open, setOpen] = useState<number | null>(0);
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: ITEMS.map((it) => ({
+      "@type": "Question",
+      name: it.q,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: it.a,
+      },
+    })),
+  };
 
   return (
     <section id="faq" className="py-20 md:py-32">
@@ -80,7 +105,7 @@ export function FAQ() {
                       transition={{ duration: 0.25 }}
                       className="overflow-hidden"
                     >
-                      <p className="pb-6 pr-8 text-[color:var(--ink)]/75">{item.a}</p>
+                      <p className="pb-6 pr-10 text-[color:var(--ink)]/75">{item.a}</p>
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -89,6 +114,10 @@ export function FAQ() {
           })}
         </div>
       </div>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
     </section>
   );
 }
