@@ -99,6 +99,10 @@ export function RevenueCalculator() {
             <p className="mt-3 text-white/80">
               Det är <strong className="text-white">{formatKr(displayedYear)} kr per år</strong> — mot en kostnad på 449 kr/mån.
             </p>
+            <p className="mt-3 text-white/80">
+              + cirka <strong className="text-white">5 timmar i veckan</strong> i sparad
+              drifttid — frukostlistor, städinstruktioner och gästfrågor som sköter sig själva.
+            </p>
             <p className="mt-4 text-[0.8rem] leading-relaxed text-white/50">
               Baserat på att 15–25 % av gästerna bokar tillval för i snitt 200 kr. Konservativt räknat med 20 %.
             </p>
