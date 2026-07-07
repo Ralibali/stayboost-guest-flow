@@ -7,6 +7,7 @@ import { FAQ } from "@/components/landing/FAQ";
 import { ProductTour } from "@/components/landing/ProductTour";
 import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
 import { LeadMagnet } from "@/components/landing/LeadMagnet";
+import { LiveDemo } from "@/components/landing/LiveDemo";
 import { StickyMobileCTA } from "@/components/landing/StickyMobileCTA";
 
 const BRAND_NAME = "StayBoost";
