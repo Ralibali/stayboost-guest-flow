@@ -25,6 +25,8 @@ function Index() {
       <Problem />
       <HowItWorks />
       <ProductTour />
+      <LiveDemo />
+
       <Features />
       <FeaturesGrid />
       <LeadMagnet />
