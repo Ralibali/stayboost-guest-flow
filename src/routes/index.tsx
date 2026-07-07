@@ -7,6 +7,7 @@ import { FAQ } from "@/components/landing/FAQ";
 import { ProductTour } from "@/components/landing/ProductTour";
 import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
 import { LeadMagnet } from "@/components/landing/LeadMagnet";
+import { LiveDemo } from "@/components/landing/LiveDemo";
 import { StickyMobileCTA } from "@/components/landing/StickyMobileCTA";
 
 const BRAND_NAME = "StayBoost";
@@ -24,6 +25,8 @@ function Index() {
       <Problem />
       <HowItWorks />
       <ProductTour />
+      <LiveDemo />
+
       <Features />
       <FeaturesGrid />
       <LeadMagnet />
@@ -145,7 +148,13 @@ function Hero() {
               </a>
             </div>
             <p className="mt-3 text-[0.85rem] text-white/70">
-              Inget kort. Igång på en kväll.
+              Inget kort. Igång på en kväll.{" "}
+              <a
+                href="#demo-live"
+                className="underline decoration-white/40 underline-offset-2 hover:text-white hover:decoration-white"
+              >
+                eller klicka runt i live-demon
+              </a>
             </p>
           </FadeUp>
         </div>
