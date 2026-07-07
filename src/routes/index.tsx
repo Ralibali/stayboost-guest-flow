@@ -148,7 +148,13 @@ function Hero() {
               </a>
             </div>
             <p className="mt-3 text-[0.85rem] text-white/70">
-              Inget kort. Igång på en kväll.
+              Inget kort. Igång på en kväll.{" "}
+              <a
+                href="#demo-live"
+                className="underline decoration-white/40 underline-offset-2 hover:text-white hover:decoration-white"
+              >
+                eller klicka runt i live-demon
+              </a>
             </p>
           </FadeUp>
         </div>
