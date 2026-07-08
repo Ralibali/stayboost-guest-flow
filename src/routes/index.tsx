@@ -571,10 +571,9 @@ function Pricing() {
               ))}
             </ul>
 
-            {/* TODO: signup-länk */}
-            <a href="#" className="btn-primary mt-8 w-full">
-              Prova gratis i 14 dagar
-            </a>
+            <div className="mt-8">
+              <EarlyAccessForm location="pricing" buttonLabel="Få tidig tillgång" />
+            </div>
             <p className="mt-4 text-center text-xs text-[color:var(--ink)]/55">
               Betalar det inte för sig själv första månaden gör det inte sitt jobb.
             </p>
@@ -596,15 +595,16 @@ function FinalCTA() {
           </h2>
         </FadeUp>
         <FadeUp delay={0.1}>
-          <div className="mt-8">
-            {/* TODO: signup-länk */}
-            <a href="#" className="btn-primary">
-              Starta din gratisperiod
-            </a>
-            <p className="mt-4 text-sm text-white/60">
-              14 dagar gratis · Inget kort · Igång på en kväll
-            </p>
+          <div className="mx-auto mt-8 max-w-md">
+            <EarlyAccessForm
+              location="final"
+              variant="dark"
+              buttonLabel="Starta min tidiga tillgång"
+            />
           </div>
+          <p className="mt-4 text-sm text-white/60">
+            14 dagar gratis · Inget kort · Igång på en kväll
+          </p>
         </FadeUp>
       </div>
     </section>
