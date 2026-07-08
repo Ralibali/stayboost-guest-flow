@@ -1,5 +1,11 @@
-// TODO: sätt till glampingsajtens domän när den är publicerad
-const DEMO_BASE = "https://g-ta-kanal-glamping.lovable.app";
+// Slå på när demorutterna är live i glampingprojektet.
+const SHOW_LIVE_DEMO = false;
+
+// TODO: byt till den riktiga glampingdomänen i env PUBLIC_DEMO_BASE.
+const DEMO_BASE =
+  (typeof import.meta !== "undefined" &&
+    (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_PUBLIC_DEMO_BASE) ||
+  "https://g-ta-kanal-glamping.lovable.app";
 
 const CARDS = [
   {
@@ -40,6 +46,8 @@ export function LiveDemo() {
     };
     w.plausible?.("Live Demo Opened", { props: { view } });
   };
+
+  if (!SHOW_LIVE_DEMO) return null;
 
   return (
     <section

@@ -65,45 +65,105 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  head: () => ({
-    meta: [
-      { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "StayBoost — Hela driften för små boenden i ett system" },
-      {
-        name: "description",
-        content:
-          "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system. Prova gratis i 14 dagar.",
+  head: () => {
+    const plausibleDomain =
+      (typeof import.meta !== "undefined" &&
+        (import.meta as unknown as { env?: Record<string, string> }).env
+          ?.VITE_PUBLIC_PLAUSIBLE_DOMAIN) ||
+      "stayboost.se";
+
+    const softwareLd = {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: "StayBoost",
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      offers: {
+        "@type": "Offer",
+        price: "449",
+        priceCurrency: "SEK",
       },
-      {
-        property: "og:title",
-        content: "StayBoost — Hela driften för små boenden i ett system",
-      },
-      {
-        property: "og:description",
-        content:
-          "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "StayBoost — Hela driften för små boenden i ett system" },
-      {
-        name: "twitter:description",
-        content:
-          "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
-      },
-    ],
-    links: [
-      { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap",
-      },
-    ],
-  }),
+    };
+
+    const faqItems = [
+      ["Fungerar det med Sirvoy och Booking.com?", "Ja. StayBoost hämtar dina bokningar automatiskt. Har du ett annat system kan du lägga in bokningar manuellt på under en minut."],
+      ["Behöver mina gäster ladda ner en app?", "Nej. Allt sker via vanliga SMS och en webblänk som öppnas direkt i mobilen. Inget konto, ingen inloggning."],
+      ["Hur lång tid tar det att komma igång?", "En kväll. Koppla bokningarna, välj bland färdiga mallar, klart. De flesta skickar sitt första automatiska meddelande samma dag."],
+      ["Vad händer om en gäst svarar på ett SMS?", "Du får svaret direkt i din inkorg i StayBoost och kan svara därifrån — eller låta automatiken hantera vanliga svar som \"JA\" på ett tillval."],
+      ["Kan jag skriva mina egna meddelanden?", "Självklart. Mallarna är en start — varje meddelande går att redigera, och du kan bygga egna flöden med dina egna ord."],
+      ["Vad kostar SMS:en?", "SMS ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per SMS — inga påslag, inga överraskningar."],
+      ["Funkar det för min personal?", "Ja — det är halva poängen. Frukost- och städvyerna har egna enkla inloggningar, funkar i mobilen och finns på flera språk. Personalen ser exakt vad som ska göras: antal portioner, allergier, handdukar per tält."],
+      ["Kan gäster hyra saker själva, som SUP eller bastu?", "Ja. Skapa ett tillval med kodlås: gästen betalar i mobilen och får koden direkt. Perfekt för SUP, bastu, cyklar och annat som inte kräver att du är på plats."],
+      ["Vi använder inte Sirvoy — funkar det ändå?", "Ja. Booking.com och manuell inmatning stöds, och fler kopplingar är på väg. Säg till vilken du behöver."],
+    ];
+
+    const faqLd = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: faqItems.map(([q, a]) => ({
+        "@type": "Question",
+        name: q,
+        acceptedAnswer: { "@type": "Answer", text: a },
+      })),
+    };
+
+    return {
+      meta: [
+        { charSet: "utf-8" },
+        { name: "viewport", content: "width=device-width, initial-scale=1" },
+        { title: "StayBoost — Hela driften för små boenden i ett system" },
+        {
+          name: "description",
+          content:
+            "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system. Prova gratis i 14 dagar.",
+        },
+        {
+          property: "og:title",
+          content: "StayBoost — Hela driften för små boenden i ett system",
+        },
+        {
+          property: "og:description",
+          content:
+            "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
+        },
+        { property: "og:type", content: "website" },
+        { property: "og:image", content: "/og-image.png" },
+        { name: "twitter:card", content: "summary_large_image" },
+        { name: "twitter:title", content: "StayBoost — Hela driften för små boenden i ett system" },
+        {
+          name: "twitter:description",
+          content:
+            "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
+        },
+        { name: "twitter:image", content: "/og-image.png" },
+      ],
+      links: [
+        { rel: "stylesheet", href: appCss },
+        { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+        { rel: "preconnect", href: "https://fonts.googleapis.com" },
+        { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
+        {
+          rel: "stylesheet",
+          href: "https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,600&family=Inter:wght@400;500;600;700&display=swap",
+        },
+      ],
+      scripts: [
+        {
+          defer: true,
+          "data-domain": plausibleDomain,
+          src: "https://plausible.io/js/script.js",
+        },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(softwareLd),
+        },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify(faqLd),
+        },
+      ],
+    };
+  },
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,

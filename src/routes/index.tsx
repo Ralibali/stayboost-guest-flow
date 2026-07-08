@@ -9,6 +9,8 @@ import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
 import { LeadMagnet } from "@/components/landing/LeadMagnet";
 import { LiveDemo } from "@/components/landing/LiveDemo";
 import { StickyMobileCTA } from "@/components/landing/StickyMobileCTA";
+import { EarlyAccessForm } from "@/components/landing/EarlyAccessForm";
+import { DemoSms } from "@/components/landing/DemoSms";
 
 const BRAND_NAME = "StayBoost";
 
@@ -29,6 +31,7 @@ function Index() {
 
       <Features />
       <FeaturesGrid />
+      <DemoSms />
       <LeadMagnet />
       <RevenueCalculator />
       <Testimonial />
@@ -51,6 +54,13 @@ function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  const scrollToHeroForm = (e: React.MouseEvent) => {
+    e.preventDefault();
+    document
+      .getElementById("hero-form")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
     <header
       className={`sticky top-0 z-50 backdrop-blur transition-colors ${
@@ -69,8 +79,12 @@ function Header() {
           <a href="#pris" className="hover:text-[color:var(--brass)]">Pris</a>
           <a href="#faq" className="hover:text-[color:var(--brass)]">FAQ</a>
         </nav>
-        {/* TODO: signup-länk */}
-        <a href="#hero-form" className="btn-primary text-sm" style={{ padding: "12px 22px" }}>
+        <a
+          href="#hero-form"
+          onClick={scrollToHeroForm}
+          className="btn-primary text-sm"
+          style={{ padding: "12px 22px" }}
+        >
           Prova gratis
         </a>
       </div>
@@ -135,25 +149,20 @@ function Hero() {
             </p>
           </FadeUp>
           <FadeUp delay={0.2}>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              {/* TODO: signup-länk */}
-              <a href="#" className="btn-primary">
-                Prova gratis i 14 dagar
-              </a>
-              <a
-                href="#sa-funkar-det"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/50 bg-white/10 px-7 py-3.5 font-semibold text-white backdrop-blur transition hover:bg-white/20"
-              >
-                Se hur det funkar →
-              </a>
+            <div className="mt-8 max-w-md">
+              <EarlyAccessForm
+                location="hero"
+                variant="dark"
+                buttonLabel="Få tidig tillgång"
+              />
             </div>
-            <p className="mt-3 text-[0.85rem] text-white/70">
+            <p className="mt-4 text-[0.85rem] text-white/70">
               Inget kort. Igång på en kväll.{" "}
               <a
-                href="#demo-live"
+                href="#demo-sms"
                 className="underline decoration-white/40 underline-offset-2 hover:text-white hover:decoration-white"
               >
-                eller klicka runt i live-demon
+                eller testa gästflödet via SMS
               </a>
             </p>
           </FadeUp>
@@ -562,10 +571,9 @@ function Pricing() {
               ))}
             </ul>
 
-            {/* TODO: signup-länk */}
-            <a href="#" className="btn-primary mt-8 w-full">
-              Prova gratis i 14 dagar
-            </a>
+            <div className="mt-8">
+              <EarlyAccessForm location="pricing" buttonLabel="Få tidig tillgång" />
+            </div>
             <p className="mt-4 text-center text-xs text-[color:var(--ink)]/55">
               Betalar det inte för sig själv första månaden gör det inte sitt jobb.
             </p>
@@ -587,15 +595,16 @@ function FinalCTA() {
           </h2>
         </FadeUp>
         <FadeUp delay={0.1}>
-          <div className="mt-8">
-            {/* TODO: signup-länk */}
-            <a href="#" className="btn-primary">
-              Starta din gratisperiod
-            </a>
-            <p className="mt-4 text-sm text-white/60">
-              14 dagar gratis · Inget kort · Igång på en kväll
-            </p>
+          <div className="mx-auto mt-8 max-w-md">
+            <EarlyAccessForm
+              location="final"
+              variant="dark"
+              buttonLabel="Starta min tidiga tillgång"
+            />
           </div>
+          <p className="mt-4 text-sm text-white/60">
+            14 dagar gratis · Inget kort · Igång på en kväll
+          </p>
         </FadeUp>
       </div>
     </section>
