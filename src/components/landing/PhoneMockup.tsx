@@ -35,7 +35,7 @@ export function PhoneMockup() {
   // Compute visible count and whether typing bubble is shown.
   const cycleLength = SCRIPT.length * 2 + 2; // typing + msg per step, plus pause
   const phase = reduced ? cycleLength : tick % cycleLength;
-  const visible = reduced ? SCRIPT.length : Math.min(Math.floor(phase / 2), SCRIPT.length);
+  const visible = reduced ? SCRIPT.length : Math.min(Math.floor((phase + 1) / 2), SCRIPT.length);
   const showTyping =
     !reduced &&
     visible < SCRIPT.length &&

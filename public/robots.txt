@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# TODO: byt till produktionsdomänen
+Sitemap: https://stayboost.se/sitemap.xml
