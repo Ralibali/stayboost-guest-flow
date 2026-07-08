@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
+import { EarlyAccessForm } from "@/components/landing/EarlyAccessForm";
 
 function useCountUp(target: number, duration = 600) {
   const [value, setValue] = useState(target);
@@ -36,6 +37,7 @@ function formatKr(n: number) {
 
 export function RevenueCalculator() {
   const [bookings, setBookings] = useState(30);
+  const [tracked, setTracked] = useState(false);
 
   // bookings × 0.20 × 200 kr → round to nearest 100
   const raw = bookings * 0.2 * 200;
@@ -44,6 +46,15 @@ export function RevenueCalculator() {
 
   const displayedMonth = useCountUp(perMonth);
   const displayedYear = useCountUp(perYear);
+
+  const onSlide = (val: number) => {
+    setBookings(val);
+    if (!tracked && typeof window !== "undefined") {
+      const w = window as unknown as { plausible?: (e: string) => void };
+      w.plausible?.("Calculator Used");
+      setTracked(true);
+    }
+  };
 
   return (
     <section className="bg-[color:var(--forest)] py-20 text-[color:var(--bg)] md:py-32">
@@ -81,7 +92,7 @@ export function RevenueCalculator() {
               max={200}
               step={1}
               value={bookings}
-              onChange={(e) => setBookings(Number(e.target.value))}
+              onChange={(e) => onSlide(Number(e.target.value))}
               className="brass-slider mt-4 w-full"
               aria-label="Bokningar per månad"
             />
@@ -109,11 +120,8 @@ export function RevenueCalculator() {
           </div>
         </motion.div>
 
-        <div className="mt-8 text-center">
-          {/* TODO: signup-länk */}
-          <a href="#" className="btn-primary">
-            Börja räkna hem det →
-          </a>
+        <div className="mx-auto mt-8 max-w-md">
+          <EarlyAccessForm location="calculator" variant="dark" buttonLabel="Börja räkna hem det →" />
         </div>
       </div>
 
