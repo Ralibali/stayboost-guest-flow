@@ -79,8 +79,12 @@ function Header() {
           <a href="#pris" className="hover:text-[color:var(--brass)]">Pris</a>
           <a href="#faq" className="hover:text-[color:var(--brass)]">FAQ</a>
         </nav>
-        {/* TODO: signup-länk */}
-        <a href="#hero-form" className="btn-primary text-sm" style={{ padding: "12px 22px" }}>
+        <a
+          href="#hero-form"
+          onClick={scrollToHeroForm}
+          className="btn-primary text-sm"
+          style={{ padding: "12px 22px" }}
+        >
           Prova gratis
         </a>
       </div>
