@@ -1,20 +1,18 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { z } from "zod";
+import { useServerFn } from "@tanstack/react-start";
+import { subscribe } from "@/lib/subscribe.functions";
 
 const schema = z.object({
-  email: z
-    .string()
-    .trim()
-    .email({ message: "Ange en giltig e-postadress" })
-    .max(255),
+  email: z.string().trim().email({ message: "Ange en giltig e-postadress" }).max(255),
 });
 
 export function LeadMagnet() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [sent, setSent] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [state, setState] = useState<"idle" | "loading" | "ok" | "error">("idle");
+  const call = useServerFn(subscribe);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,21 +22,22 @@ export function LeadMagnet() {
       return;
     }
     setError(null);
-    setLoading(true);
+    setState("loading");
     try {
-      // TODO: koppla till Brevo-serverfunktion med SOURCE="sms-mallar"
-      // och lista BREVO_TEMPLATES_LIST_ID. Ligger som tidig-tillgång-flödet.
-      await new Promise((r) => setTimeout(r, 500));
-      setSent(true);
-      // TODO: Plausible-event "Lead Magnet Download"
-      if (typeof window !== "undefined") {
-        const w = window as unknown as {
-          plausible?: (e: string) => void;
-        };
-        w.plausible?.("Lead Magnet Download");
+      const res = await call({ data: { email: parsed.data.email, source: "sms-mallar" } });
+      if (res.ok) {
+        setState("ok");
+        if (typeof window !== "undefined") {
+          const w = window as unknown as { plausible?: (e: string) => void };
+          w.plausible?.("Lead Magnet Download");
+        }
+      } else {
+        setState("error");
+        setError("Något gick fel — försök igen.");
       }
-    } finally {
-      setLoading(false);
+    } catch {
+      setState("error");
+      setError("Något gick fel — försök igen.");
     }
   };
 
@@ -62,20 +61,25 @@ export function LeadMagnet() {
               id="lead-email"
               type="email"
               required
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="din@epost.se"
               className="flex-1 rounded-xl border border-[color:var(--line)] bg-white px-4 py-3 text-base outline-none focus:border-[color:var(--brass)]"
               aria-invalid={!!error}
               aria-describedby={error ? "lead-error" : undefined}
-              disabled={sent}
+              disabled={state === "ok" || state === "loading"}
             />
             <button
               type="submit"
-              disabled={loading || sent}
-              className="btn-primary"
+              disabled={state === "loading" || state === "ok"}
+              className="btn-primary disabled:opacity-70"
             >
-              {sent ? "Skickat ✓" : loading ? "Skickar…" : "Skicka mallarna till mig"}
+              {state === "ok"
+                ? "Skickat ✓"
+                : state === "loading"
+                ? "Skickar…"
+                : "Skicka mallarna till mig"}
             </button>
           </form>
           {error && (
@@ -83,14 +87,14 @@ export function LeadMagnet() {
               {error}
             </p>
           )}
-          {sent && (
+          {state === "ok" && (
             <motion.div
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               className="mt-4 rounded-xl border border-[color:var(--brass)]/40 bg-[color:var(--brass)]/5 p-4"
             >
               <p className="text-sm text-[color:var(--ink)]/80">
-                Kolla inkorgen — och under tiden:
+                Skickat! Här är din direktlänk:
               </p>
               {/* TODO: ladda upp PDF till public/mallar/stayboost-12-sms.pdf */}
               <a

@@ -9,6 +9,8 @@ import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
 import { LeadMagnet } from "@/components/landing/LeadMagnet";
 import { LiveDemo } from "@/components/landing/LiveDemo";
 import { StickyMobileCTA } from "@/components/landing/StickyMobileCTA";
+import { EarlyAccessForm } from "@/components/landing/EarlyAccessForm";
+import { DemoSms } from "@/components/landing/DemoSms";
 
 const BRAND_NAME = "StayBoost";
 
@@ -29,6 +31,7 @@ function Index() {
 
       <Features />
       <FeaturesGrid />
+      <DemoSms />
       <LeadMagnet />
       <RevenueCalculator />
       <Testimonial />
@@ -50,6 +53,13 @@ function Header() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  const scrollToHeroForm = (e: React.MouseEvent) => {
+    e.preventDefault();
+    document
+      .getElementById("hero-form")
+      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <header
