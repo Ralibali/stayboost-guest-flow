@@ -149,25 +149,20 @@ function Hero() {
             </p>
           </FadeUp>
           <FadeUp delay={0.2}>
-            <div className="mt-8 flex flex-wrap items-center gap-3">
-              {/* TODO: signup-länk */}
-              <a href="#" className="btn-primary">
-                Prova gratis i 14 dagar
-              </a>
-              <a
-                href="#sa-funkar-det"
-                className="inline-flex items-center justify-center gap-2 rounded-xl border border-white/50 bg-white/10 px-7 py-3.5 font-semibold text-white backdrop-blur transition hover:bg-white/20"
-              >
-                Se hur det funkar →
-              </a>
+            <div className="mt-8 max-w-md">
+              <EarlyAccessForm
+                location="hero"
+                variant="dark"
+                buttonLabel="Få tidig tillgång"
+              />
             </div>
-            <p className="mt-3 text-[0.85rem] text-white/70">
+            <p className="mt-4 text-[0.85rem] text-white/70">
               Inget kort. Igång på en kväll.{" "}
               <a
-                href="#demo-live"
+                href="#demo-sms"
                 className="underline decoration-white/40 underline-offset-2 hover:text-white hover:decoration-white"
               >
-                eller klicka runt i live-demon
+                eller testa gästflödet via SMS
               </a>
             </p>
           </FadeUp>
