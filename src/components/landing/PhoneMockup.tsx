@@ -37,10 +37,7 @@ export function PhoneMockup() {
   const phase = reduced ? cycleLength : tick % cycleLength;
   const visible = reduced ? SCRIPT.length : Math.min(Math.floor((phase + 1) / 2), SCRIPT.length);
   const showTyping =
-    !reduced &&
-    visible < SCRIPT.length &&
-    phase % 2 === 0 &&
-    SCRIPT[visible].side === "in";
+    !reduced && visible < SCRIPT.length && phase % 2 === 0 && SCRIPT[visible].side === "in";
 
   return (
     <div className="relative flex justify-center">
@@ -53,15 +50,13 @@ export function PhoneMockup() {
       >
         <span>💰</span>
         <span className="font-medium">
-          Ny merförsäljning: <span className="text-[color:var(--brass)]">Sen utcheckning, 150 kr</span>
+          Ny merförsäljning:{" "}
+          <span className="text-[color:var(--brass)]">Sen utcheckning, 150 kr</span>
         </span>
       </motion.div>
 
       {/* Phone frame */}
-      <div
-        className="relative"
-        style={{ transform: reduced ? "none" : "rotate(4deg)" }}
-      >
+      <div className="relative" style={{ transform: reduced ? "none" : "rotate(4deg)" }}>
         <div
           className="relative mx-auto w-[300px] rounded-[46px] bg-[#0b0b0b] p-3 shadow-[0_30px_80px_-20px_rgba(20,36,28,0.35)]"
           style={{ height: 620 }}
@@ -74,9 +69,7 @@ export function PhoneMockup() {
                 <div className="mx-auto mb-1 h-10 w-10 rounded-full bg-[color:var(--forest)] text-center text-sm font-semibold leading-10 text-white">
                   Sj
                 </div>
-                <div className="text-[13px] font-semibold text-[color:var(--ink)]">
-                  Sjöstugan
-                </div>
+                <div className="text-[13px] font-semibold text-[color:var(--ink)]">Sjöstugan</div>
                 <div className="text-[10px] text-[color:var(--ink)]/60">SMS</div>
               </div>
             </div>
@@ -115,9 +108,7 @@ function Bubble({ msg }: { msg: Msg }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
       className={`max-w-[80%] rounded-2xl px-3 py-2 text-[12px] leading-snug ${
-        isOut
-          ? "ml-auto bg-[#2E7D4F] text-white"
-          : "mr-auto bg-white text-[color:var(--ink)]"
+        isOut ? "ml-auto bg-[#2E7D4F] text-white" : "mr-auto bg-white text-[color:var(--ink)]"
       }`}
     >
       {msg.text}

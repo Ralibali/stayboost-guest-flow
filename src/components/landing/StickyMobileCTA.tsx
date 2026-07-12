@@ -14,7 +14,7 @@ export function StickyMobileCTA() {
         const past = !entries[0].isIntersecting && entries[0].boundingClientRect.top < 0;
         setShow(past);
       },
-      { threshold: 0 }
+      { threshold: 0 },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -47,9 +47,7 @@ export function StickyMobileCTA() {
       const w = window as unknown as { plausible?: (e: string) => void };
       w.plausible?.("Sticky CTA Click");
     }
-    document
-      .getElementById("hero-form")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("hero-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (

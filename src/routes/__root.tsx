@@ -86,15 +86,42 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     };
 
     const faqItems = [
-      ["Fungerar det med Sirvoy och Booking.com?", "Ja. StayBoost hämtar dina bokningar automatiskt. Har du ett annat system kan du lägga in bokningar manuellt på under en minut."],
-      ["Behöver mina gäster ladda ner en app?", "Nej. Allt sker via vanliga SMS och en webblänk som öppnas direkt i mobilen. Inget konto, ingen inloggning."],
-      ["Hur lång tid tar det att komma igång?", "En kväll. Koppla bokningarna, välj bland färdiga mallar, klart. De flesta skickar sitt första automatiska meddelande samma dag."],
-      ["Vad händer om en gäst svarar på ett SMS?", "Du får svaret direkt i din inkorg i StayBoost och kan svara därifrån — eller låta automatiken hantera vanliga svar som \"JA\" på ett tillval."],
-      ["Kan jag skriva mina egna meddelanden?", "Självklart. Mallarna är en start — varje meddelande går att redigera, och du kan bygga egna flöden med dina egna ord."],
-      ["Vad kostar SMS:en?", "SMS ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per SMS — inga påslag, inga överraskningar."],
-      ["Funkar det för min personal?", "Ja — det är halva poängen. Frukost- och städvyerna har egna enkla inloggningar, funkar i mobilen och finns på flera språk. Personalen ser exakt vad som ska göras: antal portioner, allergier, handdukar per tält."],
-      ["Kan gäster hyra saker själva, som SUP eller bastu?", "Ja. Skapa ett tillval med kodlås: gästen betalar i mobilen och får koden direkt. Perfekt för SUP, bastu, cyklar och annat som inte kräver att du är på plats."],
-      ["Vi använder inte Sirvoy — funkar det ändå?", "Ja. Booking.com och manuell inmatning stöds, och fler kopplingar är på väg. Säg till vilken du behöver."],
+      [
+        "Fungerar det med Sirvoy och Booking.com?",
+        "Ja. StayBoost hämtar dina bokningar automatiskt. Har du ett annat system kan du lägga in bokningar manuellt på under en minut.",
+      ],
+      [
+        "Behöver mina gäster ladda ner en app?",
+        "Nej. Allt sker via vanliga SMS och en webblänk som öppnas direkt i mobilen. Inget konto, ingen inloggning.",
+      ],
+      [
+        "Hur lång tid tar det att komma igång?",
+        "En kväll. Koppla bokningarna, välj bland färdiga mallar, klart. De flesta skickar sitt första automatiska meddelande samma dag.",
+      ],
+      [
+        "Vad händer om en gäst svarar på ett SMS?",
+        'Du får svaret direkt i din inkorg i StayBoost och kan svara därifrån — eller låta automatiken hantera vanliga svar som "JA" på ett tillval.',
+      ],
+      [
+        "Kan jag skriva mina egna meddelanden?",
+        "Självklart. Mallarna är en start — varje meddelande går att redigera, och du kan bygga egna flöden med dina egna ord.",
+      ],
+      [
+        "Vad kostar SMS:en?",
+        "SMS ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per SMS — inga påslag, inga överraskningar.",
+      ],
+      [
+        "Funkar det för min personal?",
+        "Ja — det är halva poängen. Frukost- och städvyerna har egna enkla inloggningar, funkar i mobilen och finns på flera språk. Personalen ser exakt vad som ska göras: antal portioner, allergier, handdukar per tält.",
+      ],
+      [
+        "Kan gäster hyra saker själva, som SUP eller bastu?",
+        "Ja. Skapa ett tillval med kodlås: gästen betalar i mobilen och får koden direkt. Perfekt för SUP, bastu, cyklar och annat som inte kräver att du är på plats.",
+      ],
+      [
+        "Vi använder inte Sirvoy — funkar det ändå?",
+        "Ja. Booking.com och manuell inmatning stöds, och fler kopplingar är på väg. Säg till vilken du behöver.",
+      ],
     ];
 
     const faqLd = {

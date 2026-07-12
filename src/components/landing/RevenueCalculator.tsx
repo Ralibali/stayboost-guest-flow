@@ -74,9 +74,7 @@ export function RevenueCalculator() {
           className="mx-auto mt-12 max-w-xl rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur md:p-10"
         >
           <label className="block">
-            <span className="text-sm text-white/70">
-              Hur många bokningar har du per månad?
-            </span>
+            <span className="text-sm text-white/70">Hur många bokningar har du per månad?</span>
             <div className="mt-4 flex items-baseline gap-3">
               <span
                 className="font-[Fraunces] font-semibold text-[color:var(--brass)]"
@@ -103,25 +101,34 @@ export function RevenueCalculator() {
           </label>
 
           <div className="mt-8 border-t border-white/10 pt-6">
-            <p className="font-[Fraunces] text-white" style={{ fontSize: "clamp(1.5rem, 3vw, 2.25rem)", lineHeight: 1.2 }}>
+            <p
+              className="font-[Fraunces] text-white"
+              style={{ fontSize: "clamp(1.5rem, 3vw, 2.25rem)", lineHeight: 1.2 }}
+            >
               +<span className="text-[color:var(--brass)]">{formatKr(displayedMonth)} kr</span>/mån
               <span className="ml-2 text-base font-normal text-white/70">i merförsäljning</span>
             </p>
             <p className="mt-3 text-white/80">
-              Det är <strong className="text-white">{formatKr(displayedYear)} kr per år</strong> — mot en kostnad på 449 kr/mån.
+              Det är <strong className="text-white">{formatKr(displayedYear)} kr per år</strong> —
+              mot en kostnad på 449 kr/mån.
             </p>
             <p className="mt-3 text-white/80">
-              + cirka <strong className="text-white">5 timmar i veckan</strong> i sparad
-              drifttid — frukostlistor, städinstruktioner och gästfrågor som sköter sig själva.
+              + cirka <strong className="text-white">5 timmar i veckan</strong> i sparad drifttid —
+              frukostlistor, städinstruktioner och gästfrågor som sköter sig själva.
             </p>
             <p className="mt-4 text-[0.8rem] leading-relaxed text-white/50">
-              Baserat på att 15–25 % av gästerna bokar tillval för i snitt 200 kr. Konservativt räknat med 20 %.
+              Baserat på att 15–25 % av gästerna bokar tillval för i snitt 200 kr. Konservativt
+              räknat med 20 %.
             </p>
           </div>
         </motion.div>
 
         <div className="mx-auto mt-8 max-w-md">
-          <EarlyAccessForm location="calculator" variant="dark" buttonLabel="Börja räkna hem det →" />
+          <EarlyAccessForm
+            location="calculator"
+            variant="dark"
+            buttonLabel="Börja räkna hem det →"
+          />
         </div>
       </div>
 

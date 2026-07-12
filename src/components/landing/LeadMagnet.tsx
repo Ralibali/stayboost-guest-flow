@@ -47,16 +47,19 @@ export function LeadMagnet() {
         <div>
           <p className="eyebrow">Gratis mallar</p>
           <h2 className="mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
-            De exakta SMS:en vi skickar till <em className="italic text-[color:var(--brass)]">våra egna</em> gäster.
+            De exakta SMS:en vi skickar till{" "}
+            <em className="italic text-[color:var(--brass)]">våra egna</em> gäster.
           </h2>
           <p className="mt-5 max-w-lg text-[color:var(--ink)]/75">
-            Beprövade på en riktig anläggning en hel säsong: välkomst, portkod,
-            tillvalserbjudanden och omdömesfrågan som faktiskt får svar. Kopiera,
-            klistra in, skicka — eller låt StayBoost skicka dem automatiskt.
+            Beprövade på en riktig anläggning en hel säsong: välkomst, portkod, tillvalserbjudanden
+            och omdömesfrågan som faktiskt får svar. Kopiera, klistra in, skicka — eller låt
+            StayBoost skicka dem automatiskt.
           </p>
 
           <form onSubmit={submit} className="mt-8 flex flex-col gap-3 sm:flex-row" noValidate>
-            <label className="sr-only" htmlFor="lead-email">E-post</label>
+            <label className="sr-only" htmlFor="lead-email">
+              E-post
+            </label>
             <input
               id="lead-email"
               type="email"
@@ -78,8 +81,8 @@ export function LeadMagnet() {
               {state === "ok"
                 ? "Skickat ✓"
                 : state === "loading"
-                ? "Skickar…"
-                : "Skicka mallarna till mig"}
+                  ? "Skickar…"
+                  : "Skicka mallarna till mig"}
             </button>
           </form>
           {error && (
@@ -99,9 +102,8 @@ export function LeadMagnet() {
                 Kolla din inbox — mallarna är på väg.
               </p>
               <p className="mt-1 text-sm text-[color:var(--ink)]/75">
-                Vi mejlar PDF:en direkt och skickar sedan tre korta lektioner under
-                veckan om hur du får dem att sälja. Här är en direktlänk om du inte
-                vill vänta:
+                Vi mejlar PDF:en direkt och skickar sedan tre korta lektioner under veckan om hur du
+                får dem att sälja. Här är en direktlänk om du inte vill vänta:
               </p>
               {/* TODO: ladda upp PDF till public/mallar/stayboost-12-sms.pdf */}
               <a
@@ -138,8 +140,8 @@ export function LeadMagnet() {
                 12 gäst-SMS som säljer
               </h3>
               <p className="mt-3 text-[0.72rem] leading-relaxed text-white/70">
-                Kopiera-och-skicka-mallar för hela gästresan — från bokningsbekräftelse
-                till omdömesfråga.
+                Kopiera-och-skicka-mallar för hela gästresan — från bokningsbekräftelse till
+                omdömesfråga.
               </p>
               <div className="mt-auto">
                 <div className="text-[0.6rem] uppercase tracking-widest text-white/40">

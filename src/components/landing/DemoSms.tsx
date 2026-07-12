@@ -79,8 +79,8 @@ export function DemoSms() {
           Skicka ett demo-SMS till dig själv.
         </h2>
         <p className="mt-4 text-[color:var(--ink)]/75 sm:mt-5">
-          Välj vilket meddelande i gästresan du vill känna på — vi skickar det
-          till ditt nummer med påhittad gästdata. Tar 30 sekunder.
+          Välj vilket meddelande i gästresan du vill känna på — vi skickar det till ditt nummer med
+          påhittad gästdata. Tar 30 sekunder.
         </p>
 
         {/* Scenario picker */}
@@ -167,14 +167,12 @@ export function DemoSms() {
             aria-live="polite"
             className="mx-auto mt-5 max-w-md rounded-xl border border-[color:var(--brass)]/50 bg-[color:var(--brass)]/10 px-4 py-3 text-[color:var(--ink)]"
           >
-            <p className="font-semibold text-[color:var(--brass)]">
-              Skickat! Kolla telefonen.
-            </p>
+            <p className="font-semibold text-[color:var(--brass)]">Skickat! Kolla telefonen.</p>
             {lastSent && (
               <p className="mt-1 text-sm text-[color:var(--ink)]/75">
                 {SCENARIOS.find((s) => s.key === lastSent)?.emoji}{" "}
-                {SCENARIOS.find((s) => s.key === lastSent)?.label} — vill du testa
-                ett till? Välj en annan scen ovan.
+                {SCENARIOS.find((s) => s.key === lastSent)?.label} — vill du testa ett till? Välj en
+                annan scen ovan.
               </p>
             )}
           </motion.div>

@@ -82,14 +82,10 @@ function parseSentTotal(v: unknown): { sent: number; total: number } | null {
   return { sent: v.sent, total: v.total };
 }
 
-function parseBreakfastDeliveries(
-  v: unknown,
-): { done: number; total: number } | null {
+function parseBreakfastDeliveries(v: unknown): { done: number; total: number } | null {
   if (!isRecord(v)) return null;
   // API:t har levererat både "done" och "sent" historiskt — acceptera båda.
-  const done =
-    (isNonNegativeInt(v.done) && v.done) ||
-    (isNonNegativeInt(v.sent) && v.sent);
+  const done = (isNonNegativeInt(v.done) && v.done) || (isNonNegativeInt(v.sent) && v.sent);
   if (typeof done !== "number") return null;
   if (!isNonNegativeInt(v.total)) return null;
   return { done, total: v.total };
@@ -115,11 +111,7 @@ function parseTraffic(
 function parseAddonRow(v: unknown): AddonRow | null {
   if (!isRecord(v)) return null;
   if (!isNonEmptyString(v.slug) || !isNonEmptyString(v.name)) return null;
-  if (
-    !isNonNegativeInt(v.orders) ||
-    !isNonNegativeInt(v.units) ||
-    !isNonNegativeInt(v.revenue)
-  )
+  if (!isNonNegativeInt(v.orders) || !isNonNegativeInt(v.units) || !isNonNegativeInt(v.revenue))
     return null;
   return {
     slug: v.slug,
@@ -241,9 +233,7 @@ export function writeCachedStats(data: StayBoostStats): void {
 
 // ---------- Fetch ----------
 
-export async function fetchStayBoostStats(
-  signal?: AbortSignal,
-): Promise<StayBoostStats> {
+export async function fetchStayBoostStats(signal?: AbortSignal): Promise<StayBoostStats> {
   const res = await fetch(STATS_ENDPOINT, {
     signal,
     headers: { accept: "application/json" },
@@ -274,9 +264,7 @@ export function computeDerived(stats: StayBoostStats): DerivedStats {
 
   const breakfast = stats.addonDistribution.find((a) => a.slug === "breakfast");
   const breakfastShareOfAddons =
-    stats.paidAddonRevenueSek > 0 && breakfast
-      ? breakfast.revenue / stats.paidAddonRevenueSek
-      : 0;
+    stats.paidAddonRevenueSek > 0 && breakfast ? breakfast.revenue / stats.paidAddonRevenueSek : 0;
 
   const avgPaidAddonSek =
     stats.avgPaidAddonSek > 0

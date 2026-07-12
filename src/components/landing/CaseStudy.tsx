@@ -115,9 +115,9 @@ export function CaseStudy() {
             </p>
           </div>
           <p className="mt-5 max-w-2xl text-[color:var(--ink)]/75">
-            StayBoost är byggt ovanpå en befintlig glampingverksamhet vid Göta kanal.
-            Siffrorna nedan är verklig drift — samma system, samma gäster, samma
-            säsong. Inget påhittat, inga marknadsföringsantaganden.
+            StayBoost är byggt ovanpå en befintlig glampingverksamhet vid Göta kanal. Siffrorna
+            nedan är verklig drift — samma system, samma gäster, samma säsong. Inget påhittat, inga
+            marknadsföringsantaganden.
           </p>
         </div>
 
@@ -138,10 +138,7 @@ export function CaseStudy() {
         >
           <div>
             <p className="eyebrow">Merförsäljning</p>
-            <h3
-              className="mt-3 tabular-nums"
-              style={{ fontSize: "clamp(1.5rem, 2.5vw, 2rem)" }}
-            >
+            <h3 className="mt-3 tabular-nums" style={{ fontSize: "clamp(1.5rem, 2.5vw, 2rem)" }}>
               {formatSek(stats.paidAddonRevenueSek)} i betalda tillval
             </h3>
             <p className="mt-4 text-[color:var(--ink)]/75">
@@ -156,16 +153,15 @@ export function CaseStudy() {
                 <strong className="text-[color:var(--ink)] tabular-nums">
                   ≈ {formatPercent(derived.breakfastShareOfAddons)}
                 </strong>{" "}
-                av den betalda merförsäljningen kom från frukost — observerat i
-                denna drift, inte ett generellt löfte.
+                av den betalda merförsäljningen kom från frukost — observerat i denna drift, inte
+                ett generellt löfte.
               </li>
               <li>
                 <strong className="text-[color:var(--ink)] tabular-nums">
                   ≈ {formatPercent(derived.addonShareOfBookings)}
                 </strong>{" "}
                 av bokningarna gav ett betalt tillvalsköp ({formatInt(stats.paidAddonOrders)} /{" "}
-                {formatInt(stats.bookings2026)}) — observerat i denna drift, inte
-                en garanti.
+                {formatInt(stats.bookings2026)}) — observerat i denna drift, inte en garanti.
               </li>
             </ul>
           </div>
@@ -206,8 +202,8 @@ export function CaseStudy() {
               })}
             </div>
             <p className="mt-6 text-xs text-[color:var(--ink)]/55 tabular-nums">
-              Summan av betalda tillval: {formatSek(stats.paidAddonRevenueSek)}. Belopp
-              avrundade från källdata.
+              Summan av betalda tillval: {formatSek(stats.paidAddonRevenueSek)}. Belopp avrundade
+              från källdata.
             </p>
           </div>
         </motion.div>
@@ -235,11 +231,10 @@ export function CaseStudy() {
         </div>
 
         <p className="mt-10 max-w-3xl text-xs leading-relaxed text-[color:var(--ink)]/55">
-          Källa: aggregerad driftstatistik från Göta Kanal Glamping för säsongen
-          2026 fram till idag. Ingen gäst-, personal- eller betalningsdata visas.
-          StayBoost är i pilotdrift — siffrorna beskriver hur systemet fungerar
-          på den här anläggningen och är inte ett löfte om samma resultat för
-          andra boenden.
+          Källa: aggregerad driftstatistik från Göta Kanal Glamping för säsongen 2026 fram till
+          idag. Ingen gäst-, personal- eller betalningsdata visas. StayBoost är i pilotdrift —
+          siffrorna beskriver hur systemet fungerar på den här anläggningen och är inte ett löfte om
+          samma resultat för andra boenden.
         </p>
       </div>
     </section>

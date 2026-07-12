@@ -8,12 +8,9 @@ import { formatInt, formatSek } from "@/lib/stats";
 export function HeroProofLine() {
   const { stats } = useStayBoostStats();
   return (
-    <a
-      href="#case-study"
-      className="underline underline-offset-2 tabular-nums"
-    >
-      {formatSek(stats.paidAddonRevenueSek)} i tillvalsintäkter på{" "}
-      {formatInt(stats.bookings2026)} bokningar denna säsong →
+    <a href="#case-study" className="underline underline-offset-2 tabular-nums">
+      {formatSek(stats.paidAddonRevenueSek)} i tillvalsintäkter på {formatInt(stats.bookings2026)}{" "}
+      bokningar denna säsong →
     </a>
   );
 }

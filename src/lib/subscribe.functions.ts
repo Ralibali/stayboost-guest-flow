@@ -1,11 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestIP } from "@tanstack/react-start/server";
 import { z } from "zod";
-import {
-  checkIpRate,
-  sendBrevoTemplate,
-  upsertBrevoContact,
-} from "./subscribe.server";
+import { checkIpRate, sendBrevoTemplate, upsertBrevoContact } from "./subscribe.server";
 
 const schema = z.object({
   email: z.string().trim().email().max(255),

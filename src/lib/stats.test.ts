@@ -64,12 +64,8 @@ describe("parseStatsResponse", () => {
   });
 
   it("rejects negative or non-integer numbers", () => {
-    expect(
-      parseStatsResponse({ ...VALID_RESPONSE, bookings2026: -1 }),
-    ).toBeNull();
-    expect(
-      parseStatsResponse({ ...VALID_RESPONSE, bookingValueSek: Number.NaN }),
-    ).toBeNull();
+    expect(parseStatsResponse({ ...VALID_RESPONSE, bookings2026: -1 })).toBeNull();
+    expect(parseStatsResponse({ ...VALID_RESPONSE, bookingValueSek: Number.NaN })).toBeNull();
   });
 
   it("rejects malformed addon rows", () => {

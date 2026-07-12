@@ -41,13 +41,13 @@
 
 :root {
   --radius: 0.75rem;
-  --bg: #F7F4EE;
-  --ink: #14241C;
-  --forest: #1E3A2D;
-  --brass: #B08D3E;
-  --card: #FFFFFF;
-  --line: #E4DDD0;
-  --success: #2E7D4F;
+  --bg: #f7f4ee;
+  --ink: #14241c;
+  --forest: #1e3a2d;
+  --brass: #b08d3e;
+  --card: #ffffff;
+  --line: #e4ddd0;
+  --success: #2e7d4f;
 }
 
 @layer base {
@@ -65,7 +65,10 @@
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3, h4 {
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
     font-weight: 600;
     letter-spacing: -0.02em;
@@ -99,7 +102,10 @@
   padding: 16px 32px;
   font-weight: 600;
   font-size: 1rem;
-  transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    background 200ms ease;
   box-shadow: 0 6px 18px rgba(176, 141, 62, 0.25);
   cursor: pointer;
   border: none;

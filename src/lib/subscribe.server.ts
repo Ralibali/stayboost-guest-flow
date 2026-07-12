@@ -77,8 +77,7 @@ export async function sendBrevoTemplate(
   const params: Record<string, unknown> = { source };
   if (source === "sms-mallar") {
     params.pdf_url =
-      process.env.PUBLIC_LEADMAGNET_PDF_URL ??
-      "https://stayboost.se/mallar/stayboost-12-sms.pdf";
+      process.env.PUBLIC_LEADMAGNET_PDF_URL ?? "https://stayboost.se/mallar/stayboost-12-sms.pdf";
   }
   const res = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",

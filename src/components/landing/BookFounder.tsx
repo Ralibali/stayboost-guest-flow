@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 // Cal.com stödjer inbäddning direkt via iframe och postar bekräftelser via postMessage.
 const BOOKING_URL =
   (typeof import.meta !== "undefined" &&
-    (import.meta as unknown as { env?: Record<string, string> }).env
-      ?.VITE_PUBLIC_BOOKING_URL) ||
+    (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_PUBLIC_BOOKING_URL) ||
   "https://cal.com/stayboost/20min";
 
 type PlausibleWin = {
@@ -24,12 +23,7 @@ export function BookFounder() {
 
       // Cal.com format: { type: "__iframeReady" | "linkReady" | "eventTypeSelected" | "bookingSuccessful" ... }
       // eller nested: { type: "CAL:...", data: {...} }
-      const raw =
-        typeof data === "string"
-          ? data
-          : typeof data?.type === "string"
-            ? data.type
-            : "";
+      const raw = typeof data === "string" ? data : typeof data?.type === "string" ? data.type : "";
       const t = String(raw).toLowerCase();
 
       const isSuccess =
@@ -67,20 +61,26 @@ export function BookFounder() {
             </h2>
             <p className="mt-4 text-[color:var(--ink)]/75 sm:mt-5">
               Berätta hur din drift ser ut idag — jag visar var{" "}
-              <span className="font-semibold text-[color:var(--ink)]">StayBoost</span>{" "}
-              hade satt in stöten hos dig. Om det inte passar säger jag det. Enkelt så.
+              <span className="font-semibold text-[color:var(--ink)]">StayBoost</span> hade satt in
+              stöten hos dig. Om det inte passar säger jag det. Enkelt så.
             </p>
             <ul className="mt-6 space-y-2.5 text-[0.95rem] text-[color:var(--ink)]/80">
               <li className="flex gap-3">
-                <span aria-hidden className="text-[color:var(--brass)]">✓</span>
+                <span aria-hidden className="text-[color:var(--brass)]">
+                  ✓
+                </span>
                 Skärmdelning av din faktiska bokningsflöde
               </li>
               <li className="flex gap-3">
-                <span aria-hidden className="text-[color:var(--brass)]">✓</span>
+                <span aria-hidden className="text-[color:var(--brass)]">
+                  ✓
+                </span>
                 Konkret siffra på trolig merförsäljning
               </li>
               <li className="flex gap-3">
-                <span aria-hidden className="text-[color:var(--brass)]">✓</span>
+                <span aria-hidden className="text-[color:var(--brass)]">
+                  ✓
+                </span>
                 Inga eftersnack, inga uppföljningsmejl om du säger nej
               </li>
             </ul>
@@ -108,13 +108,11 @@ export function BookFounder() {
                 >
                   ✓
                 </div>
-                <h3 className="font-[Fraunces] text-2xl tracking-tight">
-                  Bokat. Vi ses snart.
-                </h3>
+                <h3 className="font-[Fraunces] text-2xl tracking-tight">Bokat. Vi ses snart.</h3>
                 <p className="text-[color:var(--ink)]/75">
-                  Du får en kalenderinbjudan och en påminnelse via mejl. Vill du
-                  förbereda något? Skriv en mening om din anläggning i mötesnoten
-                  — då hoppar vi rakt in på det som spelar roll.
+                  Du får en kalenderinbjudan och en påminnelse via mejl. Vill du förbereda något?
+                  Skriv en mening om din anläggning i mötesnoten — då hoppar vi rakt in på det som
+                  spelar roll.
                 </p>
                 <button
                   type="button"
@@ -139,8 +137,8 @@ export function BookFounder() {
               </div>
             )}
             <p className="mt-3 text-[0.8rem] text-[color:var(--ink)]/55">
-              Bokningen laddas i en säker ram. Inga cookies delas med tredje part
-              förrän du väljer en tid.
+              Bokningen laddas i en säker ram. Inga cookies delas med tredje part förrän du väljer
+              en tid.
             </p>
           </div>
         </div>
