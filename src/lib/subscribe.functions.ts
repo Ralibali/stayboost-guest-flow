@@ -1,7 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestIP } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { checkIpRate, upsertBrevoContact } from "./subscribe.server";
+import {
+  checkIpRate,
+  sendBrevoTemplate,
+  upsertBrevoContact,
+} from "./subscribe.server";
 
 const schema = z.object({
   email: z.string().trim().email().max(255),
@@ -17,5 +21,8 @@ export const subscribe = createServerFn({ method: "POST" })
     }
     const result = await upsertBrevoContact(data.email, data.source);
     if (!result.ok) return { ok: false, error: "server_error" as const };
+    // Skickar välkomst / lead-magnet-mailet direkt.
+    // Långsiktig drip triggas av listmedlemskapet i Brevo automation.
+    await sendBrevoTemplate(data.email, data.source);
     return { ok: true as const };
   });

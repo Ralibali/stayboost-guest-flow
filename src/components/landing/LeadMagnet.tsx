@@ -92,22 +92,29 @@ export function LeadMagnet() {
               initial={{ opacity: 0, y: 6 }}
               animate={{ opacity: 1, y: 0 }}
               className="mt-4 rounded-xl border border-[color:var(--brass)]/40 bg-[color:var(--brass)]/5 p-4"
+              role="status"
+              aria-live="polite"
             >
-              <p className="text-sm text-[color:var(--ink)]/80">
-                Skickat! Här är din direktlänk:
+              <p className="text-sm font-semibold text-[color:var(--ink)]">
+                Kolla din inbox — mallarna är på väg.
+              </p>
+              <p className="mt-1 text-sm text-[color:var(--ink)]/75">
+                Vi mejlar PDF:en direkt och skickar sedan tre korta lektioner under
+                veckan om hur du får dem att sälja. Här är en direktlänk om du inte
+                vill vänta:
               </p>
               {/* TODO: ladda upp PDF till public/mallar/stayboost-12-sms.pdf */}
               <a
                 href="/mallar/stayboost-12-sms.pdf"
-                className="mt-2 inline-flex items-center gap-2 font-semibold text-[color:var(--brass)]"
+                className="mt-3 inline-flex items-center gap-2 font-semibold text-[color:var(--brass)] underline underline-offset-2"
                 download
               >
-                Ladda ner PDF:en →
+                Ladda ner PDF:en direkt →
               </a>
             </motion.div>
           )}
           <p className="mt-3 text-xs text-[color:var(--ink)]/55">
-            Vi mejlar mallarna direkt. Avregistrera med ett klick när som helst.
+            Vi mejlar mallarna + tre korta tips-mail. Avregistrera med ett klick.
           </p>
         </div>
 
