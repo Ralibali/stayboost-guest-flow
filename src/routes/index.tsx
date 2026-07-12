@@ -12,6 +12,7 @@ import { StickyMobileCTA } from "@/components/landing/StickyMobileCTA";
 import { EarlyAccessForm } from "@/components/landing/EarlyAccessForm";
 import { DemoSms } from "@/components/landing/DemoSms";
 import { CaseStudy } from "@/components/landing/CaseStudy";
+import { BookFounder } from "@/components/landing/BookFounder";
 
 const BRAND_NAME = "StayBoost";
 
@@ -39,6 +40,7 @@ function Index() {
       <Testimonial />
       <Pricing />
       <FAQ />
+      <BookFounder />
       <FinalCTA />
       <Footer />
       <StickyMobileCTA />
