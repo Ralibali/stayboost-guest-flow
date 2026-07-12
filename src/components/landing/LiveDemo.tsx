@@ -80,7 +80,7 @@ export function LiveDemo() {
               href={`${DEMO_BASE}${c.path}`}
               target="_blank"
               rel="noopener"
-              onClick={() => trackOpen(c.view)}
+              onClick={() => trackOpen(c.view, c.title)}
               aria-label={`Öppna demo: ${c.title}`}
               className="card-surface group relative flex min-w-0 flex-col gap-3.5 p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--brass)] hover:shadow-[0_12px_40px_-16px_color-mix(in_oklab,var(--brass)_45%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brass)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--bg,white)] sm:gap-4 sm:p-6"
             >
