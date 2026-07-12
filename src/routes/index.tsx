@@ -145,9 +145,18 @@ function Hero() {
           </FadeUp>
           <FadeUp delay={0.1}>
             <p className="mt-6 max-w-xl text-white/85">
-              {BRAND_NAME} sköter gästresan och driften i samma system — automatiska SMS,
-              tillval med betalning, digital incheckning, och arbetsvyer för frukost och
-              städ som alltid vet exakt vad som gäller. Utan app. Igång på en kväll.
+              {BRAND_NAME} lägger sig ovanpå bokningarna du redan har — automatiserad
+              merförsäljning, gäst-SMS, digital incheckning och arbetsvyer för frukost
+              och städ. Ett lager driftautomation för små boenden. Utan app. Igång
+              på en kväll.
+            </p>
+          </FadeUp>
+          <FadeUp delay={0.15}>
+            <p className="mt-4 text-[0.9rem] text-[color:var(--brass)]">
+              Bevisat i skarp drift:{" "}
+              <a href="#case-study" className="underline underline-offset-2">
+                8 318 kr i tillvalsintäkter på 120 bokningar denna säsong →
+              </a>
             </p>
           </FadeUp>
           <FadeUp delay={0.2}>
@@ -186,8 +195,11 @@ function SocialProof() {
     <section className="border-y border-[color:var(--line)] bg-white/60">
       <div className="mx-auto max-w-[1120px] px-6 py-6">
         <p className="text-center text-sm text-[color:var(--ink)]/70">
-          I skarp drift på <strong className="font-semibold text-[color:var(--ink)]">Bergs Slussar Glamping</strong> vid Göta kanal —
-          byggd av ägaren, testad av riktiga gäster.
+          I pilotdrift på <strong className="font-semibold text-[color:var(--ink)]">Göta Kanal Glamping</strong> —
+          byggd av ägaren, testad på riktiga gäster.{" "}
+          <a href="#case-study" className="text-[color:var(--brass)] underline underline-offset-2">
+            Se siffrorna →
+          </a>
         </p>
       </div>
     </section>
