@@ -4,11 +4,7 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * StayBoost design system.
- * Sparse mässing accent — max one brass element per view.
- */
-
+/* StayBoost design system. */
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -41,23 +37,26 @@
 
 :root {
   --radius: 0.75rem;
-  --bg: #F7F4EE;
-  --ink: #14241C;
-  --forest: #1E3A2D;
-  --brass: #B08D3E;
-  --card: #FFFFFF;
-  --line: #E4DDD0;
-  --success: #2E7D4F;
+  --bg: #f7f4ee;
+  --ink: #14241c;
+  --forest: #1e3a2d;
+  --brass: #b08d3e;
+  --card: #ffffff;
+  --line: #e4ddd0;
+  --success: #2e7d4f;
 }
 
 @layer base {
   * {
     border-color: var(--color-border);
   }
+
   html {
     scroll-behavior: smooth;
   }
+
   body {
+    overflow-x: hidden;
     background-color: var(--bg);
     color: var(--ink);
     font-family: var(--font-sans);
@@ -65,13 +64,18 @@
     line-height: 1.7;
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3, h4 {
+
+  h1,
+  h2,
+  h3,
+  h4 {
     font-family: var(--font-display);
     font-weight: 600;
     letter-spacing: -0.02em;
     line-height: 1.1;
     color: var(--ink);
   }
+
   :focus-visible {
     outline: 2px solid var(--brass);
     outline-offset: 3px;
@@ -99,11 +103,15 @@
   padding: 16px 32px;
   font-weight: 600;
   font-size: 1rem;
-  transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
+  transition:
+    transform 200ms ease,
+    box-shadow 200ms ease,
+    background 200ms ease;
   box-shadow: 0 6px 18px rgba(176, 141, 62, 0.25);
   cursor: pointer;
   border: none;
-  &:hover {
+
+  &:not(:disabled):hover {
     transform: translateY(-2px);
     box-shadow: 0 12px 28px rgba(176, 141, 62, 0.35);
   }
@@ -123,6 +131,7 @@
   font-size: 1rem;
   transition: background 200ms ease;
   cursor: pointer;
+
   &:hover {
     background: rgba(20, 36, 28, 0.05);
   }
@@ -133,4 +142,19 @@
   border: 1px solid var(--line);
   border-radius: 20px;
   box-shadow: 0 8px 30px rgba(20, 36, 28, 0.06);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
