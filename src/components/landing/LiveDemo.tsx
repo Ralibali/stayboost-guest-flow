@@ -39,12 +39,15 @@ const CARDS = [
 ];
 
 export function LiveDemo() {
-  const trackOpen = (view: string) => {
+  const trackOpen = (view: string, title: string) => {
     if (typeof window === "undefined") return;
     const w = window as unknown as {
       plausible?: (e: string, opts?: { props?: Record<string, string> }) => void;
     };
-    w.plausible?.("Live Demo Opened", { props: { view } });
+    // Övergripande event (behållet för bakåtkompabilitet)
+    w.plausible?.("Live Demo Opened", { props: { view, title } });
+    // Per-kort event så du kan se exakt vilket kort som klickades
+    w.plausible?.(`Live Demo: ${view}`, { props: { title } });
   };
 
   if (!SHOW_LIVE_DEMO) return null;
