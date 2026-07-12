@@ -192,6 +192,7 @@ export function parseStatsResponse(input: unknown): StayBoostStats | null {
     sms,
     traffic,
     addonDistribution: parsedAddons,
+    updatedAt,
   };
 }
 
