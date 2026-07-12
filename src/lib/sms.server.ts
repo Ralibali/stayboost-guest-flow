@@ -6,7 +6,7 @@ type Bucket = { count: number; resetAt: number };
 const DAY = 24 * 60 * 60 * 1000;
 
 const perIpDay = new Map<string, Bucket>();
-const perNumberEver = new Set<string>();
+const perNumberDay = new Map<string, Bucket>();
 let totalDay: Bucket = { count: 0, resetAt: Date.now() + DAY };
 
 export function normalizeSwedishMobile(input: string): string | null {
@@ -26,22 +26,32 @@ function rollDaily(b: Bucket): Bucket {
   return b;
 }
 
-export function checkLimits(ip: string, e164: string):
+export function checkLimits(
+  ip: string,
+  e164: string,
+):
   | { ok: true }
   | { ok: false; reason: "number_used" | "ip_limit" | "global_limit" } {
   const hash = createHash("sha256").update(e164).digest("hex");
-  if (perNumberEver.has(hash)) return { ok: false, reason: "number_used" };
 
   totalDay = rollDaily(totalDay);
   if (totalDay.count >= 50) return { ok: false, reason: "global_limit" };
 
-  const ipBucket = rollDaily(perIpDay.get(ip) ?? { count: 0, resetAt: Date.now() + DAY });
-  if (ipBucket.count >= 3) return { ok: false, reason: "ip_limit" };
+  const ipBucket = rollDaily(
+    perIpDay.get(ip) ?? { count: 0, resetAt: Date.now() + DAY },
+  );
+  if (ipBucket.count >= 5) return { ok: false, reason: "ip_limit" };
+
+  const numBucket = rollDaily(
+    perNumberDay.get(hash) ?? { count: 0, resetAt: Date.now() + DAY },
+  );
+  if (numBucket.count >= 5) return { ok: false, reason: "number_used" };
 
   // Reserve
-  perNumberEver.add(hash);
   ipBucket.count += 1;
   perIpDay.set(ip, ipBucket);
+  numBucket.count += 1;
+  perNumberDay.set(hash, numBucket);
   totalDay.count += 1;
   return { ok: true };
 }
@@ -72,7 +82,57 @@ export async function send46elks(to: string, text: string): Promise<boolean> {
   return true;
 }
 
-export const DEMO_SMS_TEXT =
-  "Hej! Sa har ser ett gastmeddelande fran StayBoost ut: Valkommen i morgon! " +
-  "Incheckning fran kl 15, portkod 4482. Vill du ha frukostkorg till dorren (249 kr)? " +
-  "Allt detta skickas automatiskt till dina gaster.";
+// Fem påhittade scenarion. Texten är medvetet utan åäö/ö för att hålla sig
+// inom GSM-7 (undviker 2 SMS-avgifter från 46elks).
+export const DEMO_SCENARIOS = {
+  valkomst: {
+    label: "Välkomst",
+    emoji: "👋",
+    hint: "2 dagar före ankomst",
+    text:
+      "Hej Anna! Vi ser fram emot er vistelse pa Sjostugan 12-14 juli. " +
+      "Incheckning fran kl 15, portkod skickas pa ankomstdagen. " +
+      "Vill ni forbestalla nagot? Se tillval: https://demo.stayboost.se/g/anna",
+  },
+  portkod: {
+    label: "Portkod",
+    emoji: "🔑",
+    hint: "Ankomstdagen kl 12",
+    text:
+      "God dag Anna! Er portkod ar 4482. Wifi: Sjostugan_2G / valkommen2026. " +
+      "Sjalvincheckning: https://demo.stayboost.se/i/anna. Trevlig vistelse!",
+  },
+  frukost: {
+    label: "Frukostkorg",
+    emoji: "🥐",
+    hint: "Kväll 1 kl 18",
+    text:
+      "Hej Anna! Vill ni ha en lokal frukostkorg levererad till dorren imorgon kl 08? " +
+      "249 kr for tva. Boka: https://demo.stayboost.se/t/frukost-anna",
+  },
+  "sen-utcheckning": {
+    label: "Sen utcheckning",
+    emoji: "⏰",
+    hint: "Dagen innan avresa",
+    text:
+      "Hej Anna! Vill ni forlanga vistelsen till kl 15 istallet for 11? " +
+      "150 kr, betala direkt: https://demo.stayboost.se/t/sen-utcheckning-anna",
+  },
+  omdome: {
+    label: "Omdöme",
+    emoji: "⭐",
+    hint: "Dagen efter avresa",
+    text:
+      "Tack for besoket Anna! Om ni hade det bra - vi vore tacksamma for ett " +
+      "omdome pa Google: https://demo.stayboost.se/r/anna. Valkomna tillbaka!",
+  },
+} as const;
+
+export type DemoScenario = keyof typeof DEMO_SCENARIOS;
+
+export function isDemoScenario(v: string): v is DemoScenario {
+  return Object.prototype.hasOwnProperty.call(DEMO_SCENARIOS, v);
+}
+
+// Bakåtkompatibilitet.
+export const DEMO_SMS_TEXT = DEMO_SCENARIOS.valkomst.text;
