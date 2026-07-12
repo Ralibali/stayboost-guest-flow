@@ -665,15 +665,24 @@ function Footer() {
                 FAQ
               </a>
             </li>
-            {/* TODO: sidor för policy/villkor */}
             <li>
-              <a href="#" className="hover:text-white">
+              <a href="/integritetspolicy" className="hover:text-white">
                 Integritetspolicy
               </a>
             </li>
             <li>
-              <a href="#" className="hover:text-white">
-                Villkor
+              <a href="/villkor" className="hover:text-white">
+                Användarvillkor
+              </a>
+            </li>
+            <li>
+              <a href="/cookies" className="hover:text-white">
+                Cookies
+              </a>
+            </li>
+            <li>
+              <a href="/dpa" className="hover:text-white">
+                Personuppgiftsbiträdesavtal
               </a>
             </li>
           </ul>
