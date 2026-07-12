@@ -11,6 +11,7 @@ import { LiveDemo } from "@/components/landing/LiveDemo";
 import { StickyMobileCTA } from "@/components/landing/StickyMobileCTA";
 import { EarlyAccessForm } from "@/components/landing/EarlyAccessForm";
 import { DemoSms } from "@/components/landing/DemoSms";
+import { CaseStudy } from "@/components/landing/CaseStudy";
 
 const BRAND_NAME = "StayBoost";
 
@@ -26,6 +27,7 @@ function Index() {
       <SocialProof />
       <Problem />
       <HowItWorks />
+      <CaseStudy />
       <ProductTour />
       <LiveDemo />
 
