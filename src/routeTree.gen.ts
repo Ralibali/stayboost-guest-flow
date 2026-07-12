@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VillkorRouteImport } from './routes/villkor'
 import { Route as IntegritetspolicyRouteImport } from './routes/integritetspolicy'
+import { Route as DpaRouteImport } from './routes/dpa'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -22,6 +23,11 @@ const VillkorRoute = VillkorRouteImport.update({
 const IntegritetspolicyRoute = IntegritetspolicyRouteImport.update({
   id: '/integritetspolicy',
   path: '/integritetspolicy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DpaRoute = DpaRouteImport.update({
+  id: '/dpa',
+  path: '/dpa',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CookiesRoute = CookiesRouteImport.update({
@@ -38,12 +44,14 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cookies': typeof CookiesRoute
+  '/dpa': typeof DpaRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cookies': typeof CookiesRoute
+  '/dpa': typeof DpaRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
 }
@@ -51,20 +59,22 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cookies': typeof CookiesRoute
+  '/dpa': typeof DpaRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cookies' | '/integritetspolicy' | '/villkor'
+  fullPaths: '/' | '/cookies' | '/dpa' | '/integritetspolicy' | '/villkor'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cookies' | '/integritetspolicy' | '/villkor'
-  id: '__root__' | '/' | '/cookies' | '/integritetspolicy' | '/villkor'
+  to: '/' | '/cookies' | '/dpa' | '/integritetspolicy' | '/villkor'
+  id: '__root__' | '/' | '/cookies' | '/dpa' | '/integritetspolicy' | '/villkor'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CookiesRoute: typeof CookiesRoute
+  DpaRoute: typeof DpaRoute
   IntegritetspolicyRoute: typeof IntegritetspolicyRoute
   VillkorRoute: typeof VillkorRoute
 }
@@ -83,6 +93,13 @@ declare module '@tanstack/react-router' {
       path: '/integritetspolicy'
       fullPath: '/integritetspolicy'
       preLoaderRoute: typeof IntegritetspolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dpa': {
+      id: '/dpa'
+      path: '/dpa'
+      fullPath: '/dpa'
+      preLoaderRoute: typeof DpaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cookies': {
@@ -105,6 +122,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CookiesRoute: CookiesRoute,
+  DpaRoute: DpaRoute,
   IntegritetspolicyRoute: IntegritetspolicyRoute,
   VillkorRoute: VillkorRoute,
 }
