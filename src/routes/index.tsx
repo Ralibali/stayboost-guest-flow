@@ -171,6 +171,15 @@ function Hero() {
               Inget kort. Igång på en kväll.{" "}
               <a
                 href="#demo-sms"
+                onClick={() => {
+                  if (typeof window === "undefined") return;
+                  const w = window as unknown as {
+                    plausible?: (e: string, opts?: { props?: Record<string, string> }) => void;
+                  };
+                  w.plausible?.("Hero Demo Link Clicked", {
+                    props: { target: "demo-sms", label: "testa gästflödet via SMS" },
+                  });
+                }}
                 className="underline decoration-white/40 underline-offset-2 hover:text-white hover:decoration-white"
               >
                 eller testa gästflödet via SMS
