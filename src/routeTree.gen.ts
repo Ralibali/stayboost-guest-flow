@@ -9,9 +9,15 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as VillkorRouteImport } from './routes/villkor'
 import { Route as IntegritetspolicyRouteImport } from './routes/integritetspolicy'
 import { Route as IndexRouteImport } from './routes/index'
 
+const VillkorRoute = VillkorRouteImport.update({
+  id: '/villkor',
+  path: '/villkor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IntegritetspolicyRoute = IntegritetspolicyRouteImport.update({
   id: '/integritetspolicy',
   path: '/integritetspolicy',
@@ -26,31 +32,42 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
+  '/villkor': typeof VillkorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
+  '/villkor': typeof VillkorRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
+  '/villkor': typeof VillkorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/integritetspolicy'
+  fullPaths: '/' | '/integritetspolicy' | '/villkor'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/integritetspolicy'
-  id: '__root__' | '/' | '/integritetspolicy'
+  to: '/' | '/integritetspolicy' | '/villkor'
+  id: '__root__' | '/' | '/integritetspolicy' | '/villkor'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   IntegritetspolicyRoute: typeof IntegritetspolicyRoute
+  VillkorRoute: typeof VillkorRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/villkor': {
+      id: '/villkor'
+      path: '/villkor'
+      fullPath: '/villkor'
+      preLoaderRoute: typeof VillkorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/integritetspolicy': {
       id: '/integritetspolicy'
       path: '/integritetspolicy'
@@ -71,6 +88,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   IntegritetspolicyRoute: IntegritetspolicyRoute,
+  VillkorRoute: VillkorRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
