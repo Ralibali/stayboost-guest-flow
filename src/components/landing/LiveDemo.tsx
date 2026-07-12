@@ -67,9 +67,8 @@ export function LiveDemo() {
             Klicka runt i det riktiga systemet.
           </h2>
           <p className="mt-4 text-[0.975rem] leading-relaxed text-[color:var(--ink)]/75 sm:mt-5 sm:text-base">
-            Det här är inte skärmdumpar. Det är samma system som driver vår egen
-            anläggning vid Göta kanal — öppnat för dig med påhittad gästdata. Ingen
-            inloggning, inget konto.
+            Det här är inte skärmdumpar. Det är samma system som driver vår egen anläggning vid Göta
+            kanal — öppnat för dig med påhittad gästdata. Ingen inloggning, inget konto.
           </p>
         </div>
 

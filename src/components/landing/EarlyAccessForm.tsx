@@ -118,9 +118,7 @@ export function EarlyAccessForm({
           {error}
         </p>
       )}
-      <p
-        className={`mt-2 text-xs ${dark ? "text-white/60" : "text-[color:var(--ink)]/55"}`}
-      >
+      <p className={`mt-2 text-xs ${dark ? "text-white/60" : "text-[color:var(--ink)]/55"}`}>
         Lanseringspris för de första 20 anläggningarna. Ingen spam.
       </p>
     </div>

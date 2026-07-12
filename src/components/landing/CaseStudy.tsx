@@ -1,44 +1,19 @@
 import { motion } from "framer-motion";
-
-const HEADLINE_STATS = [
-  { value: "120", label: "bokningar" },
-  { value: "117", label: "unika gäster" },
-  { value: "147", label: "gästnätter" },
-  { value: "252 632 kr", label: "bokningsvärde" },
-];
-
-const OPS_STATS = [
-  { value: "62", label: "digitala incheckningar" },
-  { value: "51 / 54", label: "förankomst-SMS skickade" },
-  { value: "17 / 17", label: "frukostleveranser genomförda" },
-  { value: "34 / 40", label: "SMS levererade från outbox" },
-];
-
-const ENGAGEMENT_STATS = [
-  { value: "12 214", label: "sidvisningar" },
-  { value: "8 144", label: "sessioner" },
-  { value: "8 514", label: "klickhändelser" },
-];
-
-const ADDONS = [
-  { name: "Frukost", orders: "11 ordrar · 29 st", revenue: 6041 },
-  { name: "Sen utcheckning (12:00)", orders: "3 ordrar", revenue: 1200 },
-  { name: "SUP-uthyrning", orders: "4 ordrar · 5 st", revenue: 500 },
-  { name: "Tidig incheckning (12:00)", orders: "1 order", revenue: 399 },
-  { name: "Fikapåse", orders: "1 order · 2 st", revenue: 178 },
-];
-
-const TOTAL_PAID_REVENUE = 8318;
-
-function formatKr(n: number) {
-  return n.toLocaleString("sv-SE").replace(/,/g, " ");
-}
+import { useStayBoostStats, type StatsSource } from "@/hooks/useStayBoostStats";
+import {
+  computeDerived,
+  formatInt,
+  formatPercent,
+  formatSek,
+  formatUpdatedAt,
+  type StayBoostStats,
+} from "@/lib/stats";
 
 function StatCard({ value, label }: { value: string; label: string }) {
   return (
     <div className="rounded-2xl border border-[color:var(--line)] bg-white p-5">
       <div
-        className="font-[Fraunces] font-semibold text-[color:var(--ink)]"
+        className="font-[Fraunces] font-semibold text-[color:var(--ink)] tabular-nums"
         style={{ fontSize: "clamp(1.6rem, 3vw, 2.1rem)", lineHeight: 1.05 }}
       >
         {value}
@@ -48,8 +23,74 @@ function StatCard({ value, label }: { value: string; label: string }) {
   );
 }
 
+function StatusPill({ source }: { source: StatsSource }) {
+  const label =
+    source === "live"
+      ? "Live från Göta Kanal Glamping"
+      : source === "cache"
+        ? "Senast kända siffror från Göta Kanal Glamping"
+        : "Verifierade siffror från Göta Kanal Glamping";
+  return (
+    <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--brass)]/40 bg-[color:var(--brass)]/10 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[color:var(--brass)]">
+      <span
+        className={`inline-block h-1.5 w-1.5 rounded-full ${
+          source === "live" ? "bg-[color:var(--brass)] animate-pulse" : "bg-[color:var(--brass)]/60"
+        }`}
+        aria-hidden
+      />
+      {label}
+    </span>
+  );
+}
+
+function buildHeadlineStats(stats: StayBoostStats) {
+  return [
+    { value: formatInt(stats.bookings2026), label: "bokningar" },
+    { value: formatInt(stats.uniqueGuests), label: "unika gäster" },
+    { value: formatInt(stats.guestNights), label: "gästnätter" },
+    { value: formatSek(stats.bookingValueSek), label: "bokningsvärde" },
+  ];
+}
+
+function buildOpsStats(stats: StayBoostStats) {
+  return [
+    { value: formatInt(stats.digitalCheckIns), label: "digitala incheckningar" },
+    {
+      value: `${formatInt(stats.prearrivalMessages.sent)} / ${formatInt(stats.prearrivalMessages.total)}`,
+      label: "förankomst-SMS skickade",
+    },
+    {
+      value: `${formatInt(stats.breakfastDeliveries.done)} / ${formatInt(stats.breakfastDeliveries.total)}`,
+      label: "frukostleveranser genomförda",
+    },
+    {
+      value: `${formatInt(stats.sms.sent)} / ${formatInt(stats.sms.total)}`,
+      label: "SMS levererade från outbox",
+    },
+  ];
+}
+
+function buildEngagementStats(stats: StayBoostStats) {
+  return [
+    { value: formatInt(stats.traffic.pageViews), label: "sidvisningar" },
+    { value: formatInt(stats.traffic.sessions), label: "sessioner" },
+    { value: formatInt(stats.traffic.clickEvents), label: "klickhändelser" },
+  ];
+}
+
+function formatAddonSubtitle(orders: number, units: number): string {
+  const orderLabel = orders === 1 ? "order" : "ordrar";
+  if (units > orders) return `${orders} ${orderLabel} · ${units} st`;
+  return `${orders} ${orderLabel}`;
+}
+
 export function CaseStudy() {
-  const maxRevenue = Math.max(...ADDONS.map((a) => a.revenue));
+  const { stats, source, updatedAt } = useStayBoostStats();
+  const derived = computeDerived(stats);
+
+  const headlineStats = buildHeadlineStats(stats);
+  const opsStats = buildOpsStats(stats);
+  const engagementStats = buildEngagementStats(stats);
 
   return (
     <section
@@ -67,19 +108,22 @@ export function CaseStudy() {
           >
             Riktiga siffror från en riktig anläggning.
           </h2>
-          <p className="mt-3 text-sm font-semibold uppercase tracking-[0.16em] text-[color:var(--brass)]">
-            Göta Kanal Glamping · 2026 hittills
-          </p>
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+            <StatusPill source={source} />
+            <p className="text-xs text-[color:var(--ink)]/55">
+              Senast uppdaterad {formatUpdatedAt(updatedAt)}
+            </p>
+          </div>
           <p className="mt-5 max-w-2xl text-[color:var(--ink)]/75">
-            StayBoost är byggt ovanpå en befintlig glampingverksamhet vid Göta kanal.
-            Siffrorna nedan är verklig drift — samma system, samma gäster, samma
-            säsong. Inget påhittat, inga marknadsföringsantaganden.
+            StayBoost är byggt ovanpå en befintlig glampingverksamhet vid Göta kanal. Siffrorna
+            nedan är verklig drift — samma system, samma gäster, samma säsong. Inget påhittat, inga
+            marknadsföringsantaganden.
           </p>
         </div>
 
         {/* Headline stats */}
         <div className="mt-12 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
-          {HEADLINE_STATS.map((s) => (
+          {headlineStats.map((s) => (
             <StatCard key={s.label} {...s} />
           ))}
         </div>
@@ -94,47 +138,51 @@ export function CaseStudy() {
         >
           <div>
             <p className="eyebrow">Merförsäljning</p>
-            <h3
-              className="mt-3"
-              style={{ fontSize: "clamp(1.5rem, 2.5vw, 2rem)" }}
-            >
-              8 318 kr i betalda tillval
+            <h3 className="mt-3 tabular-nums" style={{ fontSize: "clamp(1.5rem, 2.5vw, 2rem)" }}>
+              {formatSek(stats.paidAddonRevenueSek)} i betalda tillval
             </h3>
             <p className="mt-4 text-[color:var(--ink)]/75">
-              20 betalda tillvalsordrar av 22 totalt, ett snittköp på{" "}
-              <strong className="text-[color:var(--ink)]">416 kr</strong>.
+              {formatInt(stats.paidAddonOrders)} betalda tillvalsordrar, ett snittköp på{" "}
+              <strong className="text-[color:var(--ink)] tabular-nums">
+                {formatSek(derived.avgPaidAddonSek)}
+              </strong>
+              .
             </p>
             <ul className="mt-5 space-y-2 text-sm text-[color:var(--ink)]/75">
               <li>
-                <strong className="text-[color:var(--ink)]">≈ 69 %</strong> av den
-                betalda merförsäljningen kom från frukost — observerat i denna
-                drift, inte ett generellt löfte.
+                <strong className="text-[color:var(--ink)] tabular-nums">
+                  ≈ {formatPercent(derived.breakfastShareOfAddons)}
+                </strong>{" "}
+                av den betalda merförsäljningen kom från frukost — observerat i denna drift, inte
+                ett generellt löfte.
               </li>
               <li>
-                <strong className="text-[color:var(--ink)]">≈ 16,7 %</strong> av
-                bokningarna gav ett betalt tillvalsköp (20 / 120) — observerat i
-                denna drift, inte en garanti.
+                <strong className="text-[color:var(--ink)] tabular-nums">
+                  ≈ {formatPercent(derived.addonShareOfBookings)}
+                </strong>{" "}
+                av bokningarna gav ett betalt tillvalsköp ({formatInt(stats.paidAddonOrders)} /{" "}
+                {formatInt(stats.bookings2026)}) — observerat i denna drift, inte en garanti.
               </li>
             </ul>
           </div>
 
           <div>
             <div className="space-y-4">
-              {ADDONS.map((a) => {
-                const pct = (a.revenue / maxRevenue) * 100;
+              {stats.addonDistribution.map((a) => {
+                const pct = (a.revenue / derived.maxAddonRevenue) * 100;
                 return (
-                  <div key={a.name}>
+                  <div key={a.slug}>
                     <div className="flex items-baseline justify-between gap-3 text-sm">
                       <div className="min-w-0">
                         <div className="truncate font-semibold text-[color:var(--ink)]">
                           {a.name}
                         </div>
-                        <div className="text-xs text-[color:var(--ink)]/55">
-                          {a.orders}
+                        <div className="text-xs text-[color:var(--ink)]/55 tabular-nums">
+                          {formatAddonSubtitle(a.orders, a.units)}
                         </div>
                       </div>
                       <div className="shrink-0 font-[Fraunces] font-semibold tabular-nums text-[color:var(--brass)]">
-                        {formatKr(a.revenue)} kr
+                        {formatSek(a.revenue)}
                       </div>
                     </div>
                     <div
@@ -153,9 +201,9 @@ export function CaseStudy() {
                 );
               })}
             </div>
-            <p className="mt-6 text-xs text-[color:var(--ink)]/55">
-              Summan av betalda tillval: {formatKr(TOTAL_PAID_REVENUE)} kr. Belopp
-              avrundade från källdata.
+            <p className="mt-6 text-xs text-[color:var(--ink)]/55 tabular-nums">
+              Summan av betalda tillval: {formatSek(stats.paidAddonRevenueSek)}. Belopp avrundade
+              från källdata.
             </p>
           </div>
         </motion.div>
@@ -166,7 +214,7 @@ export function CaseStudy() {
             <p className="eyebrow">Drift som sköter sig själv</p>
             <h3 className="mt-3 text-xl">Meddelanden, incheckning och frukost</h3>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
-              {OPS_STATS.map((s) => (
+              {opsStats.map((s) => (
                 <StatCard key={s.label} {...s} />
               ))}
             </div>
@@ -175,7 +223,7 @@ export function CaseStudy() {
             <p className="eyebrow">Gästaktivitet</p>
             <h3 className="mt-3 text-xl">Trafik i gästhubben</h3>
             <div className="mt-5 grid gap-4 sm:grid-cols-3">
-              {ENGAGEMENT_STATS.map((s) => (
+              {engagementStats.map((s) => (
                 <StatCard key={s.label} {...s} />
               ))}
             </div>
@@ -183,11 +231,10 @@ export function CaseStudy() {
         </div>
 
         <p className="mt-10 max-w-3xl text-xs leading-relaxed text-[color:var(--ink)]/55">
-          Källa: aggregerad driftstatistik från Göta Kanal Glamping för säsongen
-          2026 fram till idag. Ingen gäst-, personal- eller betalningsdata visas.
-          StayBoost är i pilotdrift — siffrorna beskriver hur systemet fungerar
-          på den här anläggningen och är inte ett löfte om samma resultat för
-          andra boenden.
+          Källa: aggregerad driftstatistik från Göta Kanal Glamping för säsongen 2026 fram till
+          idag. Ingen gäst-, personal- eller betalningsdata visas. StayBoost är i pilotdrift —
+          siffrorna beskriver hur systemet fungerar på den här anläggningen och är inte ett löfte om
+          samma resultat för andra boenden.
         </p>
       </div>
     </section>

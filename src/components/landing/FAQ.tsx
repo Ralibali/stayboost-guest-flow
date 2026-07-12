@@ -16,7 +16,7 @@ const ITEMS = [
   },
   {
     q: "Vad händer om en gäst svarar på ett SMS?",
-    a: "Du får svaret direkt i din inkorg i StayBoost och kan svara därifrån — eller låta automatiken hantera vanliga svar som \"JA\" på ett tillval.",
+    a: 'Du får svaret direkt i din inkorg i StayBoost och kan svara därifrån — eller låta automatiken hantera vanliga svar som "JA" på ett tillval.',
   },
   {
     q: "Kan jag skriva mina egna meddelanden?",
@@ -85,9 +85,7 @@ export function FAQ() {
                   className="flex w-full items-center justify-between gap-4 py-6 text-left"
                   aria-expanded={isOpen}
                 >
-                  <span className="font-[Fraunces] text-lg font-semibold md:text-xl">
-                    {item.q}
-                  </span>
+                  <span className="font-[Fraunces] text-lg font-semibold md:text-xl">{item.q}</span>
                   <motion.span
                     animate={{ rotate: isOpen ? 180 : 0 }}
                     transition={{ duration: 0.25 }}

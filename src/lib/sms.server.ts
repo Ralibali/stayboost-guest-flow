@@ -29,22 +29,16 @@ function rollDaily(b: Bucket): Bucket {
 export function checkLimits(
   ip: string,
   e164: string,
-):
-  | { ok: true }
-  | { ok: false; reason: "number_used" | "ip_limit" | "global_limit" } {
+): { ok: true } | { ok: false; reason: "number_used" | "ip_limit" | "global_limit" } {
   const hash = createHash("sha256").update(e164).digest("hex");
 
   totalDay = rollDaily(totalDay);
   if (totalDay.count >= 50) return { ok: false, reason: "global_limit" };
 
-  const ipBucket = rollDaily(
-    perIpDay.get(ip) ?? { count: 0, resetAt: Date.now() + DAY },
-  );
+  const ipBucket = rollDaily(perIpDay.get(ip) ?? { count: 0, resetAt: Date.now() + DAY });
   if (ipBucket.count >= 5) return { ok: false, reason: "ip_limit" };
 
-  const numBucket = rollDaily(
-    perNumberDay.get(hash) ?? { count: 0, resetAt: Date.now() + DAY },
-  );
+  const numBucket = rollDaily(perNumberDay.get(hash) ?? { count: 0, resetAt: Date.now() + DAY });
   if (numBucket.count >= 5) return { ok: false, reason: "number_used" };
 
   // Reserve

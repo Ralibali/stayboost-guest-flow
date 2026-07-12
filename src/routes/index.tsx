@@ -13,6 +13,7 @@ import { EarlyAccessForm } from "@/components/landing/EarlyAccessForm";
 import { DemoSms } from "@/components/landing/DemoSms";
 import { CaseStudy } from "@/components/landing/CaseStudy";
 import { BookFounder } from "@/components/landing/BookFounder";
+import { HeroProofLine } from "@/components/landing/HeroProofLine";
 
 const BRAND_NAME = "StayBoost";
 
@@ -60,9 +61,7 @@ function Header() {
 
   const scrollToHeroForm = (e: React.MouseEvent) => {
     e.preventDefault();
-    document
-      .getElementById("hero-form")
-      ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("hero-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
@@ -78,10 +77,18 @@ function Header() {
           {BRAND_NAME}
         </a>
         <nav className="hidden items-center gap-8 text-sm md:flex">
-          <a href="#sa-funkar-det" className="hover:text-[color:var(--brass)]">Så funkar det</a>
-          <a href="#produkten" className="hover:text-[color:var(--brass)]">Produkten</a>
-          <a href="#pris" className="hover:text-[color:var(--brass)]">Pris</a>
-          <a href="#faq" className="hover:text-[color:var(--brass)]">FAQ</a>
+          <a href="#sa-funkar-det" className="hover:text-[color:var(--brass)]">
+            Så funkar det
+          </a>
+          <a href="#produkten" className="hover:text-[color:var(--brass)]">
+            Produkten
+          </a>
+          <a href="#pris" className="hover:text-[color:var(--brass)]">
+            Pris
+          </a>
+          <a href="#faq" className="hover:text-[color:var(--brass)]">
+            FAQ
+          </a>
         </nav>
         <a
           href="#hero-form"
@@ -135,10 +142,7 @@ function Hero() {
       <div className="relative mx-auto grid max-w-[1120px] items-center gap-16 px-6 md:grid-cols-[55fr_45fr]">
         <div>
           <FadeUp>
-            <h1
-              className="text-white"
-              style={{ fontSize: "clamp(2.5rem, 6vw, 5rem)" }}
-            >
+            <h1 className="text-white" style={{ fontSize: "clamp(2.5rem, 6vw, 5rem)" }}>
               Dina gäster vill köpa mer.{" "}
               <em className="not-italic">
                 <span className="italic text-[color:var(--brass)]">Låt dem.</span>
@@ -148,26 +152,18 @@ function Hero() {
           <FadeUp delay={0.1}>
             <p className="mt-6 max-w-xl text-white/85">
               {BRAND_NAME} lägger sig ovanpå bokningarna du redan har — automatiserad
-              merförsäljning, gäst-SMS, digital incheckning och arbetsvyer för frukost
-              och städ. Ett lager driftautomation för små boenden. Utan app. Igång
-              på en kväll.
+              merförsäljning, gäst-SMS, digital incheckning och arbetsvyer för frukost och städ. Ett
+              lager driftautomation för små boenden. Utan app. Igång på en kväll.
             </p>
           </FadeUp>
           <FadeUp delay={0.15}>
             <p className="mt-4 text-[0.9rem] text-[color:var(--brass)]">
-              Bevisat i skarp drift:{" "}
-              <a href="#case-study" className="underline underline-offset-2">
-                8 318 kr i tillvalsintäkter på 120 bokningar denna säsong →
-              </a>
+              Bevisat i skarp drift: <HeroProofLine />
             </p>
           </FadeUp>
           <FadeUp delay={0.2}>
             <div className="mt-8 max-w-md">
-              <EarlyAccessForm
-                location="hero"
-                variant="dark"
-                buttonLabel="Få tidig tillgång"
-              />
+              <EarlyAccessForm location="hero" variant="dark" buttonLabel="Få tidig tillgång" />
             </div>
             <p className="mt-4 text-[0.85rem] text-white/70">
               Inget kort. Igång på en kväll.{" "}
@@ -206,7 +202,8 @@ function SocialProof() {
     <section className="border-y border-[color:var(--line)] bg-white/60">
       <div className="mx-auto max-w-[1120px] px-6 py-6">
         <p className="text-center text-sm text-[color:var(--ink)]/70">
-          I pilotdrift på <strong className="font-semibold text-[color:var(--ink)]">Göta Kanal Glamping</strong> —
+          I pilotdrift på{" "}
+          <strong className="font-semibold text-[color:var(--ink)]">Göta Kanal Glamping</strong> —
           byggd av ägaren, testad på riktiga gäster.{" "}
           <a href="#case-study" className="text-[color:var(--brass)] underline underline-offset-2">
             Se siffrorna →
@@ -286,7 +283,10 @@ function HowItWorks() {
     },
   ];
   return (
-    <section id="sa-funkar-det" className="border-t border-[color:var(--line)] bg-white/50 py-20 md:py-32">
+    <section
+      id="sa-funkar-det"
+      className="border-t border-[color:var(--line)] bg-white/50 py-20 md:py-32"
+    >
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="max-w-2xl">
           <p className="eyebrow">Tre steg</p>
@@ -303,9 +303,7 @@ function HowItWorks() {
           {steps.map((s, i) => (
             <FadeUp key={s.n} delay={i * 0.1}>
               <div className="relative flex gap-5 md:flex-col md:gap-6">
-                <div
-                  className="relative z-10 grid h-16 w-16 shrink-0 place-items-center rounded-full border border-[color:var(--brass)] bg-[color:var(--bg)] font-[Fraunces] text-2xl font-semibold text-[color:var(--brass)]"
-                >
+                <div className="relative z-10 grid h-16 w-16 shrink-0 place-items-center rounded-full border border-[color:var(--brass)] bg-[color:var(--bg)] font-[Fraunces] text-2xl font-semibold text-[color:var(--brass)]">
                   {s.n}
                 </div>
                 <div>
@@ -357,16 +355,11 @@ function Features() {
                 }`}
               >
                 <div>
-                  <h3
-                    className="max-w-md"
-                    style={{ fontSize: "clamp(1.75rem, 3vw, 2.25rem)" }}
-                  >
+                  <h3 className="max-w-md" style={{ fontSize: "clamp(1.75rem, 3vw, 2.25rem)" }}>
                     {b.title}
                   </h3>
                   <p className="mt-5 text-[color:var(--ink)]/75">{b.body}</p>
-                  <p className="mt-6 font-semibold text-[color:var(--brass)]">
-                    {b.fact}
-                  </p>
+                  <p className="mt-6 font-semibold text-[color:var(--brass)]">{b.fact}</p>
                 </div>
                 <div className="card-surface p-6">{b.mock}</div>
               </div>
@@ -448,9 +441,7 @@ function GuestHubMock() {
         <div className="font-semibold">Frukostkorg</div>
         <div className="mt-1 flex items-center justify-between">
           <span className="text-[color:var(--brass)]">249 kr</span>
-          <span className="rounded-md bg-[color:var(--brass)] px-2 py-1 text-white">
-            Boka
-          </span>
+          <span className="rounded-md bg-[color:var(--brass)] px-2 py-1 text-white">Boka</span>
         </div>
       </div>
     </div>
@@ -476,8 +467,8 @@ function Testimonial() {
             className="font-[Fraunces] italic text-[color:var(--ink)]"
             style={{ fontSize: "clamp(1.5rem, 3vw, 2.25rem)", lineHeight: 1.3 }}
           >
-            "Det betalar sig självt — varje månad. Första säsongen med StayBoost sålde vi
-            tillval för mer än hela årskostnaden, första veckan."
+            "Det betalar sig självt — varje månad. Första säsongen med StayBoost sålde vi tillval
+            för mer än hela årskostnaden, första veckan."
           </p>
         </FadeUp>
         <FadeUp delay={0.1}>
@@ -497,8 +488,8 @@ function Testimonial() {
             {/* TODO: byt platshållar-porträtt */}
             <div className="h-9 w-9 rounded-full bg-[color:var(--line)]" aria-hidden />
             <span>
-              Byggt av ägaren till <strong>Bergs Slussar Glamping</strong> — för att jag
-              behövde det själv.
+              Byggt av ägaren till <strong>Bergs Slussar Glamping</strong> — för att jag behövde det
+              själv.
             </span>
           </div>
         </div>
@@ -560,9 +551,7 @@ function Pricing() {
                     </span>
                     <span className="text-[color:var(--ink)]/70">kr/mån</span>
                   </div>
-                  <p className="mt-2 text-sm text-[color:var(--ink)]/60">
-                    Faktureras 4 490 kr/år
-                  </p>
+                  <p className="mt-2 text-sm text-[color:var(--ink)]/60">Faktureras 4 490 kr/år</p>
                 </>
               ) : (
                 <div className="flex items-baseline justify-center gap-2">
@@ -644,21 +633,49 @@ function Footer() {
         <div>
           <div className="font-[Fraunces] text-xl font-semibold text-white">{BRAND_NAME}</div>
           <p className="mt-3 max-w-xs text-sm">
-            Gästresa, tillval, incheckning, frukost och städ — hela driften för små
-            boenden i ett system.
+            Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett
+            system.
           </p>
         </div>
         <div className="text-sm">
           <div className="mb-3 font-semibold text-white">Länkar</div>
           <ul className="space-y-2">
-            <li><a href="#sa-funkar-det" className="hover:text-white">Så funkar det</a></li>
-            <li><a href="#produkten" className="hover:text-white">Produkten</a></li>
-            <li><a href="#mallar" className="hover:text-white">Gratis mallar</a></li>
-            <li><a href="#pris" className="hover:text-white">Pris</a></li>
-            <li><a href="#faq" className="hover:text-white">FAQ</a></li>
+            <li>
+              <a href="#sa-funkar-det" className="hover:text-white">
+                Så funkar det
+              </a>
+            </li>
+            <li>
+              <a href="#produkten" className="hover:text-white">
+                Produkten
+              </a>
+            </li>
+            <li>
+              <a href="#mallar" className="hover:text-white">
+                Gratis mallar
+              </a>
+            </li>
+            <li>
+              <a href="#pris" className="hover:text-white">
+                Pris
+              </a>
+            </li>
+            <li>
+              <a href="#faq" className="hover:text-white">
+                FAQ
+              </a>
+            </li>
             {/* TODO: sidor för policy/villkor */}
-            <li><a href="#" className="hover:text-white">Integritetspolicy</a></li>
-            <li><a href="#" className="hover:text-white">Villkor</a></li>
+            <li>
+              <a href="#" className="hover:text-white">
+                Integritetspolicy
+              </a>
+            </li>
+            <li>
+              <a href="#" className="hover:text-white">
+                Villkor
+              </a>
+            </li>
           </ul>
         </div>
         <div className="text-sm">

@@ -37,11 +37,12 @@ export function ProductTour() {
         <div className="max-w-2xl">
           <p className="eyebrow">Så här ser det ut</p>
           <h2 className="mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
-            Ett system. Tre vyer. <em className="italic text-[color:var(--brass)]">Noll dubbelarbete.</em>
+            Ett system. Tre vyer.{" "}
+            <em className="italic text-[color:var(--brass)]">Noll dubbelarbete.</em>
           </h2>
           <p className="mt-5 text-[color:var(--ink)]/75">
-            Gästen, personalen och du ser samma sanning — uppdaterad i samma sekund som
-            något händer.
+            Gästen, personalen och du ser samma sanning — uppdaterad i samma sekund som något
+            händer.
           </p>
         </div>
 
@@ -70,9 +71,7 @@ export function ProductTour() {
                     : "text-[color:var(--ink)]/70 hover:bg-[color:var(--bg)]"
                 }`}
               >
-                <div className="font-[Fraunces] text-base font-semibold md:text-lg">
-                  {t.label}
-                </div>
+                <div className="font-[Fraunces] text-base font-semibold md:text-lg">{t.label}</div>
                 <div
                   className={`text-[0.75rem] ${
                     active ? "text-white/70" : "text-[color:var(--ink)]/50"
@@ -110,9 +109,7 @@ export function ProductTour() {
 function GuestPane() {
   return (
     <div className="grid gap-6 md:grid-cols-3">
-      <DemoCard
-        caption="Fyra språk, betalning via Swish eller kortlänk, beställningsstopp X dagar före ankomst — du bestämmer."
-      >
+      <DemoCard caption="Fyra språk, betalning via Swish eller kortlänk, beställningsstopp X dagar före ankomst — du bestämmer.">
         <GuestHubDemo />
       </DemoCard>
       <DemoCard caption="Gästen checkar in själv — även när du sitter på fotbollsträningen.">
@@ -149,9 +146,7 @@ function GuestHubDemo() {
       <div className="space-y-3 text-sm">
         <div>
           <div className="font-[Fraunces] text-lg font-semibold">Hej Anna! 🌿</div>
-          <div className="text-xs text-[color:var(--ink)]/60">
-            Sjöbris · 12–14 juli · 2 nätter
-          </div>
+          <div className="text-xs text-[color:var(--ink)]/60">Sjöbris · 12–14 juli · 2 nätter</div>
         </div>
 
         <Stepper
@@ -254,9 +249,7 @@ function Stepper({
         >
           −
         </button>
-        <span className="w-5 text-center text-sm font-semibold tabular-nums">
-          {value}
-        </span>
+        <span className="w-5 text-center text-sm font-semibold tabular-nums">{value}</span>
         <button
           onClick={() => onChange(Math.min(max, value + 1))}
           className="grid h-7 w-7 place-items-center rounded-full border border-[color:var(--brass)] text-sm text-[color:var(--brass)]"
@@ -344,8 +337,8 @@ function CheckinDemo() {
       {step === 2 && (
         <div className="space-y-3">
           <div className="max-h-24 overflow-auto rounded-lg border border-[color:var(--line)] bg-[color:var(--bg)] p-2 text-[0.72rem] text-[color:var(--ink)]/70">
-            Trivselregler: rök inte i tälten, hundar i koppel, tyst efter 22.
-            Avbeställning senast 48 h före ankomst…
+            Trivselregler: rök inte i tälten, hundar i koppel, tyst efter 22. Avbeställning senast
+            48 h före ankomst…
           </div>
           <label className="flex items-center gap-2 text-xs">
             <input
@@ -370,9 +363,7 @@ function CheckinDemo() {
           <div className="text-[0.7rem] uppercase tracking-wide text-[color:var(--ink)]/55">
             Portkod
           </div>
-          <div
-            className="rounded-xl border border-[color:var(--brass)] bg-[color:var(--bg)] py-4 font-[Fraunces] text-4xl font-semibold tracking-widest text-[color:var(--brass)]"
-          >
+          <div className="rounded-xl border border-[color:var(--brass)] bg-[color:var(--bg)] py-4 font-[Fraunces] text-4xl font-semibold tracking-widest text-[color:var(--brass)]">
             4482
           </div>
           <button className="w-full rounded-lg border border-[color:var(--line)] px-3 py-2 text-sm">
@@ -438,9 +429,7 @@ function SelfServeDemo() {
         </div>
         <div
           className={`font-[Fraunces] text-3xl font-semibold tracking-widest ${
-            phase === "unlocked"
-              ? "text-[color:var(--brass)]"
-              : "text-[color:var(--ink)]/25"
+            phase === "unlocked" ? "text-[color:var(--brass)]" : "text-[color:var(--ink)]/25"
           }`}
         >
           {phase === "unlocked" ? "7391" : "● ● ● ●"}
@@ -501,9 +490,7 @@ function BreakfastDemo() {
           </button>
         </div>
         <div className="flex gap-1 text-[0.72rem]">
-          <button className="rounded-lg bg-[color:var(--forest)] px-2 py-1 text-white">
-            Idag
-          </button>
+          <button className="rounded-lg bg-[color:var(--forest)] px-2 py-1 text-white">Idag</button>
           <button className="rounded-lg border border-[color:var(--line)] px-2 py-1">
             Imorgon
           </button>
@@ -512,20 +499,14 @@ function BreakfastDemo() {
 
       <div className="mt-4 grid grid-cols-2 gap-2">
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
-          <div className="text-[0.7rem] uppercase tracking-wide text-amber-800/70">
-            Frukost
-          </div>
+          <div className="text-[0.7rem] uppercase tracking-wide text-amber-800/70">Frukost</div>
           <div className="font-[Fraunces] text-2xl font-semibold text-amber-900">
             6 <span className="text-xs font-normal">portioner</span>
           </div>
         </div>
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-3">
-          <div className="text-[0.7rem] uppercase tracking-wide text-emerald-800/70">
-            Fikapåsar
-          </div>
-          <div className="font-[Fraunces] text-2xl font-semibold text-emerald-900">
-            2
-          </div>
+          <div className="text-[0.7rem] uppercase tracking-wide text-emerald-800/70">Fikapåsar</div>
+          <div className="font-[Fraunces] text-2xl font-semibold text-emerald-900">2</div>
         </div>
       </div>
 
@@ -678,9 +659,7 @@ function CleaningDemo() {
 
       <div
         className={`rounded-xl border-2 bg-white p-4 ${
-          finished
-            ? "border-[color:var(--success)]"
-            : "border-red-500"
+          finished ? "border-[color:var(--success)]" : "border-red-500"
         }`}
       >
         <div className="flex items-start justify-between">
@@ -872,9 +851,7 @@ function AdminPane() {
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <div>
-                      <div className="font-semibold">
-                        Frukostkorg × 2 · Tält 1 · 498 kr
-                      </div>
+                      <div className="font-semibold">Frukostkorg × 2 · Tält 1 · 498 kr</div>
                       <div className="text-[0.7rem] text-[color:var(--ink)]/60">
                         {confirmed ? "Status: Betald ✓" : "Avvaktar betalning"}
                       </div>
@@ -971,13 +948,7 @@ function OrderRow({
 
 /* ---------------- helpers ---------------- */
 
-function DemoCard({
-  children,
-  caption,
-}: {
-  children: ReactNode;
-  caption: string;
-}) {
+function DemoCard({ children, caption }: { children: ReactNode; caption: string }) {
   return (
     <figure className="flex h-full flex-col gap-4">
       <div className="card-surface flex-1 p-5">{children}</div>
