@@ -2,56 +2,95 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { EarlyAccessForm } from "@/components/landing/EarlyAccessForm";
 
-function useCountUp(target: number, duration = 600) {
+function useCountUp(target: number, duration = 500) {
   const [value, setValue] = useState(target);
-  const prev = useRef(target);
-  const reduced = useReducedMotion();
+  const previous = useRef(target);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    if (reduced) {
+    if (reducedMotion) {
       setValue(target);
-      prev.current = target;
+      previous.current = target;
       return;
     }
-    const from = prev.current;
-    const to = target;
+
+    const from = previous.current;
     const start = performance.now();
-    let raf = 0;
-    const tick = (t: number) => {
-      const p = Math.min(1, (t - start) / duration);
-      const eased = 1 - Math.pow(1 - p, 3);
-      setValue(Math.round(from + (to - from) * eased));
-      if (p < 1) raf = requestAnimationFrame(tick);
-      else prev.current = to;
+    let animationFrame = 0;
+
+    const tick = (time: number) => {
+      const progress = Math.min(1, (time - start) / duration);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(from + (target - from) * eased));
+      if (progress < 1) animationFrame = requestAnimationFrame(tick);
+      else previous.current = target;
     };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [target, duration, reduced]);
+
+    animationFrame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animationFrame);
+  }, [duration, reducedMotion, target]);
 
   return value;
 }
 
-function formatKr(n: number) {
-  return n.toLocaleString("sv-SE").replace(/,/g, " ");
+function formatKr(value: number) {
+  return value.toLocaleString("sv-SE");
+}
+
+function RangeField({
+  label,
+  value,
+  min,
+  max,
+  step,
+  suffix,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  suffix: string;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label className="block">
+      <span className="flex items-center justify-between gap-4 text-sm text-white/75">
+        <span>{label}</span>
+        <strong className="text-white">
+          {value.toLocaleString("sv-SE")} {suffix}
+        </strong>
+      </span>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(event) => onChange(Number(event.target.value))}
+        className="brass-slider mt-3 w-full"
+      />
+    </label>
+  );
 }
 
 export function RevenueCalculator() {
   const [bookings, setBookings] = useState(30);
+  const [conversion, setConversion] = useState(15);
+  const [averageOrder, setAverageOrder] = useState(225);
   const [tracked, setTracked] = useState(false);
 
-  // bookings × 0.20 × 200 kr → round to nearest 100
-  const raw = bookings * 0.2 * 200;
-  const perMonth = Math.round(raw / 100) * 100;
+  const perMonth = Math.round(bookings * (conversion / 100) * averageOrder);
   const perYear = perMonth * 12;
-
   const displayedMonth = useCountUp(perMonth);
   const displayedYear = useCountUp(perYear);
 
-  const onSlide = (val: number) => {
-    setBookings(val);
+  const update = (setter: (value: number) => void, value: number) => {
+    setter(value);
     if (!tracked && typeof window !== "undefined") {
-      const w = window as unknown as { plausible?: (e: string) => void };
-      w.plausible?.("Calculator Used");
+      const analytics = window as unknown as { plausible?: (event: string) => void };
+      analytics.plausible?.("Calculator Used");
       setTracked(true);
     }
   };
@@ -60,10 +99,14 @@ export function RevenueCalculator() {
     <section className="bg-[color:var(--forest)] py-20 text-[color:var(--bg)] md:py-32">
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="eyebrow">Räkna själv</p>
+          <p className="eyebrow">Räkna med dina egna antaganden</p>
           <h2 className="mt-3 text-white" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
-            Vad är StayBoost värt för dig?
+            Hur mycket merförsäljning kan du skapa?
           </h2>
+          <p className="mt-5 text-white/70">
+            Justera bokningar, köpfrekvens och snittköp. Kalkylatorn visar ett scenario — inte
+            ett löfte.
+          </p>
         </div>
 
         <motion.div
@@ -73,55 +116,57 @@ export function RevenueCalculator() {
           transition={{ duration: 0.5 }}
           className="mx-auto mt-12 max-w-xl rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur md:p-10"
         >
-          <label className="block">
-            <span className="text-sm text-white/70">
-              Hur många bokningar har du per månad?
-            </span>
-            <div className="mt-4 flex items-baseline gap-3">
-              <span
-                className="font-[Fraunces] font-semibold text-[color:var(--brass)]"
-                style={{ fontSize: "3.5rem", lineHeight: 1 }}
-              >
-                {bookings}
-              </span>
-              <span className="text-sm text-white/60">bokningar/mån</span>
-            </div>
-            <input
-              type="range"
+          <div className="space-y-7">
+            <RangeField
+              label="Bokningar per månad"
+              value={bookings}
               min={5}
               max={200}
               step={1}
-              value={bookings}
-              onChange={(e) => onSlide(Number(e.target.value))}
-              className="brass-slider mt-4 w-full"
-              aria-label="Bokningar per månad"
+              suffix="st"
+              onChange={(value) => update(setBookings, value)}
             />
-            <div className="mt-1 flex justify-between text-xs text-white/50">
-              <span>5</span>
-              <span>200</span>
-            </div>
-          </label>
+            <RangeField
+              label="Andel bokningar som köper tillval"
+              value={conversion}
+              min={5}
+              max={40}
+              step={1}
+              suffix="%"
+              onChange={(value) => update(setConversion, value)}
+            />
+            <RangeField
+              label="Genomsnittligt tillvalsköp"
+              value={averageOrder}
+              min={75}
+              max={800}
+              step={25}
+              suffix="kr"
+              onChange={(value) => update(setAverageOrder, value)}
+            />
+          </div>
 
-          <div className="mt-8 border-t border-white/10 pt-6">
-            <p className="font-[Fraunces] text-white" style={{ fontSize: "clamp(1.5rem, 3vw, 2.25rem)", lineHeight: 1.2 }}>
+          <div className="mt-8 border-t border-white/10 pt-7 text-center">
+            <p className="font-[Fraunces] text-white" style={{ fontSize: "clamp(1.7rem, 4vw, 2.6rem)" }}>
               +<span className="text-[color:var(--brass)]">{formatKr(displayedMonth)} kr</span>/mån
-              <span className="ml-2 text-base font-normal text-white/70">i merförsäljning</span>
             </p>
-            <p className="mt-3 text-white/80">
-              Det är <strong className="text-white">{formatKr(displayedYear)} kr per år</strong> — mot en kostnad på 449 kr/mån.
+            <p className="mt-2 text-white/75">
+              cirka <strong className="text-white">{formatKr(displayedYear)} kr per år</strong> i
+              tillvalsförsäljning i det här scenariot.
             </p>
-            <p className="mt-3 text-white/80">
-              + cirka <strong className="text-white">5 timmar i veckan</strong> i sparad
-              drifttid — frukostlistor, städinstruktioner och gästfrågor som sköter sig själva.
-            </p>
-            <p className="mt-4 text-[0.8rem] leading-relaxed text-white/50">
-              Baserat på att 15–25 % av gästerna bokar tillval för i snitt 200 kr. Konservativt räknat med 20 %.
+            <p className="mt-4 text-xs leading-relaxed text-white/50">
+              Beräkning: bokningar × köpfrekvens × genomsnittligt köp. Faktiskt utfall beror på
+              utbud, pris, säsong och hur relevanta erbjudandena är.
             </p>
           </div>
         </motion.div>
 
         <div className="mx-auto mt-8 max-w-md">
-          <EarlyAccessForm location="calculator" variant="dark" buttonLabel="Börja räkna hem det →" />
+          <EarlyAccessForm
+            location="calculator"
+            variant="dark"
+            buttonLabel="Ansök om pilotplats"
+          />
         </div>
       </div>
 
@@ -130,7 +175,7 @@ export function RevenueCalculator() {
           -webkit-appearance: none;
           appearance: none;
           height: 4px;
-          background: rgba(255,255,255,0.15);
+          background: rgba(255,255,255,0.16);
           border-radius: 999px;
           outline: none;
         }
