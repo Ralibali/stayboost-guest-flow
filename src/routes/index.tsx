@@ -40,6 +40,7 @@ function Index() {
       <Testimonial />
       <Pricing />
       <FAQ />
+      <BookFounder />
       <FinalCTA />
       <Footer />
       <StickyMobileCTA />
