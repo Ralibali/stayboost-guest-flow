@@ -155,10 +155,7 @@ function Hero() {
           </FadeUp>
           <FadeUp delay={0.15}>
             <p className="mt-4 text-[0.9rem] text-[color:var(--brass)]">
-              Bevisat i skarp drift:{" "}
-              <a href="#case-study" className="underline underline-offset-2">
-                8 318 kr i tillvalsintäkter på 120 bokningar denna säsong →
-              </a>
+              Bevisat i skarp drift: <HeroProofLine />
             </p>
           </FadeUp>
           <FadeUp delay={0.2}>
