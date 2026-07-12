@@ -8,9 +8,11 @@ import {
   Scripts,
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
-
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { FAQ_ITEMS } from "../lib/faq";
+
+const SITE_URL = "https://stayboost.se";
 
 function NotFoundComponent() {
   return (
@@ -34,6 +36,7 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+
   useEffect(() => {
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
   }, [error]);
@@ -47,6 +50,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
+            type="button"
             onClick={() => {
               router.invalidate();
               reset();
@@ -76,34 +80,36 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       name: "StayBoost",
+      url: SITE_URL,
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
+      description:
+        "Gästkommunikation, tillval och arbetsvyer för glamping, stugor och små boenden.",
       offers: {
         "@type": "Offer",
         price: "449",
         priceCurrency: "SEK",
+        availability: "https://schema.org/PreOrder",
+      },
+      provider: {
+        "@type": "Organization",
+        name: "Aurora Media AB",
+        email: "info@auroramedia.se",
+        address: {
+          "@type": "PostalAddress",
+          addressLocality: "Linköping",
+          addressCountry: "SE",
+        },
       },
     };
-
-    const faqItems = [
-      ["Fungerar det med Sirvoy och Booking.com?", "Ja. StayBoost hämtar dina bokningar automatiskt. Har du ett annat system kan du lägga in bokningar manuellt på under en minut."],
-      ["Behöver mina gäster ladda ner en app?", "Nej. Allt sker via vanliga SMS och en webblänk som öppnas direkt i mobilen. Inget konto, ingen inloggning."],
-      ["Hur lång tid tar det att komma igång?", "En kväll. Koppla bokningarna, välj bland färdiga mallar, klart. De flesta skickar sitt första automatiska meddelande samma dag."],
-      ["Vad händer om en gäst svarar på ett SMS?", "Du får svaret direkt i din inkorg i StayBoost och kan svara därifrån — eller låta automatiken hantera vanliga svar som \"JA\" på ett tillval."],
-      ["Kan jag skriva mina egna meddelanden?", "Självklart. Mallarna är en start — varje meddelande går att redigera, och du kan bygga egna flöden med dina egna ord."],
-      ["Vad kostar SMS:en?", "SMS ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per SMS — inga påslag, inga överraskningar."],
-      ["Funkar det för min personal?", "Ja — det är halva poängen. Frukost- och städvyerna har egna enkla inloggningar, funkar i mobilen och finns på flera språk. Personalen ser exakt vad som ska göras: antal portioner, allergier, handdukar per tält."],
-      ["Kan gäster hyra saker själva, som SUP eller bastu?", "Ja. Skapa ett tillval med kodlås: gästen betalar i mobilen och får koden direkt. Perfekt för SUP, bastu, cyklar och annat som inte kräver att du är på plats."],
-      ["Vi använder inte Sirvoy — funkar det ändå?", "Ja. Booking.com och manuell inmatning stöds, och fler kopplingar är på väg. Säg till vilken du behöver."],
-    ];
 
     const faqLd = {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: faqItems.map(([q, a]) => ({
+      mainEntity: FAQ_ITEMS.map((item) => ({
         "@type": "Question",
-        name: q,
-        acceptedAnswer: { "@type": "Answer", text: a },
+        name: item.q,
+        acceptedAnswer: { "@type": "Answer", text: item.a },
       })),
     };
 
@@ -111,33 +117,39 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       meta: [
         { charSet: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1" },
-        { title: "StayBoost — Hela driften för små boenden i ett system" },
+        { title: "StayBoost — merförsäljning och enklare drift för små boenden" },
         {
           name: "description",
           content:
-            "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system. Prova gratis i 14 dagar.",
+            "Automatiska gäst-SMS, tillval och enkla frukost- och städvyer för glamping, stugor och små boenden. Ansök om en pilotplats.",
         },
+        { name: "robots", content: "index,follow,max-image-preview:large" },
         {
           property: "og:title",
-          content: "StayBoost — Hela driften för små boenden i ett system",
+          content: "StayBoost — sälj mer till varje gäst utan mer administration",
         },
         {
           property: "og:description",
           content:
-            "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
+            "Gästkommunikation, tillval och arbetsvyer för glamping, stugor och små boenden.",
         },
         { property: "og:type", content: "website" },
-        { property: "og:image", content: "/og-image.png" },
+        { property: "og:locale", content: "sv_SE" },
+        { property: "og:url", content: SITE_URL },
+        { property: "og:image", content: `${SITE_URL}/og-image.png` },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: "StayBoost — Hela driften för små boenden i ett system" },
+        {
+          name: "twitter:title",
+          content: "StayBoost — sälj mer till varje gäst utan mer administration",
+        },
         {
           name: "twitter:description",
-          content:
-            "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
+          content: "Gästkommunikation, tillval och arbetsvyer för små boenden.",
         },
-        { name: "twitter:image", content: "/og-image.png" },
+        { name: "twitter:image", content: `${SITE_URL}/og-image.png` },
       ],
       links: [
+        { rel: "canonical", href: SITE_URL },
         { rel: "stylesheet", href: appCss },
         { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -153,14 +165,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "data-domain": plausibleDomain,
           src: "https://plausible.io/js/script.js",
         },
-        {
-          type: "application/ld+json",
-          children: JSON.stringify(softwareLd),
-        },
-        {
-          type: "application/ld+json",
-          children: JSON.stringify(faqLd),
-        },
+        { type: "application/ld+json", children: JSON.stringify(softwareLd) },
+        { type: "application/ld+json", children: JSON.stringify(faqLd) },
       ],
     };
   },
