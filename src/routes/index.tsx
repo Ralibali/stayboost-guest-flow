@@ -13,6 +13,7 @@ import { EarlyAccessForm } from "@/components/landing/EarlyAccessForm";
 import { DemoSms } from "@/components/landing/DemoSms";
 import { CaseStudy } from "@/components/landing/CaseStudy";
 import { BookFounder } from "@/components/landing/BookFounder";
+import { HeroProofLine } from "@/components/landing/HeroProofLine";
 
 const BRAND_NAME = "StayBoost";
 
