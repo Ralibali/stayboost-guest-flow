@@ -136,7 +136,7 @@ function DPA() {
 
       <h2>13. Kontakt</h2>
       <p>
-        Dataskyddsfrågor: <a href="mailto:privacy@stayboost.se">privacy@stayboost.se</a>
+        Dataskyddsfrågor: <a href="mailto:info@auroramedia.se">info@auroramedia.se</a>
       </p>
     </LegalLayout>
   );

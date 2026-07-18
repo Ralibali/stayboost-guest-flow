@@ -128,7 +128,7 @@ function Terms() {
 
       <h2>13. Kontakt</h2>
       <p>
-        Aurora Media AB, Linköping · <a href="mailto:hej@stayboost.se">hej@stayboost.se</a>
+        Aurora Media AB, Linköping · <a href="mailto:info@auroramedia.se">info@auroramedia.se</a>
       </p>
     </LegalLayout>
   );
