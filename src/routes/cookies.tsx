@@ -77,7 +77,7 @@ function Cookies() {
 
       <h2>Frågor</h2>
       <p>
-        Kontakta <a href="mailto:privacy@stayboost.se">privacy@stayboost.se</a>.
+        Kontakta <a href="mailto:info@auroramedia.se">info@auroramedia.se</a>.
       </p>
     </LegalLayout>
   );

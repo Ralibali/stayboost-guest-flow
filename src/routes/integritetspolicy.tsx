@@ -37,9 +37,9 @@ function PrivacyPolicy() {
 
       <h2>1. Personuppgiftsansvarig</h2>
       <p>
-        Aurora Media AB, org.nr [org.nr fylls i], Linköping, Sverige.
+        Aurora Media AB, org.nr 559272-0220, Linköping, Sverige.
         <br />
-        Kontakt: <a href="mailto:privacy@stayboost.se">privacy@stayboost.se</a>
+        Kontakt: <a href="mailto:info@auroramedia.se">info@auroramedia.se</a>
       </p>
 
       <h2>2. Vilka uppgifter vi behandlar</h2>
@@ -141,7 +141,7 @@ function PrivacyPolicy() {
         <li>Rätt att återkalla samtycke.</li>
       </ul>
       <p>
-        Kontakta oss på <a href="mailto:privacy@stayboost.se">privacy@stayboost.se</a>. Är du inte
+        Kontakta oss på <a href="mailto:info@auroramedia.se">info@auroramedia.se</a>. Är du inte
         nöjd har du rätt att klaga till{" "}
         <a href="https://www.imy.se" rel="noopener" target="_blank">
           Integritetsskyddsmyndigheten (IMY)
