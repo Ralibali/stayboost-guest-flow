@@ -30,9 +30,9 @@ function PrivacyPolicy() {
     <LegalLayout title="Integritetspolicy" updated="12 juli 2026">
       <p>
         Denna integritetspolicy beskriver hur <strong>Aurora Media AB</strong> (”StayBoost”, ”vi”)
-        behandlar personuppgifter i tjänsten StayBoost och på webbplatsen{" "}
-        <code>stayboost.se</code>. Vi följer EU:s dataskyddsförordning (GDPR), lagen om elektronisk
-        kommunikation (LEK) samt svensk marknadsföringslag.
+        behandlar personuppgifter i tjänsten StayBoost och på webbplatsen <code>stayboost.se</code>.
+        Vi följer EU:s dataskyddsförordning (GDPR), lagen om elektronisk kommunikation (LEK) samt
+        svensk marknadsföringslag.
       </p>
 
       <h2>1. Personuppgiftsansvarig</h2>
@@ -72,8 +72,8 @@ function PrivacyPolicy() {
           <strong>Leverera och utveckla tjänsten</strong> — fullgörande av avtal (art. 6.1 b GDPR).
         </li>
         <li>
-          <strong>Support och kundkommunikation</strong> — avtal och berättigat intresse (art. 6.1
-          b & f).
+          <strong>Support och kundkommunikation</strong> — avtal och berättigat intresse (art. 6.1 b
+          & f).
         </li>
         <li>
           <strong>Marknadsföring till befintliga kunder</strong> — berättigat intresse (art. 6.1 f),
@@ -99,9 +99,7 @@ function PrivacyPolicy() {
         <li>Kunduppgifter: under avtalstiden och därefter så länge det finns en rättslig grund.</li>
         <li>Bokföringsunderlag: 7 år (bokföringslagen).</li>
         <li>Loggar / säkerhetsdata: som regel högst 12 månader.</li>
-        <li>
-          Demo-SMS-formulär: telefonnummer sparas endast för rate-limit-kontroll i 24 timmar.
-        </li>
+        <li>Demo-SMS-formulär: telefonnummer sparas endast för rate-limit-kontroll i 24 timmar.</li>
       </ul>
 
       <h2>5. Mottagare och personuppgiftsbiträden</h2>
@@ -127,9 +125,8 @@ function PrivacyPolicy() {
         </li>
       </ul>
       <p>
-        Fullständig lista och biträdesavtal (DPA) finns på{" "}
-        <a href="/dpa">/dpa</a>. Vid överföring till tredje land används EU-kommissionens
-        standardavtalsklausuler (SCC).
+        Fullständig lista och biträdesavtal (DPA) finns på <a href="/dpa">/dpa</a>. Vid överföring
+        till tredje land används EU-kommissionens standardavtalsklausuler (SCC).
       </p>
 
       <h2>6. Dina rättigheter</h2>
@@ -152,8 +149,8 @@ function PrivacyPolicy() {
       <h2>7. Säkerhet</h2>
       <p>
         Vi använder kryptering i transit (TLS) och i vila, minsta möjliga behörighet, loggning och
-        regelbunden granskning. Personuppgiftsincidenter anmäls till IMY inom 72 timmar när kravet
-        i art. 33 GDPR är uppfyllt.
+        regelbunden granskning. Personuppgiftsincidenter anmäls till IMY inom 72 timmar när kravet i
+        art. 33 GDPR är uppfyllt.
       </p>
 
       <h2>8. Automatiserat beslutsfattande</h2>
@@ -161,8 +158,8 @@ function PrivacyPolicy() {
 
       <h2>9. Ändringar</h2>
       <p>
-        Vi kan uppdatera denna policy. Vid väsentliga ändringar meddelar vi via e-post eller
-        tydligt meddelande i tjänsten.
+        Vi kan uppdatera denna policy. Vid väsentliga ändringar meddelar vi via e-post eller tydligt
+        meddelande i tjänsten.
       </p>
     </LegalLayout>
   );

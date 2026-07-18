@@ -130,8 +130,8 @@ function DPA() {
 
       <h2>12. Ändringar</h2>
       <p>
-        Vid ändringar i tillämplig dataskyddslag har parterna rätt att begära omförhandling av
-        detta DPA.
+        Vid ändringar i tillämplig dataskyddslag har parterna rätt att begära omförhandling av detta
+        DPA.
       </p>
 
       <h2>13. Kontakt</h2>

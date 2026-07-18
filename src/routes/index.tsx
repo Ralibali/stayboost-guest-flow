@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
-import { createFileRoute } from "@tanstack/react-router";
+import { Link, createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { PhoneMockup } from "@/components/landing/PhoneMockup";
 import { RevenueCalculator } from "@/components/landing/RevenueCalculator";
@@ -8,6 +8,7 @@ import { ProductTour } from "@/components/landing/ProductTour";
 import { FeaturesGrid } from "@/components/landing/FeaturesGrid";
 import { LeadMagnet } from "@/components/landing/LeadMagnet";
 import { LiveDemo } from "@/components/landing/LiveDemo";
+import { Comparison } from "@/components/landing/Comparison";
 import { StickyMobileCTA } from "@/components/landing/StickyMobileCTA";
 import { EarlyAccessForm } from "@/components/landing/EarlyAccessForm";
 import { DemoSms } from "@/components/landing/DemoSms";
@@ -38,6 +39,7 @@ function Index() {
       <DemoSms />
       <LeadMagnet />
       <RevenueCalculator />
+      <Comparison />
       <Testimonial />
       <Pricing />
       <FAQ />
@@ -83,6 +85,9 @@ function Header() {
           <a href="#produkten" className="hover:text-[color:var(--brass)]">
             Produkten
           </a>
+          <Link to="/demo" className="font-semibold text-[color:var(--brass)]">
+            Testa demon
+          </Link>
           <a href="#pris" className="hover:text-[color:var(--brass)]">
             Pris
           </a>
@@ -151,9 +156,10 @@ function Hero() {
           </FadeUp>
           <FadeUp delay={0.1}>
             <p className="mt-6 max-w-xl text-white/85">
-              {BRAND_NAME} lägger sig ovanpå bokningarna du redan har — automatiserad
-              merförsäljning, gäst-SMS, digital incheckning och arbetsvyer för frukost och städ. Ett
-              lager driftautomation för små boenden. Utan app. Igång på en kväll.
+              {BRAND_NAME} lägger sig ovanpå bokningarna du redan har — egen provisionsfri
+              bokningsmotor, automatiserad merförsäljning, gäst-SMS, digital incheckning och
+              arbetsvyer för frukost och städ. Ett lager driftautomation för små boenden. Utan app.
+              Igång på en kväll.
             </p>
           </FadeUp>
           <FadeUp delay={0.15}>
@@ -330,7 +336,7 @@ function Features() {
     },
     {
       title: "Din meny av extraintäkter.",
-      body: "Sen utcheckning, frukostkorg, ved, bastutid, cykeluthyrning — du bestämmer utbudet och priset. StayBoost erbjuder rätt tillval vid rätt tidpunkt, gästen betalar med ett tryck.",
+      body: "Frukostkorg, bastutid, guidade turer, massage, hyrutrustning — även från lokala partners som du tar provision på. StayBoost erbjuder rätt tillval vid rätt tidpunkt, gästen betalar med ett tryck.",
       fact: "15–25 % av gästerna tackar ja.",
       mock: <AddonsMock />,
     },
@@ -568,8 +574,12 @@ function Pricing() {
 
             <ul className="mt-8 space-y-3 text-[0.95rem]">
               {[
+                "Komplett bokningsmotor — kalender, betalning & kampanjkoder",
+                "Säsongspriser, paket, presentkort & ombokningsgaranti",
+                "Min sida — gästen bokar om & köper tillval själv",
+                "Personalresurser, veckoscheman & dagens manifest",
                 "Obegränsade meddelanden och gäster",
-                "Alla tillvalsfunktioner",
+                "Tillvalsmarknadsplats — sälj lokala partners upplevelser mot provision",
                 "Gästhubb + digital incheckning",
                 "Frukost- och städvyer med rollinloggning",
                 "Sirvoy- & Booking.com-koppling",

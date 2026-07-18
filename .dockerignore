@@ -1,0 +1,9 @@
+node_modules
+.output
+.wrangler
+dist
+.git
+.gitignore
+*.log
+.prettierrc
+.prettierignore

@@ -25,8 +25,8 @@ function Cookies() {
   return (
     <LegalLayout title="Cookies och lokal lagring" updated="12 juli 2026">
       <p>
-        Enligt lagen (2003:389) om elektronisk kommunikation (LEK) och EU:s ePrivacy-direktiv får
-        vi endast lagra information i din webbläsare med ditt samtycke — undantaget cookies som är
+        Enligt lagen (2003:389) om elektronisk kommunikation (LEK) och EU:s ePrivacy-direktiv får vi
+        endast lagra information i din webbläsare med ditt samtycke — undantaget cookies som är
         strikt nödvändiga för att leverera tjänsten.
       </p>
 
@@ -49,7 +49,9 @@ function Cookies() {
           </tr>
           <tr className="border-b border-[color:var(--line)]/60">
             <td className="py-2 pr-4">stayboost-stats-cache</td>
-            <td className="py-2 pr-4">Cachar publik statistik lokalt så sidan inte visar nollor vid nätfel</td>
+            <td className="py-2 pr-4">
+              Cachar publik statistik lokalt så sidan inte visar nollor vid nätfel
+            </td>
             <td className="py-2 pr-4">Nödvändig</td>
             <td className="py-2">7 dagar</td>
           </tr>

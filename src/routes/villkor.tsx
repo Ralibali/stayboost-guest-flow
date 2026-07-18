@@ -26,15 +26,15 @@ function Terms() {
     <LegalLayout title="Användarvillkor" updated="12 juli 2026">
       <p>
         Dessa villkor gäller när <strong>Aurora Media AB</strong> (”StayBoost”) tillhandahåller
-        tjänsten StayBoost till dig som kund. Genom att skapa konto, starta provperiod eller
-        använda tjänsten godkänner du villkoren.
+        tjänsten StayBoost till dig som kund. Genom att skapa konto, starta provperiod eller använda
+        tjänsten godkänner du villkoren.
       </p>
 
       <h2>1. Tjänsten</h2>
       <p>
         StayBoost är en molntjänst för små boendeanläggningar: gästkommunikation via SMS/e-post,
-        tillvalsförsäljning, incheckning, samt vyer för frukost och städ. Tjänsten levereras
-        ”i befintligt skick” med rimlig upptid; planerade underhåll aviseras i förväg.
+        tillvalsförsäljning, incheckning, samt vyer för frukost och städ. Tjänsten levereras ”i
+        befintligt skick” med rimlig upptid; planerade underhåll aviseras i förväg.
       </p>
 
       <h2>2. Konto och behörighet</h2>
@@ -81,9 +81,9 @@ function Terms() {
       <h2>7. Data och äganderätt</h2>
       <p>
         Du äger dina kunduppgifter och det innehåll du lägger in. Vi behandlar dessa som
-        personuppgiftsbiträde enligt vårt{" "}
-        <a href="/dpa">personuppgiftsbiträdesavtal (DPA)</a>. Vid avtalets slut kan du exportera
-        din data i 30 dagar, därefter raderas den enligt vår retentionpolicy.
+        personuppgiftsbiträde enligt vårt <a href="/dpa">personuppgiftsbiträdesavtal (DPA)</a>. Vid
+        avtalets slut kan du exportera din data i 30 dagar, därefter raderas den enligt vår
+        retentionpolicy.
       </p>
 
       <h2>8. Immateriella rättigheter</h2>
@@ -114,8 +114,8 @@ function Terms() {
 
       <h2>12. Tillämplig lag och tvist</h2>
       <p>
-        Svensk rätt tillämpas. Tvist avgörs i första hand vid Linköpings tingsrätt.
-        Konsumenter kan även vända sig till{" "}
+        Svensk rätt tillämpas. Tvist avgörs i första hand vid Linköpings tingsrätt. Konsumenter kan
+        även vända sig till{" "}
         <a href="https://www.arn.se" rel="noopener" target="_blank">
           Allmänna reklamationsnämnden (ARN)
         </a>{" "}

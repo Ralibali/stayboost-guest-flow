@@ -1,19 +1,33 @@
-// Slå på när demorutterna är live i glampingprojektet.
-const SHOW_LIVE_DEMO = false;
-
-// TODO: byt till den riktiga glampingdomänen i env PUBLIC_DEMO_BASE.
-const DEMO_BASE =
-  (typeof import.meta !== "undefined" &&
-    (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_PUBLIC_DEMO_BASE) ||
-  "https://g-ta-kanal-glamping.lovable.app";
+import { Link } from "@tanstack/react-router";
 
 const CARDS = [
+  {
+    icon: "🗓️",
+    title: "Bokningsmotorn",
+    path: "/demo/boka",
+    view: "boka",
+    body: "Komplett bokningsflöde: kalender med priser, tillval och betalning — utan provision.",
+  },
   {
     icon: "👤",
     title: "Gästhubben",
     path: "/demo/gast",
     view: "gast",
     body: "Det gästen ser: tillval, betalning och all info om vistelsen.",
+  },
+  {
+    icon: "🔑",
+    title: "Incheckningen",
+    path: "/demo/incheckning",
+    view: "incheckning",
+    body: "Det gästen gör vid ankomst: tre steg till portkoden.",
+  },
+  {
+    icon: "🙋",
+    title: "Min sida",
+    path: "/demo/min-sida",
+    view: "min-sida",
+    body: "Gästen bokar om själv, köper tillval i efterhand och avbokar — utan att ringa dig.",
   },
   {
     icon: "🥐",
@@ -24,17 +38,38 @@ const CARDS = [
   },
   {
     icon: "🧺",
-    title: "Städappen",
+    title: "Städvyn",
     path: "/demo/stad",
     view: "stad",
-    body: "Det städteamet ser: exakta instruktioner, på sitt eget språk.",
+    body: "Det städteamet ser: exakta checklistor, status i realtid.",
   },
   {
-    icon: "🔑",
-    title: "Incheckningen",
-    path: "/demo/incheckning",
-    view: "incheckning",
-    body: "Det gästen gör vid ankomst: tre steg till portkoden.",
+    icon: "📈",
+    title: "Ägar-dashboarden",
+    path: "/demo/admin",
+    view: "admin",
+    body: "Det du ser: merförsäljning i realtid, orderflöde och tillvalshantering.",
+  },
+  {
+    icon: "🛎️",
+    title: "Bokningskalendern",
+    path: "/demo/bokningar",
+    view: "bokningar",
+    body: "Beläggning per enhet och alla bokningar — synkat mot Sirvoy och Booking.com.",
+  },
+  {
+    icon: "☀️",
+    title: "Dagens manifest",
+    path: "/demo/manifest",
+    view: "manifest",
+    body: "Teamets dagvy: ankomster, avresor, kapacitet och förberedelser.",
+  },
+  {
+    icon: "🎁",
+    title: "Presentkort",
+    path: "/demo/presentkort",
+    view: "presentkort",
+    body: "Sälj presentkort online — mottagaren löser in direkt i bokningen.",
   },
 ];
 
@@ -49,8 +84,6 @@ export function LiveDemo() {
     // Per-kort event så du kan se exakt vilket kort som klickades
     w.plausible?.(`Live Demo: ${view}`, { props: { title } });
   };
-
-  if (!SHOW_LIVE_DEMO) return null;
 
   return (
     <section
@@ -72,13 +105,11 @@ export function LiveDemo() {
           </p>
         </div>
 
-        <div className="mt-10 grid gap-4 sm:mt-12 sm:grid-cols-2 sm:gap-5">
+        <div className="mt-10 grid gap-4 sm:mt-12 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3">
           {CARDS.map((c) => (
-            <a
+            <Link
               key={c.view}
-              href={`${DEMO_BASE}${c.path}`}
-              target="_blank"
-              rel="noopener"
+              to={c.path}
               onClick={() => trackOpen(c.view, c.title)}
               aria-label={`Öppna demo: ${c.title}`}
               className="card-surface group relative flex min-w-0 flex-col gap-3.5 p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--brass)] hover:shadow-[0_12px_40px_-16px_color-mix(in_oklab,var(--brass)_45%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brass)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--bg,white)] sm:gap-4 sm:p-6"
@@ -109,8 +140,43 @@ export function LiveDemo() {
                   →
                 </span>
               </span>
-            </a>
+            </Link>
           ))}
+
+          {/* Samlande kort */}
+          <Link
+            to="/demo"
+            onClick={() => trackOpen("oversikt", "Hela demon")}
+            aria-label="Öppna hela demon"
+            className="group relative flex min-w-0 flex-col gap-3.5 rounded-[20px] border border-[color:var(--forest)]/25 bg-[color:var(--forest)] p-5 text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-16px_rgba(20,36,28,0.5)] sm:col-span-2 sm:gap-4 sm:p-6 lg:col-span-3"
+          >
+            <div
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-white/30 text-lg transition-transform duration-300 group-hover:scale-[1.06] sm:h-10 sm:w-10"
+              aria-hidden
+            >
+              ✨
+            </div>
+            <div className="min-w-0">
+              <h3
+                className="truncate font-medium tracking-tight text-white"
+                style={{ fontSize: "clamp(1.05rem, 2.4vw, 1.2rem)" }}
+              >
+                Hela demon
+              </h3>
+              <p className="mt-1.5 text-[0.925rem] leading-relaxed text-white/75 sm:mt-2 sm:text-[0.95rem]">
+                Börja från översikten och hoppa fritt mellan gäst, personal och ägare.
+              </p>
+            </div>
+            <span className="mt-auto inline-flex items-center gap-1.5 pt-1 text-sm font-semibold text-[color:var(--brass)] sm:text-[0.95rem]">
+              Öppna översikten
+              <span
+                aria-hidden
+                className="transition-transform duration-300 group-hover:translate-x-1"
+              >
+                →
+              </span>
+            </span>
+          </Link>
         </div>
 
         <p className="mt-8 text-[0.8125rem] leading-relaxed text-[color:var(--ink)]/55 sm:text-sm">

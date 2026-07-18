@@ -9,25 +9,31 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as VillkorRouteImport } from './routes/villkor'
-import { Route as IntegritetspolicyRouteImport } from './routes/integritetspolicy'
-import { Route as DpaRouteImport } from './routes/dpa'
-import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CookiesRouteImport } from './routes/cookies'
+import { Route as DemoRouteImport } from './routes/demo'
+import { Route as DpaRouteImport } from './routes/dpa'
+import { Route as IntegritetspolicyRouteImport } from './routes/integritetspolicy'
+import { Route as VillkorRouteImport } from './routes/villkor'
+import { Route as DemoIndexRouteImport } from './routes/demo/index'
+import { Route as DemoAdminRouteImport } from './routes/demo/admin'
+import { Route as DemoBokaRouteImport } from './routes/demo/boka'
+import { Route as DemoBokningarRouteImport } from './routes/demo/bokningar'
+import { Route as DemoFrukostRouteImport } from './routes/demo/frukost'
+import { Route as DemoGastRouteImport } from './routes/demo/gast'
+import { Route as DemoGasterRouteImport } from './routes/demo/gaster'
+import { Route as DemoIncheckningRouteImport } from './routes/demo/incheckning'
+import { Route as DemoKanalerRouteImport } from './routes/demo/kanaler'
+import { Route as DemoManifestRouteImport } from './routes/demo/manifest'
+import { Route as DemoMinSidaRouteImport } from './routes/demo/min-sida'
+import { Route as DemoPersonalRouteImport } from './routes/demo/personal'
+import { Route as DemoPresentkortRouteImport } from './routes/demo/presentkort'
+import { Route as DemoRapporterRouteImport } from './routes/demo/rapporter'
+import { Route as DemoStadRouteImport } from './routes/demo/stad'
 
-const VillkorRoute = VillkorRouteImport.update({
-  id: '/villkor',
-  path: '/villkor',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IntegritetspolicyRoute = IntegritetspolicyRouteImport.update({
-  id: '/integritetspolicy',
-  path: '/integritetspolicy',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DpaRoute = DpaRouteImport.update({
-  id: '/dpa',
-  path: '/dpa',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CookiesRoute = CookiesRouteImport.update({
@@ -35,18 +41,124 @@ const CookiesRoute = CookiesRouteImport.update({
   path: '/cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DpaRoute = DpaRouteImport.update({
+  id: '/dpa',
+  path: '/dpa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IntegritetspolicyRoute = IntegritetspolicyRouteImport.update({
+  id: '/integritetspolicy',
+  path: '/integritetspolicy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VillkorRoute = VillkorRouteImport.update({
+  id: '/villkor',
+  path: '/villkor',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoIndexRoute = DemoIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoAdminRoute = DemoAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoBokaRoute = DemoBokaRouteImport.update({
+  id: '/boka',
+  path: '/boka',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoBokningarRoute = DemoBokningarRouteImport.update({
+  id: '/bokningar',
+  path: '/bokningar',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoFrukostRoute = DemoFrukostRouteImport.update({
+  id: '/frukost',
+  path: '/frukost',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoGastRoute = DemoGastRouteImport.update({
+  id: '/gast',
+  path: '/gast',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoGasterRoute = DemoGasterRouteImport.update({
+  id: '/gaster',
+  path: '/gaster',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoIncheckningRoute = DemoIncheckningRouteImport.update({
+  id: '/incheckning',
+  path: '/incheckning',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoKanalerRoute = DemoKanalerRouteImport.update({
+  id: '/kanaler',
+  path: '/kanaler',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoManifestRoute = DemoManifestRouteImport.update({
+  id: '/manifest',
+  path: '/manifest',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoMinSidaRoute = DemoMinSidaRouteImport.update({
+  id: '/min-sida',
+  path: '/min-sida',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoPersonalRoute = DemoPersonalRouteImport.update({
+  id: '/personal',
+  path: '/personal',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoPresentkortRoute = DemoPresentkortRouteImport.update({
+  id: '/presentkort',
+  path: '/presentkort',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoRapporterRoute = DemoRapporterRouteImport.update({
+  id: '/rapporter',
+  path: '/rapporter',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoStadRoute = DemoStadRouteImport.update({
+  id: '/stad',
+  path: '/stad',
+  getParentRoute: () => DemoRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cookies': typeof CookiesRoute
+  '/demo': typeof DemoRouteWithChildren
   '/dpa': typeof DpaRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
+  '/demo/admin': typeof DemoAdminRoute
+  '/demo/boka': typeof DemoBokaRoute
+  '/demo/bokningar': typeof DemoBokningarRoute
+  '/demo/frukost': typeof DemoFrukostRoute
+  '/demo/gast': typeof DemoGastRoute
+  '/demo/gaster': typeof DemoGasterRoute
+  '/demo/incheckning': typeof DemoIncheckningRoute
+  '/demo/kanaler': typeof DemoKanalerRoute
+  '/demo/manifest': typeof DemoManifestRoute
+  '/demo/min-sida': typeof DemoMinSidaRoute
+  '/demo/personal': typeof DemoPersonalRoute
+  '/demo/presentkort': typeof DemoPresentkortRoute
+  '/demo/rapporter': typeof DemoRapporterRoute
+  '/demo/stad': typeof DemoStadRoute
+  '/demo/': typeof DemoIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -54,26 +166,121 @@ export interface FileRoutesByTo {
   '/dpa': typeof DpaRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
+  '/demo/admin': typeof DemoAdminRoute
+  '/demo/boka': typeof DemoBokaRoute
+  '/demo/bokningar': typeof DemoBokningarRoute
+  '/demo/frukost': typeof DemoFrukostRoute
+  '/demo/gast': typeof DemoGastRoute
+  '/demo/gaster': typeof DemoGasterRoute
+  '/demo/incheckning': typeof DemoIncheckningRoute
+  '/demo/kanaler': typeof DemoKanalerRoute
+  '/demo/manifest': typeof DemoManifestRoute
+  '/demo/min-sida': typeof DemoMinSidaRoute
+  '/demo/personal': typeof DemoPersonalRoute
+  '/demo/presentkort': typeof DemoPresentkortRoute
+  '/demo/rapporter': typeof DemoRapporterRoute
+  '/demo/stad': typeof DemoStadRoute
+  '/demo': typeof DemoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/cookies': typeof CookiesRoute
+  '/demo': typeof DemoRouteWithChildren
   '/dpa': typeof DpaRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
+  '/demo/admin': typeof DemoAdminRoute
+  '/demo/boka': typeof DemoBokaRoute
+  '/demo/bokningar': typeof DemoBokningarRoute
+  '/demo/frukost': typeof DemoFrukostRoute
+  '/demo/gast': typeof DemoGastRoute
+  '/demo/gaster': typeof DemoGasterRoute
+  '/demo/incheckning': typeof DemoIncheckningRoute
+  '/demo/kanaler': typeof DemoKanalerRoute
+  '/demo/manifest': typeof DemoManifestRoute
+  '/demo/min-sida': typeof DemoMinSidaRoute
+  '/demo/personal': typeof DemoPersonalRoute
+  '/demo/presentkort': typeof DemoPresentkortRoute
+  '/demo/rapporter': typeof DemoRapporterRoute
+  '/demo/stad': typeof DemoStadRoute
+  '/demo/': typeof DemoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/cookies' | '/dpa' | '/integritetspolicy' | '/villkor'
+  fullPaths:
+    | '/'
+    | '/cookies'
+    | '/demo'
+    | '/dpa'
+    | '/integritetspolicy'
+    | '/villkor'
+    | '/demo/admin'
+    | '/demo/boka'
+    | '/demo/bokningar'
+    | '/demo/frukost'
+    | '/demo/gast'
+    | '/demo/gaster'
+    | '/demo/incheckning'
+    | '/demo/kanaler'
+    | '/demo/manifest'
+    | '/demo/min-sida'
+    | '/demo/personal'
+    | '/demo/presentkort'
+    | '/demo/rapporter'
+    | '/demo/stad'
+    | '/demo/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/cookies' | '/dpa' | '/integritetspolicy' | '/villkor'
-  id: '__root__' | '/' | '/cookies' | '/dpa' | '/integritetspolicy' | '/villkor'
+  to:
+    | '/'
+    | '/cookies'
+    | '/dpa'
+    | '/integritetspolicy'
+    | '/villkor'
+    | '/demo/admin'
+    | '/demo/boka'
+    | '/demo/bokningar'
+    | '/demo/frukost'
+    | '/demo/gast'
+    | '/demo/gaster'
+    | '/demo/incheckning'
+    | '/demo/kanaler'
+    | '/demo/manifest'
+    | '/demo/min-sida'
+    | '/demo/personal'
+    | '/demo/presentkort'
+    | '/demo/rapporter'
+    | '/demo/stad'
+    | '/demo'
+  id:
+    | '__root__'
+    | '/'
+    | '/cookies'
+    | '/demo'
+    | '/dpa'
+    | '/integritetspolicy'
+    | '/villkor'
+    | '/demo/admin'
+    | '/demo/boka'
+    | '/demo/bokningar'
+    | '/demo/frukost'
+    | '/demo/gast'
+    | '/demo/gaster'
+    | '/demo/incheckning'
+    | '/demo/kanaler'
+    | '/demo/manifest'
+    | '/demo/min-sida'
+    | '/demo/personal'
+    | '/demo/presentkort'
+    | '/demo/rapporter'
+    | '/demo/stad'
+    | '/demo/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CookiesRoute: typeof CookiesRoute
+  DemoRoute: typeof DemoRouteWithChildren
   DpaRoute: typeof DpaRoute
   IntegritetspolicyRoute: typeof IntegritetspolicyRoute
   VillkorRoute: typeof VillkorRoute
@@ -81,25 +288,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/villkor': {
-      id: '/villkor'
-      path: '/villkor'
-      fullPath: '/villkor'
-      preLoaderRoute: typeof VillkorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/integritetspolicy': {
-      id: '/integritetspolicy'
-      path: '/integritetspolicy'
-      fullPath: '/integritetspolicy'
-      preLoaderRoute: typeof IntegritetspolicyRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dpa': {
-      id: '/dpa'
-      path: '/dpa'
-      fullPath: '/dpa'
-      preLoaderRoute: typeof DpaRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cookies': {
@@ -109,19 +302,184 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/dpa': {
+      id: '/dpa'
+      path: '/dpa'
+      fullPath: '/dpa'
+      preLoaderRoute: typeof DpaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/integritetspolicy': {
+      id: '/integritetspolicy'
+      path: '/integritetspolicy'
+      fullPath: '/integritetspolicy'
+      preLoaderRoute: typeof IntegritetspolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/villkor': {
+      id: '/villkor'
+      path: '/villkor'
+      fullPath: '/villkor'
+      preLoaderRoute: typeof VillkorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/': {
+      id: '/demo/'
+      path: '/'
+      fullPath: '/demo/'
+      preLoaderRoute: typeof DemoIndexRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/admin': {
+      id: '/demo/admin'
+      path: '/admin'
+      fullPath: '/demo/admin'
+      preLoaderRoute: typeof DemoAdminRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/boka': {
+      id: '/demo/boka'
+      path: '/boka'
+      fullPath: '/demo/boka'
+      preLoaderRoute: typeof DemoBokaRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/bokningar': {
+      id: '/demo/bokningar'
+      path: '/bokningar'
+      fullPath: '/demo/bokningar'
+      preLoaderRoute: typeof DemoBokningarRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/frukost': {
+      id: '/demo/frukost'
+      path: '/frukost'
+      fullPath: '/demo/frukost'
+      preLoaderRoute: typeof DemoFrukostRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/gast': {
+      id: '/demo/gast'
+      path: '/gast'
+      fullPath: '/demo/gast'
+      preLoaderRoute: typeof DemoGastRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/gaster': {
+      id: '/demo/gaster'
+      path: '/gaster'
+      fullPath: '/demo/gaster'
+      preLoaderRoute: typeof DemoGasterRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/incheckning': {
+      id: '/demo/incheckning'
+      path: '/incheckning'
+      fullPath: '/demo/incheckning'
+      preLoaderRoute: typeof DemoIncheckningRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/kanaler': {
+      id: '/demo/kanaler'
+      path: '/kanaler'
+      fullPath: '/demo/kanaler'
+      preLoaderRoute: typeof DemoKanalerRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/manifest': {
+      id: '/demo/manifest'
+      path: '/manifest'
+      fullPath: '/demo/manifest'
+      preLoaderRoute: typeof DemoManifestRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/min-sida': {
+      id: '/demo/min-sida'
+      path: '/min-sida'
+      fullPath: '/demo/min-sida'
+      preLoaderRoute: typeof DemoMinSidaRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/personal': {
+      id: '/demo/personal'
+      path: '/personal'
+      fullPath: '/demo/personal'
+      preLoaderRoute: typeof DemoPersonalRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/presentkort': {
+      id: '/demo/presentkort'
+      path: '/presentkort'
+      fullPath: '/demo/presentkort'
+      preLoaderRoute: typeof DemoPresentkortRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/rapporter': {
+      id: '/demo/rapporter'
+      path: '/rapporter'
+      fullPath: '/demo/rapporter'
+      preLoaderRoute: typeof DemoRapporterRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/stad': {
+      id: '/demo/stad'
+      path: '/stad'
+      fullPath: '/demo/stad'
+      preLoaderRoute: typeof DemoStadRouteImport
+      parentRoute: typeof DemoRoute
     }
   }
 }
 
+interface DemoRouteChildren {
+  DemoAdminRoute: typeof DemoAdminRoute
+  DemoBokaRoute: typeof DemoBokaRoute
+  DemoBokningarRoute: typeof DemoBokningarRoute
+  DemoFrukostRoute: typeof DemoFrukostRoute
+  DemoGastRoute: typeof DemoGastRoute
+  DemoGasterRoute: typeof DemoGasterRoute
+  DemoIncheckningRoute: typeof DemoIncheckningRoute
+  DemoKanalerRoute: typeof DemoKanalerRoute
+  DemoManifestRoute: typeof DemoManifestRoute
+  DemoMinSidaRoute: typeof DemoMinSidaRoute
+  DemoPersonalRoute: typeof DemoPersonalRoute
+  DemoPresentkortRoute: typeof DemoPresentkortRoute
+  DemoRapporterRoute: typeof DemoRapporterRoute
+  DemoStadRoute: typeof DemoStadRoute
+  DemoIndexRoute: typeof DemoIndexRoute
+}
+
+const DemoRouteChildren: DemoRouteChildren = {
+  DemoAdminRoute: DemoAdminRoute,
+  DemoBokaRoute: DemoBokaRoute,
+  DemoBokningarRoute: DemoBokningarRoute,
+  DemoFrukostRoute: DemoFrukostRoute,
+  DemoGastRoute: DemoGastRoute,
+  DemoGasterRoute: DemoGasterRoute,
+  DemoIncheckningRoute: DemoIncheckningRoute,
+  DemoKanalerRoute: DemoKanalerRoute,
+  DemoManifestRoute: DemoManifestRoute,
+  DemoMinSidaRoute: DemoMinSidaRoute,
+  DemoPersonalRoute: DemoPersonalRoute,
+  DemoPresentkortRoute: DemoPresentkortRoute,
+  DemoRapporterRoute: DemoRapporterRoute,
+  DemoStadRoute: DemoStadRoute,
+  DemoIndexRoute: DemoIndexRoute,
+}
+
+const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CookiesRoute: CookiesRoute,
+  DemoRoute: DemoRouteWithChildren,
   DpaRoute: DpaRoute,
   IntegritetspolicyRoute: IntegritetspolicyRoute,
   VillkorRoute: VillkorRoute,
@@ -129,3 +487,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
