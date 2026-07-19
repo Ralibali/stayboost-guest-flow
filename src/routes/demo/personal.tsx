@@ -72,7 +72,7 @@ function StaffView() {
           <UserCheck size={17} className="text-[color:var(--brass)]" /> Dagens tilldelning
         </h2>
         <p className="mt-1 text-[13px] text-[color:var(--ink)]/55">
-          Klicka för att rotera vem som tar uppgiften — uppdateras direkt i Städvyn och Manifestet.
+          Klicka för att rotera vem som tar uppgiften — uppdateras direkt i Städvyn och Dagsöversikten.
         </p>
 
         <div className="mt-5 space-y-3">

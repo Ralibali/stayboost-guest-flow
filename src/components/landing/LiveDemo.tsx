@@ -59,9 +59,9 @@ const CARDS = [
   },
   {
     icon: "☀️",
-    title: "Dagens manifest",
-    path: "/demo/manifest",
-    view: "manifest",
+    title: "Dagsöversikt",
+    path: "/demo/dagsoversikt",
+    view: "dagsoversikt",
     body: "Teamets dagvy: ankomster, avresor, kapacitet och förberedelser.",
   },
   {

@@ -24,12 +24,12 @@ import { Route as DemoRapporterRouteImport } from './routes/demo/rapporter'
 import { Route as DemoPresentkortRouteImport } from './routes/demo/presentkort'
 import { Route as DemoPersonalRouteImport } from './routes/demo/personal'
 import { Route as DemoMinSidaRouteImport } from './routes/demo/min-sida'
-import { Route as DemoManifestRouteImport } from './routes/demo/manifest'
 import { Route as DemoKanalerRouteImport } from './routes/demo/kanaler'
 import { Route as DemoIncheckningRouteImport } from './routes/demo/incheckning'
 import { Route as DemoGasterRouteImport } from './routes/demo/gaster'
 import { Route as DemoGastRouteImport } from './routes/demo/gast'
 import { Route as DemoFrukostRouteImport } from './routes/demo/frukost'
+import { Route as DemoDagsoversiktRouteImport } from './routes/demo/dagsoversikt'
 import { Route as DemoBokningarRouteImport } from './routes/demo/bokningar'
 import { Route as DemoBokaRouteImport } from './routes/demo/boka'
 import { Route as DemoAdminRouteImport } from './routes/demo/admin'
@@ -116,11 +116,6 @@ const DemoMinSidaRoute = DemoMinSidaRouteImport.update({
   path: '/min-sida',
   getParentRoute: () => DemoRoute,
 } as any)
-const DemoManifestRoute = DemoManifestRouteImport.update({
-  id: '/manifest',
-  path: '/manifest',
-  getParentRoute: () => DemoRoute,
-} as any)
 const DemoKanalerRoute = DemoKanalerRouteImport.update({
   id: '/kanaler',
   path: '/kanaler',
@@ -144,6 +139,11 @@ const DemoGastRoute = DemoGastRouteImport.update({
 const DemoFrukostRoute = DemoFrukostRouteImport.update({
   id: '/frukost',
   path: '/frukost',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoDagsoversiktRoute = DemoDagsoversiktRouteImport.update({
+  id: '/dagsoversikt',
+  path: '/dagsoversikt',
   getParentRoute: () => DemoRoute,
 } as any)
 const DemoBokningarRoute = DemoBokningarRouteImport.update({
@@ -215,12 +215,12 @@ export interface FileRoutesByFullPath {
   '/demo/admin': typeof DemoAdminRoute
   '/demo/boka': typeof DemoBokaRoute
   '/demo/bokningar': typeof DemoBokningarRoute
+  '/demo/dagsoversikt': typeof DemoDagsoversiktRoute
   '/demo/frukost': typeof DemoFrukostRoute
   '/demo/gast': typeof DemoGastRoute
   '/demo/gaster': typeof DemoGasterRoute
   '/demo/incheckning': typeof DemoIncheckningRoute
   '/demo/kanaler': typeof DemoKanalerRoute
-  '/demo/manifest': typeof DemoManifestRoute
   '/demo/min-sida': typeof DemoMinSidaRoute
   '/demo/personal': typeof DemoPersonalRoute
   '/demo/presentkort': typeof DemoPresentkortRoute
@@ -246,12 +246,12 @@ export interface FileRoutesByTo {
   '/demo/admin': typeof DemoAdminRoute
   '/demo/boka': typeof DemoBokaRoute
   '/demo/bokningar': typeof DemoBokningarRoute
+  '/demo/dagsoversikt': typeof DemoDagsoversiktRoute
   '/demo/frukost': typeof DemoFrukostRoute
   '/demo/gast': typeof DemoGastRoute
   '/demo/gaster': typeof DemoGasterRoute
   '/demo/incheckning': typeof DemoIncheckningRoute
   '/demo/kanaler': typeof DemoKanalerRoute
-  '/demo/manifest': typeof DemoManifestRoute
   '/demo/min-sida': typeof DemoMinSidaRoute
   '/demo/personal': typeof DemoPersonalRoute
   '/demo/presentkort': typeof DemoPresentkortRoute
@@ -280,12 +280,12 @@ export interface FileRoutesById {
   '/demo/admin': typeof DemoAdminRoute
   '/demo/boka': typeof DemoBokaRoute
   '/demo/bokningar': typeof DemoBokningarRoute
+  '/demo/dagsoversikt': typeof DemoDagsoversiktRoute
   '/demo/frukost': typeof DemoFrukostRoute
   '/demo/gast': typeof DemoGastRoute
   '/demo/gaster': typeof DemoGasterRoute
   '/demo/incheckning': typeof DemoIncheckningRoute
   '/demo/kanaler': typeof DemoKanalerRoute
-  '/demo/manifest': typeof DemoManifestRoute
   '/demo/min-sida': typeof DemoMinSidaRoute
   '/demo/personal': typeof DemoPersonalRoute
   '/demo/presentkort': typeof DemoPresentkortRoute
@@ -315,12 +315,12 @@ export interface FileRouteTypes {
     | '/demo/admin'
     | '/demo/boka'
     | '/demo/bokningar'
+    | '/demo/dagsoversikt'
     | '/demo/frukost'
     | '/demo/gast'
     | '/demo/gaster'
     | '/demo/incheckning'
     | '/demo/kanaler'
-    | '/demo/manifest'
     | '/demo/min-sida'
     | '/demo/personal'
     | '/demo/presentkort'
@@ -346,12 +346,12 @@ export interface FileRouteTypes {
     | '/demo/admin'
     | '/demo/boka'
     | '/demo/bokningar'
+    | '/demo/dagsoversikt'
     | '/demo/frukost'
     | '/demo/gast'
     | '/demo/gaster'
     | '/demo/incheckning'
     | '/demo/kanaler'
-    | '/demo/manifest'
     | '/demo/min-sida'
     | '/demo/personal'
     | '/demo/presentkort'
@@ -379,12 +379,12 @@ export interface FileRouteTypes {
     | '/demo/admin'
     | '/demo/boka'
     | '/demo/bokningar'
+    | '/demo/dagsoversikt'
     | '/demo/frukost'
     | '/demo/gast'
     | '/demo/gaster'
     | '/demo/incheckning'
     | '/demo/kanaler'
-    | '/demo/manifest'
     | '/demo/min-sida'
     | '/demo/personal'
     | '/demo/presentkort'
@@ -514,13 +514,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoMinSidaRouteImport
       parentRoute: typeof DemoRoute
     }
-    '/demo/manifest': {
-      id: '/demo/manifest'
-      path: '/manifest'
-      fullPath: '/demo/manifest'
-      preLoaderRoute: typeof DemoManifestRouteImport
-      parentRoute: typeof DemoRoute
-    }
     '/demo/kanaler': {
       id: '/demo/kanaler'
       path: '/kanaler'
@@ -554,6 +547,13 @@ declare module '@tanstack/react-router' {
       path: '/frukost'
       fullPath: '/demo/frukost'
       preLoaderRoute: typeof DemoFrukostRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/dagsoversikt': {
+      id: '/demo/dagsoversikt'
+      path: '/dagsoversikt'
+      fullPath: '/demo/dagsoversikt'
+      preLoaderRoute: typeof DemoDagsoversiktRouteImport
       parentRoute: typeof DemoRoute
     }
     '/demo/bokningar': {
@@ -655,12 +655,12 @@ interface DemoRouteChildren {
   DemoAdminRoute: typeof DemoAdminRoute
   DemoBokaRoute: typeof DemoBokaRoute
   DemoBokningarRoute: typeof DemoBokningarRoute
+  DemoDagsoversiktRoute: typeof DemoDagsoversiktRoute
   DemoFrukostRoute: typeof DemoFrukostRoute
   DemoGastRoute: typeof DemoGastRoute
   DemoGasterRoute: typeof DemoGasterRoute
   DemoIncheckningRoute: typeof DemoIncheckningRoute
   DemoKanalerRoute: typeof DemoKanalerRoute
-  DemoManifestRoute: typeof DemoManifestRoute
   DemoMinSidaRoute: typeof DemoMinSidaRoute
   DemoPersonalRoute: typeof DemoPersonalRoute
   DemoPresentkortRoute: typeof DemoPresentkortRoute
@@ -673,12 +673,12 @@ const DemoRouteChildren: DemoRouteChildren = {
   DemoAdminRoute: DemoAdminRoute,
   DemoBokaRoute: DemoBokaRoute,
   DemoBokningarRoute: DemoBokningarRoute,
+  DemoDagsoversiktRoute: DemoDagsoversiktRoute,
   DemoFrukostRoute: DemoFrukostRoute,
   DemoGastRoute: DemoGastRoute,
   DemoGasterRoute: DemoGasterRoute,
   DemoIncheckningRoute: DemoIncheckningRoute,
   DemoKanalerRoute: DemoKanalerRoute,
-  DemoManifestRoute: DemoManifestRoute,
   DemoMinSidaRoute: DemoMinSidaRoute,
   DemoPersonalRoute: DemoPersonalRoute,
   DemoPresentkortRoute: DemoPresentkortRoute,
