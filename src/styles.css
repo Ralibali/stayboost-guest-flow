@@ -56,14 +56,27 @@
   }
   html {
     scroll-behavior: smooth;
+    overflow-x: clip;
   }
   body {
     background-color: var(--bg);
     color: var(--ink);
     font-family: var(--font-sans);
-    font-size: 1.125rem;
-    line-height: 1.7;
+    font-size: 1rem;
+    line-height: 1.65;
     -webkit-font-smoothing: antialiased;
+    overflow-x: clip;
+  }
+  @media (min-width: 640px) {
+    body {
+      font-size: 1.125rem;
+      line-height: 1.7;
+    }
+  }
+  img,
+  svg,
+  video {
+    max-width: 100%;
   }
   h1,
   h2,
