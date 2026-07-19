@@ -212,7 +212,7 @@ function BookingFlow() {
         </div>
       )}
 
-      <div className={step < 4 ? "grid gap-6 lg:grid-cols-[1fr_340px]" : ""}>
+      <div className={step < 4 ? "grid gap-6 pb-24 lg:grid-cols-[1fr_340px] lg:pb-0" : ""}>
         {/* ---------- Vänster: steg ---------- */}
         <div>
           <AnimatePresence mode="wait">
