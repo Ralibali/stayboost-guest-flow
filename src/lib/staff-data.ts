@@ -53,9 +53,9 @@ export const staffById = (id: string) => STAFF.find((s) => s.id === id)!;
 
 /** Uppgift → personal. Nycklar: "stad-<unitId>", "frukost", "manifest-prep". */
 const assignments: Record<string, string> = {
-  "stad-naturkarnan": "maria",
-  "stad-naturkarnan": "ahmed",
   "stad-sjobris": "maria",
+  "stad-naturkarnan": "ahmed",
+  "stad-lugnetsyta": "maria",
   frukost: "lisa",
   "manifest-prep": "agare",
 };
