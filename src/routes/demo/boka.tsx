@@ -319,7 +319,13 @@ function BookingFlow() {
                               : "cursor-not-allowed opacity-50"
                         }`}
                       >
-                        <span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-[color:var(--bg)] text-3xl">
+                        <span
+                          className={`grid h-20 w-20 shrink-0 place-items-center rounded-[20px] text-4xl ring-1 ring-[color:var(--line)] ${
+                            u.type === "stuga"
+                              ? "bg-gradient-to-br from-[color:var(--forest)]/12 to-[color:var(--brass)]/15"
+                              : "bg-gradient-to-br from-amber-100/70 to-emerald-100/60"
+                          }`}
+                        >
                           {u.imageEmoji}
                         </span>
                         <div className="min-w-0 flex-1">
