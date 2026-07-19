@@ -17,7 +17,7 @@ import { RESOURCES, addDays, resourceBooked, startOfDay } from "@/lib/booking-da
 import { getAssignee } from "@/lib/staff-data";
 
 export const Route = createFileRoute("/demo/dagsoversikt")({
-  component: Manifest,
+  component: Dagsoversikt,
 });
 
 const SAUNA_SLOTS = ["16:00", "17:30", "19:00", "20:30"];
@@ -26,7 +26,7 @@ const SAUNA_BOOKED: Record<string, string> = {
   "19:00": "Anna Lindqvist",
 };
 
-function Manifest() {
+function Dagsoversikt() {
   const today = startOfDay(new Date());
   const [dayOffset, setDayOffset] = useState(0);
   const day = addDays(today, dayOffset);
@@ -78,7 +78,7 @@ function Manifest() {
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="eyebrow">Dagens manifest</p>
+            <p className="eyebrow">Dagsöversikt</p>
             <h1 className="mt-2 text-3xl capitalize">{fmtDateLong(day)}</h1>
             <p className="mt-1 text-[14px] text-[color:var(--ink)]/60">
               Allt teamet behöver veta — ankomster, avresor, kapacitet och förberedelser.
