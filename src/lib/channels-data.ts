@@ -70,8 +70,6 @@ export const ICAL_FEEDS = [
   { unitId: "sjobris", url: "https://stayboost.se/ical/sjobris-x7k2.ics" },
   { unitId: "naturkarnan", url: "https://stayboost.se/ical/naturkarnan-p4m9.ics" },
   { unitId: "lugnetsyta", url: "https://stayboost.se/ical/lugnetsyta-q2w8.ics" },
-  { unitId: "sjobris", url: "https://stayboost.se/ical/sjobris-z9e3.ics" },
-  { unitId: "naturkarnan", url: "https://stayboost.se/ical/naturkarnan-r5t1.ics" },
 ];
 
 /* ---------- Gästregister (CRM) ---------- */
