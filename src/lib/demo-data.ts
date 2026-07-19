@@ -106,40 +106,40 @@ export const PROPERTY = {
 
 export const UNITS: Unit[] = [
   {
-    id: "sjostugan",
-    name: "Sjöstugan",
+    id: "sjobris",
+    name: "Sjöbrisretreatet",
     type: "stuga",
     doorCode: "4482",
     wifi: "Slussar_Guest",
     wifiPassword: "kanal2026",
   },
   {
-    id: "kanaltaltet",
-    name: "Kanaltältet",
+    id: "naturkarnan",
+    name: "Naturkärnan",
     type: "tält",
     doorCode: "7715",
     wifi: "Slussar_Guest",
     wifiPassword: "kanal2026",
   },
   {
-    id: "skogsglantan",
-    name: "Skogsgläntan",
+    id: "lugnetsyta",
+    name: "Lugnets yta",
     type: "tält",
     doorCode: "2290",
     wifi: "Slussar_Guest",
     wifiPassword: "kanal2026",
   },
   {
-    id: "slussvaktaren",
-    name: "Slussvaktaren",
+    id: "sjobris",
+    name: "Sjöbrisretreatet",
     type: "stuga",
     doorCode: "9034",
     wifi: "Slussar_Guest",
     wifiPassword: "kanal2026",
   },
   {
-    id: "vindraget",
-    name: "Vindraget",
+    id: "naturkarnan",
+    name: "Naturkärnan",
     type: "tält",
     doorCode: "5561",
     wifi: "Slussar_Guest",
@@ -153,7 +153,7 @@ export const GUESTS: Guest[] = [
     id: "g1",
     name: "Anna Lindqvist",
     phone: "+46 70 123 45 67",
-    unitId: "sjostugan",
+    unitId: "sjobris",
     checkIn: at(0),
     checkOut: at(2),
     guests: 2,
@@ -164,7 +164,7 @@ export const GUESTS: Guest[] = [
     id: "g2",
     name: "Familj Johansson",
     phone: "+46 73 555 12 12",
-    unitId: "kanaltaltet",
+    unitId: "naturkarnan",
     checkIn: at(0),
     checkOut: at(3),
     guests: 4,
@@ -175,7 +175,7 @@ export const GUESTS: Guest[] = [
     id: "g3",
     name: "Erik & Malin Berg",
     phone: "+46 76 987 65 43",
-    unitId: "skogsglantan",
+    unitId: "lugnetsyta",
     checkIn: at(1),
     checkOut: at(3),
     guests: 2,
@@ -186,7 +186,7 @@ export const GUESTS: Guest[] = [
     id: "g4",
     name: "Familj Schneider",
     phone: "+49 171 555 8899",
-    unitId: "slussvaktaren",
+    unitId: "sjobris",
     checkIn: at(-1),
     checkOut: at(1),
     guests: 3,
@@ -197,7 +197,7 @@ export const GUESTS: Guest[] = [
     id: "g5",
     name: "Lisa Holm",
     phone: "+46 70 444 22 11",
-    unitId: "vindraget",
+    unitId: "naturkarnan",
     checkIn: at(-2),
     checkOut: at(0),
     guests: 2,
@@ -443,7 +443,7 @@ export const ORDERS: Order[] = [
   {
     id: "o1",
     guestName: "Anna Lindqvist",
-    unitName: "Sjöstugan",
+    unitName: "Sjöbrisretreatet",
     addonId: "frukost",
     qty: 2,
     total: 498,
@@ -453,7 +453,7 @@ export const ORDERS: Order[] = [
   {
     id: "o2",
     guestName: "Familj Schneider",
-    unitName: "Slussvaktaren",
+    unitName: "Sjöbrisretreatet",
     addonId: "bastu",
     qty: 1,
     total: 350,
@@ -463,7 +463,7 @@ export const ORDERS: Order[] = [
   {
     id: "o3",
     guestName: "Lisa Holm",
-    unitName: "Vindraget",
+    unitName: "Naturkärnan",
     addonId: "sen-utcheckning",
     qty: 1,
     total: 150,
@@ -473,7 +473,7 @@ export const ORDERS: Order[] = [
   {
     id: "o4",
     guestName: "Familj Johansson",
-    unitName: "Kanaltältet",
+    unitName: "Naturkärnan",
     addonId: "ved",
     qty: 2,
     total: 240,
@@ -483,7 +483,7 @@ export const ORDERS: Order[] = [
   {
     id: "o5",
     guestName: "Erik & Malin Berg",
-    unitName: "Skogsgläntan",
+    unitName: "Lugnets yta",
     addonId: "vinpaket",
     qty: 1,
     total: 395,
@@ -493,7 +493,7 @@ export const ORDERS: Order[] = [
   {
     id: "o6",
     guestName: "Familj Schneider",
-    unitName: "Slussvaktaren",
+    unitName: "Sjöbrisretreatet",
     addonId: "cykel",
     qty: 2,
     total: 400,
@@ -503,7 +503,7 @@ export const ORDERS: Order[] = [
   {
     id: "o7",
     guestName: "Anna Lindqvist",
-    unitName: "Sjöstugan",
+    unitName: "Sjöbrisretreatet",
     addonId: "fika",
     qty: 1,
     total: 89,
@@ -515,7 +515,7 @@ export const ORDERS: Order[] = [
 /* ---------- Frukost (i morgon) ---------- */
 export const BREAKFAST: BreakfastPrep[] = [
   {
-    unitId: "sjostugan",
+    unitId: "sjobris",
     guestName: "Anna Lindqvist",
     portions: 2,
     allergies: ["gluten"],
@@ -524,7 +524,7 @@ export const BREAKFAST: BreakfastPrep[] = [
     status: "att_laga",
   },
   {
-    unitId: "kanaltaltet",
+    unitId: "naturkarnan",
     guestName: "Familj Johansson",
     portions: 4,
     allergies: [],
@@ -533,7 +533,7 @@ export const BREAKFAST: BreakfastPrep[] = [
     status: "att_laga",
   },
   {
-    unitId: "slussvaktaren",
+    unitId: "sjobris",
     guestName: "Familj Schneider",
     portions: 3,
     allergies: ["laktos", "nötter"],
@@ -545,7 +545,7 @@ export const BREAKFAST: BreakfastPrep[] = [
 /* ---------- Städning (i dag) ---------- */
 export const CLEANING: CleaningTask[] = [
   {
-    unitId: "vindraget",
+    unitId: "naturkarnan",
     type: "avresa",
     window: "11:00–15:00",
     status: "väntar",
@@ -559,7 +559,7 @@ export const CLEANING: CleaningTask[] = [
     ],
   },
   {
-    unitId: "kanaltaltet",
+    unitId: "naturkarnan",
     type: "påsläpp",
     window: "12:00–14:00",
     status: "pågår",
@@ -572,7 +572,7 @@ export const CLEANING: CleaningTask[] = [
     ],
   },
   {
-    unitId: "slussvaktaren",
+    unitId: "sjobris",
     type: "storstäd",
     window: "13:00–16:00",
     status: "väntar",

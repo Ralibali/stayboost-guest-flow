@@ -438,7 +438,7 @@ function GuestHubMock() {
   return (
     <div className="mx-auto max-w-[260px] rounded-2xl border border-[color:var(--line)] bg-[color:var(--bg)] p-4">
       <div className="text-center">
-        <div className="font-[Fraunces] text-lg font-semibold">Sjöstugan</div>
+        <div className="font-[Fraunces] text-lg font-semibold">Sjöbrisretreatet</div>
         <div className="text-xs text-[color:var(--ink)]/55">Anna · 12–14 juli</div>
       </div>
       <div className="mt-4 space-y-2 text-sm">

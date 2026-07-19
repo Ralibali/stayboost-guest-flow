@@ -67,11 +67,11 @@ export const DIRECT_SHARE_PCT = 41;
 
 /** iCal-exportlänkar per enhet. */
 export const ICAL_FEEDS = [
-  { unitId: "sjostugan", url: "https://stayboost.se/ical/sjostugan-x7k2.ics" },
-  { unitId: "kanaltaltet", url: "https://stayboost.se/ical/kanaltaltet-p4m9.ics" },
-  { unitId: "skogsglantan", url: "https://stayboost.se/ical/skogsglantan-q2w8.ics" },
-  { unitId: "slussvaktaren", url: "https://stayboost.se/ical/slussvaktaren-z9e3.ics" },
-  { unitId: "vindraget", url: "https://stayboost.se/ical/vindraget-r5t1.ics" },
+  { unitId: "sjobris", url: "https://stayboost.se/ical/sjobris-x7k2.ics" },
+  { unitId: "naturkarnan", url: "https://stayboost.se/ical/naturkarnan-p4m9.ics" },
+  { unitId: "lugnetsyta", url: "https://stayboost.se/ical/lugnetsyta-q2w8.ics" },
+  { unitId: "sjobris", url: "https://stayboost.se/ical/sjobris-z9e3.ics" },
+  { unitId: "naturkarnan", url: "https://stayboost.se/ical/naturkarnan-r5t1.ics" },
 ];
 
 /* ---------- Gästregister (CRM) ---------- */
@@ -104,9 +104,9 @@ export const CRM_GUESTS: CrmGuest[] = [
     tag: "VIP",
     note: "Kommer varje sommar. Gillar bastun — bjud på första timmen.",
     history: [
-      { unit: "Slussvaktaren", period: "jul 2026", total: 5180 },
-      { unit: "Sjöstugan", period: "jul 2025", total: 5940 },
-      { unit: "Slussvaktaren", period: "aug 2024", total: 4890 },
+      { unit: "Sjöbrisretreatet", period: "jul 2026", total: 5180 },
+      { unit: "Sjöbrisretreatet", period: "jul 2025", total: 5940 },
+      { unit: "Sjöbrisretreatet", period: "aug 2024", total: 4890 },
     ],
   },
   {
@@ -121,8 +121,8 @@ export const CRM_GUESTS: CrmGuest[] = [
     lastStay: "jul 2026",
     tag: "Återkommande",
     history: [
-      { unit: "Sjöstugan", period: "jul 2026", total: 3885 },
-      { unit: "Vindraget", period: "jun 2025", total: 3355 },
+      { unit: "Sjöbrisretreatet", period: "jul 2026", total: 3885 },
+      { unit: "Naturkärnan", period: "jun 2025", total: 3355 },
     ],
   },
   {
@@ -137,7 +137,7 @@ export const CRM_GUESTS: CrmGuest[] = [
     lastStay: "jul 2026",
     tag: "Ny",
     note: "Bokade vinpaket — firar årsdag.",
-    history: [{ unit: "Skogsgläntan", period: "jul 2026", total: 2985 }],
+    history: [{ unit: "Lugnets yta", period: "jul 2026", total: 2985 }],
   },
   {
     id: "c4",
@@ -151,8 +151,8 @@ export const CRM_GUESTS: CrmGuest[] = [
     lastStay: "jul 2026",
     tag: "Återkommande",
     history: [
-      { unit: "Kanaltältet", period: "jul 2026", total: 4780 },
-      { unit: "Kanaltältet", period: "jul 2025", total: 5120 },
+      { unit: "Naturkärnan", period: "jul 2026", total: 4780 },
+      { unit: "Naturkärnan", period: "jul 2025", total: 5120 },
     ],
   },
   {
@@ -168,9 +168,9 @@ export const CRM_GUESTS: CrmGuest[] = [
     tag: "VIP",
     note: "Skriver för en reseblogg — gav oss 9,6/10 i omdöme.",
     history: [
-      { unit: "Vindraget", period: "jul 2026", total: 3590 },
-      { unit: "Sjöstugan", period: "maj 2026", total: 4480 },
-      { unit: "Vindraget", period: "aug 2025", total: 3890 },
+      { unit: "Naturkärnan", period: "jul 2026", total: 3590 },
+      { unit: "Sjöbrisretreatet", period: "maj 2026", total: 4480 },
+      { unit: "Naturkärnan", period: "aug 2025", total: 3890 },
     ],
   },
   {
@@ -184,7 +184,7 @@ export const CRM_GUESTS: CrmGuest[] = [
     spent: 5230,
     lastStay: "jun 2026",
     tag: "Ny",
-    history: [{ unit: "Slussvaktaren", period: "jun 2026", total: 5230 }],
+    history: [{ unit: "Sjöbrisretreatet", period: "jun 2026", total: 5230 }],
   },
   {
     id: "c7",
@@ -198,8 +198,8 @@ export const CRM_GUESTS: CrmGuest[] = [
     lastStay: "jun 2026",
     tag: "Återkommande",
     history: [
-      { unit: "Sjöstugan", period: "jun 2026", total: 4590 },
-      { unit: "Skogsgläntan", period: "sep 2025", total: 3850 },
+      { unit: "Sjöbrisretreatet", period: "jun 2026", total: 4590 },
+      { unit: "Lugnets yta", period: "sep 2025", total: 3850 },
     ],
   },
 ];

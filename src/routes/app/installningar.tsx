@@ -300,7 +300,7 @@ function SettingsPage() {
           <input
             value={newUnit}
             onChange={(e) => setNewUnit(e.target.value)}
-            placeholder="Ny enhet — t.ex. Vindraget"
+            placeholder="Ny enhet — t.ex. Naturkärnan"
             className="inp flex-1"
           />
           <button

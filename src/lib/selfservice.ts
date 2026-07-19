@@ -36,7 +36,7 @@ const demoBooking: MyBooking = {
   ref: "SB-DEMO",
   guestName: "Anna Lindqvist",
   email: "anna@example.se",
-  unitId: "sjostugan",
+  unitId: "sjobris",
   start: addDays(startOfDay(new Date()), 6),
   nights: 2,
   guests: 2,

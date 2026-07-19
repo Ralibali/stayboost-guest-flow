@@ -83,7 +83,7 @@ export const DEMO_SCENARIOS = {
     emoji: "👋",
     hint: "2 dagar före ankomst",
     text:
-      "Hej Anna! Vi ser fram emot er vistelse på Sjöstugan 12–14 juli. " +
+      "Hej Anna! Vi ser fram emot er vistelse på Sjöbrisretreatet 12–14 juli. " +
       "Incheckning från kl 15, portkod skickas på ankomstdagen. " +
       "Vill ni förbeställa något? Se tillval: https://demo.stayboost.se/g/anna",
   },
@@ -92,7 +92,7 @@ export const DEMO_SCENARIOS = {
     emoji: "🔑",
     hint: "Ankomstdagen kl 12",
     text:
-      "God dag Anna! Er portkod är 4482. Wifi: Sjöstugan_2G / välkommen2026. " +
+      "God dag Anna! Er portkod är 4482. Wifi: Sjöbrisretreatet_2G / välkommen2026. " +
       "Självincheckning: https://demo.stayboost.se/i/anna. Trevlig vistelse!",
   },
   frukost: {

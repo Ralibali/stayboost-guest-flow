@@ -53,9 +53,9 @@ export const staffById = (id: string) => STAFF.find((s) => s.id === id)!;
 
 /** Uppgift → personal. Nycklar: "stad-<unitId>", "frukost", "manifest-prep". */
 const assignments: Record<string, string> = {
-  "stad-vindraget": "maria",
-  "stad-kanaltaltet": "ahmed",
-  "stad-slussvaktaren": "maria",
+  "stad-naturkarnan": "maria",
+  "stad-naturkarnan": "ahmed",
+  "stad-sjobris": "maria",
   frukost: "lisa",
   "manifest-prep": "agare",
 };
@@ -67,4 +67,4 @@ export const setAssignee = (taskKey: string, staffId: string) => {
 };
 
 /** Alla städuppgifter som ska fördelas. */
-export const CLEANING_TASK_KEYS = ["stad-vindraget", "stad-kanaltaltet", "stad-slussvaktaren"];
+export const CLEANING_TASK_KEYS = ["stad-naturkarnan", "stad-naturkarnan", "stad-sjobris"];
