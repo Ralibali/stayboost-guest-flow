@@ -32,34 +32,22 @@ export const BOOKING_UNITS: BookingUnit[] = UNITS.map((u) => {
     { capacity: number; basePrice: number; blurb: string; imageEmoji: string }
   > = {
     sjobris: {
-      capacity: 2,
+      capacity: 4,
       basePrice: 1695,
-      blurb: "Egen terrass mot kanalen, eldstad och pentry.",
-      imageEmoji: "🏡",
+      blurb: "Rakt fram vid kanalen — dubbelsäng, bäddsoffa, värme och kylskåp.",
+      imageEmoji: "⛺",
     },
     naturkarnan: {
       capacity: 4,
       basePrice: 1495,
-      blurb: "Rymligt familjetält precis vid slussarna.",
-      imageEmoji: "⛺",
+      blurb: "Längst till vänster — familjetält med dubbelsäng och bäddsoffa.",
+      imageEmoji: "🌿",
     },
     lugnetsyta: {
-      capacity: 2,
-      basePrice: 1295,
-      blurb: "Avskilt glampingtält i tallskogen.",
+      capacity: 4,
+      basePrice: 1395,
+      blurb: "I mitten — lugnt läge med dubbelsäng, bäddsoffa och värme.",
       imageEmoji: "🌲",
-    },
-    sjobris: {
-      capacity: 3,
-      basePrice: 1595,
-      blurb: "Renoverad slussvaktarstuga med kanalutsikt.",
-      imageEmoji: "🏠",
-    },
-    naturkarnan: {
-      capacity: 2,
-      basePrice: 1195,
-      blurb: "Mysigt tält för två, närmast bastun.",
-      imageEmoji: "🏕️",
     },
   };
   return { ...u, ...extra[u.id] };
