@@ -341,7 +341,7 @@ function BookingCard({
                       >
                         {m.channel === "email" ? <Mail size={14} /> : <Smartphone size={14} />}
                         <span className="font-medium">
-                          {m.template ? TRIGGER_LABELS[m.template.trigger_type] : "Meddelande"}
+                          {m.template ? (TRIGGER_LABELS[m.template.trigger_type as keyof typeof TRIGGER_LABELS] ?? "Meddelande") : "Meddelande"}
                         </span>
                         <span className="text-[color:var(--ink)]/50">
                           {new Date(m.send_at).toLocaleString("sv-SE", {
