@@ -31,7 +31,7 @@ function AppLayout() {
   if (!supabaseConfigured) {
     return (
       <div className="mx-auto max-w-lg px-5 py-24 text-center">
-        <p className="eyebrow">StayBoost operatör</p>
+        <p className="eyebrow">Operatörsvy i StayBoost</p>
         <h1 className="mt-3 font-[Fraunces] text-3xl font-semibold">
           Supabase är inte kopplat ännu
         </h1>
@@ -41,10 +41,10 @@ function AppLayout() {
           <code className="rounded bg-[color:var(--bg)] px-1.5 py-0.5">VITE_SUPABASE_ANON_KEY</code>{" "}
           i miljön, kör migrationen i{" "}
           <code className="rounded bg-[color:var(--bg)] px-1.5 py-0.5">supabase/migrations</code>{" "}
-          och deploya edge-funktionerna — sen funkar allt här.
+          och publicera edge-funktionerna – sedan fungerar allt här.
         </p>
         <Link to="/demo" className="btn-primary mt-8 inline-flex !rounded-xl !px-6 !py-3">
-          Under tiden: utforska demon →
+          Under tiden: utforska demot →
         </Link>
       </div>
     );
@@ -60,7 +60,7 @@ function AppLayout() {
     );
   }
 
-  if (!session) return null; // redirect pågår
+  if (!session) return null; // omdirigering pågår
 
   return (
     <AppShell

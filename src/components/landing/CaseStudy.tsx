@@ -57,7 +57,7 @@ function buildOpsStats(stats: StayBoostStats) {
     { value: formatInt(stats.digitalCheckIns), label: "digitala incheckningar" },
     {
       value: `${formatInt(stats.prearrivalMessages.sent)} / ${formatInt(stats.prearrivalMessages.total)}`,
-      label: "förankomst-SMS skickade",
+      label: "sms före ankomst",
     },
     {
       value: `${formatInt(stats.breakfastDeliveries.done)} / ${formatInt(stats.breakfastDeliveries.total)}`,
@@ -65,7 +65,7 @@ function buildOpsStats(stats: StayBoostStats) {
     },
     {
       value: `${formatInt(stats.sms.sent)} / ${formatInt(stats.sms.total)}`,
-      label: "SMS levererade från outbox",
+      label: "Sms levererade från utkorgen",
     },
   ];
 }
@@ -232,7 +232,7 @@ export function CaseStudy() {
 
         <p className="mt-10 max-w-3xl text-xs leading-relaxed text-[color:var(--ink)]/55">
           Källa: aggregerad driftstatistik från Göta Kanal Glamping för säsongen 2026 fram till
-          idag. Ingen gäst-, personal- eller betalningsdata visas. StayBoost är i pilotdrift —
+          i dag. Ingen gäst-, personal- eller betalningsdata visas. StayBoost är i pilotdrift —
           siffrorna beskriver hur systemet fungerar på den här anläggningen och är inte ett löfte om
           samma resultat för andra boenden.
         </p>

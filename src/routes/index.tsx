@@ -160,8 +160,8 @@ function Hero() {
           <FadeUp delay={0.1}>
             <p className="mt-6 max-w-xl text-white/85">
               {BRAND_NAME} lägger sig ovanpå bokningarna du redan har — egen provisionsfri
-              bokningsmotor, automatiserad merförsäljning, gäst-SMS, digital incheckning och
-              arbetsvyer för frukost och städ. Ett lager driftautomation för små boenden. Utan app.
+              bokningsmotor, automatiserad merförsäljning, gäst-sms, digital incheckning och
+              arbetsvyer för frukost och städning. Ett lager driftautomation för små boenden. Utan app.
               Igång på en kväll.
             </p>
           </FadeUp>
@@ -189,7 +189,7 @@ function Hero() {
                 }}
                 className="underline decoration-white/40 underline-offset-2 hover:text-white hover:decoration-white"
               >
-                eller testa gästflödet via SMS
+                eller testa gästflödet via sms
               </a>
             </p>
           </FadeUp>
@@ -288,7 +288,7 @@ function HowItWorks() {
     {
       n: 3,
       title: "Se tillvalen ticka in",
-      body: "Gästen bokar med ett tryck i SMS:et, betalar direkt. Du får en notis och pengarna.",
+      body: "Gästen bokar med ett tryck i sms:et, betalar direkt. Du får en notis och pengarna.",
     },
   ];
   return (
@@ -334,7 +334,7 @@ function Features() {
     {
       title: "Rätt ord, rätt sekund — utan att du lyfter ett finger.",
       body: "Välkomstinfo två dagar före ankomst, portkod på incheckningsdagen, tips på middagsställen kväll ett, omdömesfråga dagen efter utcheckning. Allt tajmat mot bokningen, automatiskt.",
-      fact: "Spar i snitt 5 timmar per vecka.",
+      fact: "Sparar i snitt 5 timmar per vecka.",
       mock: <TimelineMock />,
     },
     {
@@ -345,7 +345,7 @@ function Features() {
     },
     {
       title: "Allt gästen behöver. En länk.",
-      body: "Portkod, wifi, husregler, lokala tips och dina tillval — samlat på en mobilanpassad sida gästen når via SMS-länken. Ingen nedladdning, ingen inloggning.",
+      body: "Portkod, wifi, husregler, lokala tips och dina tillval — samlat på en mobilanpassad sida gästen når via sms-länken. Ingen nedladdning, ingen inloggning.",
       fact: "Färre frågor. Nöjdare gäster.",
       mock: <GuestHubMock />,
     },

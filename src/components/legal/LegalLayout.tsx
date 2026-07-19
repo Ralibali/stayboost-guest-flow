@@ -27,7 +27,7 @@ export function LegalLayout({
         <h1 className="mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
           {title}
         </h1>
-        <p className="mt-4 text-sm text-[color:var(--ink)]/60">Senast uppdaterad: {updated}</p>
+        <p className="mt-4 text-sm text-[color:var(--ink)]/60">Senast uppdaterad den {updated}</p>
         <div className="legal-prose mt-10 space-y-6 text-[color:var(--ink)]/85">{children}</div>
         <div className="mt-16 flex flex-wrap gap-4 border-t border-[color:var(--line)] pt-8 text-sm">
           <Link to="/integritetspolicy" className="hover:text-[color:var(--brass)]">

@@ -47,7 +47,7 @@ export function LeadMagnet() {
         <div>
           <p className="eyebrow">Gratis mallar</p>
           <h2 className="mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
-            De exakta SMS:en vi skickar till{" "}
+            De exakta sms:en vi skickar till{" "}
             <em className="italic text-[color:var(--brass)]">våra egna</em> gäster.
           </h2>
           <p className="mt-5 max-w-lg text-[color:var(--ink)]/75">
@@ -99,7 +99,7 @@ export function LeadMagnet() {
               aria-live="polite"
             >
               <p className="text-sm font-semibold text-[color:var(--ink)]">
-                Kolla din inbox — mallarna är på väg.
+                Kolla din inkorg — mallarna är på väg.
               </p>
               <p className="mt-1 text-sm text-[color:var(--ink)]/75">
                 Vi mejlar PDF:en direkt och skickar sedan tre korta lektioner under veckan om hur du
@@ -116,7 +116,7 @@ export function LeadMagnet() {
             </motion.div>
           )}
           <p className="mt-3 text-xs text-[color:var(--ink)]/55">
-            Vi mejlar mallarna + tre korta tips-mail. Avregistrera med ett klick.
+            Vi mejlar mallarna + tre korta tipsmejl. Avregistrera med ett klick.
           </p>
         </div>
 
@@ -137,7 +137,7 @@ export function LeadMagnet() {
                 className="mt-6 font-[Fraunces] font-semibold text-white"
                 style={{ fontSize: "clamp(1.5rem, 3.5vw, 2rem)", lineHeight: 1.05 }}
               >
-                12 gäst-SMS som säljer
+                12 gäst-sms som säljer
               </h3>
               <p className="mt-3 text-[0.72rem] leading-relaxed text-white/70">
                 Kopiera-och-skicka-mallar för hela gästresan — från bokningsbekräftelse till

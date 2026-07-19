@@ -490,9 +490,9 @@ function BreakfastDemo() {
           </button>
         </div>
         <div className="flex gap-1 text-[0.72rem]">
-          <button className="rounded-lg bg-[color:var(--forest)] px-2 py-1 text-white">Idag</button>
+          <button className="rounded-lg bg-[color:var(--forest)] px-2 py-1 text-white">I dag</button>
           <button className="rounded-lg border border-[color:var(--line)] px-2 py-1">
-            Imorgon
+            I morgon
           </button>
         </div>
       </div>
@@ -543,7 +543,7 @@ function BreakfastDemo() {
         )}
         {confirming && !delivered && (
           <div className="mt-3 space-y-2 rounded-lg border border-[color:var(--line)] bg-white p-2 text-[0.72rem]">
-            <div>Skicka SMS till gästen om att frukosten är levererad?</div>
+            <div>Skicka sms till gästen om att frukosten är levererad?</div>
             <div className="flex gap-2">
               <button
                 onClick={() => {
@@ -598,7 +598,7 @@ function CleaningDemo() {
         "Slutkontroll & lås",
       ],
       cta: "Klarmarkera",
-      toast: "Gästen får SMS: tältet är redo ✓",
+      toast: "Gästen får sms: tältet är redo ✓",
     },
     en: {
       badge1: "Turnover",
@@ -638,7 +638,7 @@ function CleaningDemo() {
     <div className="rounded-2xl border border-[color:var(--line)] bg-white p-5 text-sm">
       <div className="mb-3 flex items-center justify-between">
         <div className="text-[0.7rem] uppercase tracking-wide text-[color:var(--ink)]/55">
-          Städ · idag
+          Städning · i dag
         </div>
         <div className="flex gap-1 text-[0.7rem]">
           {(["sv", "en", "si"] as const).map((l) => (
@@ -765,15 +765,15 @@ function AdminPane() {
     "Bokningar",
     "Beställningar",
     "Frukost",
-    "Städ",
-    "SMS",
+    "Städning",
+    "Sms",
     "Priser",
     "Statistik",
     "Inställningar",
   ];
 
   return (
-    <DemoCard caption="En bekräftelse uppdaterar allt: gästens SMS, frukostlistan och städprioriteringen. Du gör en sak — systemet gör resten.">
+    <DemoCard caption="En bekräftelse uppdaterar allt: gästens sms, frukostlistan och städprioriteringen. Du gör en sak — systemet gör resten.">
       <div className="grid gap-0 overflow-hidden rounded-2xl border border-[color:var(--line)] bg-white md:grid-cols-[180px_1fr]">
         {/* Sidebar */}
         <aside className="border-b border-[color:var(--line)] bg-[color:var(--bg)] p-3 md:border-b-0 md:border-r">
@@ -878,10 +878,10 @@ function AdminPane() {
                           → Frukostvyn: <b>+2 portioner 13 juli</b>
                         </SyncLine>
                         <SyncLine delay={0.2}>
-                          → Gästen: <b>bekräftelse-SMS skickat</b>
+                          → Gästen: <b>bekräftelsesms skickat</b>
                         </SyncLine>
                         <SyncLine delay={0.35}>
-                          → Städ: <b>tidig incheckning flaggad</b>
+                          → Städning: <b>tidig incheckning flaggad</b>
                         </SyncLine>
                       </motion.div>
                     )}

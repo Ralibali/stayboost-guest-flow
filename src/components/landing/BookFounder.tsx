@@ -60,7 +60,7 @@ export function BookFounder() {
               Boka 20 min med grundaren.
             </h2>
             <p className="mt-4 text-[color:var(--ink)]/75 sm:mt-5">
-              Berätta hur din drift ser ut idag — jag visar var{" "}
+              Berätta hur din drift ser ut i dag — jag visar var{" "}
               <span className="font-semibold text-[color:var(--ink)]">StayBoost</span> hade satt in
               stöten hos dig. Om det inte passar säger jag det. Enkelt så.
             </p>
@@ -69,7 +69,7 @@ export function BookFounder() {
                 <span aria-hidden className="text-[color:var(--brass)]">
                   ✓
                 </span>
-                Skärmdelning av din faktiska bokningsflöde
+                Skärmdelning av ditt faktiska bokningsflöde
               </li>
               <li className="flex gap-3">
                 <span aria-hidden className="text-[color:var(--brass)]">
@@ -111,7 +111,7 @@ export function BookFounder() {
                 <h3 className="font-[Fraunces] text-2xl tracking-tight">Bokat. Vi ses snart.</h3>
                 <p className="text-[color:var(--ink)]/75">
                   Du får en kalenderinbjudan och en påminnelse via mejl. Vill du förbereda något?
-                  Skriv en mening om din anläggning i mötesnoten — då hoppar vi rakt in på det som
+                  Skriv en mening om din anläggning i mötesanteckningen — då hoppar vi rakt in på det som
                   spelar roll.
                 </p>
                 <button

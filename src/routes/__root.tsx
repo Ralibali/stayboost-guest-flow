@@ -92,14 +92,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
       [
         "Behöver mina gäster ladda ner en app?",
-        "Nej. Allt sker via vanliga SMS och en webblänk som öppnas direkt i mobilen. Inget konto, ingen inloggning.",
+        "Nej. Allt sker via vanliga sms och en webblänk som öppnas direkt i mobilen. Inget konto, ingen inloggning.",
       ],
       [
         "Hur lång tid tar det att komma igång?",
         "En kväll. Koppla bokningarna, välj bland färdiga mallar, klart. De flesta skickar sitt första automatiska meddelande samma dag.",
       ],
       [
-        "Vad händer om en gäst svarar på ett SMS?",
+        "Vad händer om en gäst svarar på ett sms?",
         'Du får svaret direkt i din inkorg i StayBoost och kan svara därifrån — eller låta automatiken hantera vanliga svar som "JA" på ett tillval.',
       ],
       [
@@ -107,8 +107,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         "Självklart. Mallarna är en start — varje meddelande går att redigera, och du kan bygga egna flöden med dina egna ord.",
       ],
       [
-        "Vad kostar SMS:en?",
-        "SMS ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per SMS — inga påslag, inga överraskningar.",
+        "Vad kostar sms:en?",
+        "Sms ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per sms — inga påslag, inga överraskningar.",
       ],
       [
         "Funkar det för min personal?",

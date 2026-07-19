@@ -34,7 +34,7 @@ function LoginPage() {
       if (error) setError(error.message);
       else
         setNotice(
-          "Konto skapat! Bekräfta via mejlen om din Supabase kräver det — sen loggar du in.",
+          "Konto skapat! Bekräfta via mejlet om din Supabase kräver det – sedan loggar du in.",
         );
     }
     setBusy(false);
@@ -88,7 +88,7 @@ function LoginPage() {
             disabled={busy}
             className="btn-primary w-full justify-center !rounded-xl !py-3 text-[15px] disabled:opacity-50"
           >
-            {busy ? "Vänta…" : mode === "in" ? "Logga in" : "Skapa konto"}
+            {busy ? "Vänta …" : mode === "in" ? "Logga in" : "Skapa konto"}
           </button>
           <button
             type="button"

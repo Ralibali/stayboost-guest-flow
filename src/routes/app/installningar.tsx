@@ -107,10 +107,10 @@ function SettingsPage() {
           />
         </Field>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Wifi-namn">
+          <Field label="Nätverksnamn (wifi)">
             <input value={form.wifi_name ?? ""} onChange={set("wifi_name")} className="inp" />
           </Field>
-          <Field label="Wifi-lösenord">
+          <Field label="Lösenord (wifi)">
             <input
               value={form.wifi_password ?? ""}
               onChange={set("wifi_password")}
@@ -184,7 +184,7 @@ function SettingsPage() {
         </div>
         <div className="mt-3">
           <label className="text-[12px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/55">
-            Bädda in på er hemsida (iframe)
+            Bädda in på din webbplats (iframe)
           </label>
           <textarea
             readOnly

@@ -96,7 +96,7 @@ function TemplatesPage() {
                   {savedId === t.id ? (
                     <span className="font-semibold text-[color:var(--success)]">✓ Sparat</span>
                   ) : (
-                    "autosparas vid ändring"
+                    "sparas automatiskt vid ändring"
                   )}
                 </p>
               </div>
@@ -127,7 +127,7 @@ function TemplatesPage() {
                   className="inp mt-1"
                 >
                   <option value="email">E-post</option>
-                  <option value="sms">SMS</option>
+                  <option value="sms">Sms</option>
                   <option value="both">Båda</option>
                 </select>
               </div>

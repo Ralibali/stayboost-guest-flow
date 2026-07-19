@@ -32,9 +32,9 @@ function Terms() {
 
       <h2>1. Tjänsten</h2>
       <p>
-        StayBoost är en molntjänst för små boendeanläggningar: gästkommunikation via SMS/e-post,
-        tillvalsförsäljning, incheckning, samt vyer för frukost och städ. Tjänsten levereras ”i
-        befintligt skick” med rimlig upptid; planerade underhåll aviseras i förväg.
+        StayBoost är en molntjänst för små boendeanläggningar: gästkommunikation via sms och e-post,
+        tillvalsförsäljning, incheckning, samt vyer för frukost och städning. Tjänsten levereras ”i
+        befintligt skick” med rimlig upptid; planerat underhåll aviseras i förväg.
       </p>
 
       <h2>2. Konto och behörighet</h2>
@@ -55,7 +55,7 @@ function Terms() {
         <li>Priser anges exklusive moms i SEK och löper månadsvis om inget annat avtalats.</li>
         <li>Betalning sker i förskott via kort eller faktura (14 dagars netto).</li>
         <li>
-          SMS ingår upp till en generös månadsgräns; överskjutande SMS debiteras till självkostnad
+          Sms ingår upp till en generös månadsgräns; överskjutande sms debiteras till självkostnad
           utan påslag.
         </li>
         <li>
@@ -83,7 +83,7 @@ function Terms() {
         Du äger dina kunduppgifter och det innehåll du lägger in. Vi behandlar dessa som
         personuppgiftsbiträde enligt vårt <a href="/dpa">personuppgiftsbiträdesavtal (DPA)</a>. Vid
         avtalets slut kan du exportera din data i 30 dagar, därefter raderas den enligt vår
-        retentionpolicy.
+        gallringspolicy.
       </p>
 
       <h2>8. Immateriella rättigheter</h2>

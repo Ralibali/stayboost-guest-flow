@@ -50,7 +50,7 @@ function Cookies() {
           <tr className="border-b border-[color:var(--line)]/60">
             <td className="py-2 pr-4">stayboost-stats-cache</td>
             <td className="py-2 pr-4">
-              Cachar publik statistik lokalt så sidan inte visar nollor vid nätfel
+              Mellanlagrar publik statistik lokalt så att sidan inte visar nollor vid nätfel
             </td>
             <td className="py-2 pr-4">Nödvändig</td>
             <td className="py-2">7 dagar</td>

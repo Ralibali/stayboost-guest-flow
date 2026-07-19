@@ -104,10 +104,10 @@ function OnboardingPage() {
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Wifi-namn">
+          <Field label="Nätverksnamn (wifi)">
             <input value={form.wifi_name} onChange={set("wifi_name")} className="inp" />
           </Field>
-          <Field label="Wifi-lösenord">
+          <Field label="Lösenord (wifi)">
             <input value={form.wifi_password} onChange={set("wifi_password")} className="inp" />
           </Field>
         </div>
@@ -142,7 +142,7 @@ function OnboardingPage() {
           <div>
             <h2 className="font-sans text-[17px] font-bold">Enheter</h2>
             <p className="text-[13px] text-[color:var(--ink)]/55">
-              Stugor, tält eller rum — varje enhet får egna iCal-källor och bokningar
+              Stugor, tält eller rum – varje enhet får egna iCal-källor och bokningar
             </p>
           </div>
           <button

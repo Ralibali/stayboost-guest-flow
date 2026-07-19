@@ -403,7 +403,7 @@ function PublicBookingPage() {
                     <input
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="Telefon (SMS på incheckningsdagen)"
+                      placeholder="Telefon (sms på incheckningsdagen)"
                       type="tel"
                       className="inp"
                     />

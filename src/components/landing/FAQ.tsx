@@ -8,14 +8,14 @@ const ITEMS = [
   },
   {
     q: "Behöver mina gäster ladda ner en app?",
-    a: "Nej. Allt sker via vanliga SMS och en webblänk som öppnas direkt i mobilen. Inget konto, ingen inloggning.",
+    a: "Nej. Allt sker via vanliga sms och en webblänk som öppnas direkt i mobilen. Inget konto, ingen inloggning.",
   },
   {
     q: "Hur lång tid tar det att komma igång?",
     a: "En kväll. Koppla bokningarna, välj bland färdiga mallar, klart. De flesta skickar sitt första automatiska meddelande samma dag.",
   },
   {
-    q: "Vad händer om en gäst svarar på ett SMS?",
+    q: "Vad händer om en gäst svarar på ett sms?",
     a: 'Du får svaret direkt i din inkorg i StayBoost och kan svara därifrån — eller låta automatiken hantera vanliga svar som "JA" på ett tillval.',
   },
   {
@@ -23,8 +23,8 @@ const ITEMS = [
     a: "Självklart. Mallarna är en start — varje meddelande går att redigera, och du kan bygga egna flöden med dina egna ord.",
   },
   {
-    q: "Vad kostar SMS:en?",
-    a: "SMS ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per SMS — inga påslag, inga överraskningar.",
+    q: "Vad kostar sms:en?",
+    a: "Sms ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per sms — inga påslag, inga överraskningar.",
   },
   {
     q: "Funkar det för min personal?",

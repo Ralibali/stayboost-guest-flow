@@ -11,7 +11,7 @@ const ITEMS = [
   },
   {
     icon: "💬",
-    title: "Smart SMS-motor",
+    title: "Smart sms-motor",
     body: "Förhandsinfo, portkod, tips och omdömesfråga — tajmat mot varje bokning, på gästens språk.",
   },
   {
