@@ -907,19 +907,24 @@ function BookingFlow() {
 
           {/* Navigationsknappar */}
           {step < 3 && (
-            <div className="mt-6 flex gap-3">
-              {step > 0 && (
-                <button onClick={() => setStep((s) => s - 1)} className="btn-ghost !rounded-2xl">
-                  <ArrowLeft size={17} />
+            <div className="mt-6 hidden flex-col gap-2 lg:flex">
+              <div className="flex gap-3">
+                {step > 0 && (
+                  <button onClick={() => setStep((s) => s - 1)} className="btn-ghost !rounded-2xl">
+                    <ArrowLeft size={17} />
+                  </button>
+                )}
+                <button
+                  onClick={() => setStep((s) => s + 1)}
+                  disabled={!canNext}
+                  className="btn-primary flex-1 !rounded-2xl disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {step === 2 ? "Till betalning" : "Fortsätt"} <ArrowRight size={17} />
                 </button>
+              </div>
+              {!canNext && (
+                <p className="text-[13px] text-[color:var(--ink)]/50">{stepHint}</p>
               )}
-              <button
-                onClick={() => setStep((s) => s + 1)}
-                disabled={!canNext}
-                className="btn-primary flex-1 !rounded-2xl disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {step === 2 ? "Till betalning" : "Fortsätt"} <ArrowRight size={17} />
-              </button>
             </div>
           )}
           {step === 3 && (
