@@ -69,6 +69,8 @@ export type Booking = {
   payment_status: "none" | "pending" | "paid" | "refunded";
   payment_amount: number | null;
   payment_ref: string | null;
+  payment_method: "none" | "swish" | "stripe";
+  stripe_session_id: string | null;
   unit?: { name: string } | null;
 };
 

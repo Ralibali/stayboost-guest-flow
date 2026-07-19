@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { nightsBetween, quoteStay, rangesOverlap } from "../_shared/pricing.ts";
+import { createCheckoutSession } from "../_shared/stripe.ts";
 
 // StayBoost: publik bokningsmotor (verify_jwt = false, se config.toml).
 //  GET  ?slug=<anläggningens slug>  → enheter, priser och upptagna datum
@@ -25,7 +26,7 @@ Deno.serve(async (req) => {
 
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
   const url = new URL(req.url);
@@ -72,6 +73,7 @@ Deno.serve(async (req) => {
         checkinTime: property.checkin_time,
         checkoutTime: property.checkout_time,
         swishNumber: property.swish_number,
+        stripeAvailable: Boolean(Deno.env.get("STRIPE_SECRET_KEY")),
       },
       units: (units ?? []).map((u) => ({
         id: u.id,
@@ -116,7 +118,9 @@ Deno.serve(async (req) => {
 
     const { data: unit } = await admin
       .from("units")
-      .select("id, property_id, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult")
+      .select(
+        "id, name, property_id, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult",
+      )
       .eq("id", unitId)
       .eq("property_id", property.id)
       .maybeSingle();
@@ -142,10 +146,22 @@ Deno.serve(async (req) => {
 
     const quote = quoteStay(unit, checkin, checkout);
 
-    // Manuell Swish: bokningen skapas med payment_status 'pending' och ett
-    // kort betalningsmärke — operatören markerar "Betald" när pengarna kommit.
+    // ---- Betalningsval: gästen väljer, annars Stripe > Swish > ingen ----
+    const requested = String(body?.paymentMethod ?? "");
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+    const stripeOk = Boolean(stripeKey);
+    const swishOk = Boolean(property.swish_number);
+    let paymentMethod: "none" | "swish" | "stripe" = "none";
+    if (requested === "stripe" && stripeOk) paymentMethod = "stripe";
+    else if (requested === "swish" && swishOk) paymentMethod = "swish";
+    else if (requested) return json({ error: "payment_method_unavailable" }, 400);
+    else if (stripeOk) paymentMethod = "stripe";
+    else if (swishOk) paymentMethod = "swish";
+
+    // Betalda flöden: bokningen skapas som 'pending' med kort betalningsmärke.
+    // Swish: operatören markerar "Betald" manuellt. Stripe: webhooks gör det.
     const paymentRef = `SB-${crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase()}`;
-    const usesSwish = Boolean(property.swish_number);
+    const takesPayment = paymentMethod !== "none";
 
     const { data: booking, error } = await admin
       .from("bookings")
@@ -159,7 +175,8 @@ Deno.serve(async (req) => {
         checkin_date: checkin,
         checkout_date: checkout,
         notes: `Direktbokning via bokningssidan · ${quote.total} kr`,
-        ...(usesSwish
+        payment_method: paymentMethod,
+        ...(takesPayment
           ? { payment_status: "pending", payment_amount: quote.total, payment_ref: paymentRef }
           : {}),
       })
@@ -167,12 +184,42 @@ Deno.serve(async (req) => {
       .single();
     if (error) return json({ error: error.message }, 500);
 
+    // Stripe: skapa Checkout Session och skicka gästen dit. Misslyckas det
+    // rullar vi tillbaka bokningen så inga spökbokningar blockerar kalendern.
+    if (paymentMethod === "stripe") {
+      try {
+        const appBase = Deno.env.get("PUBLIC_APP_URL") ?? req.headers.get("origin") ?? "";
+        const session = await createCheckoutSession({
+          secretKey: stripeKey,
+          amountSek: quote.total,
+          description: `${unit.name} · ${checkin}–${checkout}`,
+          paymentRef,
+          bookingId: booking.id,
+          successUrl: `${appBase}/g/${booking.guest_token}?paid=1`,
+          cancelUrl: `${appBase}/boka/${slug}`,
+          customerEmail: guestEmail || null,
+        });
+        await admin.from("bookings").update({ stripe_session_id: session.id }).eq("id", booking.id);
+        return json({
+          ok: true,
+          bookingId: booking.id,
+          guestToken: booking.guest_token,
+          price: quote,
+          paymentMethod: "stripe",
+          checkoutUrl: session.url,
+        });
+      } catch (e) {
+        await admin.from("bookings").delete().eq("id", booking.id);
+        return json({ error: "stripe_failed", detail: String(e) }, 502);
+      }
+    }
+
     return json({
       ok: true,
       bookingId: booking.id,
       guestToken: booking.guest_token,
       price: quote,
-      ...(usesSwish
+      ...(paymentMethod === "swish"
         ? { swishNumber: property.swish_number, paymentRef, paymentAmount: quote.total }
         : {}),
     });

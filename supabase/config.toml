@@ -18,6 +18,11 @@ verify_jwt = false
 [functions.sirvoy-webhook]
 verify_jwt = false
 
+# Stripe postar hit utan JWT — HMAC-signaturen i Stripe-Signature-headern
+# verifieras mot STRIPE_WEBHOOK_SECRET i funktionen.
+[functions.stripe-webhook]
+verify_jwt = false
+
 [functions.ical-sync]
 verify_jwt = true
 

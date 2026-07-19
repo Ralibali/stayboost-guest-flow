@@ -19,6 +19,11 @@ import {
   type UnitPricing,
 } from "../../supabase/functions/_shared/pricing";
 import { mapSirvoyPayload } from "../../supabase/functions/_shared/sirvoy";
+import {
+  checkoutBody,
+  signatureHeaderValue,
+  verifyStripeSignature,
+} from "../../supabase/functions/_shared/stripe";
 import { formatSvDate, renderTemplate } from "../../supabase/functions/_shared/templates";
 
 /* ================= iCal-parser ================= */
@@ -269,6 +274,10 @@ const MIGRATION_SIRVOY = readFileSync(
   join(__dirname, "../../supabase/migrations/20260720000000_sirvoy_swish.sql"),
   "utf8",
 );
+const MIGRATION_STRIPE = readFileSync(
+  join(__dirname, "../../supabase/migrations/20260720120000_stripe.sql"),
+  "utf8",
+);
 
 const AUTH_STUB = `
 create schema auth;
@@ -488,6 +497,122 @@ describe("Fas 1-migration mot Postgres", () => {
     await expect(
       db.query(
         "insert into bookings (property_id, source, checkin_date, checkout_date, payment_status) values ($1, 'direct', '2026-09-01', '2026-09-02', 'kanske')",
+        [p.rows[0].id],
+      ),
+    ).rejects.toThrow();
+  }, 30000);
+});
+
+/* ================= Stripe Checkout + webhook-signatur ================= */
+
+describe("Stripe Checkout-modul", () => {
+  it("bygger korrekt form-encoded Checkout-body", () => {
+    const body = checkoutBody({
+      secretKey: "sk_test_x",
+      amountSek: 1250,
+      description: "Tälthydda · 2026-08-14–2026-08-16",
+      paymentRef: "SB-ABC123",
+      bookingId: "bok-1",
+      successUrl: "https://app.example/g/tok?paid=1",
+      cancelUrl: "https://app.example/boka/stugan",
+      customerEmail: "gast@example.se",
+    });
+    const p = new URLSearchParams(body);
+    expect(p.get("mode")).toBe("payment");
+    expect(p.get("line_items[0][price_data][currency]")).toBe("sek");
+    // 1 250 kr → 125 000 öre
+    expect(p.get("line_items[0][price_data][unit_amount]")).toBe("125000");
+    expect(p.get("client_reference_id")).toBe("bok-1");
+    expect(p.get("metadata[payment_ref]")).toBe("SB-ABC123");
+    expect(p.get("customer_email")).toBe("gast@example.se");
+  });
+
+  it("hämtar värden ur Stripe-Signature-headern", () => {
+    const h = "t=1721462400,v1=abc123,v0=zzz";
+    expect(signatureHeaderValue(h, "t")).toBe("1721462400");
+    expect(signatureHeaderValue(h, "v1")).toBe("abc123");
+    expect(signatureHeaderValue(h, "v9")).toBeNull();
+  });
+
+  it("verifierar webhook-signaturer: giltig, fel hemlighet, manipulerad body, utgången", async () => {
+    const secret = "whsec_test_secret";
+    const payload = JSON.stringify({
+      type: "checkout.session.completed",
+      data: { object: { client_reference_id: "bok-1" } },
+    });
+    const sign = async (s: string, body: string, ts: number) => {
+      const key = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(s),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign"],
+      );
+      const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(`${ts}.${body}`));
+      const hex = Array.from(new Uint8Array(sig))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
+      return `t=${ts},v1=${hex}`;
+    };
+    const now = Math.floor(Date.now() / 1000);
+
+    // Giltig signatur godkänns
+    await expect(
+      verifyStripeSignature(payload, await sign(secret, payload, now), secret),
+    ).resolves.toBe(true);
+    // Fel hemlighet avvisas
+    await expect(
+      verifyStripeSignature(payload, await sign("whsec_fel", payload, now), secret),
+    ).resolves.toBe(false);
+    // Manipulerad body avvisas
+    await expect(
+      verifyStripeSignature(
+        payload.replace("bok-1", "bok-2"),
+        await sign(secret, payload, now),
+        secret,
+      ),
+    ).resolves.toBe(false);
+    // Utgången tidsstämpel (10 min gammal) avvisas
+    await expect(
+      verifyStripeSignature(payload, await sign(secret, payload, now - 600), secret),
+    ).resolves.toBe(false);
+  });
+});
+
+describe("Stripe-migration mot Postgres", () => {
+  it("payment_method: default 'none', giltiga värden, stripe_session_id", async () => {
+    const db = new PGlite({ extensions: { pgcrypto } });
+    await db.exec(AUTH_STUB);
+    await db.exec(MIGRATION);
+    await db.exec(MIGRATION_ICAL);
+    await db.exec(MIGRATION_DIRECT);
+    await db.exec(MIGRATION_SIRVOY);
+    await db.exec(MIGRATION_STRIPE);
+
+    const p = await db.query<{ id: string }>(
+      "insert into properties (owner_id, name) values ('00000000-0000-0000-0000-0000000000a1', 'Stripe-test') returning id",
+    );
+
+    // Default: ingen betalningsmetod, ingen Stripe-session
+    const b = await db.query<{ payment_method: string; stripe_session_id: string | null }>(
+      `insert into bookings (property_id, source, checkin_date, checkout_date)
+       values ($1, 'direct', '2026-09-01', '2026-09-02') returning payment_method, stripe_session_id`,
+      [p.rows[0].id],
+    );
+    expect(b.rows[0].payment_method).toBe("none");
+    expect(b.rows[0].stripe_session_id).toBeNull();
+
+    // Båda betalsätten är giltiga, ogiltiga avvisas
+    await db.query(
+      `insert into bookings (property_id, source, checkin_date, checkout_date, payment_method, stripe_session_id)
+       values ($1, 'direct', '2026-09-03', '2026-09-04', 'stripe', 'cs_test_123'),
+              ($1, 'direct', '2026-09-05', '2026-09-06', 'swish', null)`,
+      [p.rows[0].id],
+    );
+    await expect(
+      db.query(
+        `insert into bookings (property_id, source, checkin_date, checkout_date, payment_method)
+         values ($1, 'direct', '2026-09-07', '2026-09-08', 'klarna')`,
         [p.rows[0].id],
       ),
     ).rejects.toThrow();

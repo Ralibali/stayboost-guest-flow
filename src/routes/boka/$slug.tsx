@@ -33,6 +33,7 @@ type EngineData = {
     checkinTime: string;
     checkoutTime: string;
     swishNumber: string | null;
+    stripeAvailable: boolean;
   };
   units: EngineUnit[];
 };
@@ -82,6 +83,7 @@ function PublicBookingPage() {
   const [phone, setPhone] = useState("");
   const [sending, setSending] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [payChoice, setPayChoice] = useState<"stripe" | "swish" | null>(null);
   const [done, setDone] = useState<{
     token: string;
     total: number;
@@ -127,6 +129,16 @@ function PublicBookingPage() {
   const minStayOk = !quote || !unit || quote.nights >= unit.minStay;
   const canSubmit = unit && quote && minStayOk && (email.trim() || phone.trim()) && !sending;
 
+  // Tillgängliga betalsätt enligt anläggningens inställningar
+  const payMethods = data
+    ? ([
+        ...(data.property.stripeAvailable ? (["stripe"] as const) : []),
+        ...(data.property.swishNumber ? (["swish"] as const) : []),
+      ] as ("stripe" | "swish")[])
+    : [];
+  const payMethod =
+    payChoice && payMethods.includes(payChoice) ? payChoice : (payMethods[0] ?? null);
+
   const submit = async () => {
     if (!canSubmit || !unit || !checkin || !checkout) return;
     setSending(true);
@@ -143,6 +155,7 @@ function PublicBookingPage() {
           guest_name: name.trim(),
           guest_email: email.trim(),
           guest_phone: phone.trim(),
+          ...(payMethod ? { paymentMethod: payMethod } : {}),
         }),
       });
       const d = await r.json();
@@ -154,8 +167,13 @@ function PublicBookingPage() {
               ? `Minsta vistelse är ${d.minStay} nätter.`
               : d.error === "contact_required"
                 ? "Ange e-post eller telefon så vi kan skicka bekräftelsen."
-                : "Något gick fel — försök igen om en stund.",
+                : d.error === "stripe_failed"
+                  ? "Kortbetalningen kunde inte startas — försök igen eller välj Swish."
+                  : "Något gick fel — försök igen om en stund.",
         );
+      } else if (d.checkoutUrl) {
+        window.location.href = d.checkoutUrl; // vidare till Stripe Checkout
+        return;
       } else {
         setDone({
           token: d.guestToken,
@@ -412,17 +430,51 @@ function PublicBookingPage() {
                         {formError}
                       </p>
                     )}
+                    {payMethods.length > 1 && (
+                      <div className="grid grid-cols-2 gap-2">
+                        {(
+                          [
+                            { id: "stripe", label: "💳 Kort", hint: "Visa · Mastercard" },
+                            { id: "swish", label: "Swish", hint: "Direkt i appen" },
+                          ] as const
+                        )
+                          .filter((m) => payMethods.includes(m.id))
+                          .map((m) => (
+                            <button
+                              key={m.id}
+                              type="button"
+                              onClick={() => setPayChoice(m.id)}
+                              className={`rounded-xl px-3 py-2.5 text-left ring-1 transition ${
+                                payMethod === m.id
+                                  ? "bg-[color:var(--forest)]/5 ring-2 ring-[color:var(--forest)]"
+                                  : "ring-[color:var(--line)] hover:ring-[color:var(--ink)]/30"
+                              }`}
+                            >
+                              <span className="block text-[14px] font-bold">{m.label}</span>
+                              <span className="block text-[11px] text-[color:var(--ink)]/50">
+                                {m.hint}
+                              </span>
+                            </button>
+                          ))}
+                      </div>
+                    )}
                     <button
                       onClick={submit}
                       disabled={!canSubmit}
                       className="btn-primary w-full justify-center !rounded-xl !py-3.5 text-[15px] disabled:opacity-40"
                     >
-                      {sending ? "Bokar…" : `Boka ${fmtKr(quote.total)} →`}
+                      {sending
+                        ? "Bokar…"
+                        : payMethod === "stripe"
+                          ? `Betala ${fmtKr(quote.total)} med kort →`
+                          : `Boka ${fmtKr(quote.total)} →`}
                     </button>
                     <p className="text-center text-[12px] text-[color:var(--ink)]/45">
-                      {data.property.swishNumber
-                        ? "Du betalar smidigt med Swish direkt efter bokningen."
-                        : "Ingen kortbetalning ännu — betalning sker enligt överenskommelse med värden."}
+                      {payMethod === "stripe"
+                        ? "Säker kortbetalning via Stripe — bokningen bekräftas direkt."
+                        : payMethod === "swish"
+                          ? "Du betalar smidigt med Swish direkt efter bokningen."
+                          : "Ingen betalning online — betalning sker enligt överenskommelse med värden."}
                     </p>
                   </div>
                 </motion.div>

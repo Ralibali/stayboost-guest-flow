@@ -39,23 +39,40 @@ function GuestPage() {
   const [state, setState] = useState<"loading" | "ok" | "notfound">("loading");
   const [data, setData] = useState<GuestData | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
+  // Gästen landar här från Stripe med ?paid=1 — webhooks kan hinka efter några
+  // sekunder, så vi pollar om sidan tills status hinner bli "paid".
+  const [justPaid] = useState(
+    () => new URLSearchParams(window.location.search).get("paid") === "1",
+  );
+  const [polls, setPolls] = useState(0);
 
   useEffect(() => {
     if (!supabaseConfigured || !supabase) {
       setState("notfound");
       return;
     }
+    let cancelled = false;
     supabase.functions
       .invoke("guest-page", { body: { token } })
       .then(({ data, error }) => {
+        if (cancelled) return;
         if (error || !data || (data as { error?: string }).error) setState("notfound");
         else {
           setData(data as GuestData);
           setState("ok");
         }
       })
-      .catch(() => setState("notfound"));
-  }, [token]);
+      .catch(() => !cancelled && setState("notfound"));
+    return () => {
+      cancelled = true;
+    };
+  }, [token, polls]);
+
+  useEffect(() => {
+    if (!justPaid || data?.payment?.status !== "pending" || polls >= 6) return;
+    const t = setTimeout(() => setPolls((p) => p + 1), 8000);
+    return () => clearTimeout(t);
+  }, [justPaid, data, polls]);
 
   const copy = (text: string, field: string) => {
     navigator.clipboard.writeText(text);
@@ -117,6 +134,24 @@ function GuestPage() {
             <span>Ut {p.checkout_time}</span>
           </div>
         </motion.div>
+
+        {data.payment?.status === "paid" && (
+          <div className="card-surface mt-4 p-5 ring-2 ring-[color:var(--success)]">
+            <p className="text-[15px] font-bold">✓ Betalningen är mottagen</p>
+            <p className="mt-1 text-[13px] text-[color:var(--ink)]/60">
+              Din bokning är bekräftad och betald — vi ses snart!
+            </p>
+          </div>
+        )}
+
+        {justPaid && data.payment?.status === "pending" && (
+          <div className="card-surface mt-4 p-5 ring-2 ring-[color:var(--brass)]">
+            <p className="text-[15px] font-bold">⏳ Din betalning behandlas</p>
+            <p className="mt-1 text-[13px] text-[color:var(--ink)]/60">
+              Kortbetalningen registreras just nu — sidan uppdateras automatiskt inom någon minut.
+            </p>
+          </div>
+        )}
 
         {data.payment?.status === "pending" && data.payment.amount && p.swish_number && (
           <div className="card-surface mt-4 p-5 ring-2 ring-[color:var(--brass)]">
