@@ -1020,7 +1020,7 @@ function BookingFlow() {
                   <button
                     onClick={() => setStep((s) => s + 1)}
                     disabled={!canNext}
-                    className="group flex w-full items-center justify-center gap-2 bg-[color:var(--brass)] px-5 py-4 text-[11px] font-bold uppercase tracking-[0.24em] text-[color:var(--ink)] transition-colors duration-300 hover:bg-white disabled:cursor-not-allowed disabled:bg-white/15 disabled:text-white/40"
+                    className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[color:var(--brass)] px-5 py-4 text-[11px] font-bold uppercase tracking-[0.24em] text-white shadow-lg shadow-black/10 transition-all duration-300 hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-white/15 disabled:text-white/40 disabled:shadow-none"
                   >
                     {step === 2 ? "Till betalning" : "Gå vidare"}
                     <ArrowRight size={15} strokeWidth={2.4} />
