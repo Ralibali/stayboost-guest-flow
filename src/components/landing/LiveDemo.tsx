@@ -45,7 +45,7 @@ const CARDS = [
   },
   {
     icon: "📈",
-    title: "Ägar-dashboarden",
+    title: "Ägaröversikten",
     path: "/demo/admin",
     view: "admin",
     body: "Det du ser: merförsäljning i realtid, orderflöde och tillvalshantering.",

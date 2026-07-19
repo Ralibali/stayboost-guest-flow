@@ -874,7 +874,7 @@ function BookingFlow() {
                     </li>
                     <li className="flex gap-2.5">
                       <Check size={15} className="mt-0.5 shrink-0 text-[color:var(--success)]" />
-                      Bokningen syns direkt i ägarens dashboard och kalender
+                      Bokningen syns direkt i ägarens översikt och kalender
                     </li>
                     <li className="flex gap-2.5">
                       <Check size={15} className="mt-0.5 shrink-0 text-[color:var(--success)]" />

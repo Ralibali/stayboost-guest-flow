@@ -60,7 +60,7 @@ export function BookFounder() {
               Boka 20 min med grundaren.
             </h2>
             <p className="mt-4 text-[color:var(--ink)]/75 sm:mt-5">
-              Berätta hur din drift ser ut idag — jag visar var{" "}
+              Berätta hur din drift ser ut i dag — jag visar var{" "}
               <span className="font-semibold text-[color:var(--ink)]">StayBoost</span> hade satt in
               stöten hos dig. Om det inte passar säger jag det. Enkelt så.
             </p>

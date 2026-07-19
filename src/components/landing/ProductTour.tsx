@@ -638,7 +638,7 @@ function CleaningDemo() {
     <div className="rounded-2xl border border-[color:var(--line)] bg-white p-5 text-sm">
       <div className="mb-3 flex items-center justify-between">
         <div className="text-[0.7rem] uppercase tracking-wide text-[color:var(--ink)]/55">
-          Städ · idag
+          Städning · i dag
         </div>
         <div className="flex gap-1 text-[0.7rem]">
           {(["sv", "en", "si"] as const).map((l) => (

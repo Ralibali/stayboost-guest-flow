@@ -184,7 +184,7 @@ function CleaningView() {
 
       <p className="mt-6 text-center text-[13px] text-[color:var(--ink)]/50">
         Städteamet ser bara sin egen vy — på sitt eget språk — och ägaren följer status i realtid
-        från dashboarden.
+        från översikten.
       </p>
     </div>
   );
