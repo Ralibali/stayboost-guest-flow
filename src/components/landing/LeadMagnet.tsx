@@ -42,7 +42,7 @@ export function LeadMagnet() {
   };
 
   return (
-    <section id="mallar" className="border-t border-[color:var(--line)] bg-white/60 py-20 md:py-28">
+    <section id="mallar" className="border-t border-[color:var(--line)] bg-white/60 py-14 sm:py-20 md:py-28">
       <div className="mx-auto grid max-w-[1120px] items-center gap-12 px-6 md:grid-cols-[1.1fr_0.9fr]">
         <div>
           <p className="eyebrow">Gratis mallar</p>

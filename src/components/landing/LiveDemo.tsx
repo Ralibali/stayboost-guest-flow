@@ -88,7 +88,7 @@ export function LiveDemo() {
   return (
     <section
       id="demo-live"
-      className="border-t border-[color:var(--line)] bg-white/50 py-16 sm:py-20 md:py-32"
+      className="border-t border-[color:var(--line)] bg-white/50 py-16 sm:py-14 sm:py-20 md:py-32"
     >
       <div className="mx-auto max-w-[1120px] px-5 sm:px-6">
         <div className="max-w-2xl">

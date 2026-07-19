@@ -31,7 +31,7 @@ export function ProductTour() {
   return (
     <section
       id="produkten"
-      className="border-t border-[color:var(--line)] bg-[color:var(--bg)] py-20 md:py-32"
+      className="border-t border-[color:var(--line)] bg-[color:var(--bg)] py-14 sm:py-20 md:py-32"
     >
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="max-w-2xl">

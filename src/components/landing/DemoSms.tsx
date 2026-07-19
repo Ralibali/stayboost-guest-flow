@@ -68,7 +68,7 @@ export function DemoSms() {
   return (
     <section
       id="demo-sms"
-      className="border-t border-[color:var(--line)] bg-white/60 py-16 sm:py-20 md:py-28"
+      className="border-t border-[color:var(--line)] bg-white/60 py-16 sm:py-14 sm:py-20 md:py-28"
     >
       <div className="mx-auto max-w-3xl px-5 sm:px-6 text-center">
         <p className="eyebrow">Testa själv — inget konto</p>

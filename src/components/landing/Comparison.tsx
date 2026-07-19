@@ -68,7 +68,7 @@ function CellIcon({ v }: { v: Cell }) {
 
 export function Comparison() {
   return (
-    <section className="border-t border-[color:var(--line)] bg-white/50 py-16 sm:py-20 md:py-28">
+    <section className="border-t border-[color:var(--line)] bg-white/50 py-16 sm:py-14 sm:py-20 md:py-28">
       <div className="mx-auto max-w-[920px] px-5 sm:px-6">
         <div className="mx-auto max-w-2xl text-center">
           <p className="eyebrow">Ärlig jämförelse</p>

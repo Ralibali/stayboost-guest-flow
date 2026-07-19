@@ -9,62 +9,42 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
-import { Route as AppRouteImport } from './routes/app'
-import { Route as CookiesRouteImport } from './routes/cookies'
-import { Route as DemoRouteImport } from './routes/demo'
-import { Route as DpaRouteImport } from './routes/dpa'
-import { Route as IntegritetspolicyRouteImport } from './routes/integritetspolicy'
 import { Route as VillkorRouteImport } from './routes/villkor'
-import { Route as AppIndexRouteImport } from './routes/app/index'
-import { Route as AppBokningarRouteImport } from './routes/app/bokningar'
-import { Route as AppInstallningarRouteImport } from './routes/app/installningar'
-import { Route as AppKallorRouteImport } from './routes/app/kallor'
-import { Route as AppLoginRouteImport } from './routes/app/login'
-import { Route as AppMallarRouteImport } from './routes/app/mallar'
-import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
-import { Route as AppTillvalRouteImport } from './routes/app/tillval'
-import { Route as BokaSlugRouteImport } from './routes/boka/$slug'
+import { Route as IntegritetspolicyRouteImport } from './routes/integritetspolicy'
+import { Route as DpaRouteImport } from './routes/dpa'
+import { Route as DemoRouteImport } from './routes/demo'
+import { Route as CookiesRouteImport } from './routes/cookies'
+import { Route as AppRouteImport } from './routes/app'
+import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoIndexRouteImport } from './routes/demo/index'
-import { Route as DemoAdminRouteImport } from './routes/demo/admin'
-import { Route as DemoBokaRouteImport } from './routes/demo/boka'
-import { Route as DemoBokningarRouteImport } from './routes/demo/bokningar'
-import { Route as DemoDagsoversiktRouteImport } from './routes/demo/dagsoversikt'
-import { Route as DemoFrukostRouteImport } from './routes/demo/frukost'
-import { Route as DemoGastRouteImport } from './routes/demo/gast'
-import { Route as DemoGasterRouteImport } from './routes/demo/gaster'
-import { Route as DemoIncheckningRouteImport } from './routes/demo/incheckning'
-import { Route as DemoKanalerRouteImport } from './routes/demo/kanaler'
-import { Route as DemoMinSidaRouteImport } from './routes/demo/min-sida'
-import { Route as DemoPersonalRouteImport } from './routes/demo/personal'
-import { Route as DemoPresentkortRouteImport } from './routes/demo/presentkort'
-import { Route as DemoRapporterRouteImport } from './routes/demo/rapporter'
-import { Route as DemoStadRouteImport } from './routes/demo/stad'
+import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as GTokenRouteImport } from './routes/g/$token'
+import { Route as DemoStadRouteImport } from './routes/demo/stad'
+import { Route as DemoRapporterRouteImport } from './routes/demo/rapporter'
+import { Route as DemoPresentkortRouteImport } from './routes/demo/presentkort'
+import { Route as DemoPersonalRouteImport } from './routes/demo/personal'
+import { Route as DemoMinSidaRouteImport } from './routes/demo/min-sida'
+import { Route as DemoKanalerRouteImport } from './routes/demo/kanaler'
+import { Route as DemoIncheckningRouteImport } from './routes/demo/incheckning'
+import { Route as DemoGasterRouteImport } from './routes/demo/gaster'
+import { Route as DemoGastRouteImport } from './routes/demo/gast'
+import { Route as DemoFrukostRouteImport } from './routes/demo/frukost'
+import { Route as DemoDagsoversiktRouteImport } from './routes/demo/dagsoversikt'
+import { Route as DemoBokningarRouteImport } from './routes/demo/bokningar'
+import { Route as DemoBokaRouteImport } from './routes/demo/boka'
+import { Route as DemoAdminRouteImport } from './routes/demo/admin'
+import { Route as BokaSlugRouteImport } from './routes/boka/$slug'
+import { Route as AppTillvalRouteImport } from './routes/app/tillval'
+import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
+import { Route as AppMallarRouteImport } from './routes/app/mallar'
+import { Route as AppLoginRouteImport } from './routes/app/login'
+import { Route as AppKallorRouteImport } from './routes/app/kallor'
+import { Route as AppInstallningarRouteImport } from './routes/app/installningar'
+import { Route as AppBokningarRouteImport } from './routes/app/bokningar'
 
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AppRoute = AppRouteImport.update({
-  id: '/app',
-  path: '/app',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const CookiesRoute = CookiesRouteImport.update({
-  id: '/cookies',
-  path: '/cookies',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DemoRoute = DemoRouteImport.update({
-  id: '/demo',
-  path: '/demo',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const DpaRoute = DpaRouteImport.update({
-  id: '/dpa',
-  path: '/dpa',
+const VillkorRoute = VillkorRouteImport.update({
+  id: '/villkor',
+  path: '/villkor',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IntegritetspolicyRoute = IntegritetspolicyRouteImport.update({
@@ -72,54 +52,29 @@ const IntegritetspolicyRoute = IntegritetspolicyRouteImport.update({
   path: '/integritetspolicy',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VillkorRoute = VillkorRouteImport.update({
-  id: '/villkor',
-  path: '/villkor',
+const DpaRoute = DpaRouteImport.update({
+  id: '/dpa',
+  path: '/dpa',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AppIndexRoute = AppIndexRouteImport.update({
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppBokningarRoute = AppBokningarRouteImport.update({
-  id: '/bokningar',
-  path: '/bokningar',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppInstallningarRoute = AppInstallningarRouteImport.update({
-  id: '/installningar',
-  path: '/installningar',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppKallorRoute = AppKallorRouteImport.update({
-  id: '/kallor',
-  path: '/kallor',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppLoginRoute = AppLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppMallarRoute = AppMallarRouteImport.update({
-  id: '/mallar',
-  path: '/mallar',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppOnboardingRoute = AppOnboardingRouteImport.update({
-  id: '/onboarding',
-  path: '/onboarding',
-  getParentRoute: () => AppRoute,
-} as any)
-const AppTillvalRoute = AppTillvalRouteImport.update({
-  id: '/tillval',
-  path: '/tillval',
-  getParentRoute: () => AppRoute,
-} as any)
-const BokaSlugRoute = BokaSlugRouteImport.update({
-  id: '/boka/$slug',
-  path: '/boka/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoIndexRoute = DemoIndexRouteImport.update({
@@ -127,64 +82,19 @@ const DemoIndexRoute = DemoIndexRouteImport.update({
   path: '/',
   getParentRoute: () => DemoRoute,
 } as any)
-const DemoAdminRoute = DemoAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => DemoRoute,
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
 } as any)
-const DemoBokaRoute = DemoBokaRouteImport.update({
-  id: '/boka',
-  path: '/boka',
-  getParentRoute: () => DemoRoute,
+const GTokenRoute = GTokenRouteImport.update({
+  id: '/g/$token',
+  path: '/g/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
-const DemoBokningarRoute = DemoBokningarRouteImport.update({
-  id: '/bokningar',
-  path: '/bokningar',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoDagsoversiktRoute = DemoDagsoversiktRouteImport.update({
-  id: '/dagsoversikt',
-  path: '/dagsoversikt',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoFrukostRoute = DemoFrukostRouteImport.update({
-  id: '/frukost',
-  path: '/frukost',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoGastRoute = DemoGastRouteImport.update({
-  id: '/gast',
-  path: '/gast',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoGasterRoute = DemoGasterRouteImport.update({
-  id: '/gaster',
-  path: '/gaster',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoIncheckningRoute = DemoIncheckningRouteImport.update({
-  id: '/incheckning',
-  path: '/incheckning',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoKanalerRoute = DemoKanalerRouteImport.update({
-  id: '/kanaler',
-  path: '/kanaler',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoMinSidaRoute = DemoMinSidaRouteImport.update({
-  id: '/min-sida',
-  path: '/min-sida',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoPersonalRoute = DemoPersonalRouteImport.update({
-  id: '/personal',
-  path: '/personal',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoPresentkortRoute = DemoPresentkortRouteImport.update({
-  id: '/presentkort',
-  path: '/presentkort',
+const DemoStadRoute = DemoStadRouteImport.update({
+  id: '/stad',
+  path: '/stad',
   getParentRoute: () => DemoRoute,
 } as any)
 const DemoRapporterRoute = DemoRapporterRouteImport.update({
@@ -192,15 +102,105 @@ const DemoRapporterRoute = DemoRapporterRouteImport.update({
   path: '/rapporter',
   getParentRoute: () => DemoRoute,
 } as any)
-const DemoStadRoute = DemoStadRouteImport.update({
-  id: '/stad',
-  path: '/stad',
+const DemoPresentkortRoute = DemoPresentkortRouteImport.update({
+  id: '/presentkort',
+  path: '/presentkort',
   getParentRoute: () => DemoRoute,
 } as any)
-const GTokenRoute = GTokenRouteImport.update({
-  id: '/g/$token',
-  path: '/g/$token',
+const DemoPersonalRoute = DemoPersonalRouteImport.update({
+  id: '/personal',
+  path: '/personal',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoMinSidaRoute = DemoMinSidaRouteImport.update({
+  id: '/min-sida',
+  path: '/min-sida',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoKanalerRoute = DemoKanalerRouteImport.update({
+  id: '/kanaler',
+  path: '/kanaler',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoIncheckningRoute = DemoIncheckningRouteImport.update({
+  id: '/incheckning',
+  path: '/incheckning',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoGasterRoute = DemoGasterRouteImport.update({
+  id: '/gaster',
+  path: '/gaster',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoGastRoute = DemoGastRouteImport.update({
+  id: '/gast',
+  path: '/gast',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoFrukostRoute = DemoFrukostRouteImport.update({
+  id: '/frukost',
+  path: '/frukost',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoDagsoversiktRoute = DemoDagsoversiktRouteImport.update({
+  id: '/dagsoversikt',
+  path: '/dagsoversikt',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoBokningarRoute = DemoBokningarRouteImport.update({
+  id: '/bokningar',
+  path: '/bokningar',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoBokaRoute = DemoBokaRouteImport.update({
+  id: '/boka',
+  path: '/boka',
+  getParentRoute: () => DemoRoute,
+} as any)
+const DemoAdminRoute = DemoAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => DemoRoute,
+} as any)
+const BokaSlugRoute = BokaSlugRouteImport.update({
+  id: '/boka/$slug',
+  path: '/boka/$slug',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppTillvalRoute = AppTillvalRouteImport.update({
+  id: '/tillval',
+  path: '/tillval',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOnboardingRoute = AppOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMallarRoute = AppMallarRouteImport.update({
+  id: '/mallar',
+  path: '/mallar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLoginRoute = AppLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppKallorRoute = AppKallorRouteImport.update({
+  id: '/kallor',
+  path: '/kallor',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInstallningarRoute = AppInstallningarRouteImport.update({
+  id: '/installningar',
+  path: '/installningar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBokningarRoute = AppBokningarRouteImport.update({
+  id: '/bokningar',
+  path: '/bokningar',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -421,39 +421,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/app': {
-      id: '/app'
-      path: '/app'
-      fullPath: '/app'
-      preLoaderRoute: typeof AppRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/cookies': {
-      id: '/cookies'
-      path: '/cookies'
-      fullPath: '/cookies'
-      preLoaderRoute: typeof CookiesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/demo': {
-      id: '/demo'
-      path: '/demo'
-      fullPath: '/demo'
-      preLoaderRoute: typeof DemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/dpa': {
-      id: '/dpa'
-      path: '/dpa'
-      fullPath: '/dpa'
-      preLoaderRoute: typeof DpaRouteImport
+    '/villkor': {
+      id: '/villkor'
+      path: '/villkor'
+      fullPath: '/villkor'
+      preLoaderRoute: typeof VillkorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/integritetspolicy': {
@@ -463,74 +435,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IntegritetspolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/villkor': {
-      id: '/villkor'
-      path: '/villkor'
-      fullPath: '/villkor'
-      preLoaderRoute: typeof VillkorRouteImport
+    '/dpa': {
+      id: '/dpa'
+      path: '/dpa'
+      fullPath: '/dpa'
+      preLoaderRoute: typeof DpaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/app/': {
-      id: '/app/'
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/': {
+      id: '/'
       path: '/'
-      fullPath: '/app/'
-      preLoaderRoute: typeof AppIndexRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/bokningar': {
-      id: '/app/bokningar'
-      path: '/bokningar'
-      fullPath: '/app/bokningar'
-      preLoaderRoute: typeof AppBokningarRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/installningar': {
-      id: '/app/installningar'
-      path: '/installningar'
-      fullPath: '/app/installningar'
-      preLoaderRoute: typeof AppInstallningarRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/kallor': {
-      id: '/app/kallor'
-      path: '/kallor'
-      fullPath: '/app/kallor'
-      preLoaderRoute: typeof AppKallorRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/login': {
-      id: '/app/login'
-      path: '/login'
-      fullPath: '/app/login'
-      preLoaderRoute: typeof AppLoginRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/mallar': {
-      id: '/app/mallar'
-      path: '/mallar'
-      fullPath: '/app/mallar'
-      preLoaderRoute: typeof AppMallarRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/onboarding': {
-      id: '/app/onboarding'
-      path: '/onboarding'
-      fullPath: '/app/onboarding'
-      preLoaderRoute: typeof AppOnboardingRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/app/tillval': {
-      id: '/app/tillval'
-      path: '/tillval'
-      fullPath: '/app/tillval'
-      preLoaderRoute: typeof AppTillvalRouteImport
-      parentRoute: typeof AppRoute
-    }
-    '/boka/$slug': {
-      id: '/boka/$slug'
-      path: '/boka/$slug'
-      fullPath: '/boka/$slug'
-      preLoaderRoute: typeof BokaSlugRouteImport
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/': {
@@ -540,88 +477,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoIndexRouteImport
       parentRoute: typeof DemoRoute
     }
-    '/demo/admin': {
-      id: '/demo/admin'
-      path: '/admin'
-      fullPath: '/demo/admin'
-      preLoaderRoute: typeof DemoAdminRouteImport
-      parentRoute: typeof DemoRoute
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/demo/boka': {
-      id: '/demo/boka'
-      path: '/boka'
-      fullPath: '/demo/boka'
-      preLoaderRoute: typeof DemoBokaRouteImport
-      parentRoute: typeof DemoRoute
+    '/g/$token': {
+      id: '/g/$token'
+      path: '/g/$token'
+      fullPath: '/g/$token'
+      preLoaderRoute: typeof GTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/demo/bokningar': {
-      id: '/demo/bokningar'
-      path: '/bokningar'
-      fullPath: '/demo/bokningar'
-      preLoaderRoute: typeof DemoBokningarRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/dagsoversikt': {
-      id: '/demo/dagsoversikt'
-      path: '/dagsoversikt'
-      fullPath: '/demo/dagsoversikt'
-      preLoaderRoute: typeof DemoDagsoversiktRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/frukost': {
-      id: '/demo/frukost'
-      path: '/frukost'
-      fullPath: '/demo/frukost'
-      preLoaderRoute: typeof DemoFrukostRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/gast': {
-      id: '/demo/gast'
-      path: '/gast'
-      fullPath: '/demo/gast'
-      preLoaderRoute: typeof DemoGastRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/gaster': {
-      id: '/demo/gaster'
-      path: '/gaster'
-      fullPath: '/demo/gaster'
-      preLoaderRoute: typeof DemoGasterRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/incheckning': {
-      id: '/demo/incheckning'
-      path: '/incheckning'
-      fullPath: '/demo/incheckning'
-      preLoaderRoute: typeof DemoIncheckningRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/kanaler': {
-      id: '/demo/kanaler'
-      path: '/kanaler'
-      fullPath: '/demo/kanaler'
-      preLoaderRoute: typeof DemoKanalerRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/min-sida': {
-      id: '/demo/min-sida'
-      path: '/min-sida'
-      fullPath: '/demo/min-sida'
-      preLoaderRoute: typeof DemoMinSidaRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/personal': {
-      id: '/demo/personal'
-      path: '/personal'
-      fullPath: '/demo/personal'
-      preLoaderRoute: typeof DemoPersonalRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/presentkort': {
-      id: '/demo/presentkort'
-      path: '/presentkort'
-      fullPath: '/demo/presentkort'
-      preLoaderRoute: typeof DemoPresentkortRouteImport
+    '/demo/stad': {
+      id: '/demo/stad'
+      path: '/stad'
+      fullPath: '/demo/stad'
+      preLoaderRoute: typeof DemoStadRouteImport
       parentRoute: typeof DemoRoute
     }
     '/demo/rapporter': {
@@ -631,19 +505,145 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoRapporterRouteImport
       parentRoute: typeof DemoRoute
     }
-    '/demo/stad': {
-      id: '/demo/stad'
-      path: '/stad'
-      fullPath: '/demo/stad'
-      preLoaderRoute: typeof DemoStadRouteImport
+    '/demo/presentkort': {
+      id: '/demo/presentkort'
+      path: '/presentkort'
+      fullPath: '/demo/presentkort'
+      preLoaderRoute: typeof DemoPresentkortRouteImport
       parentRoute: typeof DemoRoute
     }
-    '/g/$token': {
-      id: '/g/$token'
-      path: '/g/$token'
-      fullPath: '/g/$token'
-      preLoaderRoute: typeof GTokenRouteImport
+    '/demo/personal': {
+      id: '/demo/personal'
+      path: '/personal'
+      fullPath: '/demo/personal'
+      preLoaderRoute: typeof DemoPersonalRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/min-sida': {
+      id: '/demo/min-sida'
+      path: '/min-sida'
+      fullPath: '/demo/min-sida'
+      preLoaderRoute: typeof DemoMinSidaRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/kanaler': {
+      id: '/demo/kanaler'
+      path: '/kanaler'
+      fullPath: '/demo/kanaler'
+      preLoaderRoute: typeof DemoKanalerRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/incheckning': {
+      id: '/demo/incheckning'
+      path: '/incheckning'
+      fullPath: '/demo/incheckning'
+      preLoaderRoute: typeof DemoIncheckningRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/gaster': {
+      id: '/demo/gaster'
+      path: '/gaster'
+      fullPath: '/demo/gaster'
+      preLoaderRoute: typeof DemoGasterRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/gast': {
+      id: '/demo/gast'
+      path: '/gast'
+      fullPath: '/demo/gast'
+      preLoaderRoute: typeof DemoGastRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/frukost': {
+      id: '/demo/frukost'
+      path: '/frukost'
+      fullPath: '/demo/frukost'
+      preLoaderRoute: typeof DemoFrukostRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/dagsoversikt': {
+      id: '/demo/dagsoversikt'
+      path: '/dagsoversikt'
+      fullPath: '/demo/dagsoversikt'
+      preLoaderRoute: typeof DemoDagsoversiktRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/bokningar': {
+      id: '/demo/bokningar'
+      path: '/bokningar'
+      fullPath: '/demo/bokningar'
+      preLoaderRoute: typeof DemoBokningarRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/boka': {
+      id: '/demo/boka'
+      path: '/boka'
+      fullPath: '/demo/boka'
+      preLoaderRoute: typeof DemoBokaRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/demo/admin': {
+      id: '/demo/admin'
+      path: '/admin'
+      fullPath: '/demo/admin'
+      preLoaderRoute: typeof DemoAdminRouteImport
+      parentRoute: typeof DemoRoute
+    }
+    '/boka/$slug': {
+      id: '/boka/$slug'
+      path: '/boka/$slug'
+      fullPath: '/boka/$slug'
+      preLoaderRoute: typeof BokaSlugRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/app/tillval': {
+      id: '/app/tillval'
+      path: '/tillval'
+      fullPath: '/app/tillval'
+      preLoaderRoute: typeof AppTillvalRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/onboarding': {
+      id: '/app/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/onboarding'
+      preLoaderRoute: typeof AppOnboardingRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/mallar': {
+      id: '/app/mallar'
+      path: '/mallar'
+      fullPath: '/app/mallar'
+      preLoaderRoute: typeof AppMallarRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/login': {
+      id: '/app/login'
+      path: '/login'
+      fullPath: '/app/login'
+      preLoaderRoute: typeof AppLoginRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/kallor': {
+      id: '/app/kallor'
+      path: '/kallor'
+      fullPath: '/app/kallor'
+      preLoaderRoute: typeof AppKallorRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/installningar': {
+      id: '/app/installningar'
+      path: '/installningar'
+      fullPath: '/app/installningar'
+      preLoaderRoute: typeof AppInstallningarRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/bokningar': {
+      id: '/app/bokningar'
+      path: '/bokningar'
+      fullPath: '/app/bokningar'
+      preLoaderRoute: typeof AppBokningarRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
@@ -724,13 +724,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

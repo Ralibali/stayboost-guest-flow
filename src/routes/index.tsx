@@ -74,8 +74,11 @@ function Header() {
           : "bg-[color:var(--bg)]/60"
       }`}
     >
-      <div className="mx-auto flex max-w-[1120px] items-center justify-between gap-4 px-6 py-4">
-        <a href="#" className="font-[Fraunces] text-2xl font-semibold tracking-tight">
+      <div className="mx-auto flex max-w-[1120px] items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
+        <a
+          href="#"
+          className="font-[Fraunces] text-lg font-semibold tracking-tight sm:text-2xl"
+        >
           {BRAND_NAME}
         </a>
         <nav className="hidden items-center gap-8 text-sm md:flex">
@@ -101,8 +104,8 @@ function Header() {
         <a
           href="#hero-form"
           onClick={scrollToHeroForm}
-          className="btn-primary text-sm"
-          style={{ padding: "12px 22px" }}
+          className="btn-primary shrink-0"
+          style={{ padding: "9px 16px", fontSize: "0.85rem" }}
         >
           Prova gratis
         </a>
@@ -130,7 +133,7 @@ function Hero() {
   return (
     <section
       id="hero-form"
-      className="relative overflow-hidden bg-[color:var(--forest)] pb-24 pt-16 md:pb-32 md:pt-24"
+      className="relative overflow-hidden bg-[color:var(--forest)] pb-16 pt-12 sm:pb-24 sm:pt-16 md:pb-32 md:pt-24"
     >
       {/* TODO: byt till riktigt kvällsfoto från anläggningen */}
       <div
@@ -139,18 +142,17 @@ function Hero() {
         aria-hidden
       />
       <div
-        className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(20,40,30,0.85)_0%,rgba(20,40,30,0.75)_100%)] md:bg-[linear-gradient(90deg,rgba(30,58,45,0.92)_0%,rgba(30,58,45,0.75)_45%,rgba(30,58,45,0.15)_100%)]"
+        className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(20,40,30,0.88)_0%,rgba(20,40,30,0.78)_100%)] md:bg-[linear-gradient(90deg,rgba(30,58,45,0.92)_0%,rgba(30,58,45,0.75)_45%,rgba(30,58,45,0.15)_100%)]"
         aria-hidden
       />
-      {/* Alt-text bakgrund: glamping-tält vid Göta kanal i skymning, med lyktljus. */}
       <span className="sr-only">
         Bakgrundsbild: glamping-tält vid Göta kanal i skymning, med varmt lyktljus.
       </span>
 
-      <div className="relative mx-auto grid max-w-[1120px] items-center gap-16 px-6 md:grid-cols-[55fr_45fr]">
+      <div className="relative mx-auto grid max-w-[1120px] items-center gap-10 px-5 sm:gap-16 sm:px-6 md:grid-cols-[55fr_45fr]">
         <div>
           <FadeUp>
-            <h1 className="text-white" style={{ fontSize: "clamp(2.5rem, 6vw, 5rem)" }}>
+            <h1 className="text-white" style={{ fontSize: "clamp(2rem, 8vw, 5rem)" }}>
               Dina gäster vill köpa mer.{" "}
               <em className="not-italic">
                 <span className="italic text-[color:var(--brass)]">Låt dem.</span>
@@ -158,7 +160,7 @@ function Hero() {
             </h1>
           </FadeUp>
           <FadeUp delay={0.1}>
-            <p className="mt-6 max-w-xl text-white/85">
+            <p className="mt-5 max-w-xl text-[0.95rem] leading-relaxed text-white/85 sm:mt-6 sm:text-base">
               {BRAND_NAME} lägger sig ovanpå bokningarna du redan har — egen provisionsfri
               bokningsmotor, automatiserad merförsäljning, gäst-sms, digital incheckning och
               arbetsvyer för frukost och städning. Ett lager driftautomation för små boenden. Utan
@@ -166,15 +168,15 @@ function Hero() {
             </p>
           </FadeUp>
           <FadeUp delay={0.15}>
-            <p className="mt-4 text-[0.9rem] text-[color:var(--brass)]">
+            <p className="mt-4 text-[0.85rem] leading-relaxed text-[color:var(--brass)] sm:text-[0.9rem]">
               Bevisat i skarp drift: <HeroProofLine />
             </p>
           </FadeUp>
           <FadeUp delay={0.2}>
-            <div className="mt-8 max-w-md">
+            <div className="mt-6 max-w-md sm:mt-8">
               <EarlyAccessForm location="hero" variant="dark" buttonLabel="Få tidig tillgång" />
             </div>
-            <p className="mt-4 text-[0.85rem] text-white/70">
+            <p className="mt-3 text-[0.8rem] text-white/70 sm:mt-4 sm:text-[0.85rem]">
               Inget kort. Igång på en kväll.{" "}
               <a
                 href="#demo-sms"
@@ -196,7 +198,7 @@ function Hero() {
         </div>
 
         <FadeUp delay={0.15}>
-          <div className="rounded-[52px] p-1 ring-1 ring-white/25 [box-shadow:0_30px_80px_-20px_rgba(0,0,0,0.5)]">
+          <div className="mx-auto max-w-[320px] rounded-[52px] p-1 ring-1 ring-white/25 [box-shadow:0_30px_80px_-20px_rgba(0,0,0,0.5)] sm:max-w-none">
             <PhoneMockup />
           </div>
         </FadeUp>
@@ -243,7 +245,7 @@ function Problem() {
     },
   ];
   return (
-    <section className="py-20 md:py-32">
+    <section className="py-14 sm:py-20 md:py-32">
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="max-w-2xl">
           <p className="eyebrow">Känns det igen?</p>
@@ -294,7 +296,7 @@ function HowItWorks() {
   return (
     <section
       id="sa-funkar-det"
-      className="border-t border-[color:var(--line)] bg-white/50 py-20 md:py-32"
+      className="border-t border-[color:var(--line)] bg-white/50 py-14 sm:py-20 md:py-32"
     >
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="max-w-2xl">
@@ -352,7 +354,7 @@ function Features() {
   ];
 
   return (
-    <section id="funktioner" className="py-20 md:py-32">
+    <section id="funktioner" className="py-14 sm:py-20 md:py-32">
       <div className="mx-auto flex max-w-[1120px] flex-col gap-24 px-6 md:gap-32">
         {blocks.map((b, i) => {
           const reverse = i % 2 === 1;
@@ -469,7 +471,7 @@ function InfoRow({ k, v }: { k: string; v: string }) {
 /* ---------- Testimonial ---------- */
 function Testimonial() {
   return (
-    <section className="py-20 md:py-32">
+    <section className="py-14 sm:py-20 md:py-32">
       <div className="mx-auto max-w-3xl px-6 text-center">
         <FadeUp>
           <p
@@ -511,7 +513,7 @@ function Testimonial() {
 function Pricing() {
   const [annual, setAnnual] = useState(false);
   return (
-    <section id="pris" className="border-t border-[color:var(--line)] bg-white/50 py-20 md:py-32">
+    <section id="pris" className="border-t border-[color:var(--line)] bg-white/50 py-14 sm:py-20 md:py-32">
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="mx-auto max-w-2xl text-center">
           <p className="eyebrow">Ett pris. Allt ingår.</p>

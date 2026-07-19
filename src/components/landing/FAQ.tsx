@@ -57,7 +57,7 @@ export function FAQ() {
   };
 
   return (
-    <section id="faq" className="py-20 md:py-32">
+    <section id="faq" className="py-14 sm:py-20 md:py-32">
       <div className="mx-auto max-w-3xl px-6">
         <div className="text-center">
           <p className="eyebrow">Vanliga frågor</p>

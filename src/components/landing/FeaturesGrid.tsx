@@ -33,7 +33,7 @@ const ITEMS = [
 
 export function FeaturesGrid() {
   return (
-    <section className="border-t border-[color:var(--line)] bg-white/50 py-20 md:py-28">
+    <section className="border-t border-[color:var(--line)] bg-white/50 py-14 sm:py-20 md:py-28">
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="max-w-2xl">
           <p className="eyebrow">Och allt det här ingår</p>
