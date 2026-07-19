@@ -1,9 +1,9 @@
 name: Final Swedish copy check
 
 on:
-  push:
+  pull_request:
     branches:
-      - agent/sprakgranskning-svenska
+      - main
   workflow_dispatch:
 
 permissions:
