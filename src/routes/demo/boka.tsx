@@ -930,11 +930,11 @@ function BookingFlow() {
               <div className="mt-3 space-y-2 text-[14px]">
                 <Row
                   k="Datum"
-                  v={checkIn && checkOut ? `${fmtDate(checkIn)} → ${fmtDate(checkOut)}` : "Ej valt"}
+                  v={checkIn && checkOut ? `${fmtDate(checkIn)} → ${fmtDate(checkOut)}` : "Inte valt än"}
                 />
                 <Row k="Nätter" v={nights > 0 ? String(nights) : "—"} />
-                <Row k="Gäster" v={`${guests} st`} />
-                <Row k="Enhet" v={unit ? `${unit.imageEmoji} ${unit.name}` : "Ej vald"} />
+                <Row k="Gäster" v={String(guests)} />
+                <Row k="Boende" v={unit ? `${unit.imageEmoji} ${unit.name}` : "Inte valt än"} />
               </div>
               <div className="mt-4 space-y-2 border-t border-[color:var(--line)] pt-4 text-[14px]">
                 {lodging > 0 && <Row k="Boende" v={fmtKr(lodging)} />}
