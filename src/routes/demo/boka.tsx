@@ -633,7 +633,7 @@ function BookingFlow() {
                 <StepTitle
                   eyebrow="Steg 4 av 4"
                   title="Dina uppgifter"
-                  sub="Bekräftelsen skickas direkt på mail och SMS."
+                  sub="Bekräftelsen landar direkt som mejl och SMS."
                 />
                 <div className="card-surface mt-6 space-y-4 p-6">
                   <Field icon={User} label="Fullständigt namn">
