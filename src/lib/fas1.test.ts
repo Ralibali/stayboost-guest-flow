@@ -9,6 +9,7 @@ import {
   parseIcs,
   unfoldIcs,
 } from "../../supabase/functions/_shared/ics";
+import { buildIcs, icsEscape, foldLine } from "../../supabase/functions/_shared/ics-export";
 import { formatSvDate, renderTemplate } from "../../supabase/functions/_shared/templates";
 
 /* ================= iCal-parser ================= */
@@ -95,6 +96,47 @@ describe("iCal-parser (Airbnb/Booking-format)", () => {
   });
 });
 
+/* ================= iCal-export ================= */
+
+describe("iCal-export (flöde till Airbnb/Booking)", () => {
+  it("bygger giltig kalender som vår egen parser kan läsa tillbaka", () => {
+    const ics = buildIcs(
+      [
+        {
+          uid: "bok-1@stayboost",
+          startDate: "2026-08-10",
+          endDate: "2026-08-13",
+          summary: "Bokad",
+        },
+        {
+          uid: "bok-2@stayboost",
+          startDate: "2026-09-01",
+          endDate: "2026-09-05",
+          summary: "Bokad",
+        },
+      ],
+      "Bergs Slussar — Sjöstugan",
+    );
+    expect(ics).toContain("BEGIN:VCALENDAR");
+    expect(ics).toContain("DTSTART;VALUE=DATE:20260810");
+    const roundTrip = parseIcs(ics);
+    expect(roundTrip).toHaveLength(2);
+    expect(roundTrip[0]).toMatchObject({
+      uid: "bok-1@stayboost",
+      startDate: "2026-08-10",
+      endDate: "2026-08-13",
+      status: "CONFIRMED",
+    });
+  });
+
+  it("escapar specialtecken och viker långa rader enligt RFC 5545", () => {
+    expect(icsEscape("a,b;c\\d\ne")).toBe("a\\,b\\;c\\\\d\\ne");
+    const folded = foldLine("X".repeat(80));
+    expect(folded.split("\r\n")[0]).toHaveLength(74);
+    expect(folded.split("\r\n")[1].startsWith(" ")).toBe(true);
+  });
+});
+
 /* ================= Mallmotor ================= */
 
 describe("mallmotor", () => {
@@ -116,6 +158,10 @@ const MIGRATION = readFileSync(
   join(__dirname, "../../supabase/migrations/20260719000000_fas1.sql"),
   "utf8",
 );
+const MIGRATION_ICAL = readFileSync(
+  join(__dirname, "../../supabase/migrations/20260719120000_ical_export.sql"),
+  "utf8",
+);
 
 const AUTH_STUB = `
 create schema auth;
@@ -130,6 +176,7 @@ describe("Fas 1-migration mot Postgres", () => {
     const db = new PGlite({ extensions: { pgcrypto } });
     await db.exec(AUTH_STUB);
     await db.exec(MIGRATION);
+    await db.exec(MIGRATION_ICAL);
 
     const OWNER = "00000000-0000-0000-0000-0000000000a1";
 
@@ -161,6 +208,13 @@ describe("Fas 1-migration mot Postgres", () => {
       [pid, uid],
     );
     const srcId = src.rows[0].id;
+
+    // Enheten fick en unik export-token automatiskt (iCal-flöde till kanalerna)
+    const feed = await db.query<{ ical_feed_token: string }>(
+      "select ical_feed_token from units where id = $1",
+      [uid],
+    );
+    expect(feed.rows[0].ical_feed_token).toMatch(/^[0-9a-f]{24}$/);
 
     // Framtida bokning → fyra meddelanden schemaläggs (bekräftelse direkt)
     const in10 = "2026-08-10";

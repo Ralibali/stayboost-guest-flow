@@ -4,6 +4,11 @@ project_id = "stayboost-guest-flow"
 [functions.guest-page]
 verify_jwt = false
 
+# iCal-exportflödet är publikt — kanalerna pollar det utan JWT,
+# enhetens feed-token i länken är nyckeln.
+[functions.ical-export]
+verify_jwt = false
+
 [functions.ical-sync]
 verify_jwt = true
 

@@ -36,6 +36,13 @@ export type Unit = {
   name: string;
   door_code: string | null;
   sort_order: number;
+  ical_feed_token: string;
+};
+
+/** Publik iCal-exportlänk för en enhet (klistras in i Airbnb/Booking). */
+export const icalExportUrl = (unit: Unit) => {
+  const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "");
+  return base ? `${base}/functions/v1/ical-export?token=${unit.ical_feed_token}` : "";
 };
 
 export type Booking = {

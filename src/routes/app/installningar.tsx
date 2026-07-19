@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Plus, Trash2 } from "lucide-react";
+import { Check, Copy, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { supabase, useProperty, useSession, type Property } from "@/lib/supabase";
+import { icalExportUrl, supabase, useProperty, useSession, type Property } from "@/lib/supabase";
 
 export const Route = createFileRoute("/app/installningar")({
   component: SettingsPage,
@@ -13,6 +13,13 @@ function SettingsPage() {
   const [form, setForm] = useState<Property | null>(null);
   const [saved, setSaved] = useState(false);
   const [newUnit, setNewUnit] = useState("");
+  const [copiedFeed, setCopiedFeed] = useState<string | null>(null);
+
+  const copyFeed = (id: string, url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopiedFeed(id);
+    setTimeout(() => setCopiedFeed(null), 1500);
+  };
 
   useEffect(() => {
     if (property && !form) setForm(property);
@@ -126,29 +133,40 @@ function SettingsPage() {
         <h2 className="text-[15px] font-bold">Enheter</h2>
         <div className="mt-3 space-y-2.5">
           {units.map((u) => (
-            <div key={u.id} className="flex items-center gap-2.5">
-              <input
-                defaultValue={u.name}
-                onBlur={(e) =>
-                  e.target.value !== u.name && updateUnit(u.id, { name: e.target.value })
-                }
-                className="inp flex-1"
-              />
-              <input
-                defaultValue={u.door_code ?? ""}
-                placeholder="Portkod"
-                onBlur={(e) =>
-                  e.target.value !== (u.door_code ?? "") &&
-                  updateUnit(u.id, { door_code: e.target.value || null })
-                }
-                className="inp w-28"
-              />
+            <div key={u.id}>
+              <div className="flex items-center gap-2.5">
+                <input
+                  defaultValue={u.name}
+                  onBlur={(e) =>
+                    e.target.value !== u.name && updateUnit(u.id, { name: e.target.value })
+                  }
+                  className="inp flex-1"
+                />
+                <input
+                  defaultValue={u.door_code ?? ""}
+                  placeholder="Portkod"
+                  onBlur={(e) =>
+                    e.target.value !== (u.door_code ?? "") &&
+                    updateUnit(u.id, { door_code: e.target.value || null })
+                  }
+                  className="inp w-28"
+                />
+                <button
+                  onClick={() => removeUnit(u.id, u.name)}
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[color:var(--ink)]/40 hover:bg-red-50 hover:text-red-600"
+                  aria-label={`Ta bort ${u.name}`}
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
               <button
-                onClick={() => removeUnit(u.id, u.name)}
-                className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[color:var(--ink)]/40 hover:bg-red-50 hover:text-red-600"
-                aria-label={`Ta bort ${u.name}`}
+                onClick={() => copyFeed(u.id, icalExportUrl(u))}
+                className="mt-1.5 flex items-center gap-1.5 text-[12px] font-medium text-[color:var(--brass)] hover:underline"
               >
-                <Trash2 size={16} />
+                {copiedFeed === u.id ? <Check size={13} /> : <Copy size={13} />}
+                {copiedFeed === u.id
+                  ? "Exportlänk kopierad — klistra in i Airbnb/Booking"
+                  : "Kopiera iCal-exportlänk (till Airbnb/Booking)"}
               </button>
             </div>
           ))}
