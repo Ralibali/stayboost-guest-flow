@@ -833,7 +833,7 @@ function BookingFlow() {
                       <Row
                         key={addon.id}
                         k={addon.name}
-                        v={`${qty} st${addon.id === "bastu" ? ` · kl ${saunaTime}` : ""}`}
+                        v={`×${qty}${addon.id === "bastu" ? ` · kl ${saunaTime}` : ""}`}
                       />
                     ))}
                     {giftDeduction > 0 && (
