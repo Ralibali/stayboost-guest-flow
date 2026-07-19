@@ -952,65 +952,114 @@ function BookingFlow() {
           )}
         </div>
 
-        {/* ---------- Höger: prissammanfattning ---------- */}
+        {/* ---------- Höger: prissammanfattning (editorial dark panel) ---------- */}
         {step < 4 && (
-          <aside className="lg:sticky lg:top-32 lg:self-start">
-            <div className="card-surface p-5">
-              <h2 className="flex items-center gap-2 font-sans text-[15px] font-bold">
-                <BedDouble size={16} className="text-[color:var(--brass)]" />
+          <aside className="lg:col-span-4 lg:sticky lg:top-24 lg:self-start">
+            <div className="rounded-[6px] bg-[color:var(--ink)] p-8 text-white shadow-[0_20px_60px_-20px_rgba(20,36,28,0.35)] sm:p-9">
+              <h2 className="mb-7 border-b border-white/10 pb-5 font-sans text-[11px] font-bold uppercase tracking-[0.28em]">
                 Din bokning
               </h2>
-              <div className="mt-3 space-y-2 text-[14px]">
-                <Row
-                  k="Datum"
-                  v={checkIn && checkOut ? `${fmtDate(checkIn)} → ${fmtDate(checkOut)}` : "Inte valt än"}
+
+              <div className="space-y-6">
+                <SummaryLine
+                  label="Datum"
+                  value={
+                    checkIn && checkOut
+                      ? `${fmtDate(checkIn)} — ${fmtDate(checkOut)}`
+                      : "Inte valt än"
+                  }
+                  hint={nights > 0 ? `${nights} ${nights === 1 ? "natt" : "nätter"}` : undefined}
+                  onEdit={step > 0 ? () => setStep(0) : undefined}
                 />
-                <Row k="Nätter" v={nights > 0 ? String(nights) : "—"} />
-                <Row k="Gäster" v={String(guests)} />
-                <Row k="Boende" v={unit ? `${unit.imageEmoji} ${unit.name}` : "Inte valt än"} />
+                <SummaryLine label="Gäster" value={`${guests} ${guests === 1 ? "gäst" : "gäster"}`} />
+                <SummaryLine
+                  label="Boende"
+                  value={unit ? unit.name : "Inte valt än"}
+                  hint={unit ? unit.type === "stuga" ? "Stuga" : "Tält" : undefined}
+                  onEdit={step > 1 && unit ? () => setStep(1) : undefined}
+                />
               </div>
-              <div className="mt-4 space-y-2 border-t border-[color:var(--line)] pt-4 text-[14px]">
-                {lodging > 0 && <Row k="Boende" v={fmtKr(lodging)} />}
-                {lodging > 0 && <Row k="Städavgift" v={fmtKr(CLEANING_FEE)} />}
-                {bundle && <Row k={`${bundle.emoji} ${bundle.name}`} v={fmtKr(bundle.price)} />}
-                {rebooking && (
-                  <Row
-                    k={`${REBOOKING_GUARANTEE.emoji} ${REBOOKING_GUARANTEE.name}`}
-                    v={fmtKr(REBOOKING_GUARANTEE.price)}
-                  />
-                )}
-                {cartItems.map(({ addon, qty }) => (
-                  <Row
-                    key={addon.id}
-                    k={`${addon.name}${qty > 1 ? ` × ${qty}` : ""}`}
-                    v={fmtKr(addon.price * qty)}
-                  />
-                ))}
-                {discount > 0 && (
-                  <div className="flex justify-between text-[color:var(--success)]">
-                    <span>Rabatt ({promo})</span>
-                    <span className="font-semibold">−{fmtKr(discount)}</span>
+
+              {(lodging > 0 || addonsTotal > 0 || discount > 0 || giftDeduction > 0) && (
+                <div className="mt-7 space-y-2 border-t border-white/10 pt-6 text-[13px]">
+                  {lodging > 0 && <DarkRow k="Boende" v={fmtKr(lodging)} />}
+                  {lodging > 0 && <DarkRow k="Städavgift" v={fmtKr(CLEANING_FEE)} />}
+                  {bundle && (
+                    <DarkRow k={`${bundle.emoji} ${bundle.name}`} v={fmtKr(bundle.price)} />
+                  )}
+                  {rebooking && (
+                    <DarkRow
+                      k={`${REBOOKING_GUARANTEE.emoji} ${REBOOKING_GUARANTEE.name}`}
+                      v={fmtKr(REBOOKING_GUARANTEE.price)}
+                    />
+                  )}
+                  {cartItems.map(({ addon, qty }) => (
+                    <DarkRow
+                      key={addon.id}
+                      k={`${addon.name}${qty > 1 ? ` × ${qty}` : ""}`}
+                      v={fmtKr(addon.price * qty)}
+                    />
+                  ))}
+                  {discount > 0 && (
+                    <div className="flex justify-between text-[color:var(--brass)]">
+                      <span>Rabatt ({promo})</span>
+                      <span className="font-semibold">−{fmtKr(discount)}</span>
+                    </div>
+                  )}
+                  {giftDeduction > 0 && (
+                    <div className="flex justify-between text-[color:var(--brass)]">
+                      <span>🎁 Presentkort</span>
+                      <span className="font-semibold">−{fmtKr(giftDeduction)}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="mt-8 border-t border-white/10 pt-6">
+                <div className="mb-6 flex items-end justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-white/40">
+                      Totalt belopp
+                    </p>
+                    <p className="mt-1.5 font-[Fraunces] text-[34px] font-light leading-none tabular-nums">
+                      {total > 0 ? fmtKr(total) : "—"}
+                    </p>
                   </div>
+                  <span className="mb-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white/40">
+                    SEK · inkl. moms
+                  </span>
+                </div>
+
+                {step < 3 ? (
+                  <button
+                    onClick={() => setStep((s) => s + 1)}
+                    disabled={!canNext}
+                    className="group flex w-full items-center justify-center gap-2 bg-[color:var(--brass)] px-5 py-4 text-[11px] font-bold uppercase tracking-[0.24em] text-[color:var(--ink)] transition-colors duration-300 hover:bg-white disabled:cursor-not-allowed disabled:bg-white/15 disabled:text-white/40"
+                  >
+                    {step === 2 ? "Till betalning" : "Gå vidare"}
+                    <ArrowRight size={15} strokeWidth={2.4} />
+                  </button>
+                ) : (
+                  <p className="text-center text-[11px] uppercase tracking-[0.2em] text-white/45">
+                    Bekräfta i formuläret
+                  </p>
                 )}
-                {giftDeduction > 0 && (
-                  <div className="flex justify-between text-[color:var(--success)]">
-                    <span>🎁 Presentkort</span>
-                    <span className="font-semibold">−{fmtKr(giftDeduction)}</span>
-                  </div>
+
+                {!canNext && step < 3 && (
+                  <p className="mt-3 text-center text-[11px] text-white/45">{stepHint}</p>
                 )}
               </div>
-              <div className="mt-4 flex items-baseline justify-between border-t border-[color:var(--line)] pt-4">
-                <span className="font-semibold">Totalt</span>
-                <span className="font-[Fraunces] text-2xl font-semibold tabular-nums">
-                  {fmtKr(total)}
+
+              <div className="mt-6 flex items-center justify-center gap-2 border-t border-white/5 pt-5 text-white/45">
+                <ShieldCheck size={12} className="text-[color:var(--brass)]" />
+                <span className="text-[10px] font-medium uppercase tracking-[0.18em]">
+                  Fri avbokning · Prisgaranti
                 </span>
               </div>
-              <p className="mt-2 text-[12px] text-[color:var(--ink)]/50">
-                Fri avbokning till 14 dagar före ankomst. Moms ingår.
-              </p>
             </div>
           </aside>
         )}
+
       </div>
       {/* Mobil: klistrad totalrad så priset alltid syns medan man väljer */}
       {step < 4 && (
