@@ -190,41 +190,46 @@ function BookingFlow() {
     <div className="mx-auto max-w-6xl">
       {/* Editorial stegindikator */}
       {step < 4 && (
-        <nav className="mb-10 flex w-full items-start justify-between px-1">
+        <nav className="mb-10 flex w-full items-center gap-3 overflow-x-auto border-b border-[color:var(--ink)]/10 pb-6 sm:justify-between sm:gap-4">
           {STEPS.slice(0, 4).map((s, i) => {
             const active = i === step;
             const done = i < step;
             return (
-              <div key={s} className="flex flex-1 items-start gap-3 sm:gap-4">
-                <div
-                  className={`flex flex-col items-start gap-2.5 ${
-                    active ? "" : done ? "opacity-70" : "opacity-35"
+              <button
+                key={s}
+                type="button"
+                onClick={() => {
+                  if (done) setStep(i);
+                }}
+                disabled={!done}
+                className={`flex shrink-0 items-center gap-3 transition-opacity ${
+                  active ? "" : done ? "opacity-80 hover:opacity-100" : "opacity-40"
+                } ${done ? "cursor-pointer" : "cursor-default"}`}
+              >
+                <span
+                  className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-semibold tabular-nums transition-colors ${
+                    active
+                      ? "bg-[color:var(--forest)] text-white"
+                      : done
+                        ? "bg-[color:var(--brass)] text-white"
+                        : "border border-[color:var(--ink)]/40 text-[color:var(--ink)]"
                   }`}
                 >
-                  <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[color:var(--brass)]">
-                    {String(i + 1).padStart(2, "0")}
-                  </span>
-                  <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.18em]">
-                    {s}
-                  </span>
-                  <div
-                    className={`h-[3px] w-10 rounded-full transition-colors ${
-                      active
-                        ? "bg-[color:var(--brass)]"
-                        : done
-                          ? "bg-[color:var(--forest)]/40"
-                          : "bg-transparent"
-                    }`}
-                  />
-                </div>
-                {i < STEPS.length - 2 && (
-                  <div className="mt-3 h-px flex-1 bg-[color:var(--ink)]/10" />
-                )}
-              </div>
+                  {String(i + 1).padStart(2, "0")}
+                </span>
+                <span
+                  className={`whitespace-nowrap text-[11px] font-semibold uppercase tracking-[0.18em] sm:text-[12px] ${
+                    active ? "text-[color:var(--forest)]" : ""
+                  }`}
+                >
+                  {s}
+                </span>
+              </button>
             );
           })}
         </nav>
       )}
+
 
       <div className={step < 4 ? "grid gap-10 pb-24 lg:grid-cols-12 lg:pb-0" : ""}>
         {/* ---------- Vänster: steg ---------- */}
@@ -936,7 +941,7 @@ function BookingFlow() {
         {/* ---------- Höger: prissammanfattning (editorial dark panel) ---------- */}
         {step < 4 && (
           <aside className="lg:col-span-4 lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-[6px] bg-[color:var(--ink)] p-8 text-white shadow-[0_20px_60px_-20px_rgba(20,36,28,0.35)] sm:p-9">
+            <div className="rounded-2xl bg-[color:var(--ink)] p-8 text-white shadow-[0_20px_60px_-20px_rgba(20,36,28,0.35)] sm:p-9">
               <h2 className="mb-7 border-b border-white/10 pb-5 font-sans text-[11px] font-bold uppercase tracking-[0.28em]">
                 Din bokning
               </h2>
@@ -1015,7 +1020,7 @@ function BookingFlow() {
                   <button
                     onClick={() => setStep((s) => s + 1)}
                     disabled={!canNext}
-                    className="group flex w-full items-center justify-center gap-2 bg-[color:var(--brass)] px-5 py-4 text-[11px] font-bold uppercase tracking-[0.24em] text-[color:var(--ink)] transition-colors duration-300 hover:bg-white disabled:cursor-not-allowed disabled:bg-white/15 disabled:text-white/40"
+                    className="group flex w-full items-center justify-center gap-2 rounded-xl bg-[color:var(--brass)] px-5 py-4 text-[11px] font-bold uppercase tracking-[0.24em] text-white shadow-lg shadow-black/10 transition-all duration-300 hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-white/15 disabled:text-white/40 disabled:shadow-none"
                   >
                     {step === 2 ? "Till betalning" : "Gå vidare"}
                     <ArrowRight size={15} strokeWidth={2.4} />
