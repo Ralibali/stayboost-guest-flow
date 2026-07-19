@@ -187,34 +187,49 @@ function BookingFlow() {
           : "Lägg till tillval — eller fortsätt direkt";
 
   return (
-    <div className="mx-auto max-w-5xl">
-      {/* Stegindikator */}
+    <div className="mx-auto max-w-6xl">
+      {/* Editorial stegindikator */}
       {step < 4 && (
-        <div className="mb-8">
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {STEPS.slice(0, 4).map((s, i) => (
-              <div key={s} className="flex flex-1 flex-col gap-1.5">
+        <nav className="mb-10 flex w-full items-start justify-between px-1">
+          {STEPS.slice(0, 4).map((s, i) => {
+            const active = i === step;
+            const done = i < step;
+            return (
+              <div key={s} className="flex flex-1 items-start gap-3 sm:gap-4">
                 <div
-                  className={`h-1.5 rounded-full transition-colors ${
-                    i <= step ? "bg-[color:var(--brass)]" : "bg-[color:var(--line)]"
-                  }`}
-                />
-                <span
-                  className={`text-[11px] font-medium ${
-                    i <= step ? "text-[color:var(--ink)]" : "text-[color:var(--ink)]/40"
+                  className={`flex flex-col items-start gap-2.5 ${
+                    active ? "" : done ? "opacity-70" : "opacity-35"
                   }`}
                 >
-                  {s}
-                </span>
+                  <span className="text-[10px] font-bold uppercase tracking-[0.22em] text-[color:var(--brass)]">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="font-sans text-[11px] font-semibold uppercase tracking-[0.18em]">
+                    {s}
+                  </span>
+                  <div
+                    className={`h-[3px] w-10 rounded-full transition-colors ${
+                      active
+                        ? "bg-[color:var(--brass)]"
+                        : done
+                          ? "bg-[color:var(--forest)]/40"
+                          : "bg-transparent"
+                    }`}
+                  />
+                </div>
+                {i < STEPS.length - 2 && (
+                  <div className="mt-3 h-px flex-1 bg-[color:var(--ink)]/10" />
+                )}
               </div>
-            ))}
-          </div>
-        </div>
+            );
+          })}
+        </nav>
       )}
 
-      <div className={step < 4 ? "grid gap-6 pb-24 lg:grid-cols-[1fr_340px] lg:pb-0" : ""}>
+      <div className={step < 4 ? "grid gap-10 pb-24 lg:grid-cols-12 lg:pb-0" : ""}>
         {/* ---------- Vänster: steg ---------- */}
-        <div>
+        <div className={step < 4 ? "lg:col-span-8" : ""}>
+
           <AnimatePresence mode="wait">
             {/* STEG 1 — Datum */}
             {step === 0 && (
