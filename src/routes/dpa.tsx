@@ -27,14 +27,14 @@ function DPA() {
       <p>
         Detta biträdesavtal (”DPA”) ingås mellan kunden (”Personuppgiftsansvarig”) och{" "}
         <strong>Aurora Media AB</strong> (”Personuppgiftsbiträde”) och gäller när StayBoost
-        behandlar personuppgifter för kundens räkning enligt art. 28 GDPR. DPA:n utgör en del av
+        behandlar personuppgifter för kundens räkning enligt art. 28 GDPR. Avtalet utgör en del av
         <a href="/villkor"> användarvillkoren</a>.
       </p>
 
       <h2>1. Föremål och varaktighet</h2>
       <p>
         StayBoost behandlar personuppgifter i syfte att leverera tjänsten under abonnemangets tid
-        och 30 dagar därefter för export/radering.
+        och i 30 dagar därefter för export eller radering.
       </p>
 
       <h2>2. Kategorier av registrerade och uppgifter</h2>
@@ -54,7 +54,7 @@ function DPA() {
         StayBoost behandlar uppgifter enbart enligt dokumenterade instruktioner från kunden.
         Villkoren, konfiguration i tjänsten och skriftliga tilläggsinstruktioner utgör
         instruktioner. Vid krav enligt EU-rätt eller svensk lag informerar vi kunden innan
-        behandling om lag inte förbjuder det.
+        behandling, såvida inte lag förbjuder det.
       </p>
 
       <h2>4. Sekretess</h2>
@@ -86,7 +86,7 @@ function DPA() {
           <strong>Brevo (Sendinblue SAS)</strong> — e-postutskick. Frankrike/EU.
         </li>
         <li>
-          <strong>46elks AB</strong> — SMS-utskick. Sverige.
+          <strong>46elks AB</strong> — sms-utskick. Sverige.
         </li>
         <li>
           <strong>Plausible Insights OÜ</strong> — cookiefri besöksstatistik. Estland/EU.
@@ -107,7 +107,7 @@ function DPA() {
       <h2>8. Bistånd till kunden</h2>
       <p>
         Vi bistår kunden med lämpliga tekniska och organisatoriska åtgärder för att uppfylla
-        skyldigheter gentemot registrerade (art. 12–22), säkerhet (art. 32), incident (art. 33–34)
+        skyldigheter gentemot registrerade (art. 12–22), säkerhet (art. 32), incidenthantering (art. 33–34)
         samt konsekvensbedömningar (art. 35–36).
       </p>
 

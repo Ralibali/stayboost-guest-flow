@@ -57,7 +57,7 @@ function buildOpsStats(stats: StayBoostStats) {
     { value: formatInt(stats.digitalCheckIns), label: "digitala incheckningar" },
     {
       value: `${formatInt(stats.prearrivalMessages.sent)} / ${formatInt(stats.prearrivalMessages.total)}`,
-      label: "förankomst-SMS skickade",
+      label: "sms före ankomst",
     },
     {
       value: `${formatInt(stats.breakfastDeliveries.done)} / ${formatInt(stats.breakfastDeliveries.total)}`,
@@ -65,7 +65,7 @@ function buildOpsStats(stats: StayBoostStats) {
     },
     {
       value: `${formatInt(stats.sms.sent)} / ${formatInt(stats.sms.total)}`,
-      label: "SMS levererade från outbox",
+      label: "Sms levererade från utkorgen",
     },
   ];
 }

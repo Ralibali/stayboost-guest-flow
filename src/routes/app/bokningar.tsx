@@ -76,7 +76,7 @@ function BookingsPage() {
     if (!supabase) return;
     if (
       !window.confirm(
-        `Avboka ${b.guest_name ?? "bokningen"} ${svDate(b.checkin_date)}–${svDate(b.checkout_date)}? Meddelandekön släcks automatiskt.`,
+        `Avboka ${b.guest_name ?? "bokningen"} ${svDate(b.checkin_date)}–${svDate(b.checkout_date)}? Meddelandekön rensas automatiskt.`,
       )
     )
       return;
@@ -496,7 +496,7 @@ function ManualBookingModal({
           <input
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="Mobil (för SMS)"
+            placeholder="Mobil (för sms)"
             className="inp"
           />
           {error && (

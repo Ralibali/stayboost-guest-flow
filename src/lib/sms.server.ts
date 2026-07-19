@@ -76,40 +76,39 @@ export async function send46elks(to: string, text: string): Promise<boolean> {
   return true;
 }
 
-// Fem påhittade scenarion. Texten är medvetet utan åäö/ö för att hålla sig
-// inom GSM-7 (undviker 2 SMS-avgifter från 46elks).
+// Fem påhittade scenarier för testutskick.
 export const DEMO_SCENARIOS = {
   valkomst: {
     label: "Välkomst",
     emoji: "👋",
     hint: "2 dagar före ankomst",
     text:
-      "Hej Anna! Vi ser fram emot er vistelse pa Sjostugan 12-14 juli. " +
-      "Incheckning fran kl 15, portkod skickas pa ankomstdagen. " +
-      "Vill ni forbestalla nagot? Se tillval: https://demo.stayboost.se/g/anna",
+      "Hej Anna! Vi ser fram emot er vistelse på Sjöstugan 12–14 juli. " +
+      "Incheckning från kl 15, portkod skickas på ankomstdagen. " +
+      "Vill ni förbeställa något? Se tillval: https://demo.stayboost.se/g/anna",
   },
   portkod: {
     label: "Portkod",
     emoji: "🔑",
     hint: "Ankomstdagen kl 12",
     text:
-      "God dag Anna! Er portkod ar 4482. Wifi: Sjostugan_2G / valkommen2026. " +
-      "Sjalvincheckning: https://demo.stayboost.se/i/anna. Trevlig vistelse!",
+      "God dag Anna! Er portkod är 4482. Wifi: Sjöstugan_2G / välkommen2026. " +
+      "Självincheckning: https://demo.stayboost.se/i/anna. Trevlig vistelse!",
   },
   frukost: {
     label: "Frukostkorg",
     emoji: "🥐",
     hint: "Kväll 1 kl 18",
     text:
-      "Hej Anna! Vill ni ha en lokal frukostkorg levererad till dorren imorgon kl 08? " +
-      "249 kr for tva. Boka: https://demo.stayboost.se/t/frukost-anna",
+      "Hej Anna! Vill ni ha en lokal frukostkorg levererad till dörren i morgon kl 08? " +
+      "249 kr för två. Boka: https://demo.stayboost.se/t/frukost-anna",
   },
   "sen-utcheckning": {
     label: "Sen utcheckning",
     emoji: "⏰",
     hint: "Dagen innan avresa",
     text:
-      "Hej Anna! Vill ni forlanga vistelsen till kl 15 istallet for 11? " +
+      "Hej Anna! Vill ni förlänga vistelsen till kl 15 i stället för 11? " +
       "150 kr, betala direkt: https://demo.stayboost.se/t/sen-utcheckning-anna",
   },
   omdome: {
@@ -117,8 +116,8 @@ export const DEMO_SCENARIOS = {
     emoji: "⭐",
     hint: "Dagen efter avresa",
     text:
-      "Tack for besoket Anna! Om ni hade det bra - vi vore tacksamma for ett " +
-      "omdome pa Google: https://demo.stayboost.se/r/anna. Valkomna tillbaka!",
+      "Tack för besöket Anna! Om ni hade det bra skulle vi vara tacksamma för ett " +
+      "omdöme på Google: https://demo.stayboost.se/r/anna. Välkomna tillbaka!",
   },
 } as const;
 

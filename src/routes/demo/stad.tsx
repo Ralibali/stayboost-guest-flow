@@ -19,8 +19,8 @@ export const Route = createFileRoute("/demo/stad")({
 type TaskStatus = "väntar" | "pågår" | "klar";
 
 const TYPE_LABEL: Record<string, string> = {
-  avresa: "Avresestäd",
-  storstäd: "Storstäd",
+  avresa: "Avresestädning",
+  storstäd: "Storstädning",
   påsläpp: "Påsläpp",
 };
 

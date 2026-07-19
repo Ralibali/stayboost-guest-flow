@@ -11,7 +11,7 @@ export const Route = createFileRoute("/integritetspolicy")({
       {
         name: "description",
         content:
-          "Så behandlar StayBoost (Aurora Media AB) personuppgifter enligt GDPR — vilka uppgifter vi samlar in, varför, rättslig grund, lagringstid och dina rättigheter.",
+          "Så behandlar StayBoost (Aurora Media AB) personuppgifter enligt GDPR — vilka uppgifter vi samlar in, syftet, rättslig grund, lagringstid och dina rättigheter.",
       },
       { property: "og:title", content: "Integritetspolicy — StayBoost" },
       {
@@ -80,7 +80,7 @@ function PrivacyPolicy() {
           med möjlighet att avregistrera i varje utskick.
         </li>
         <li>
-          <strong>Nyhetsbrev, gratismallar, tips-mail</strong> — samtycke (art. 6.1 a). Du kan
+          <strong>Nyhetsbrev, gratismallar, tipsmejl</strong> — samtycke (art. 6.1 a). Du kan
           återkalla samtycket när som helst.
         </li>
         <li>
@@ -99,7 +99,7 @@ function PrivacyPolicy() {
         <li>Kunduppgifter: under avtalstiden och därefter så länge det finns en rättslig grund.</li>
         <li>Bokföringsunderlag: 7 år (bokföringslagen).</li>
         <li>Loggar / säkerhetsdata: som regel högst 12 månader.</li>
-        <li>Demo-SMS-formulär: telefonnummer sparas endast för rate-limit-kontroll i 24 timmar.</li>
+        <li>Formulär för sms-demo: telefonnummer sparas endast för frekvensbegränsning i 24 timmar.</li>
       </ul>
 
       <h2>5. Mottagare och personuppgiftsbiträden</h2>
@@ -115,10 +115,10 @@ function PrivacyPolicy() {
           <strong>Cloudflare</strong> — hosting, edge-nätverk och DDoS-skydd.
         </li>
         <li>
-          <strong>Brevo (Sendinblue)</strong> — e-postutskick, nyhetsbrev, transaktionsmail (EU).
+          <strong>Brevo (Sendinblue)</strong> — e-postutskick, nyhetsbrev, transaktionsmejl (EU).
         </li>
         <li>
-          <strong>46elks</strong> — SMS-utskick (Sverige/EU).
+          <strong>46elks</strong> — sms-utskick (Sverige/EU).
         </li>
         <li>
           <strong>Plausible Analytics</strong> — cookiefri, aggregerad besöksstatistik (EU).

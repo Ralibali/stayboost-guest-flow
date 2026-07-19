@@ -272,7 +272,7 @@ function GuestHub() {
             },
             {
               q: "Kan vi få sen utcheckning?",
-              a: "Ja! Mot 150 kr kan ni stanna till kl 13:00. Boka som tillval ovan — det bekräftas direkt i SMS.",
+              a: "Ja! Mot 150 kr kan ni stanna till kl 13:00. Boka som tillval ovan — det bekräftas direkt via sms.",
             },
           ].map((f, i) => (
             <div key={i}>
@@ -407,7 +407,7 @@ function GuestHub() {
               </motion.span>
               <h3 className="mt-5 text-2xl">Klart, Anna!</h3>
               <p className="mt-2 text-[15px] text-[color:var(--ink)]/65">
-                Din beställning är betald och bekräftad. Vi skickar kvitto på SMS — och
+                Din beställning är betald och bekräftad. Vi skickar kvitto via sms — och
                 frukostansvarig ser din order direkt i sin vy.
               </p>
               <div className="mt-5 rounded-2xl bg-[color:var(--bg)] p-4 text-left text-[14px]">

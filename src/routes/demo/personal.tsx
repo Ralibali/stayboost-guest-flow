@@ -129,8 +129,8 @@ function StaffView() {
 
         <p className="mt-5 flex items-start gap-2 rounded-xl bg-[color:var(--bg)] p-4 text-[13px] text-[color:var(--ink)]/65">
           <Sparkles size={15} className="mt-0.5 shrink-0 text-[color:var(--brass)]" />
-          StayBoost föreslår automatiskt tilldelning utifrån veckoschemat — och meddelar personen på
-          SMS när en ny uppgift landar hos dem.
+          StayBoost föreslår automatiskt tilldelning utifrån veckoschemat — och meddelar personen via
+          sms när en ny uppgift landar hos dem.
         </p>
       </motion.div>
     </div>
@@ -164,7 +164,7 @@ function StaffCard({ staff, load, delay }: { staff: StaffMember; load: number; d
               className="rounded-full px-2 py-0.5 text-[11px] font-semibold text-white"
               style={{ background: staff.color }}
             >
-              {staff.role}
+              {staff.role === "Städ" ? "Städning" : staff.role}
             </span>
             <span className="flex items-center gap-1">
               <Phone size={11} /> {staff.phone}

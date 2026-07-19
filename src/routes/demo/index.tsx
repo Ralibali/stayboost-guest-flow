@@ -101,7 +101,7 @@ const CARDS = [
     to: "/demo/admin",
     icon: LayoutDashboard,
     role: "Ägarens vy",
-    title: "Ägar-dashboard",
+    title: "Ägaröversikt",
     body: "Merförsäljning i realtid, orderflöde och tillvalskatalogen — skapa egna tillval och ta provision på lokala partners.",
     tag: "Hjärtat i StayBoost",
   },
@@ -199,7 +199,7 @@ function DemoIndex() {
           );
         })}
 
-        {/* SMS-kort */}
+        {/* Sms-kort */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -209,9 +209,9 @@ function DemoIndex() {
             <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/10">
               <MessageSquareText size={22} strokeWidth={1.8} />
             </span>
-            <h2 className="mt-5 text-xl text-white">SMS-flödet</h2>
+            <h2 className="mt-5 text-xl text-white">Sms-flödet</h2>
             <p className="mt-2 flex-1 text-[15px] text-white/75">
-              Gästen får allt via SMS och svarar JA direkt i tråden — eller trycker på länken till
+              Gästen får allt via sms och svarar JA direkt i tråden — eller trycker på länken till
               gästhubben. Ingen app, ingen inloggning.
             </p>
             <div className="mt-5 rounded-xl bg-white/10 p-4 text-[13px] leading-relaxed text-white/85">

@@ -4,7 +4,7 @@ type Cell = "ja" | "nej" | "delvis";
 
 const ROWS: { label: string; stayboost: Cell; bookspot: Cell; sirvoy: Cell }[] = [
   { label: "Provisionsfri bokningsmotor", stayboost: "ja", bookspot: "delvis", sirvoy: "delvis" },
-  { label: "Automatisk merförsäljning via SMS", stayboost: "ja", bookspot: "nej", sirvoy: "nej" },
+  { label: "Automatisk merförsäljning via sms", stayboost: "ja", bookspot: "nej", sirvoy: "nej" },
   {
     label: "Presentkort, paket & ombokningsgaranti",
     stayboost: "ja",
@@ -80,7 +80,7 @@ export function Comparison() {
           </h2>
           <p className="mt-4 text-[0.975rem] leading-relaxed text-[color:var(--ink)]/75 sm:text-base">
             De byggde för aktivitetsföretag och stora hotell. Vi byggde för dig med ett fåtal
-            enheter — och lade till laget de aldrig hann med: merförsäljningen och teamvyerna.
+            enheter — och lade till delarna som de aldrig hann med: merförsäljningen och teamvyerna.
           </p>
         </div>
 

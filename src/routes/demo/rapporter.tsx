@@ -36,7 +36,7 @@ function ReportsView() {
             <p className="eyebrow">Rapporter</p>
             <h1 className="mt-2 text-3xl">Så går verksamheten</h1>
             <p className="mt-1 text-[14px] text-[color:var(--ink)]/60">
-              Samma backoffice-överblick som BookSpot — fast byggd för små boenden.
+              Samma administrativa överblick som BookSpot — fast byggd för små boenden.
             </p>
           </div>
           <button className="btn-ghost !rounded-full !px-4 !py-2 text-[13px]">

@@ -646,7 +646,7 @@ function BookingFlow() {
                 <StepTitle
                   eyebrow="Steg 4 av 4"
                   title="Dina uppgifter"
-                  sub="Bekräftelsen landar direkt som mejl och SMS."
+                  sub="Bekräftelsen landar direkt som mejl och sms."
                 />
                 <div className="card-surface mt-6 space-y-4 p-6">
                   <Field icon={User} label="Fullständigt namn">
@@ -878,7 +878,7 @@ function BookingFlow() {
                     </li>
                     <li className="flex gap-2.5">
                       <Check size={15} className="mt-0.5 shrink-0 text-[color:var(--success)]" />
-                      Två dagar före ankomst: välkomst-SMS med all info
+                      Två dagar före ankomst: välkomst-sms med all info
                     </li>
                     <li className="flex gap-2.5">
                       <Check size={15} className="mt-0.5 shrink-0 text-[color:var(--success)]" />

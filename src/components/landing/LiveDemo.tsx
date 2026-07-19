@@ -79,7 +79,7 @@ export function LiveDemo() {
     const w = window as unknown as {
       plausible?: (e: string, opts?: { props?: Record<string, string> }) => void;
     };
-    // Övergripande event (behållet för bakåtkompabilitet)
+    // Övergripande event (behållet för bakåtkompatibilitet)
     w.plausible?.("Live Demo Opened", { props: { view, title } });
     // Per-kort event så du kan se exakt vilket kort som klickades
     w.plausible?.(`Live Demo: ${view}`, { props: { title } });

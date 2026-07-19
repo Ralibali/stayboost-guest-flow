@@ -243,7 +243,7 @@ export const ADDONS: Addon[] = [
   {
     id: "ved",
     name: "Ved (säck)",
-    description: "Torrdlagad björkved till brasan eller eldstaden. Tändstickor ingår.",
+    description: "Torrlagrad björkved till brasan eller eldstaden. Tändstickor ingår.",
     price: 120,
     emoji: "🪵",
     category: "praktiskt",
@@ -357,7 +357,7 @@ export const ADDONS: Addon[] = [
   {
     id: "yoga",
     name: "Morgonyoga vid kanalen",
-    description: "Lugnt flöde på gräsmattan kl 07:30. Matta och té ingår.",
+    description: "Lugnt flöde på gräsmattan kl 07:30. Matta och te ingår.",
     price: 195,
     emoji: "🧘",
     category: "upplevelse",
@@ -542,7 +542,7 @@ export const BREAKFAST: BreakfastPrep[] = [
   },
 ];
 
-/* ---------- Städ (i dag) ---------- */
+/* ---------- Städning (i dag) ---------- */
 export const CLEANING: CleaningTask[] = [
   {
     unitId: "vindraget",
@@ -592,7 +592,7 @@ export const AUTOMATIONS = [
     when: "T-2 dagar",
     time: "09:00",
     name: "Välkomstmeddelande",
-    channel: "SMS",
+    channel: "Sms",
     active: true,
     sent30d: 52,
   },
@@ -601,7 +601,7 @@ export const AUTOMATIONS = [
     when: "Ankomstdag",
     time: "12:00",
     name: "Incheckningslänk & portkod",
-    channel: "SMS",
+    channel: "Sms",
     active: true,
     sent30d: 52,
   },
@@ -610,7 +610,7 @@ export const AUTOMATIONS = [
     when: "Kväll 1",
     time: "17:30",
     name: "Middagstips + tillval",
-    channel: "SMS",
+    channel: "Sms",
     active: true,
     sent30d: 48,
   },
@@ -619,7 +619,7 @@ export const AUTOMATIONS = [
     when: "Avresedagen",
     time: "08:30",
     name: "Uppmaning: sen utcheckning?",
-    channel: "SMS",
+    channel: "Sms",
     active: true,
     sent30d: 44,
   },
@@ -628,7 +628,7 @@ export const AUTOMATIONS = [
     when: "T+1 dag",
     time: "10:00",
     name: "Tack & omdömesförfrågan",
-    channel: "SMS",
+    channel: "Sms",
     active: false,
     sent30d: 41,
   },

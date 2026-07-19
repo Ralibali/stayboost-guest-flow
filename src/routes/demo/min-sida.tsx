@@ -299,7 +299,7 @@ function RebookPanel({
         <h2 className="mt-4 text-2xl">Ombokningen är klar!</h2>
         <p className="mt-2 text-[15px] text-[color:var(--ink)]/65">
           Nya datum: <strong>{fmtDateLong(booking.start)}</strong> →{" "}
-          {fmtDate(addDays(booking.start, booking.nights))}. Bekräftelse skickad på mail och SMS —
+          {fmtDate(addDays(booking.start, booking.nights))}. Bekräftelse skickad via e-post och sms —
           och ägarens kalender är redan uppdaterad.
         </p>
         <button onClick={onDone} className="btn-primary mt-5 !rounded-2xl !px-6 !py-3 text-[15px]">
@@ -439,7 +439,7 @@ function AddonsPanel({ booking, refresh }: { booking: MyBooking; refresh: () => 
         </span>
         <h2 className="mt-4 text-2xl">Tillvalen är tillagda!</h2>
         <p className="mt-2 text-[15px] text-[color:var(--ink)]/65">
-          Kvittot skickas på SMS. Personalen ser din beställning direkt i sina vyer.
+          Kvittot skickas via sms. Personalen ser din beställning direkt i sina vyer.
         </p>
         <button
           onClick={() => setDone(false)}

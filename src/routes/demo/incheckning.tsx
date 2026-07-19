@@ -244,7 +244,7 @@ function CheckIn() {
               Öppna gästhubben <ArrowRight size={17} />
             </Link>
             <p className="mt-3 text-[12px] text-[color:var(--ink)]/50">
-              Samma info skickas även som SMS till {guest.phone}
+              Samma info skickas även via sms till {guest.phone}
             </p>
           </motion.div>
         )}

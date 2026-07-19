@@ -99,8 +99,8 @@ function SourcesPage() {
     <div className="mx-auto max-w-3xl">
       <h1 className="font-[Fraunces] text-2xl font-semibold">iCal-källor</h1>
       <p className="mt-1 text-[14px] text-[color:var(--ink)]/65">
-        En källa per <strong>enhet och kanal</strong>. I Airbnb: Kalender → Tillgänglighet →
-        "Exportera kalender". I Booking.com: Kalender → Synkronisera kalendrar → Exportera.
+        En källa per <strong>enhet och kanal</strong>. På Airbnb: Kalender → Tillgänglighet →
+        "Exportera kalender". På Booking.com: Kalender → Synkronisera kalendrar → Exportera.
         Bokningar hämtas automatiskt var 15:e minut.
       </p>
 

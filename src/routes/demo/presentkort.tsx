@@ -61,7 +61,7 @@ function GiftCardFlow() {
         <p className="eyebrow">Presentkort</p>
         <h1 className="mt-2 text-3xl sm:text-4xl">Ge bort en natt vid kanalen.</h1>
         <p className="mt-3 text-[15px] text-[color:var(--ink)]/65">
-          Välj belopp, skriv en hälsning — mottagaren får ett vackert presentkort på mailen direkt.
+          Välj belopp, skriv en hälsning — mottagaren får ett vackert presentkort via e-post direkt.
           Gäller i 24 månader på hela {PROPERTY.name}.
         </p>
       </motion.div>

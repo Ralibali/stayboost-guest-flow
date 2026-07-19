@@ -98,7 +98,7 @@ function AdminDashboard() {
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
-            <p className="eyebrow">Ägar-dashboard</p>
+            <p className="eyebrow">Ägaröversikt</p>
             <h1 className="mt-2 text-3xl">{PROPERTY.name}</h1>
             <p className="mt-1 text-[14px] text-[color:var(--ink)]/60">{PROPERTY.place}</p>
           </div>
@@ -418,7 +418,7 @@ function AdminDashboard() {
             className="card-surface p-6"
           >
             <h2 className="flex items-center gap-2 font-sans text-[17px] font-bold">
-              <Zap size={17} className="text-[color:var(--brass)]" /> Meddelande-automation
+              <Zap size={17} className="text-[color:var(--brass)]" /> Meddelandeautomation
             </h2>
             <div className="mt-4 space-y-3">
               {automations.map((a) => (

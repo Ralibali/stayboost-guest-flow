@@ -5,8 +5,8 @@ import { sendDemoSms } from "@/lib/sms.functions";
 
 const ERROR_MESSAGES: Record<string, string> = {
   invalid_number: "Ange ett giltigt svenskt mobilnummer (07x…).",
-  number_used: "Det numret har fått max antal demo-SMS idag.",
-  ip_limit: "Du har redan begärt några SMS idag — försök igen i morgon.",
+  number_used: "Det numret har nått dagens gräns för test-sms.",
+  ip_limit: "Du har redan begärt flera sms i dag – försök igen i morgon.",
   global_limit: "Vi har nått dagens demogräns. Prova igen i morgon.",
   server_error: "Något gick fel — försök igen.",
 };
@@ -76,7 +76,7 @@ export function DemoSms() {
           className="mt-3 tracking-tight"
           style={{ fontSize: "clamp(1.85rem, 5vw, 3rem)", lineHeight: 1.1 }}
         >
-          Skicka ett demo-SMS till dig själv.
+          Skicka ett test-sms till dig själv.
         </h2>
         <p className="mt-4 text-[color:var(--ink)]/75 sm:mt-5">
           Välj vilket meddelande i gästresan du vill känna på — vi skickar det till ditt nummer med
@@ -86,7 +86,7 @@ export function DemoSms() {
         {/* Scenario picker */}
         <div
           role="radiogroup"
-          aria-label="Välj demo-SMS"
+          aria-label="Välj test-sms"
           className="mx-auto mt-8 flex max-w-2xl flex-wrap justify-center gap-2 sm:gap-2.5"
         >
           {SCENARIOS.map((s) => {
@@ -154,7 +154,7 @@ export function DemoSms() {
                 Skickar…
               </span>
             ) : (
-              `Skicka ${activeLabel.toLowerCase()}-SMS`
+              `Skicka ${activeLabel.toLowerCase()}-sms`
             )}
           </button>
         </form>
@@ -171,8 +171,8 @@ export function DemoSms() {
             {lastSent && (
               <p className="mt-1 text-sm text-[color:var(--ink)]/75">
                 {SCENARIOS.find((s) => s.key === lastSent)?.emoji}{" "}
-                {SCENARIOS.find((s) => s.key === lastSent)?.label} — vill du testa ett till? Välj en
-                annan scen ovan.
+                {SCENARIOS.find((s) => s.key === lastSent)?.label} — vill du testa ett till? Välj ett
+                annat scenario ovan.
               </p>
             )}
           </motion.div>
@@ -183,7 +183,7 @@ export function DemoSms() {
           </p>
         )}
         <p className="mt-3 text-xs text-[color:var(--ink)]/55">
-          Max 5 SMS per nummer/dag. Ditt nummer sparas inte för utskick.
+          Högst fem sms per nummer och dag. Ditt nummer sparas inte för utskick.
         </p>
       </div>
     </section>

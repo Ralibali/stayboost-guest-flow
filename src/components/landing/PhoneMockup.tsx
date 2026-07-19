@@ -70,7 +70,7 @@ export function PhoneMockup() {
                   Sj
                 </div>
                 <div className="text-[13px] font-semibold text-[color:var(--ink)]">Sjöstugan</div>
-                <div className="text-[10px] text-[color:var(--ink)]/60">SMS</div>
+                <div className="text-[10px] text-[color:var(--ink)]/60">Sms</div>
               </div>
             </div>
 
