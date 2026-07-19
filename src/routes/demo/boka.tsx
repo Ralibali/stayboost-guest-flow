@@ -806,7 +806,7 @@ function BookingFlow() {
                 </motion.span>
                 <h1 className="mt-5 text-3xl">Bokningen är klar!</h1>
                 <p className="mt-2 text-[15px] text-[color:var(--ink)]/65">
-                  Vi ser fram emot att välkomna er, {name.split(" ")[0]}.
+                  Vi ser fram emot att välkomna dig, {name.split(" ")[0]}!
                 </p>
 
                 <div className="card-surface mt-6 p-6 text-left">
