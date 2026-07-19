@@ -67,4 +67,4 @@ export const setAssignee = (taskKey: string, staffId: string) => {
 };
 
 /** Alla städuppgifter som ska fördelas. */
-export const CLEANING_TASK_KEYS = ["stad-naturkarnan", "stad-naturkarnan", "stad-sjobris"];
+export const CLEANING_TASK_KEYS = ["stad-sjobris", "stad-naturkarnan", "stad-lugnetsyta"];
