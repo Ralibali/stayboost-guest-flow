@@ -35,7 +35,7 @@ Deno.serve(async (req) => {
     const slug = url.searchParams.get("slug") ?? "";
     const { data: property } = await admin
       .from("properties")
-      .select("id, name, slug, checkin_time, checkout_time")
+      .select("id, name, slug, checkin_time, checkout_time, swish_number")
       .eq("slug", slug)
       .maybeSingle();
     if (!property) return json({ error: "not_found" }, 404);
@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
         slug: property.slug,
         checkinTime: property.checkin_time,
         checkoutTime: property.checkout_time,
+        swishNumber: property.swish_number,
       },
       units: (units ?? []).map((u) => ({
         id: u.id,
@@ -108,7 +109,7 @@ Deno.serve(async (req) => {
 
     const { data: property } = await admin
       .from("properties")
-      .select("id")
+      .select("id, swish_number")
       .eq("slug", slug)
       .maybeSingle();
     if (!property) return json({ error: "not_found" }, 404);
@@ -140,6 +141,12 @@ Deno.serve(async (req) => {
     }
 
     const quote = quoteStay(unit, checkin, checkout);
+
+    // Manuell Swish: bokningen skapas med payment_status 'pending' och ett
+    // kort betalningsmärke — operatören markerar "Betald" när pengarna kommit.
+    const paymentRef = `SB-${crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase()}`;
+    const usesSwish = Boolean(property.swish_number);
+
     const { data: booking, error } = await admin
       .from("bookings")
       .insert({
@@ -152,6 +159,9 @@ Deno.serve(async (req) => {
         checkin_date: checkin,
         checkout_date: checkout,
         notes: `Direktbokning via bokningssidan · ${quote.total} kr`,
+        ...(usesSwish
+          ? { payment_status: "pending", payment_amount: quote.total, payment_ref: paymentRef }
+          : {}),
       })
       .select("id, guest_token")
       .single();
@@ -162,6 +172,9 @@ Deno.serve(async (req) => {
       bookingId: booking.id,
       guestToken: booking.guest_token,
       price: quote,
+      ...(usesSwish
+        ? { swishNumber: property.swish_number, paymentRef, paymentAmount: quote.total }
+        : {}),
     });
   }
 

@@ -54,6 +54,7 @@ function SettingsPage() {
     patch: Partial<{
       name: string;
       door_code: string | null;
+      external_ref: string | null;
       base_price: number;
       weekend_pct: number;
       min_stay: number;
@@ -145,6 +146,14 @@ function SettingsPage() {
             <input value={form.review_url ?? ""} onChange={set("review_url")} className="inp" />
           </Field>
         </div>
+        <Field label="Swish-nummer (för direktbokningar)">
+          <input
+            value={form.swish_number ?? ""}
+            onChange={set("swish_number")}
+            placeholder="T.ex. 123 456 7890"
+            className="inp"
+          />
+        </Field>
         <button onClick={save} className="btn-primary !rounded-xl !px-5 !py-2.5 text-[14px]">
           {saved ? "✓ Sparat" : "Spara ändringar"}
         </button>
@@ -187,6 +196,28 @@ function SettingsPage() {
         </div>
       </div>
 
+      {/* Sirvoy-koppling */}
+      <div className="card-surface mt-5 p-6">
+        <h2 className="text-[15px] font-bold">Sirvoy-koppling</h2>
+        <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--ink)]/55">
+          Sirvoy saknar öppet API, men skickar bokningar i realtid via sin "Booking event webhook"
+          (URL callback API). Klistra in denna URL i Sirvoy så landar nya, ändrade och avbokade
+          bokningar här direkt — med gästuppgifter:
+        </p>
+        <div className="mt-3 flex gap-2">
+          <input
+            readOnly
+            onFocus={(e) => e.target.select()}
+            value={`${(import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "") ?? "https://<projekt>.supabase.co"}/functions/v1/sirvoy-webhook?token=${property.sirvoy_webhook_token}`}
+            className="inp flex-1 !bg-[color:var(--bg)] font-mono text-[11px]"
+          />
+        </div>
+        <p className="mt-2 text-[12px] text-[color:var(--ink)]/50">
+          Tips: klistra även in varje enhets <em>iCal-exportlänk</em> som import-kalender i Sirvoy —
+          då blockeras Booking.com automatiskt när någon bokar direkt hos dig.
+        </p>
+      </div>
+
       <div className="card-surface mt-5 p-6">
         <h2 className="text-[15px] font-bold">Enheter</h2>
         <div className="mt-3 space-y-2.5">
@@ -208,6 +239,16 @@ function SettingsPage() {
                     updateUnit(u.id, { door_code: e.target.value || null })
                   }
                   className="inp w-28"
+                />
+                <input
+                  defaultValue={u.external_ref ?? ""}
+                  placeholder="Sirvoy rums-id"
+                  title="Sirvoy rums-id/namn — kopplar webhook-bokningar till enheten"
+                  onBlur={(e) =>
+                    e.target.value !== (u.external_ref ?? "") &&
+                    updateUnit(u.id, { external_ref: e.target.value || null })
+                  }
+                  className="inp w-32"
                 />
                 <button
                   onClick={() => removeUnit(u.id, u.name)}

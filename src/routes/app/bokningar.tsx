@@ -256,8 +256,24 @@ function BookingCard({
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[15px] font-semibold">{b.guest_name ?? "Okänd gäst"}</span>
             <span className="rounded-full bg-[color:var(--bg)] px-2 py-0.5 text-[11px] font-semibold text-[color:var(--ink)]/60">
-              {b.source === "ical" ? "iCal" : "Manuell"}
+              {b.source === "ical"
+                ? "iCal"
+                : b.source === "direct"
+                  ? "Direkt"
+                  : b.source === "sirvoy"
+                    ? "Sirvoy"
+                    : "Manuell"}
             </span>
+            {b.payment_status === "pending" && (
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
+                💸 Swish väntar
+              </span>
+            )}
+            {b.payment_status === "paid" && (
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
+                💸 Betald
+              </span>
+            )}
             {missingContact && (
               <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
                 Komplettera kontaktuppgifter
@@ -363,6 +379,24 @@ function BookingCard({
 
               {/* Åtgärder */}
               <div className="flex flex-wrap gap-2">
+                {b.payment_status === "pending" && (
+                  <button
+                    onClick={async () => {
+                      if (!supabase) return;
+                      await supabase
+                        .from("bookings")
+                        .update({ payment_status: "paid" })
+                        .eq("id", b.id);
+                      onChanged();
+                    }}
+                    className="rounded-xl bg-emerald-600 px-3.5 py-2 text-[13px] font-semibold text-white transition hover:bg-emerald-700"
+                  >
+                    💸 Markera betald
+                    {b.payment_amount
+                      ? ` (${b.payment_amount.toLocaleString("sv-SE")} kr${b.payment_ref ? ` · ${b.payment_ref}` : ""})`
+                      : ""}
+                  </button>
+                )}
                 <button
                   onClick={onCopy}
                   className="btn-ghost !rounded-xl !px-3.5 !py-2 text-[13px]"

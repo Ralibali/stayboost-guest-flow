@@ -27,7 +27,13 @@ type EngineUnit = {
 };
 
 type EngineData = {
-  property: { name: string; slug: string; checkinTime: string; checkoutTime: string };
+  property: {
+    name: string;
+    slug: string;
+    checkinTime: string;
+    checkoutTime: string;
+    swishNumber: string | null;
+  };
   units: EngineUnit[];
 };
 
@@ -76,8 +82,13 @@ function PublicBookingPage() {
   const [phone, setPhone] = useState("");
   const [sending, setSending] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [done, setDone] = useState<{ token: string; total: number } | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [done, setDone] = useState<{
+    token: string;
+    total: number;
+    swishNumber?: string;
+    paymentRef?: string;
+  } | null>(null);
+  const [copied, setCopied] = useState<string | null>(null);
 
   useEffect(() => {
     if (!FUNCTIONS_BASE) {
@@ -146,7 +157,12 @@ function PublicBookingPage() {
                 : "Något gick fel — försök igen om en stund.",
         );
       } else {
-        setDone({ token: d.guestToken, total: d.price.total });
+        setDone({
+          token: d.guestToken,
+          total: d.price.total,
+          swishNumber: d.swishNumber,
+          paymentRef: d.paymentRef,
+        });
       }
     } catch {
       setFormError("Något gick fel — försök igen om en stund.");
@@ -213,16 +229,55 @@ function PublicBookingPage() {
               <br />
               Bekräftelsen är på väg till dig med all praktisk information.
             </p>
+            {done.swishNumber && (
+              <div className="mt-5 rounded-2xl bg-[color:var(--brass)]/10 p-4 text-left">
+                <p className="text-[14px] font-bold">💸 Betala med Swish</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--ink)]/65">
+                  Swisha <strong>{fmtKr(done.total)}</strong> inom 24 timmar för att säkra din
+                  bokning:
+                </p>
+                <div className="mt-3 space-y-2">
+                  {[
+                    { label: "Swish-nummer", value: done.swishNumber, key: "nr" },
+                    { label: "Meddelande", value: done.paymentRef!, key: "ref" },
+                  ].map((r) => (
+                    <button
+                      key={r.key}
+                      onClick={() => {
+                        navigator.clipboard.writeText(r.value);
+                        setCopied(r.key);
+                        setTimeout(() => setCopied(null), 1500);
+                      }}
+                      className="flex w-full items-center justify-between rounded-xl bg-white px-3.5 py-2.5 text-left ring-1 ring-[color:var(--line)] transition hover:ring-[color:var(--brass)]"
+                    >
+                      <span>
+                        <span className="block text-[11px] text-[color:var(--ink)]/50">
+                          {r.label} — tryck för att kopiera
+                        </span>
+                        <span className="font-mono text-[15px] font-semibold tracking-wide">
+                          {r.value}
+                        </span>
+                      </span>
+                      {copied === r.key ? (
+                        <Check size={15} className="text-[color:var(--success)]" />
+                      ) : (
+                        <Copy size={15} className="text-[color:var(--ink)]/40" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
             <button
               onClick={() => {
                 navigator.clipboard.writeText(guestUrl!);
-                setCopied(true);
-                setTimeout(() => setCopied(false), 1500);
+                setCopied("link");
+                setTimeout(() => setCopied(null), 1500);
               }}
               className="btn-primary mt-5 w-full justify-center !rounded-xl !py-3 text-[15px]"
             >
-              {copied ? <Check size={16} /> : <Copy size={16} />}
-              {copied ? "Gästlänk kopierad!" : "Kopiera din gästlänk"}
+              {copied === "link" ? <Check size={16} /> : <Copy size={16} />}
+              {copied === "link" ? "Gästlänk kopierad!" : "Kopiera din gästlänk"}
             </button>
             <a
               href={guestUrl!}
@@ -365,7 +420,9 @@ function PublicBookingPage() {
                       {sending ? "Bokar…" : `Boka ${fmtKr(quote.total)} →`}
                     </button>
                     <p className="text-center text-[12px] text-[color:var(--ink)]/45">
-                      Ingen kortbetalning ännu — betalning sker enligt överenskommelse med värden.
+                      {data.property.swishNumber
+                        ? "Du betalar smidigt med Swish direkt efter bokningen."
+                        : "Ingen kortbetalning ännu — betalning sker enligt överenskommelse med värden."}
                     </p>
                   </div>
                 </motion.div>

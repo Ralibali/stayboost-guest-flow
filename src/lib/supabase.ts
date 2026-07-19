@@ -29,6 +29,8 @@ export type Property = {
   house_rules: string | null;
   contact_phone: string | null;
   review_url: string | null;
+  swish_number: string | null;
+  sirvoy_webhook_token: string;
 };
 
 export type Unit = {
@@ -42,6 +44,7 @@ export type Unit = {
   weekend_pct: number;
   min_stay: number;
   cleaning_fee: number;
+  external_ref: string | null;
 };
 
 /** Publik iCal-exportlänk för en enhet (klistras in i Airbnb/Booking). */
@@ -54,7 +57,7 @@ export type Booking = {
   id: string;
   property_id: string;
   unit_id: string | null;
-  source: "manual" | "ical";
+  source: "manual" | "ical" | "direct" | "sirvoy";
   guest_name: string | null;
   guest_email: string | null;
   guest_phone: string | null;
@@ -63,6 +66,9 @@ export type Booking = {
   status: "confirmed" | "cancelled";
   guest_token: string;
   notes: string | null;
+  payment_status: "none" | "pending" | "paid" | "refunded";
+  payment_amount: number | null;
+  payment_ref: string | null;
   unit?: { name: string } | null;
 };
 

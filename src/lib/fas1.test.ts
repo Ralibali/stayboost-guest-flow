@@ -18,6 +18,7 @@ import {
   rangesOverlap,
   type UnitPricing,
 } from "../../supabase/functions/_shared/pricing";
+import { mapSirvoyPayload } from "../../supabase/functions/_shared/sirvoy";
 import { formatSvDate, renderTemplate } from "../../supabase/functions/_shared/templates";
 
 /* ================= iCal-parser ================= */
@@ -186,6 +187,55 @@ describe("prismotor", () => {
   });
 });
 
+/* ================= Sirvoy-webhook-mappare ================= */
+
+describe("Sirvoy-payload-mappare", () => {
+  it("mappar platt payload", () => {
+    const b = mapSirvoyPayload({
+      booking_id: 12345,
+      room_id: "101",
+      checkin: "2026-08-01",
+      checkout: "2026-08-04",
+      guest_name: "Anna Andersson",
+      guest_email: "anna@example.se",
+      status: "confirmed",
+    });
+    expect(b).toMatchObject({
+      externalId: "12345",
+      roomRef: "101",
+      guestName: "Anna Andersson",
+      guestEmail: "anna@example.se",
+      checkin: "2026-08-01",
+      checkout: "2026-08-04",
+      cancelled: false,
+    });
+  });
+
+  it("mappar nästlad payload med annat fältnamn + avbokning", () => {
+    const b = mapSirvoyPayload({
+      reservationId: "x9",
+      arrival: "2026-09-01T14:00:00Z",
+      departure: "2026-09-03",
+      guest: { name: "Sara Lind", email: "sara@example.se" },
+      event: "booking_cancelled",
+    });
+    expect(b).toMatchObject({
+      externalId: "x9",
+      checkin: "2026-09-01",
+      checkout: "2026-09-03",
+      guestName: "Sara Lind",
+      guestEmail: "sara@example.se",
+      cancelled: true,
+    });
+  });
+
+  it("avvisar oanvändbara payloads", () => {
+    expect(mapSirvoyPayload(null)).toBeNull();
+    expect(mapSirvoyPayload({ checkin: "2026-08-01", checkout: "2026-08-02" })).toBeNull(); // saknar id
+    expect(mapSirvoyPayload({ id: "1", checkin: "2026-08-02", checkout: "2026-08-01" })).toBeNull(); // utcheckning före incheckning
+  });
+});
+
 /* ================= Mallmotor ================= */
 
 describe("mallmotor", () => {
@@ -213,6 +263,10 @@ const MIGRATION_ICAL = readFileSync(
 );
 const MIGRATION_DIRECT = readFileSync(
   join(__dirname, "../../supabase/migrations/20260719200000_direct_booking.sql"),
+  "utf8",
+);
+const MIGRATION_SIRVOY = readFileSync(
+  join(__dirname, "../../supabase/migrations/20260720000000_sirvoy_swish.sql"),
   "utf8",
 );
 
@@ -397,5 +451,45 @@ describe("Fas 1-migration mot Postgres", () => {
       [b.rows[0].id],
     );
     expect(msgs.rows[0].n).toBe(4);
+  }, 30000);
+
+  it("Sirvoy/Swish-migrationen: webhook-token, extern dedup och betalstatus", async () => {
+    const db = new PGlite({ extensions: { pgcrypto } });
+    await db.exec(AUTH_STUB);
+    await db.exec(MIGRATION);
+    await db.exec(MIGRATION_ICAL);
+    await db.exec(MIGRATION_DIRECT);
+    await db.exec(MIGRATION_SIRVOY);
+
+    const p = await db.query<{ id: string; sirvoy_webhook_token: string }>(
+      "insert into properties (owner_id, name) values ('00000000-0000-0000-0000-0000000000a1', 'Sirvoy-test') returning id, sirvoy_webhook_token",
+    );
+    expect(p.rows[0].sirvoy_webhook_token).toMatch(/^[0-9a-f]{24}$/);
+
+    // Sirvoy-bokning med externt id: dedup stoppar dubletter, NULL krockar aldrig
+    const ins = `insert into bookings (property_id, source, external_id, checkin_date, checkout_date)
+                 values ($1, 'sirvoy', 'srv-1', '2026-08-01', '2026-08-03')`;
+    await db.query(ins, [p.rows[0].id]);
+    await expect(db.query(ins, [p.rows[0].id])).rejects.toThrow();
+
+    // Manuella bokningar utan external_id påverkas inte av dedup-indexet
+    await db.query(
+      `insert into bookings (property_id, source, checkin_date, checkout_date)
+       values ($1, 'manual', '2026-08-01', '2026-08-03'), ($1, 'manual', '2026-08-01', '2026-08-03')`,
+      [p.rows[0].id],
+    );
+
+    // Betalstatus default + giltiga värden
+    const pay = await db.query<{ payment_status: string }>(
+      "insert into bookings (property_id, source, checkin_date, checkout_date) values ($1, 'direct', '2026-09-01', '2026-09-02') returning payment_status",
+      [p.rows[0].id],
+    );
+    expect(pay.rows[0].payment_status).toBe("none");
+    await expect(
+      db.query(
+        "insert into bookings (property_id, source, checkin_date, checkout_date, payment_status) values ($1, 'direct', '2026-09-01', '2026-09-02', 'kanske')",
+        [p.rows[0].id],
+      ),
+    ).rejects.toThrow();
   }, 30000);
 });

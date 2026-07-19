@@ -22,7 +22,9 @@ type GuestData = {
     wifi_password: string | null;
     house_rules: string | null;
     contact_phone: string | null;
+    swish_number: string | null;
   };
+  payment: { status: string; amount: number | null; ref: string | null } | null;
 };
 
 const svLong = (iso: string) =>
@@ -115,6 +117,23 @@ function GuestPage() {
             <span>Ut {p.checkout_time}</span>
           </div>
         </motion.div>
+
+        {data.payment?.status === "pending" && data.payment.amount && p.swish_number && (
+          <div className="card-surface mt-4 p-5 ring-2 ring-[color:var(--brass)]">
+            <p className="text-[15px] font-bold">💸 Betala med Swish</p>
+            <p className="mt-1 text-[13px] text-[color:var(--ink)]/60">
+              Swisha {data.payment.amount.toLocaleString("sv-SE")} kr till{" "}
+              <span className="font-mono font-semibold">{p.swish_number}</span>
+              {data.payment.ref && (
+                <>
+                  {" "}
+                  och märk med <span className="font-mono font-semibold">{data.payment.ref}</span>
+                </>
+              )}
+              . Bokningen är säkrad när betalningen kommit in.
+            </p>
+          </div>
+        )}
 
         <div className="mt-4 grid grid-cols-2 gap-3">
           {data.unit?.door_code && (
