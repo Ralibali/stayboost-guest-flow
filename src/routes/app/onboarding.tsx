@@ -160,7 +160,7 @@ function OnboardingPage() {
                 onChange={(e) =>
                   setUnits((us) => us.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))
                 }
-                placeholder={`Enhet ${i + 1} — t.ex. Sjöstugan`}
+                placeholder={`Enhet ${i + 1} — t.ex. Sjöbrisretreatet`}
                 className="inp flex-1"
               />
               <input

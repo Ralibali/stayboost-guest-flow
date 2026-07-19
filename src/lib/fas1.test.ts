@@ -124,7 +124,7 @@ describe("iCal-export (flöde till Airbnb/Booking)", () => {
           summary: "Bokad",
         },
       ],
-      "Bergs Slussar — Sjöstugan",
+      "Bergs Slussar — Sjöbrisretreatet",
     );
     expect(ics).toContain("BEGIN:VCALENDAR");
     expect(ics).toContain("DTSTART;VALUE=DATE:20260810");
@@ -306,7 +306,7 @@ describe("Fas 1-migration mot Postgres", () => {
 
     // Enhet + iCal-källa
     const unit = await db.query<{ id: string }>(
-      "insert into units (property_id, name, door_code) values ($1, 'Sjöstugan', '4482') returning id",
+      "insert into units (property_id, name, door_code) values ($1, 'Sjöbrisretreatet', '4482') returning id",
       [pid],
     );
     const uid = unit.rows[0].id;
@@ -432,7 +432,7 @@ describe("Fas 1-migration mot Postgres", () => {
       weekend_pct: number;
       monthly_mult: number[];
     }>(
-      "insert into units (property_id, name) values ($1, 'Kanaltältet') returning id, base_price, weekend_pct, monthly_mult",
+      "insert into units (property_id, name) values ($1, 'Naturkärnan') returning id, base_price, weekend_pct, monthly_mult",
       [p1.rows[0].id],
     );
     expect(u.rows[0].base_price).toBe(995);
