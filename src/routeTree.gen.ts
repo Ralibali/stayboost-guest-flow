@@ -10,11 +10,19 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/app'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as DpaRouteImport } from './routes/dpa'
 import { Route as IntegritetspolicyRouteImport } from './routes/integritetspolicy'
 import { Route as VillkorRouteImport } from './routes/villkor'
+import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppBokningarRouteImport } from './routes/app/bokningar'
+import { Route as AppInstallningarRouteImport } from './routes/app/installningar'
+import { Route as AppKallorRouteImport } from './routes/app/kallor'
+import { Route as AppLoginRouteImport } from './routes/app/login'
+import { Route as AppMallarRouteImport } from './routes/app/mallar'
+import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
 import { Route as DemoIndexRouteImport } from './routes/demo/index'
 import { Route as DemoAdminRouteImport } from './routes/demo/admin'
 import { Route as DemoBokaRouteImport } from './routes/demo/boka'
@@ -30,10 +38,16 @@ import { Route as DemoPersonalRouteImport } from './routes/demo/personal'
 import { Route as DemoPresentkortRouteImport } from './routes/demo/presentkort'
 import { Route as DemoRapporterRouteImport } from './routes/demo/rapporter'
 import { Route as DemoStadRouteImport } from './routes/demo/stad'
+import { Route as GTokenRouteImport } from './routes/g/$token'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppRoute = AppRouteImport.update({
+  id: '/app',
+  path: '/app',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CookiesRoute = CookiesRouteImport.update({
@@ -60,6 +74,41 @@ const VillkorRoute = VillkorRouteImport.update({
   id: '/villkor',
   path: '/villkor',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppBokningarRoute = AppBokningarRouteImport.update({
+  id: '/bokningar',
+  path: '/bokningar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppInstallningarRoute = AppInstallningarRouteImport.update({
+  id: '/installningar',
+  path: '/installningar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppKallorRoute = AppKallorRouteImport.update({
+  id: '/kallor',
+  path: '/kallor',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppLoginRoute = AppLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppMallarRoute = AppMallarRouteImport.update({
+  id: '/mallar',
+  path: '/mallar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppOnboardingRoute = AppOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AppRoute,
 } as any)
 const DemoIndexRoute = DemoIndexRouteImport.update({
   id: '/',
@@ -136,14 +185,26 @@ const DemoStadRoute = DemoStadRouteImport.update({
   path: '/stad',
   getParentRoute: () => DemoRoute,
 } as any)
+const GTokenRoute = GTokenRouteImport.update({
+  id: '/g/$token',
+  path: '/g/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
   '/cookies': typeof CookiesRoute
   '/demo': typeof DemoRouteWithChildren
   '/dpa': typeof DpaRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
+  '/app/bokningar': typeof AppBokningarRoute
+  '/app/installningar': typeof AppInstallningarRoute
+  '/app/kallor': typeof AppKallorRoute
+  '/app/login': typeof AppLoginRoute
+  '/app/mallar': typeof AppMallarRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/demo/admin': typeof DemoAdminRoute
   '/demo/boka': typeof DemoBokaRoute
   '/demo/bokningar': typeof DemoBokningarRoute
@@ -158,6 +219,8 @@ export interface FileRoutesByFullPath {
   '/demo/presentkort': typeof DemoPresentkortRoute
   '/demo/rapporter': typeof DemoRapporterRoute
   '/demo/stad': typeof DemoStadRoute
+  '/g/$token': typeof GTokenRoute
+  '/app/': typeof AppIndexRoute
   '/demo/': typeof DemoIndexRoute
 }
 export interface FileRoutesByTo {
@@ -166,6 +229,12 @@ export interface FileRoutesByTo {
   '/dpa': typeof DpaRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
+  '/app/bokningar': typeof AppBokningarRoute
+  '/app/installningar': typeof AppInstallningarRoute
+  '/app/kallor': typeof AppKallorRoute
+  '/app/login': typeof AppLoginRoute
+  '/app/mallar': typeof AppMallarRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/demo/admin': typeof DemoAdminRoute
   '/demo/boka': typeof DemoBokaRoute
   '/demo/bokningar': typeof DemoBokningarRoute
@@ -180,16 +249,25 @@ export interface FileRoutesByTo {
   '/demo/presentkort': typeof DemoPresentkortRoute
   '/demo/rapporter': typeof DemoRapporterRoute
   '/demo/stad': typeof DemoStadRoute
+  '/g/$token': typeof GTokenRoute
+  '/app': typeof AppIndexRoute
   '/demo': typeof DemoIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/app': typeof AppRouteWithChildren
   '/cookies': typeof CookiesRoute
   '/demo': typeof DemoRouteWithChildren
   '/dpa': typeof DpaRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
+  '/app/bokningar': typeof AppBokningarRoute
+  '/app/installningar': typeof AppInstallningarRoute
+  '/app/kallor': typeof AppKallorRoute
+  '/app/login': typeof AppLoginRoute
+  '/app/mallar': typeof AppMallarRoute
+  '/app/onboarding': typeof AppOnboardingRoute
   '/demo/admin': typeof DemoAdminRoute
   '/demo/boka': typeof DemoBokaRoute
   '/demo/bokningar': typeof DemoBokningarRoute
@@ -204,17 +282,26 @@ export interface FileRoutesById {
   '/demo/presentkort': typeof DemoPresentkortRoute
   '/demo/rapporter': typeof DemoRapporterRoute
   '/demo/stad': typeof DemoStadRoute
+  '/g/$token': typeof GTokenRoute
+  '/app/': typeof AppIndexRoute
   '/demo/': typeof DemoIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/app'
     | '/cookies'
     | '/demo'
     | '/dpa'
     | '/integritetspolicy'
     | '/villkor'
+    | '/app/bokningar'
+    | '/app/installningar'
+    | '/app/kallor'
+    | '/app/login'
+    | '/app/mallar'
+    | '/app/onboarding'
     | '/demo/admin'
     | '/demo/boka'
     | '/demo/bokningar'
@@ -229,6 +316,8 @@ export interface FileRouteTypes {
     | '/demo/presentkort'
     | '/demo/rapporter'
     | '/demo/stad'
+    | '/g/$token'
+    | '/app/'
     | '/demo/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -237,6 +326,12 @@ export interface FileRouteTypes {
     | '/dpa'
     | '/integritetspolicy'
     | '/villkor'
+    | '/app/bokningar'
+    | '/app/installningar'
+    | '/app/kallor'
+    | '/app/login'
+    | '/app/mallar'
+    | '/app/onboarding'
     | '/demo/admin'
     | '/demo/boka'
     | '/demo/bokningar'
@@ -251,15 +346,24 @@ export interface FileRouteTypes {
     | '/demo/presentkort'
     | '/demo/rapporter'
     | '/demo/stad'
+    | '/g/$token'
+    | '/app'
     | '/demo'
   id:
     | '__root__'
     | '/'
+    | '/app'
     | '/cookies'
     | '/demo'
     | '/dpa'
     | '/integritetspolicy'
     | '/villkor'
+    | '/app/bokningar'
+    | '/app/installningar'
+    | '/app/kallor'
+    | '/app/login'
+    | '/app/mallar'
+    | '/app/onboarding'
     | '/demo/admin'
     | '/demo/boka'
     | '/demo/bokningar'
@@ -274,16 +378,20 @@ export interface FileRouteTypes {
     | '/demo/presentkort'
     | '/demo/rapporter'
     | '/demo/stad'
+    | '/g/$token'
+    | '/app/'
     | '/demo/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
   CookiesRoute: typeof CookiesRoute
   DemoRoute: typeof DemoRouteWithChildren
   DpaRoute: typeof DpaRoute
   IntegritetspolicyRoute: typeof IntegritetspolicyRoute
   VillkorRoute: typeof VillkorRoute
+  GTokenRoute: typeof GTokenRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -293,6 +401,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/app': {
+      id: '/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cookies': {
@@ -329,6 +444,55 @@ declare module '@tanstack/react-router' {
       fullPath: '/villkor'
       preLoaderRoute: typeof VillkorRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/app/': {
+      id: '/app/'
+      path: '/'
+      fullPath: '/app/'
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/bokningar': {
+      id: '/app/bokningar'
+      path: '/bokningar'
+      fullPath: '/app/bokningar'
+      preLoaderRoute: typeof AppBokningarRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/installningar': {
+      id: '/app/installningar'
+      path: '/installningar'
+      fullPath: '/app/installningar'
+      preLoaderRoute: typeof AppInstallningarRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/kallor': {
+      id: '/app/kallor'
+      path: '/kallor'
+      fullPath: '/app/kallor'
+      preLoaderRoute: typeof AppKallorRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/login': {
+      id: '/app/login'
+      path: '/login'
+      fullPath: '/app/login'
+      preLoaderRoute: typeof AppLoginRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/mallar': {
+      id: '/app/mallar'
+      path: '/mallar'
+      fullPath: '/app/mallar'
+      preLoaderRoute: typeof AppMallarRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/onboarding': {
+      id: '/app/onboarding'
+      path: '/onboarding'
+      fullPath: '/app/onboarding'
+      preLoaderRoute: typeof AppOnboardingRouteImport
+      parentRoute: typeof AppRoute
     }
     '/demo/': {
       id: '/demo/'
@@ -435,8 +599,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoStadRouteImport
       parentRoute: typeof DemoRoute
     }
+    '/g/$token': {
+      id: '/g/$token'
+      path: '/g/$token'
+      fullPath: '/g/$token'
+      preLoaderRoute: typeof GTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
+
+interface AppRouteChildren {
+  AppBokningarRoute: typeof AppBokningarRoute
+  AppInstallningarRoute: typeof AppInstallningarRoute
+  AppKallorRoute: typeof AppKallorRoute
+  AppLoginRoute: typeof AppLoginRoute
+  AppMallarRoute: typeof AppMallarRoute
+  AppOnboardingRoute: typeof AppOnboardingRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppBokningarRoute: AppBokningarRoute,
+  AppInstallningarRoute: AppInstallningarRoute,
+  AppKallorRoute: AppKallorRoute,
+  AppLoginRoute: AppLoginRoute,
+  AppMallarRoute: AppMallarRoute,
+  AppOnboardingRoute: AppOnboardingRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
 interface DemoRouteChildren {
   DemoAdminRoute: typeof DemoAdminRoute
@@ -478,11 +671,13 @@ const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
   CookiesRoute: CookiesRoute,
   DemoRoute: DemoRouteWithChildren,
   DpaRoute: DpaRoute,
   IntegritetspolicyRoute: IntegritetspolicyRoute,
   VillkorRoute: VillkorRoute,
+  GTokenRoute: GTokenRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

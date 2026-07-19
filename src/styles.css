@@ -184,3 +184,17 @@
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
+
+/* Operatörs-UI: formulärfält */
+.inp {
+  width: 100%;
+  border-radius: 0.75rem;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 0.625rem 0.875rem;
+  font-size: 0.875rem;
+  outline: none;
+}
+.inp:focus {
+  border-color: var(--forest);
+}

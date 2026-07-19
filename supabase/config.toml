@@ -1,0 +1,11 @@
+project_id = "stayboost-guest-flow"
+
+# Gästsidan är publik — guest_token i länken är nyckeln, ingen JWT krävs.
+[functions.guest-page]
+verify_jwt = false
+
+[functions.ical-sync]
+verify_jwt = true
+
+[functions.send-scheduled-messages]
+verify_jwt = true

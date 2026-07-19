@@ -94,6 +94,9 @@ function Header() {
           <a href="#faq" className="hover:text-[color:var(--brass)]">
             FAQ
           </a>
+          <Link to="/app/login" className="hover:text-[color:var(--brass)]">
+            Logga in
+          </Link>
         </nav>
         <a
           href="#hero-form"

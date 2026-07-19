@@ -1,0 +1,248 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { describe, expect, it } from "vitest";
+import { PGlite } from "@electric-sql/pglite";
+import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto";
+import {
+  guestNameFrom,
+  isBlockEvent,
+  parseIcs,
+  unfoldIcs,
+} from "../../supabase/functions/_shared/ics";
+import { formatSvDate, renderTemplate } from "../../supabase/functions/_shared/templates";
+
+/* ================= iCal-parser ================= */
+
+const AIRBNB_ICS = `BEGIN:VCALENDAR\r
+PRODID;X-RICAL-TZSOURCE=TZINFO:-//Airbnb Inc//Hosting Calendar 0.8.8//EN\r
+VERSION:2.0\r
+BEGIN:VEVENT\r
+DTSTAMP:20260701T000000Z\r
+UID:abc123@airbnb.com\r
+DTSTART;VALUE=DATE:20260810\r
+DTEND;VALUE=DATE:20260813\r
+SUMMARY:Reserved\r
+STATUS:CONFIRMED\r
+END:VEVENT\r
+BEGIN:VEVENT\r
+UID:def456@airbnb.com\r
+DTSTART;VALUE=DATE:20260820\r
+DTEND;VALUE=DATE:20260822\r
+SUMMARY:Airbnb (Not available)\r
+END:VEVENT\r
+END:VCALENDAR\r
+`;
+
+const BOOKING_ICS = `BEGIN:VCALENDAR
+BEGIN:VEVENT
+UID:789@booking.com
+DTSTART;VALUE=DATE:20260905
+DTEND;VALUE=DATE:20260908
+SUMMARY:Familj Johansson - CLOSED - Not available
+END:VEVENT
+BEGIN:VEVENT
+UID:555@booking.com
+DTSTART:20261001T140000Z
+DTEND:20261003T100000Z
+SUMMARY:Sara Lind
+STATUS:CANCELLED
+END:VEVENT
+BEGIN:VEVENT
+UID:777@booking.com
+DTSTART;VALUE=DATE:20261010
+DTEND;VALUE=DATE:20261012
+SUMMARY:Lång rad som\r
+ fortsätter här\r
+END:VEVENT
+END:VCALENDAR
+`;
+
+describe("iCal-parser (Airbnb/Booking-format)", () => {
+  it("parsar Airbnb-event med datum och UID", () => {
+    const evs = parseIcs(AIRBNB_ICS);
+    expect(evs).toHaveLength(2);
+    expect(evs[0]).toMatchObject({
+      uid: "abc123@airbnb.com",
+      startDate: "2026-08-10",
+      endDate: "2026-08-13",
+      status: "CONFIRMED",
+    });
+  });
+
+  it("flaggar blocknätter och avbokningar", () => {
+    const airbnb = parseIcs(AIRBNB_ICS);
+    expect(isBlockEvent(airbnb[1])).toBe(true);
+    const booking = parseIcs(BOOKING_ICS);
+    expect(booking[1].status).toBe("CANCELLED");
+  });
+
+  it("'Reserved' ger inget gästnamn, riktiga namn behålls", () => {
+    expect(guestNameFrom("Reserved")).toBeNull();
+    expect(guestNameFrom("")).toBeNull();
+    expect(guestNameFrom("Sara Lind")).toBe("Sara Lind");
+  });
+
+  it("slår ihop radbrutna fält och hanterar tidsstämplade datum", () => {
+    expect(unfoldIcs("SUMMARY:Lång\r\n forts")).toBe("SUMMARY:Långforts");
+    const evs = parseIcs(BOOKING_ICS);
+    expect(evs[1].startDate).toBe("2026-10-01"); // DTSTART med tid → datum
+    expect(evs[2].summary).toBe("Lång rad somfortsätter här");
+  });
+
+  it("hoppar över trasiga event utan datum", () => {
+    const evs = parseIcs("BEGIN:VEVENT\nUID:x\nEND:VEVENT\n");
+    expect(evs).toHaveLength(0);
+  });
+});
+
+/* ================= Mallmotor ================= */
+
+describe("mallmotor", () => {
+  it("ersätter variabler och lämnar okända tomma", () => {
+    expect(renderTemplate("Hej {{gäst_namn}}! {{okänd}}", { gäst_namn: "Anna" })).toBe(
+      "Hej Anna! ",
+    );
+  });
+
+  it("formaterar svenska datum i Europe/Stockholm", () => {
+    expect(formatSvDate("2026-08-14")).toBe("14 augusti");
+    expect(formatSvDate("2026-01-01")).toBe("1 januari");
+  });
+});
+
+/* ================= Databasmigration mot riktig Postgres ================= */
+
+const MIGRATION = readFileSync(
+  join(__dirname, "../../supabase/migrations/20260719000000_fas1.sql"),
+  "utf8",
+);
+
+const AUTH_STUB = `
+create schema auth;
+create table auth.users (id uuid primary key);
+insert into auth.users values ('00000000-0000-0000-0000-0000000000a1');
+create or replace function auth.uid() returns uuid language sql stable as
+$$ select '00000000-0000-0000-0000-0000000000a1'::uuid $$;
+`;
+
+describe("Fas 1-migration mot Postgres", () => {
+  it("kör hela flödet: seed, schemaläggning, sen import, omplanering, avbokning, dedup", async () => {
+    const db = new PGlite({ extensions: { pgcrypto } });
+    await db.exec(AUTH_STUB);
+    await db.exec(MIGRATION);
+
+    const OWNER = "00000000-0000-0000-0000-0000000000a1";
+
+    // Anläggning → fyra standardmallar seedas automatiskt
+    const prop = await db.query<{ id: string }>(
+      "insert into properties (owner_id, name) values ($1, 'Teststugan') returning id",
+      [OWNER],
+    );
+    const pid = prop.rows[0].id;
+    const templates = await db.query<{ trigger_type: string }>(
+      "select trigger_type from message_templates where property_id = $1 order by trigger_type",
+      [pid],
+    );
+    expect(templates.rows.map((t) => t.trigger_type)).toEqual([
+      "booking_created",
+      "checkin_day",
+      "post_stay",
+      "pre_arrival",
+    ]);
+
+    // Enhet + iCal-källa
+    const unit = await db.query<{ id: string }>(
+      "insert into units (property_id, name, door_code) values ($1, 'Sjöstugan', '4482') returning id",
+      [pid],
+    );
+    const uid = unit.rows[0].id;
+    const src = await db.query<{ id: string }>(
+      "insert into ical_sources (property_id, unit_id, name, url) values ($1, $2, 'Airbnb', 'https://x') returning id",
+      [pid, uid],
+    );
+    const srcId = src.rows[0].id;
+
+    // Framtida bokning → fyra meddelanden schemaläggs (bekräftelse direkt)
+    const in10 = "2026-08-10";
+    const in12 = "2026-08-12";
+    const b1 = await db.query<{ id: string; guest_token: string }>(
+      `insert into bookings (property_id, unit_id, source, ical_source_id, ical_uid, guest_name, checkin_date, checkout_date)
+       values ($1, $2, 'ical', $3, 'uid-1', 'Anna', $4, $5) returning id, guest_token`,
+      [pid, uid, srcId, in10, in12],
+    );
+    expect(b1.rows[0].guest_token).toMatch(/^[0-9a-f]{24}$/);
+
+    const msgs = await db.query<{ channel: string; send_at: string }>(
+      "select channel, send_at from scheduled_messages where booking_id = $1 order by send_at",
+      [b1.rows[0].id],
+    );
+    expect(msgs.rows).toHaveLength(4); // booking_created + pre_arrival + checkin_day + post_stay
+
+    // pre_arrival: (10 aug - 2 dagar) kl 09:00 Stockholm = 08 aug 07:00 UTC (sommartid)
+    const pre = msgs.rows[1];
+    expect(new Date(pre.send_at).toISOString()).toBe("2026-08-08T07:00:00.000Z");
+
+    // Sen import: incheckning i dag → inga förfallna meddelanden spamas ut
+    const today = new Date().toISOString().slice(0, 10);
+    const in3 = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
+    const b2 = await db.query<{ id: string }>(
+      `insert into bookings (property_id, unit_id, source, checkin_date, checkout_date)
+       values ($1, $2, 'manual', $3, $4) returning id`,
+      [pid, uid, today, in3],
+    );
+    const msgs2 = await db.query<{ template_id: string }>(
+      `select sm.template_id, mt.trigger_type from scheduled_messages sm
+       join message_templates mt on mt.id = sm.template_id
+       where sm.booking_id = $1`,
+      [b2.rows[0].id],
+    );
+    const triggers = (msgs2.rows as { trigger_type: string }[]).map((r) => r.trigger_type).sort();
+    expect(triggers).toEqual(["booking_created", "post_stay"]); // pre_arrival hoppades över
+
+    // Omplanering: nya datum → schemat räknas om mot nya datumet
+    await db.query("update bookings set checkin_date = $1, checkout_date = $2 where id = $3", [
+      "2026-09-10",
+      "2026-09-12",
+      b1.rows[0].id,
+    ]);
+    const rebooked = await db.query<{ send_at: string }>(
+      `select sm.send_at from scheduled_messages sm
+       join message_templates mt on mt.id = sm.template_id
+       where sm.booking_id = $1 and mt.trigger_type = 'pre_arrival'`,
+      [b1.rows[0].id],
+    );
+    expect(rebooked.rows).toHaveLength(1);
+    expect(new Date(rebooked.rows[0].send_at).toISOString()).toBe("2026-09-08T07:00:00.000Z");
+
+    // Avbokning → allt pending släcks
+    await db.query("update bookings set status = 'cancelled' where id = $1", [b1.rows[0].id]);
+    const afterCancel = await db.query<{ status: string }>(
+      "select distinct status from scheduled_messages where booking_id = $1",
+      [b1.rows[0].id],
+    );
+    expect(afterCancel.rows.map((r) => r.status)).toEqual(["cancelled"]);
+
+    // Dedup: samma iCal-event kan inte importeras två gånger, manuella NULL-par krockar aldrig
+    await expect(
+      db.query(
+        `insert into bookings (property_id, unit_id, source, ical_source_id, ical_uid, checkin_date, checkout_date)
+         values ($1, $2, 'ical', $3, 'uid-1', $4, $5)`,
+        [pid, uid, srcId, "2026-08-10", "2026-08-12"],
+      ),
+    ).rejects.toThrow();
+    const manualDupes = await db.query(
+      `insert into bookings (property_id, unit_id, source, checkin_date, checkout_date)
+       values ($1, $2, 'manual', $3, $4), ($1, $2, 'manual', $3, $4) returning id`,
+      [pid, uid, "2026-10-01", "2026-10-03"],
+    );
+    expect(manualDupes.rows).toHaveLength(2);
+
+    // Ogiltiga datum stoppas av CHECK-constraint
+    await expect(
+      db.query(
+        "insert into bookings (property_id, checkin_date, checkout_date) values ($1, $2, $2)",
+        [pid, "2026-08-10"],
+      ),
+    ).rejects.toThrow();
+  }, 30000);
+});
