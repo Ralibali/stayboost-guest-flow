@@ -527,7 +527,7 @@ function BookingFlow() {
                                             : "bg-[color:var(--bg)] text-[color:var(--ink)]/60"
                                       }`}
                                     >
-                                      {soldOut ? "Slut för dagen" : `${stock} kvar för era datum`}
+                                      {soldOut ? "Slut för dagen" : `${stock} kvar för dina datum`}
                                     </span>
                                   )}
                                 </div>
