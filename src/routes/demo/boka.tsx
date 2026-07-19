@@ -173,6 +173,19 @@ function BookingFlow() {
   const canNext =
     step === 0 ? nights > 0 : step === 1 ? unitId !== null : step === 3 ? detailsValid : true;
 
+  const stepHint =
+    step === 0
+      ? !checkIn
+        ? "Välj incheckningsdatum i kalendern"
+        : !checkOut
+          ? "Välj utcheckningsdatum"
+          : `${nights} ${nights === 1 ? "natt vald" : "nätter valda"}`
+      : step === 1
+        ? "Välj ett boende ovan"
+        : step === 3
+          ? "Fyll i namn, mejl och mobilnummer"
+          : "Lägg till tillval — eller fortsätt direkt";
+
   return (
     <div className="mx-auto max-w-5xl">
       {/* Stegindikator */}
