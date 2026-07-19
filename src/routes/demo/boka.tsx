@@ -1094,13 +1094,65 @@ function StepShell({ children }: { children: React.ReactNode }) {
 
 function StepTitle({ eyebrow, title, sub }: { eyebrow: string; title: string; sub: string }) {
   return (
-    <div>
-      <p className="eyebrow">{eyebrow}</p>
-      <h1 className="mt-2 text-3xl">{title}</h1>
-      <p className="mt-2 text-[15px] text-[color:var(--ink)]/65">{sub}</p>
+    <div className="border-b border-[color:var(--ink)]/10 pb-6">
+      <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[color:var(--brass)]">
+        {eyebrow}
+      </p>
+      <h1 className="mt-3 font-[Fraunces] text-4xl font-light tracking-tight text-[color:var(--ink)] sm:text-5xl">
+        {title}
+      </h1>
+      <p className="mt-3 max-w-xl font-serif text-[15px] italic leading-relaxed text-[color:var(--ink)]/60 sm:text-[16px]">
+        {sub}
+      </p>
     </div>
   );
 }
+
+function SummaryLine({
+  label,
+  value,
+  hint,
+  onEdit,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  onEdit?: () => void;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0 space-y-1">
+        <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[color:var(--brass)]">
+          {label}
+        </p>
+        <p className="font-[Fraunces] text-[17px] font-light leading-tight text-white">{value}</p>
+        {hint && (
+          <p className="text-[11px] font-medium uppercase tracking-[0.14em] text-white/45">
+            {hint}
+          </p>
+        )}
+      </div>
+      {onEdit && (
+        <button
+          onClick={onEdit}
+          className="mt-1 shrink-0 text-[10px] font-semibold uppercase tracking-[0.18em] text-white/45 transition-colors hover:text-[color:var(--brass)]"
+        >
+          Ändra
+        </button>
+      )}
+    </div>
+  );
+}
+
+function DarkRow({ k, v }: { k: string; v: string }) {
+  return (
+    <div className="flex justify-between gap-3 text-white/80">
+      <span className="min-w-0 truncate">{k}</span>
+      <span className="shrink-0 text-right font-medium tabular-nums text-white">{v}</span>
+    </div>
+  );
+}
+
 
 function Row({ k, v }: { k: string; v: string }) {
   return (
