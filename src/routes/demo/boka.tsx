@@ -53,7 +53,7 @@ export const Route = createFileRoute("/demo/boka")({
   component: BookingFlow,
 });
 
-const STEPS = ["Datum", "Enhet", "Tillval", "Betalning", "Klart"];
+const STEPS = ["Datum", "Boende", "Tillval", "Betalning", "Klart"];
 const SAUNA_TIMES = ["16:00", "17:30", "19:00", "20:30"];
 
 type Cart = Record<string, number>;
