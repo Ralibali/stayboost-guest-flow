@@ -208,8 +208,8 @@ function BookingFlow() {
               <StepShell key="s0">
                 <StepTitle
                   eyebrow="Steg 1 av 4"
-                  title="När vill ni bo hos oss?"
-                  sub="Priserna i kalendern är lägsta nattpris. Helger bokas fort — välj era datum."
+                  title="När vill du bo hos oss?"
+                  sub="Priserna i kalendern är lägsta nattpris. Helgerna bokas först."
                 />
                 <div className="card-surface mt-6 p-4 sm:p-6">
                   <div className="mb-4 flex items-center justify-between">
