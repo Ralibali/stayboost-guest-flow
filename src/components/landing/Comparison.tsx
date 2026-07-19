@@ -31,7 +31,7 @@ const ROWS: { label: string; stayboost: Cell; bookspot: Cell; sirvoy: Cell }[] =
     sirvoy: "ja",
   },
   {
-    label: "Frukost-, städ- & manifestvyer för teamet",
+    label: "Frukost, städ & dagsöversikt för teamet",
     stayboost: "ja",
     bookspot: "delvis",
     sirvoy: "nej",

@@ -33,7 +33,7 @@ const DEMO_GROUPS = [
     views: [
       { to: "/demo/frukost", label: "Frukost", icon: Croissant },
       { to: "/demo/stad", label: "Städning", icon: ClipboardList },
-      { to: "/demo/manifest", label: "Manifest", icon: Sun },
+      { to: "/demo/dagsoversikt", label: "Dagsöversikt", icon: Sun },
       { to: "/demo/personal", label: "Personal", icon: Users },
     ],
   },

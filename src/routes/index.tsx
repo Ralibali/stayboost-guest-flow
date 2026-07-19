@@ -580,7 +580,7 @@ function Pricing() {
                 "Komplett bokningsmotor — kalender, betalning & kampanjkoder",
                 "Säsongspriser, paket, presentkort & ombokningsgaranti",
                 "Min sida — gästen bokar om & köper tillval själv",
-                "Personalresurser, veckoscheman & dagens manifest",
+                "Personalresurser, veckoscheman & dagsöversikt",
                 "Obegränsade meddelanden och gäster",
                 "Tillvalsmarknadsplats — sälj lokala partners upplevelser mot provision",
                 "Gästhubb + digital incheckning",

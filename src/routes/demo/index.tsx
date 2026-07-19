@@ -82,12 +82,12 @@ const CARDS = [
     tag: "Rollinloggning för personal",
   },
   {
-    to: "/demo/manifest",
+    to: "/demo/dagsoversikt",
     icon: Sun,
     role: "Personalens vy",
-    title: "Dagens manifest",
+    title: "Dagsöversikt",
     body: "Dagvyn för hela teamet: ankomster, avresor, kapacitet och allt som ska förberedas.",
-    tag: "Som BookSpots Manifest",
+    tag: "Ersätter BookSpots Manifest",
   },
   {
     to: "/demo/personal",
