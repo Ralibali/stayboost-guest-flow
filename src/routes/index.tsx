@@ -74,8 +74,11 @@ function Header() {
           : "bg-[color:var(--bg)]/60"
       }`}
     >
-      <div className="mx-auto flex max-w-[1120px] items-center justify-between gap-4 px-6 py-4">
-        <a href="#" className="font-[Fraunces] text-2xl font-semibold tracking-tight">
+      <div className="mx-auto flex max-w-[1120px] items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
+        <a
+          href="#"
+          className="font-[Fraunces] text-lg font-semibold tracking-tight sm:text-2xl"
+        >
           {BRAND_NAME}
         </a>
         <nav className="hidden items-center gap-8 text-sm md:flex">
@@ -101,8 +104,8 @@ function Header() {
         <a
           href="#hero-form"
           onClick={scrollToHeroForm}
-          className="btn-primary text-sm"
-          style={{ padding: "12px 22px" }}
+          className="btn-primary shrink-0"
+          style={{ padding: "9px 16px", fontSize: "0.85rem" }}
         >
           Prova gratis
         </a>
