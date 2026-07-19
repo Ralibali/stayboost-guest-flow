@@ -1,0 +1,21 @@
+name: Read exact Swedish review failure
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  read-exact-failure:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print exact failed-job log tail
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/${GITHUB_REPOSITORY}/actions/jobs/88210808831/logs" > failed-job.log
+          tail -100 failed-job.log
