@@ -1,0 +1,261 @@
+name: Apply Swedish language review
+
+on:
+  push:
+    branches:
+      - agent/sprakgranskning-svenska
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  apply-language-review:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.head_commit.message != 'Språkgranska svensk copy' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out review branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/sprakgranskning-svenska
+          fetch-depth: 0
+
+      - name: Apply reviewed Swedish copy
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          operations = {
+              "src/components/demo/DemoShell.tsx": [
+                  ('{ to: "/demo/stad", label: "Städ", icon: ClipboardList }', '{ to: "/demo/stad", label: "Städning", icon: ClipboardList }', 1),
+              ],
+              "src/components/landing/BookFounder.tsx": [
+                  ("Skärmdelning av din faktiska bokningsflöde", "Skärmdelning av ditt faktiska bokningsflöde", 1),
+                  ("i mötesnoten", "i mötesanteckningen", 1),
+              ],
+              "src/components/landing/CaseStudy.tsx": [
+                  ('label: "förankomst-SMS skickade"', 'label: "sms före ankomst"', 1),
+                  ('label: "SMS levererade från outbox"', 'label: "Sms levererade från utkorgen"', 1),
+              ],
+              "src/components/landing/Comparison.tsx": [
+                  ("Automatisk merförsäljning via SMS", "Automatisk merförsäljning via sms", 1),
+                  ("enheter — och lade till laget de aldrig hann med: merförsäljningen och teamvyerna.", "enheter — och lade till delarna som de aldrig hann med: merförsäljningen och teamvyerna.", 1),
+              ],
+              "src/components/landing/DemoSms.tsx": [
+                  ('number_used: "Det numret har fått max antal demo-SMS idag."', 'number_used: "Det numret har nått dagens gräns för test-sms."', 1),
+                  ('ip_limit: "Du har redan begärt några SMS idag — försök igen i morgon."', 'ip_limit: "Du har redan begärt flera sms i dag – försök igen i morgon."', 1),
+                  ("Skicka ett demo-SMS till dig själv.", "Skicka ett test-sms till dig själv.", 1),
+                  ('aria-label="Välj demo-SMS"', 'aria-label="Välj test-sms"', 1),
+                  ('`Skicka ${activeLabel.toLowerCase()}-SMS`', '`Skicka ${activeLabel.toLowerCase()}-sms`', 1),
+                  ("{SCENARIOS.find((s) => s.key === lastSent)?.label} — vill du testa ett till? Välj en\n                annan scen ovan.", "{SCENARIOS.find((s) => s.key === lastSent)?.label} — vill du testa ett till? Välj ett\n                annat scenario ovan.", 1),
+                  ("Max 5 SMS per nummer/dag. Ditt nummer sparas inte för utskick.", "Högst fem sms per nummer och dag. Ditt nummer sparas inte för utskick.", 1),
+              ],
+              "src/components/landing/FAQ.tsx": [
+                  ("via vanliga SMS", "via vanliga sms", 1),
+                  ("svarar på ett SMS", "svarar på ett sms", 1),
+                  ("Vad kostar SMS:en?", "Vad kostar sms:en?", 1),
+                  ("SMS ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per SMS", "Sms ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per sms", 1),
+              ],
+              "src/components/landing/FeaturesGrid.tsx": [
+                  ("Smart SMS-motor", "Smart sms-motor", 1),
+              ],
+              "src/components/landing/LeadMagnet.tsx": [
+                  ("De exakta SMS:en vi skickar", "De exakta sms:en vi skickar", 1),
+                  ("Kolla din inbox", "Kolla din inkorg", 1),
+                  ("tre korta tips-mail", "tre korta tipsmejl", 1),
+                  ("12 gäst-SMS som säljer", "12 gäst-sms som säljer", 1),
+              ],
+              "src/components/landing/LiveDemo.tsx": [
+                  ("bakåtkompabilitet", "bakåtkompatibilitet", 1),
+              ],
+              "src/components/landing/PhoneMockup.tsx": [
+                  ('>SMS</div>', '>Sms</div>', 1),
+              ],
+              "src/components/landing/ProductTour.tsx": [
+                  (">Imorgon<", ">I morgon<", 1),
+                  ("Skicka SMS till gästen", "Skicka sms till gästen", 1),
+                  ("Gästen får SMS: tältet är redo", "Gästen får sms: tältet är redo", 1),
+                  ('    "Städ",\n    "SMS",', '    "Städning",\n    "Sms",', 1),
+                  ("gästens SMS, frukostlistan", "gästens sms, frukostlistan", 1),
+                  ("bekräftelse-SMS skickat", "bekräftelsesms skickat", 1),
+                  ("→ Städ: <b>tidig incheckning flaggad</b>", "→ Städning: <b>tidig incheckning flaggad</b>", 1),
+              ],
+              "src/components/legal/LegalLayout.tsx": [
+                  ("Senast uppdaterad: {updated}", "Senast uppdaterad den {updated}", 1),
+              ],
+              "src/lib/demo-data.ts": [
+                  ("Torrdlagad björkved", "Torrlagrad björkved", 1),
+                  ("Matta och té ingår", "Matta och te ingår", 1),
+                  ("/* ---------- Städ (i dag) ---------- */", "/* ---------- Städning (i dag) ---------- */", 1),
+                  ('channel: "SMS"', 'channel: "Sms"', 5),
+              ],
+              "src/lib/error-page.ts": [
+                  ('<html lang="en">', '<html lang="sv">', 1),
+                  ("<title>This page didn't load</title>", "<title>Sidan kunde inte laddas</title>", 1),
+                  ("<h1>This page didn't load</h1>", "<h1>Sidan kunde inte laddas</h1>", 1),
+                  ("<p>Something went wrong on our end. You can try refreshing or head back home.</p>", "<p>Något gick fel hos oss. Du kan prova att ladda om sidan eller gå tillbaka till startsidan.</p>", 1),
+                  ('>Try again</button>', '>Försök igen</button>', 1),
+                  ('>Go home</a>', '>Till startsidan</a>', 1),
+              ],
+              "src/lib/sms.server.ts": [
+                  ("// Fem påhittade scenarion. Texten är medvetet utan åäö/ö för att hålla sig\n// inom GSM-7 (undviker 2 SMS-avgifter från 46elks).", "// Fem påhittade scenarier för testutskick.", 1),
+                  ("Hej Anna! Vi ser fram emot er vistelse pa Sjostugan 12-14 juli.", "Hej Anna! Vi ser fram emot er vistelse på Sjöstugan 12–14 juli.", 1),
+                  ("Incheckning fran kl 15, portkod skickas pa ankomstdagen.", "Incheckning från kl 15, portkod skickas på ankomstdagen.", 1),
+                  ("Vill ni forbestalla nagot?", "Vill ni förbeställa något?", 1),
+                  ("God dag Anna! Er portkod ar 4482. Wifi: Sjostugan_2G / valkommen2026.", "God dag Anna! Er portkod är 4482. Wifi: Sjöstugan_2G / välkommen2026.", 1),
+                  ("Sjalvincheckning:", "Självincheckning:", 1),
+                  ("levererad till dorren imorgon", "levererad till dörren i morgon", 1),
+                  ("249 kr for tva.", "249 kr för två.", 1),
+                  ("forlanga vistelsen till kl 15 istallet for 11", "förlänga vistelsen till kl 15 i stället för 11", 1),
+                  ("Tack for besoket Anna! Om ni hade det bra - vi vore tacksamma for ett", "Tack för besöket Anna! Om ni hade det bra skulle vi vara tacksamma för ett", 1),
+                  ("omdome pa Google:", "omdöme på Google:", 1),
+                  ("Valkomna tillbaka!", "Välkomna tillbaka!", 1),
+              ],
+              "src/routes/__root.tsx": [
+                  ("via vanliga SMS", "via vanliga sms", 1),
+                  ("svarar på ett SMS", "svarar på ett sms", 1),
+                  ("Vad kostar SMS:en?", "Vad kostar sms:en?", 1),
+                  ("SMS ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per SMS", "Sms ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per sms", 1),
+              ],
+              "src/routes/app.tsx": [
+                  ("StayBoost operatör", "Operatörsvy i StayBoost", 1),
+                  ("och deploya edge-funktionerna — sen funkar allt här.", "och publicera edge-funktionerna – sedan fungerar allt här.", 1),
+                  ("Under tiden: utforska demon", "Under tiden: utforska demot", 1),
+                  ("// redirect pågår", "// omdirigering pågår", 1),
+              ],
+              "src/routes/app/bokningar.tsx": [
+                  ("Meddelandekön släcks automatiskt.", "Meddelandekön rensas automatiskt.", 1),
+                  ('placeholder="Mobil (för SMS)"', 'placeholder="Mobil (för sms)"', 1),
+              ],
+              "src/routes/app/installningar.tsx": [
+                  ('label="Wifi-namn"', 'label="Nätverksnamn (wifi)"', 1),
+                  ('label="Wifi-lösenord"', 'label="Lösenord (wifi)"', 1),
+                  ("Bädda in på er hemsida", "Bädda in på din webbplats", 1),
+              ],
+              "src/routes/app/kallor.tsx": [
+                  ("I Airbnb: Kalender", "På Airbnb: Kalender", 1),
+                  ("I Booking.com: Kalender", "På Booking.com: Kalender", 1),
+              ],
+              "src/routes/app/login.tsx": [
+                  ("Bekräfta via mejlen om din Supabase kräver det — sen loggar du in.", "Bekräfta via mejlet om din Supabase kräver det – sedan loggar du in.", 1),
+                  ('"Vänta…"', '"Vänta …"', 1),
+              ],
+              "src/routes/app/mallar.tsx": [
+                  ("autosparas vid ändring", "sparas automatiskt vid ändring", 1),
+                  ('<option value="sms">SMS</option>', '<option value="sms">Sms</option>', 1),
+              ],
+              "src/routes/app/onboarding.tsx": [
+                  ('label="Wifi-namn"', 'label="Nätverksnamn (wifi)"', 1),
+                  ('label="Wifi-lösenord"', 'label="Lösenord (wifi)"', 1),
+                  ("Stugor, tält eller rum — varje enhet", "Stugor, tält eller rum – varje enhet", 1),
+              ],
+              "src/routes/boka/$slug.tsx": [
+                  ('placeholder="Telefon (SMS på incheckningsdagen)"', 'placeholder="Telefon (sms på incheckningsdagen)"', 1),
+              ],
+              "src/routes/cookies.tsx": [
+                  ("Cachar publik statistik lokalt så sidan inte visar nollor vid nätfel", "Mellanlagrar publik statistik lokalt så att sidan inte visar nollor vid nätfel", 1),
+              ],
+              "src/routes/demo/admin.tsx": [
+                  ("Ägar-dashboard", "Ägaröversikt", 1),
+                  ("Meddelande-automation", "Meddelandeautomation", 1),
+              ],
+              "src/routes/demo/boka.tsx": [
+                  ("Bekräftelsen landar direkt som mejl och SMS.", "Bekräftelsen landar direkt som mejl och sms.", 1),
+                  ("välkomst-SMS med all info", "välkomst-sms med all info", 1),
+              ],
+              "src/routes/demo/gast.tsx": [
+                  ("det bekräftas direkt i SMS.", "det bekräftas direkt via sms.", 1),
+                  ("Vi skickar kvitto på SMS", "Vi skickar kvitto via sms", 1),
+              ],
+              "src/routes/demo/incheckning.tsx": [
+                  ("Samma info skickas även som SMS", "Samma info skickas även via sms", 1),
+              ],
+              "src/routes/demo/index.tsx": [
+                  ("Ägar-dashboard", "Ägaröversikt", 1),
+                  ("{/* SMS-kort */}", "{/* Sms-kort */}", 1),
+                  ("SMS-flödet", "Sms-flödet", 1),
+                  ("Gästen får allt via SMS", "Gästen får allt via sms", 1),
+              ],
+              "src/routes/demo/min-sida.tsx": [
+                  ("Bekräftelse skickad på mail och SMS", "Bekräftelse skickad via e-post och sms", 1),
+                  ("Kvittot skickas på SMS.", "Kvittot skickas via sms.", 1),
+              ],
+              "src/routes/demo/personal.tsx": [
+                  ("meddelar personen på\n          SMS när", "meddelar personen via\n          sms när", 1),
+                  ("{staff.role}", '{staff.role === "Städ" ? "Städning" : staff.role}', 1),
+              ],
+              "src/routes/demo/presentkort.tsx": [
+                  ("presentkort på mailen direkt", "presentkort via e-post direkt", 1),
+              ],
+              "src/routes/demo/rapporter.tsx": [
+                  ("Samma backoffice-överblick", "Samma administrativa överblick", 1),
+              ],
+              "src/routes/demo/stad.tsx": [
+                  ('avresa: "Avresestäd"', 'avresa: "Avresestädning"', 1),
+                  ('storstäd: "Storstäd"', 'storstäd: "Storstädning"', 1),
+              ],
+              "src/routes/dpa.tsx": [
+                  ("DPA:n utgör en del av", "Avtalet utgör en del av", 1),
+                  ("och 30 dagar därefter för export/radering.", "och i 30 dagar därefter för export eller radering.", 1),
+                  ("behandling om lag inte förbjuder det.", "behandling, såvida inte lag förbjuder det.", 1),
+                  ("SMS-utskick. Sverige.", "sms-utskick. Sverige.", 1),
+                  ("incident (art. 33–34)", "incidenthantering (art. 33–34)", 1),
+              ],
+              "src/routes/index.tsx": [
+                  ("gäst-SMS, digital incheckning", "gäst-sms, digital incheckning", 1),
+                  ("arbetsvyer för frukost och städ.", "arbetsvyer för frukost och städning.", 1),
+                  ("eller testa gästflödet via SMS", "eller testa gästflödet via sms", 1),
+                  ("ett tryck i SMS:et", "ett tryck i sms:et", 1),
+                  ("Spar i snitt 5 timmar", "Sparar i snitt 5 timmar", 1),
+                  ("via SMS-länken", "via sms-länken", 1),
+              ],
+              "src/routes/integritetspolicy.tsx": [
+                  ("vilka uppgifter vi samlar in, varför, rättslig grund", "vilka uppgifter vi samlar in, syftet, rättslig grund", 1),
+                  ("tips-mail", "tipsmejl", 1),
+                  ("Demo-SMS-formulär: telefonnummer sparas endast för rate-limit-kontroll", "Formulär för sms-demo: telefonnummer sparas endast för frekvensbegränsning", 1),
+                  ("transaktionsmail", "transaktionsmejl", 1),
+                  ("SMS-utskick (Sverige/EU)", "sms-utskick (Sverige/EU)", 1),
+              ],
+              "src/routes/villkor.tsx": [
+                  ("gästkommunikation via SMS/e-post", "gästkommunikation via sms och e-post", 1),
+                  ("vyer för frukost och städ.", "vyer för frukost och städning.", 1),
+                  ("planerade underhåll aviseras", "planerat underhåll aviseras", 1),
+                  ("SMS ingår upp till en generös månadsgräns; överskjutande SMS", "Sms ingår upp till en generös månadsgräns; överskjutande sms", 1),
+                  ("retentionpolicy", "gallringspolicy", 1),
+              ],
+          }
+
+          for file_name, replacements in operations.items():
+              path = Path(file_name)
+              text = path.read_text(encoding="utf-8")
+              for old, new, expected in replacements:
+                  found = text.count(old)
+                  if found != expected:
+                      raise RuntimeError(
+                          f"{file_name}: expected {expected} occurrence(s) of {old!r}, found {found}"
+                      )
+                  text = text.replace(old, new)
+              path.write_text(text, encoding="utf-8")
+
+          print(f"Updated {len(operations)} files")
+          PY
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run tests
+        run: bunx vitest run
+
+      - name: Commit reviewed copy
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src
+          git diff --cached --check
+          git commit -m "Språkgranska svensk copy"
+          git push origin HEAD:agent/sprakgranskning-svenska
