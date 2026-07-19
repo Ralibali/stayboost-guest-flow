@@ -297,7 +297,7 @@ function BookingFlow() {
               <StepShell key="s1">
                 <StepTitle
                   eyebrow="Steg 2 av 4"
-                  title="Välj er enhet"
+                  title="Välj ditt boende"
                   sub={`${nights} ${nights === 1 ? "natt" : "nätter"} · ${fmtDate(checkIn!)} – ${fmtDate(checkOut!)} · ${guests} gäster`}
                 />
                 <div className="mt-6 space-y-4">
