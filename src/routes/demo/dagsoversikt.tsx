@@ -16,7 +16,7 @@ import { ADDONS, GUESTS, PROPERTY, fmtDateLong, unitOf } from "@/lib/demo-data";
 import { RESOURCES, addDays, resourceBooked, startOfDay } from "@/lib/booking-data";
 import { getAssignee } from "@/lib/staff-data";
 
-export const Route = createFileRoute("/demo/manifest")({
+export const Route = createFileRoute("/demo/dagsoversikt")({
   component: Manifest,
 });
 
