@@ -384,7 +384,7 @@ function BookingFlow() {
                 <StepTitle
                   eyebrow="Steg 3 av 4"
                   title="Tillval till vistelsen"
-                  sub="Paket, garantier och upplevelser — precis som BookSpots bundles & add-ons."
+                  sub="Gör vistelsen komplett — frukost, upplevelser och smarta paket."
                 />
 
                 {/* Paket (bundles) */}
