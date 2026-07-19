@@ -997,6 +997,38 @@ function BookingFlow() {
           </aside>
         )}
       </div>
+      {/* Mobil: klistrad totalrad så priset alltid syns medan man väljer */}
+      {step < 4 && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--line)] bg-white/92 px-4 py-3 backdrop-blur lg:hidden">
+          <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
+            <div className="min-w-0">
+              {total > 0 ? (
+                <>
+                  <p className="text-[11px] font-medium text-[color:var(--ink)]/55">
+                    Totalt{nights > 0 ? ` · ${nights} ${nights === 1 ? "natt" : "nätter"}` : ""}
+                  </p>
+                  <p className="font-[Fraunces] text-xl font-semibold leading-tight tabular-nums">
+                    {fmtKr(total)}
+                  </p>
+                </>
+              ) : (
+                <p className="text-[13px] font-medium text-[color:var(--ink)]/60">{stepHint}</p>
+              )}
+            </div>
+            {step < 3 ? (
+              <button
+                onClick={() => setStep((s) => s + 1)}
+                disabled={!canNext}
+                className="btn-primary shrink-0 !rounded-2xl !px-5 !py-3 text-[15px] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {step === 2 ? "Till betalning" : "Fortsätt"} <ArrowRight size={16} />
+              </button>
+            ) : (
+              <span className="shrink-0 text-[12px] text-[color:var(--ink)]/50">inkl. moms</span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
