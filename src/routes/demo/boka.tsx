@@ -920,36 +920,17 @@ function BookingFlow() {
             )}
           </AnimatePresence>
 
-          {/* Navigationsknappar */}
-          {step < 3 && (
-            <div className="mt-6 hidden flex-col gap-2 lg:flex">
-              <div className="flex gap-3">
-                {step > 0 && (
-                  <button onClick={() => setStep((s) => s - 1)} className="btn-ghost !rounded-2xl">
-                    <ArrowLeft size={17} />
-                  </button>
-                )}
-                <button
-                  onClick={() => setStep((s) => s + 1)}
-                  disabled={!canNext}
-                  className="btn-primary flex-1 !rounded-2xl disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {step === 2 ? "Till betalning" : "Fortsätt"} <ArrowRight size={17} />
-                </button>
-              </div>
-              {!canNext && (
-                <p className="text-[13px] text-[color:var(--ink)]/50">{stepHint}</p>
-              )}
-            </div>
-          )}
-          {step === 3 && (
+          {/* Bakåt-länk (huvud-CTA finns i höger sidopanel) */}
+          {step > 0 && step < 4 && (
             <button
-              onClick={() => setStep(2)}
-              className="mt-4 flex items-center gap-1.5 text-[14px] font-medium text-[color:var(--ink)]/60 hover:text-[color:var(--ink)]"
+              onClick={() => setStep((s) => s - 1)}
+              className="mt-6 hidden items-center gap-1.5 text-[12px] font-semibold uppercase tracking-[0.18em] text-[color:var(--ink)]/55 transition-colors hover:text-[color:var(--ink)] lg:inline-flex"
             >
-              <ArrowLeft size={15} /> Ändra tillval
+              <ArrowLeft size={13} strokeWidth={2.4} />
+              {step === 3 ? "Ändra tillval" : "Tillbaka"}
             </button>
           )}
+
         </div>
 
         {/* ---------- Höger: prissammanfattning (editorial dark panel) ---------- */}
