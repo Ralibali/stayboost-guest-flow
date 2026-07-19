@@ -844,8 +844,8 @@ function GuestRow({
       </span>
       <div className="min-w-0 flex-1">
         <div className="truncate text-[14px] font-semibold">{guest.name}</div>
-        <div className="flex items-center gap-1.5 truncate text-[12px] text-[color:var(--ink)]/55">
-          <BedDouble size={12} />
+        <div className="truncate text-[12px] text-[color:var(--ink)]/55">
+          <BedDouble size={12} className="mr-1 inline-block align-[-2px]" />
           {unit.name} · {guest.guests} gäster · {fmtDate(guest.checkIn)}–{fmtDate(guest.checkOut)}
         </div>
       </div>
