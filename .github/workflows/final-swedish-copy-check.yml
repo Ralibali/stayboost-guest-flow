@@ -1,0 +1,60 @@
+name: Final Swedish copy check
+
+on:
+  push:
+    branches:
+      - agent/sprakgranskning-svenska
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  final-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out review branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/sprakgranskning-svenska
+          fetch-depth: 0
+
+      - name: Correct remaining day label
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('src/components/landing/ProductTour.tsx')
+          text = path.read_text(encoding='utf-8')
+          old = '>Idag</button>'
+          new = '>I dag</button>'
+          if old in text:
+              text = text.replace(old, new, 1)
+              path.write_text(text, encoding='utf-8')
+          PY
+
+      - name: Show potentially outdated visible forms
+        run: |
+          echo '--- Potential remaining forms (review output only) ---'
+          grep -RInE --include='*.ts' --include='*.tsx' '\b(SMS|Imorgon|idag)\b|mailen|på mail|tips-mail|backoffice|dashboard|Wifi-namn|Wifi-lösenord' src || true
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Run tests
+        run: bunx vitest run
+
+      - name: Commit final language correction
+        run: |
+          if git diff --quiet -- src; then
+            echo 'No final source correction needed'
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add src
+          git diff --cached --check
+          git commit -m 'Rätta sista svenska skrivformen'
+          git push origin HEAD:agent/sprakgranskning-svenska
