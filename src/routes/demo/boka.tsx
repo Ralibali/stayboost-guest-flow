@@ -941,7 +941,7 @@ function BookingFlow() {
         {/* ---------- Höger: prissammanfattning (editorial dark panel) ---------- */}
         {step < 4 && (
           <aside className="lg:col-span-4 lg:sticky lg:top-24 lg:self-start">
-            <div className="rounded-[6px] bg-[color:var(--ink)] p-8 text-white shadow-[0_20px_60px_-20px_rgba(20,36,28,0.35)] sm:p-9">
+            <div className="rounded-2xl bg-[color:var(--ink)] p-8 text-white shadow-[0_20px_60px_-20px_rgba(20,36,28,0.35)] sm:p-9">
               <h2 className="mb-7 border-b border-white/10 pb-5 font-sans text-[11px] font-bold uppercase tracking-[0.28em]">
                 Din bokning
               </h2>
