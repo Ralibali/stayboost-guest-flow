@@ -53,7 +53,7 @@ export const Route = createFileRoute("/demo/boka")({
   component: BookingFlow,
 });
 
-const STEPS = ["Datum", "Enhet", "Tillval", "Betalning", "Klart"];
+const STEPS = ["Datum", "Boende", "Tillval", "Betalning", "Klart"];
 const SAUNA_TIMES = ["16:00", "17:30", "19:00", "20:30"];
 
 type Cart = Record<string, number>;
@@ -173,6 +173,19 @@ function BookingFlow() {
   const canNext =
     step === 0 ? nights > 0 : step === 1 ? unitId !== null : step === 3 ? detailsValid : true;
 
+  const stepHint =
+    step === 0
+      ? !checkIn
+        ? "Välj incheckningsdatum i kalendern"
+        : !checkOut
+          ? "Välj utcheckningsdatum"
+          : `${nights} ${nights === 1 ? "natt vald" : "nätter valda"}`
+      : step === 1
+        ? "Välj ett boende ovan"
+        : step === 3
+          ? "Fyll i namn, mejl och mobilnummer"
+          : "Lägg till tillval — eller fortsätt direkt";
+
   return (
     <div className="mx-auto max-w-5xl">
       {/* Stegindikator */}
@@ -199,7 +212,7 @@ function BookingFlow() {
         </div>
       )}
 
-      <div className={step < 4 ? "grid gap-6 lg:grid-cols-[1fr_340px]" : ""}>
+      <div className={step < 4 ? "grid gap-6 pb-24 lg:grid-cols-[1fr_340px] lg:pb-0" : ""}>
         {/* ---------- Vänster: steg ---------- */}
         <div>
           <AnimatePresence mode="wait">
@@ -208,8 +221,8 @@ function BookingFlow() {
               <StepShell key="s0">
                 <StepTitle
                   eyebrow="Steg 1 av 4"
-                  title="När vill ni bo hos oss?"
-                  sub="Priserna i kalendern är lägsta nattpris. Helger bokas fort — välj era datum."
+                  title="När vill du bo hos oss?"
+                  sub="Priserna i kalendern är lägsta nattpris. Helgerna bokas först."
                 />
                 <div className="card-surface mt-6 p-4 sm:p-6">
                   <div className="mb-4 flex items-center justify-between">
@@ -297,7 +310,7 @@ function BookingFlow() {
               <StepShell key="s1">
                 <StepTitle
                   eyebrow="Steg 2 av 4"
-                  title="Välj er enhet"
+                  title="Välj ditt boende"
                   sub={`${nights} ${nights === 1 ? "natt" : "nätter"} · ${fmtDate(checkIn!)} – ${fmtDate(checkOut!)} · ${guests} gäster`}
                 />
                 <div className="mt-6 space-y-4">
@@ -319,7 +332,13 @@ function BookingFlow() {
                               : "cursor-not-allowed opacity-50"
                         }`}
                       >
-                        <span className="grid h-16 w-16 shrink-0 place-items-center rounded-2xl bg-[color:var(--bg)] text-3xl">
+                        <span
+                          className={`grid h-20 w-20 shrink-0 place-items-center rounded-[20px] text-4xl ring-1 ring-[color:var(--line)] ${
+                            u.type === "stuga"
+                              ? "bg-gradient-to-br from-[color:var(--forest)]/12 to-[color:var(--brass)]/15"
+                              : "bg-gradient-to-br from-amber-100/70 to-emerald-100/60"
+                          }`}
+                        >
                           {u.imageEmoji}
                         </span>
                         <div className="min-w-0 flex-1">
@@ -378,7 +397,7 @@ function BookingFlow() {
                 <StepTitle
                   eyebrow="Steg 3 av 4"
                   title="Tillval till vistelsen"
-                  sub="Paket, garantier och upplevelser — precis som BookSpots bundles & add-ons."
+                  sub="Gör vistelsen komplett — frukost, upplevelser och smarta paket."
                 />
 
                 {/* Paket (bundles) */}
@@ -521,7 +540,7 @@ function BookingFlow() {
                                             : "bg-[color:var(--bg)] text-[color:var(--ink)]/60"
                                       }`}
                                     >
-                                      {soldOut ? "Slut för dagen" : `${stock} kvar för era datum`}
+                                      {soldOut ? "Slut för dagen" : `${stock} kvar för dina datum`}
                                     </span>
                                   )}
                                 </div>
@@ -627,7 +646,7 @@ function BookingFlow() {
                 <StepTitle
                   eyebrow="Steg 4 av 4"
                   title="Dina uppgifter"
-                  sub="Bekräftelsen skickas direkt på mail och SMS."
+                  sub="Bekräftelsen landar direkt som mejl och SMS."
                 />
                 <div className="card-surface mt-6 space-y-4 p-6">
                   <Field icon={User} label="Fullständigt namn">
@@ -800,7 +819,7 @@ function BookingFlow() {
                 </motion.span>
                 <h1 className="mt-5 text-3xl">Bokningen är klar!</h1>
                 <p className="mt-2 text-[15px] text-[color:var(--ink)]/65">
-                  Vi ser fram emot att välkomna er, {name.split(" ")[0]}.
+                  Vi ser fram emot att välkomna dig, {name.split(" ")[0]}!
                 </p>
 
                 <div className="card-surface mt-6 p-6 text-left">
@@ -813,9 +832,9 @@ function BookingFlow() {
                     </span>
                   </div>
                   <div className="mt-4 space-y-2 text-[14px]">
-                    <Row k="Enhet" v={`${unit?.imageEmoji} ${unit?.name}`} />
+                    <Row k="Boende" v={`${unit?.imageEmoji} ${unit?.name}`} />
                     <Row k="Datum" v={`${fmtDateLong(checkIn!)} → ${fmtDate(checkOut!)}`} />
-                    <Row k="Gäster" v={`${guests} st`} />
+                    <Row k="Gäster" v={String(guests)} />
                     {bundle && <Row k={`${bundle.emoji} ${bundle.name}`} v={fmtKr(bundle.price)} />}
                     {rebooking && (
                       <Row
@@ -827,7 +846,7 @@ function BookingFlow() {
                       <Row
                         key={addon.id}
                         k={addon.name}
-                        v={`${qty} st${addon.id === "bastu" ? ` · kl ${saunaTime}` : ""}`}
+                        v={`×${qty}${addon.id === "bastu" ? ` · kl ${saunaTime}` : ""}`}
                       />
                     ))}
                     {giftDeduction > 0 && (
@@ -851,7 +870,7 @@ function BookingFlow() {
                   <ul className="mt-3 space-y-2.5 text-[13px] text-[color:var(--ink)]/70">
                     <li className="flex gap-2.5">
                       <Check size={15} className="mt-0.5 shrink-0 text-[color:var(--success)]" />
-                      Bekräftelse skickad till {email || "din mail"} och {phone || "din mobil"}
+                      Bekräftelse skickad till {email || "din mejl"} och {phone || "din mobil"}
                     </li>
                     <li className="flex gap-2.5">
                       <Check size={15} className="mt-0.5 shrink-0 text-[color:var(--success)]" />
@@ -873,7 +892,7 @@ function BookingFlow() {
                     to="/demo/gast"
                     className="btn-primary flex-1 !rounded-2xl !py-3.5 text-[15px]"
                   >
-                    Se gästhubben <ArrowRight size={16} />
+                    Öppna din gästsida <ArrowRight size={16} />
                   </Link>
                   <Link
                     to="/demo/bokningar"
@@ -888,19 +907,24 @@ function BookingFlow() {
 
           {/* Navigationsknappar */}
           {step < 3 && (
-            <div className="mt-6 flex gap-3">
-              {step > 0 && (
-                <button onClick={() => setStep((s) => s - 1)} className="btn-ghost !rounded-2xl">
-                  <ArrowLeft size={17} />
+            <div className="mt-6 hidden flex-col gap-2 lg:flex">
+              <div className="flex gap-3">
+                {step > 0 && (
+                  <button onClick={() => setStep((s) => s - 1)} className="btn-ghost !rounded-2xl">
+                    <ArrowLeft size={17} />
+                  </button>
+                )}
+                <button
+                  onClick={() => setStep((s) => s + 1)}
+                  disabled={!canNext}
+                  className="btn-primary flex-1 !rounded-2xl disabled:cursor-not-allowed disabled:opacity-40"
+                >
+                  {step === 2 ? "Till betalning" : "Fortsätt"} <ArrowRight size={17} />
                 </button>
+              </div>
+              {!canNext && (
+                <p className="text-[13px] text-[color:var(--ink)]/50">{stepHint}</p>
               )}
-              <button
-                onClick={() => setStep((s) => s + 1)}
-                disabled={!canNext}
-                className="btn-primary flex-1 !rounded-2xl disabled:cursor-not-allowed disabled:opacity-40"
-              >
-                {step === 2 ? "Till betalning" : "Fortsätt"} <ArrowRight size={17} />
-              </button>
             </div>
           )}
           {step === 3 && (
@@ -924,11 +948,11 @@ function BookingFlow() {
               <div className="mt-3 space-y-2 text-[14px]">
                 <Row
                   k="Datum"
-                  v={checkIn && checkOut ? `${fmtDate(checkIn)} → ${fmtDate(checkOut)}` : "Ej valt"}
+                  v={checkIn && checkOut ? `${fmtDate(checkIn)} → ${fmtDate(checkOut)}` : "Inte valt än"}
                 />
                 <Row k="Nätter" v={nights > 0 ? String(nights) : "—"} />
-                <Row k="Gäster" v={`${guests} st`} />
-                <Row k="Enhet" v={unit ? `${unit.imageEmoji} ${unit.name}` : "Ej vald"} />
+                <Row k="Gäster" v={String(guests)} />
+                <Row k="Boende" v={unit ? `${unit.imageEmoji} ${unit.name}` : "Inte valt än"} />
               </div>
               <div className="mt-4 space-y-2 border-t border-[color:var(--line)] pt-4 text-[14px]">
                 {lodging > 0 && <Row k="Boende" v={fmtKr(lodging)} />}
@@ -973,6 +997,38 @@ function BookingFlow() {
           </aside>
         )}
       </div>
+      {/* Mobil: klistrad totalrad så priset alltid syns medan man väljer */}
+      {step < 4 && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--line)] bg-white/92 px-4 py-3 backdrop-blur lg:hidden">
+          <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
+            <div className="min-w-0">
+              {total > 0 ? (
+                <>
+                  <p className="text-[11px] font-medium text-[color:var(--ink)]/55">
+                    Totalt{nights > 0 ? ` · ${nights} ${nights === 1 ? "natt" : "nätter"}` : ""}
+                  </p>
+                  <p className="font-[Fraunces] text-xl font-semibold leading-tight tabular-nums">
+                    {fmtKr(total)}
+                  </p>
+                </>
+              ) : (
+                <p className="text-[13px] font-medium text-[color:var(--ink)]/60">{stepHint}</p>
+              )}
+            </div>
+            {step < 3 ? (
+              <button
+                onClick={() => setStep((s) => s + 1)}
+                disabled={!canNext}
+                className="btn-primary shrink-0 !rounded-2xl !px-5 !py-3 text-[15px] disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                {step === 2 ? "Till betalning" : "Fortsätt"} <ArrowRight size={16} />
+              </button>
+            ) : (
+              <span className="shrink-0 text-[12px] text-[color:var(--ink)]/50">inkl. moms</span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
