@@ -857,7 +857,7 @@ function BookingFlow() {
                   <ul className="mt-3 space-y-2.5 text-[13px] text-[color:var(--ink)]/70">
                     <li className="flex gap-2.5">
                       <Check size={15} className="mt-0.5 shrink-0 text-[color:var(--success)]" />
-                      Bekräftelse skickad till {email || "din mail"} och {phone || "din mobil"}
+                      Bekräftelse skickad till {email || "din mejl"} och {phone || "din mobil"}
                     </li>
                     <li className="flex gap-2.5">
                       <Check size={15} className="mt-0.5 shrink-0 text-[color:var(--success)]" />
