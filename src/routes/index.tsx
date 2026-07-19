@@ -245,7 +245,7 @@ function Problem() {
     },
   ];
   return (
-    <section className="py-20 md:py-32">
+    <section className="py-14 sm:py-20 md:py-32">
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="max-w-2xl">
           <p className="eyebrow">Känns det igen?</p>
@@ -296,7 +296,7 @@ function HowItWorks() {
   return (
     <section
       id="sa-funkar-det"
-      className="border-t border-[color:var(--line)] bg-white/50 py-20 md:py-32"
+      className="border-t border-[color:var(--line)] bg-white/50 py-14 sm:py-20 md:py-32"
     >
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="max-w-2xl">
@@ -354,7 +354,7 @@ function Features() {
   ];
 
   return (
-    <section id="funktioner" className="py-20 md:py-32">
+    <section id="funktioner" className="py-14 sm:py-20 md:py-32">
       <div className="mx-auto flex max-w-[1120px] flex-col gap-24 px-6 md:gap-32">
         {blocks.map((b, i) => {
           const reverse = i % 2 === 1;
@@ -471,7 +471,7 @@ function InfoRow({ k, v }: { k: string; v: string }) {
 /* ---------- Testimonial ---------- */
 function Testimonial() {
   return (
-    <section className="py-20 md:py-32">
+    <section className="py-14 sm:py-20 md:py-32">
       <div className="mx-auto max-w-3xl px-6 text-center">
         <FadeUp>
           <p
@@ -513,7 +513,7 @@ function Testimonial() {
 function Pricing() {
   const [annual, setAnnual] = useState(false);
   return (
-    <section id="pris" className="border-t border-[color:var(--line)] bg-white/50 py-20 md:py-32">
+    <section id="pris" className="border-t border-[color:var(--line)] bg-white/50 py-14 sm:py-20 md:py-32">
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="mx-auto max-w-2xl text-center">
           <p className="eyebrow">Ett pris. Allt ingår.</p>

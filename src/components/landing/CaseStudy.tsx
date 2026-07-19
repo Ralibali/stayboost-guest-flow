@@ -95,7 +95,7 @@ export function CaseStudy() {
   return (
     <section
       id="case-study"
-      className="border-t border-[color:var(--line)] bg-[color:var(--bg)] py-20 md:py-32"
+      className="border-t border-[color:var(--line)] bg-[color:var(--bg)] py-14 sm:py-20 md:py-32"
       aria-labelledby="case-study-heading"
     >
       <div className="mx-auto max-w-[1120px] px-6">

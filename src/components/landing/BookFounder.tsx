@@ -47,7 +47,7 @@ export function BookFounder() {
   return (
     <section
       id="boka-samtal"
-      className="border-t border-[color:var(--line)] bg-white/60 py-16 sm:py-20 md:py-28"
+      className="border-t border-[color:var(--line)] bg-white/60 py-16 sm:py-14 sm:py-20 md:py-28"
     >
       <div className="mx-auto max-w-[1120px] px-5 sm:px-6">
         <div className="grid gap-10 md:grid-cols-[42fr_58fr] md:items-start md:gap-14">
