@@ -10,6 +10,14 @@ import {
   unfoldIcs,
 } from "../../supabase/functions/_shared/ics";
 import { buildIcs, icsEscape, foldLine } from "../../supabase/functions/_shared/ics-export";
+import {
+  isWeekendNight,
+  nightlyPrice,
+  nightsBetween,
+  quoteStay,
+  rangesOverlap,
+  type UnitPricing,
+} from "../../supabase/functions/_shared/pricing";
 import { formatSvDate, renderTemplate } from "../../supabase/functions/_shared/templates";
 
 /* ================= iCal-parser ================= */
@@ -137,6 +145,47 @@ describe("iCal-export (flöde till Airbnb/Booking)", () => {
   });
 });
 
+/* ================= Prismotor (direktbokning) ================= */
+
+const PRICING: UnitPricing = {
+  base_price: 1000,
+  weekend_pct: 25,
+  cleaning_fee: 295,
+  monthly_mult: [70, 70, 70, 70, 85, 100, 100, 100, 85, 70, 70, 70],
+};
+
+describe("prismotor", () => {
+  it("räknar nätter i [checkin, checkout)", () => {
+    expect(nightsBetween("2026-08-10", "2026-08-13")).toEqual([
+      "2026-08-10",
+      "2026-08-11",
+      "2026-08-12",
+    ]);
+  });
+
+  it("helgpåslag slår på fre/lör, säsongsfaktor på månad", () => {
+    expect(isWeekendNight("2026-08-14")).toBe(true); // fredag
+    expect(isWeekendNight("2026-08-16")).toBe(false); // söndag
+    expect(nightlyPrice(PRICING, "2026-08-12")).toBe(1000); // ons i aug, högsäsong
+    expect(nightlyPrice(PRICING, "2026-08-14")).toBe(1250); // fre i aug +25%
+    expect(nightlyPrice(PRICING, "2026-01-12")).toBe(700); // mån i jan, −30%
+    expect(nightlyPrice(PRICING, "2026-05-11")).toBe(850); // mån i maj, −15%
+  });
+
+  it("quoteStay summerar nätter + städavgift", () => {
+    const q = quoteStay(PRICING, "2026-08-13", "2026-08-16"); // tor, fre, lör
+    expect(q.nights).toBe(3);
+    expect(q.subtotal).toBe(1000 + 1250 + 1250);
+    expect(q.total).toBe(3500 + 295);
+  });
+
+  it("överlapp i halvöppna intervall", () => {
+    expect(rangesOverlap("2026-08-10", "2026-08-12", "2026-08-11", "2026-08-13")).toBe(true);
+    expect(rangesOverlap("2026-08-10", "2026-08-12", "2026-08-12", "2026-08-14")).toBe(false); // samma dag ut/in
+    expect(rangesOverlap("2026-08-10", "2026-08-12", "2026-08-01", "2026-08-10")).toBe(false);
+  });
+});
+
 /* ================= Mallmotor ================= */
 
 describe("mallmotor", () => {
@@ -160,6 +209,10 @@ const MIGRATION = readFileSync(
 );
 const MIGRATION_ICAL = readFileSync(
   join(__dirname, "../../supabase/migrations/20260719120000_ical_export.sql"),
+  "utf8",
+);
+const MIGRATION_DIRECT = readFileSync(
+  join(__dirname, "../../supabase/migrations/20260719200000_direct_booking.sql"),
   "utf8",
 );
 
@@ -298,5 +351,51 @@ describe("Fas 1-migration mot Postgres", () => {
         [pid, "2026-08-10"],
       ),
     ).rejects.toThrow();
+  }, 30000);
+
+  it("direktboknings-migrationen: slug, priser och källa 'direct'", async () => {
+    const db = new PGlite({ extensions: { pgcrypto } });
+    await db.exec(AUTH_STUB);
+    await db.exec(MIGRATION);
+    await db.exec(MIGRATION_ICAL);
+    await db.exec(MIGRATION_DIRECT);
+
+    // Slug genereras automatiskt och är unik
+    const p1 = await db.query<{ id: string; slug: string }>(
+      "insert into properties (owner_id, name) values ('00000000-0000-0000-0000-0000000000a1', 'Test A') returning id, slug",
+    );
+    const p2 = await db.query<{ id: string; slug: string }>(
+      "insert into properties (owner_id, name) values ('00000000-0000-0000-0000-0000000000a1', 'Test B') returning id, slug",
+    );
+    expect(p1.rows[0].slug).toMatch(/^anlaggning-[0-9a-f]{6}$/);
+    expect(p2.rows[0].slug).toMatch(/^anlaggning-[0-9a-f]{6}$/);
+    expect(p1.rows[0].slug).not.toBe(p2.rows[0].slug);
+
+    // Enheter får prismodell med svenska säsongsfaktorer som default
+    const u = await db.query<{
+      id: string;
+      base_price: number;
+      weekend_pct: number;
+      monthly_mult: number[];
+    }>(
+      "insert into units (property_id, name) values ($1, 'Kanaltältet') returning id, base_price, weekend_pct, monthly_mult",
+      [p1.rows[0].id],
+    );
+    expect(u.rows[0].base_price).toBe(995);
+    expect(u.rows[0].weekend_pct).toBe(25);
+    expect(Number(u.rows[0].monthly_mult[6])).toBe(100); // juli = högsäsong
+    expect(Number(u.rows[0].monthly_mult[0])).toBe(70); // januari = lågsäsong
+
+    // Direktbokningar är en giltig källa och schemalägger meddelanden som vanligt
+    const b = await db.query<{ id: string }>(
+      `insert into bookings (property_id, unit_id, source, guest_name, guest_email, checkin_date, checkout_date)
+       values ($1, $2, 'direct', 'Direktgäst', 'direkt@example.se', '2026-09-10', '2026-09-12') returning id`,
+      [p1.rows[0].id, u.rows[0].id],
+    );
+    const msgs = await db.query(
+      "select count(*)::int as n from scheduled_messages where booking_id = $1",
+      [b.rows[0].id],
+    );
+    expect(msgs.rows[0].n).toBe(4);
   }, 30000);
 });

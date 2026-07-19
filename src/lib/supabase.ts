@@ -20,6 +20,7 @@ export type Property = {
   id: string;
   owner_id: string;
   name: string;
+  slug: string;
   checkin_time: string;
   checkout_time: string;
   directions: string | null;
@@ -37,6 +38,10 @@ export type Unit = {
   door_code: string | null;
   sort_order: number;
   ical_feed_token: string;
+  base_price: number;
+  weekend_pct: number;
+  min_stay: number;
+  cleaning_fee: number;
 };
 
 /** Publik iCal-exportlänk för en enhet (klistras in i Airbnb/Booking). */

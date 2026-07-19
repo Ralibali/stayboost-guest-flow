@@ -19,6 +19,12 @@ const ROWS: { label: string; stayboost: Cell; bookspot: Cell; sirvoy: Cell }[] =
     sirvoy: "nej",
   },
   {
+    label: "Direktbokningssida utan provision (inbäddningsbar)",
+    stayboost: "ja",
+    bookspot: "delvis",
+    sirvoy: "delvis",
+  },
+  {
     label: "Kanalhanterare (Booking.com, Airbnb)",
     stayboost: "ja",
     bookspot: "delvis",

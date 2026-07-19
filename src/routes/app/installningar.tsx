@@ -49,7 +49,17 @@ function SettingsPage() {
     reload();
   };
 
-  const updateUnit = async (id: string, patch: { name?: string; door_code?: string | null }) => {
+  const updateUnit = async (
+    id: string,
+    patch: Partial<{
+      name: string;
+      door_code: string | null;
+      base_price: number;
+      weekend_pct: number;
+      min_stay: number;
+      cleaning_fee: number;
+    }>,
+  ) => {
     if (!supabase) return;
     await supabase.from("units").update(patch).eq("id", id);
     reload();
@@ -84,6 +94,17 @@ function SettingsPage() {
             <input value={form.checkout_time} onChange={set("checkout_time")} className="inp" />
           </Field>
         </div>
+        <Field label="Adress till din bokningssida (slug)">
+          <input
+            value={form.slug ?? ""}
+            onChange={(e) =>
+              setForm((f) =>
+                f ? { ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "-") } : f,
+              )
+            }
+            className="inp"
+          />
+        </Field>
         <div className="grid grid-cols-2 gap-4">
           <Field label="Wifi-namn">
             <input value={form.wifi_name ?? ""} onChange={set("wifi_name")} className="inp" />
@@ -129,6 +150,43 @@ function SettingsPage() {
         </button>
       </div>
 
+      {/* Direktbokning */}
+      <div className="card-surface mt-5 p-6">
+        <h2 className="text-[15px] font-bold">Din bokningssida</h2>
+        <p className="mt-1 text-[13px] text-[color:var(--ink)]/55">
+          Gäster bokar direkt här — utan kanalprovision. Dela länken eller bädda in den på er
+          hemsida.
+        </p>
+        <div className="mt-3 flex gap-2">
+          <input
+            readOnly
+            value={`${typeof window !== "undefined" ? window.location.origin : ""}/boka/${form.slug}`}
+            className="inp flex-1 !bg-[color:var(--bg)]"
+            onFocus={(e) => e.target.select()}
+          />
+          <a
+            href={`/boka/${form.slug}`}
+            target="_blank"
+            rel="noreferrer"
+            className="btn-ghost shrink-0 !rounded-xl !px-4 !py-2.5 text-[13px]"
+          >
+            Öppna →
+          </a>
+        </div>
+        <div className="mt-3">
+          <label className="text-[12px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/55">
+            Bädda in på er hemsida (iframe)
+          </label>
+          <textarea
+            readOnly
+            rows={2}
+            onFocus={(e) => e.target.select()}
+            value={`<iframe src="${typeof window !== "undefined" ? window.location.origin : ""}/boka/${form.slug}" style="width:100%;max-width:520px;height:900px;border:0;border-radius:16px;" title="Boka ${form.name}"></iframe>`}
+            className="inp mt-1.5 resize-none !bg-[color:var(--bg)] font-mono text-[11px]"
+          />
+        </div>
+      </div>
+
       <div className="card-surface mt-5 p-6">
         <h2 className="text-[15px] font-bold">Enheter</h2>
         <div className="mt-3 space-y-2.5">
@@ -158,6 +216,32 @@ function SettingsPage() {
                 >
                   <Trash2 size={16} />
                 </button>
+              </div>
+              <div className="mt-2 grid grid-cols-4 gap-2">
+                {(
+                  [
+                    ["base_price", "Pris/natt", u.base_price],
+                    ["weekend_pct", "Helg +%", u.weekend_pct],
+                    ["min_stay", "Min nätter", u.min_stay],
+                    ["cleaning_fee", "Städavgift", u.cleaning_fee],
+                  ] as const
+                ).map(([key, label, val]) => (
+                  <label key={key} className="block">
+                    <span className="text-[11px] font-medium text-[color:var(--ink)]/50">
+                      {label}
+                    </span>
+                    <input
+                      type="number"
+                      min={0}
+                      defaultValue={val}
+                      onBlur={(e) => {
+                        const n = Math.max(0, Math.round(Number(e.target.value)));
+                        if (n !== val) updateUnit(u.id, { [key]: n });
+                      }}
+                      className="inp mt-0.5 !px-2.5 !py-1.5 text-[13px]"
+                    />
+                  </label>
+                ))}
               </div>
               <button
                 onClick={() => copyFeed(u.id, icalExportUrl(u))}

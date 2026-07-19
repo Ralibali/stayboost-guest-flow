@@ -23,6 +23,7 @@ import { Route as AppKallorRouteImport } from './routes/app/kallor'
 import { Route as AppLoginRouteImport } from './routes/app/login'
 import { Route as AppMallarRouteImport } from './routes/app/mallar'
 import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
+import { Route as BokaSlugRouteImport } from './routes/boka/$slug'
 import { Route as DemoIndexRouteImport } from './routes/demo/index'
 import { Route as DemoAdminRouteImport } from './routes/demo/admin'
 import { Route as DemoBokaRouteImport } from './routes/demo/boka'
@@ -109,6 +110,11 @@ const AppOnboardingRoute = AppOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
   getParentRoute: () => AppRoute,
+} as any)
+const BokaSlugRoute = BokaSlugRouteImport.update({
+  id: '/boka/$slug',
+  path: '/boka/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const DemoIndexRoute = DemoIndexRouteImport.update({
   id: '/',
@@ -205,6 +211,7 @@ export interface FileRoutesByFullPath {
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
   '/app/onboarding': typeof AppOnboardingRoute
+  '/boka/$slug': typeof BokaSlugRoute
   '/demo/admin': typeof DemoAdminRoute
   '/demo/boka': typeof DemoBokaRoute
   '/demo/bokningar': typeof DemoBokningarRoute
@@ -235,6 +242,7 @@ export interface FileRoutesByTo {
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
   '/app/onboarding': typeof AppOnboardingRoute
+  '/boka/$slug': typeof BokaSlugRoute
   '/demo/admin': typeof DemoAdminRoute
   '/demo/boka': typeof DemoBokaRoute
   '/demo/bokningar': typeof DemoBokningarRoute
@@ -268,6 +276,7 @@ export interface FileRoutesById {
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
   '/app/onboarding': typeof AppOnboardingRoute
+  '/boka/$slug': typeof BokaSlugRoute
   '/demo/admin': typeof DemoAdminRoute
   '/demo/boka': typeof DemoBokaRoute
   '/demo/bokningar': typeof DemoBokningarRoute
@@ -302,6 +311,7 @@ export interface FileRouteTypes {
     | '/app/login'
     | '/app/mallar'
     | '/app/onboarding'
+    | '/boka/$slug'
     | '/demo/admin'
     | '/demo/boka'
     | '/demo/bokningar'
@@ -332,6 +342,7 @@ export interface FileRouteTypes {
     | '/app/login'
     | '/app/mallar'
     | '/app/onboarding'
+    | '/boka/$slug'
     | '/demo/admin'
     | '/demo/boka'
     | '/demo/bokningar'
@@ -364,6 +375,7 @@ export interface FileRouteTypes {
     | '/app/login'
     | '/app/mallar'
     | '/app/onboarding'
+    | '/boka/$slug'
     | '/demo/admin'
     | '/demo/boka'
     | '/demo/bokningar'
@@ -391,6 +403,7 @@ export interface RootRouteChildren {
   DpaRoute: typeof DpaRoute
   IntegritetspolicyRoute: typeof IntegritetspolicyRoute
   VillkorRoute: typeof VillkorRoute
+  BokaSlugRoute: typeof BokaSlugRoute
   GTokenRoute: typeof GTokenRoute
 }
 
@@ -493,6 +506,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/app/onboarding'
       preLoaderRoute: typeof AppOnboardingRouteImport
       parentRoute: typeof AppRoute
+    }
+    '/boka/$slug': {
+      id: '/boka/$slug'
+      path: '/boka/$slug'
+      fullPath: '/boka/$slug'
+      preLoaderRoute: typeof BokaSlugRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/demo/': {
       id: '/demo/'
@@ -677,6 +697,7 @@ const rootRouteChildren: RootRouteChildren = {
   DpaRoute: DpaRoute,
   IntegritetspolicyRoute: IntegritetspolicyRoute,
   VillkorRoute: VillkorRoute,
+  BokaSlugRoute: BokaSlugRoute,
   GTokenRoute: GTokenRoute,
 }
 export const routeTree = rootRouteImport

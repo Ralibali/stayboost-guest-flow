@@ -9,6 +9,11 @@ verify_jwt = false
 [functions.ical-export]
 verify_jwt = false
 
+# Bokningsmotorn är publik — anläggningens slug är adressen,
+# känsliga operationer (överlapp, pris) sker server-side.
+[functions.booking-engine]
+verify_jwt = false
+
 [functions.ical-sync]
 verify_jwt = true
 
