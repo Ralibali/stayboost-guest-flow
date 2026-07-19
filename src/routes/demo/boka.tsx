@@ -819,9 +819,9 @@ function BookingFlow() {
                     </span>
                   </div>
                   <div className="mt-4 space-y-2 text-[14px]">
-                    <Row k="Enhet" v={`${unit?.imageEmoji} ${unit?.name}`} />
+                    <Row k="Boende" v={`${unit?.imageEmoji} ${unit?.name}`} />
                     <Row k="Datum" v={`${fmtDateLong(checkIn!)} → ${fmtDate(checkOut!)}`} />
-                    <Row k="Gäster" v={`${guests} st`} />
+                    <Row k="Gäster" v={String(guests)} />
                     {bundle && <Row k={`${bundle.emoji} ${bundle.name}`} v={fmtKr(bundle.price)} />}
                     {rebooking && (
                       <Row
