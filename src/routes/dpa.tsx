@@ -107,8 +107,8 @@ function DPA() {
       <h2>8. Bistånd till kunden</h2>
       <p>
         Vi bistår kunden med lämpliga tekniska och organisatoriska åtgärder för att uppfylla
-        skyldigheter gentemot registrerade (art. 12–22), säkerhet (art. 32), incidenthantering (art. 33–34)
-        samt konsekvensbedömningar (art. 35–36).
+        skyldigheter gentemot registrerade (art. 12–22), säkerhet (art. 32), incidenthantering (art.
+        33–34) samt konsekvensbedömningar (art. 35–36).
       </p>
 
       <h2>9. Radering och återlämnande</h2>

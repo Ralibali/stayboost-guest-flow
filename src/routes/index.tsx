@@ -161,8 +161,8 @@ function Hero() {
             <p className="mt-6 max-w-xl text-white/85">
               {BRAND_NAME} lägger sig ovanpå bokningarna du redan har — egen provisionsfri
               bokningsmotor, automatiserad merförsäljning, gäst-sms, digital incheckning och
-              arbetsvyer för frukost och städning. Ett lager driftautomation för små boenden. Utan app.
-              Igång på en kväll.
+              arbetsvyer för frukost och städning. Ett lager driftautomation för små boenden. Utan
+              app. Igång på en kväll.
             </p>
           </FadeUp>
           <FadeUp delay={0.15}>

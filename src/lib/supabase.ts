@@ -71,6 +71,8 @@ export type Booking = {
   payment_ref: string | null;
   payment_method: "none" | "swish" | "stripe";
   stripe_session_id: string | null;
+  addons_total: number;
+  guests: number | null;
   unit?: { name: string } | null;
 };
 
@@ -112,6 +114,18 @@ export const TRIGGER_LABELS: Record<MessageTemplate["trigger_type"], string> = {
   pre_arrival: "Inför ankomst",
   checkin_day: "Incheckningsdagen",
   post_stay: "Efter vistelsen",
+};
+
+export type Addon = {
+  id: string;
+  property_id: string;
+  name: string;
+  description: string | null;
+  price: number; // kr
+  price_type: "per_booking" | "per_night";
+  image_url: string | null;
+  active: boolean;
+  sort_order: number;
 };
 
 /* ---------- Hooks ---------- */

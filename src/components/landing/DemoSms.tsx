@@ -171,8 +171,8 @@ export function DemoSms() {
             {lastSent && (
               <p className="mt-1 text-sm text-[color:var(--ink)]/75">
                 {SCENARIOS.find((s) => s.key === lastSent)?.emoji}{" "}
-                {SCENARIOS.find((s) => s.key === lastSent)?.label} — vill du testa ett till? Välj ett
-                annat scenario ovan.
+                {SCENARIOS.find((s) => s.key === lastSent)?.label} — vill du testa ett till? Välj
+                ett annat scenario ovan.
               </p>
             )}
           </motion.div>

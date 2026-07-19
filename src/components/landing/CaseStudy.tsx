@@ -231,8 +231,8 @@ export function CaseStudy() {
         </div>
 
         <p className="mt-10 max-w-3xl text-xs leading-relaxed text-[color:var(--ink)]/55">
-          Källa: aggregerad driftstatistik från Göta Kanal Glamping för säsongen 2026 fram till
-          i dag. Ingen gäst-, personal- eller betalningsdata visas. StayBoost är i pilotdrift —
+          Källa: aggregerad driftstatistik från Göta Kanal Glamping för säsongen 2026 fram till i
+          dag. Ingen gäst-, personal- eller betalningsdata visas. StayBoost är i pilotdrift —
           siffrorna beskriver hur systemet fungerar på den här anläggningen och är inte ett löfte om
           samma resultat för andra boenden.
         </p>

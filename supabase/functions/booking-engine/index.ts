@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { nightsBetween, quoteStay, rangesOverlap } from "../_shared/pricing.ts";
+import { priceAddons, sumAddons } from "../_shared/addons.ts";
 import { createCheckoutSession } from "../_shared/stripe.ts";
 
 // StayBoost: publik bokningsmotor (verify_jwt = false, se config.toml).
@@ -57,6 +58,13 @@ Deno.serve(async (req) => {
       .gte("checkout_date", today)
       .lte("checkin_date", until);
 
+    const { data: addons } = await admin
+      .from("addons")
+      .select("id, name, description, price, price_type, image_url, sort_order")
+      .eq("property_id", property.id)
+      .eq("active", true)
+      .order("sort_order");
+
     const byUnit = new Map<string, { from: string; to: string }[]>();
     for (const b of bookings ?? []) {
       if (!b.unit_id) continue;
@@ -84,6 +92,14 @@ Deno.serve(async (req) => {
         cleaningFee: u.cleaning_fee,
         monthlyMult: u.monthly_mult,
         booked: byUnit.get(u.id) ?? [],
+      })),
+      addons: (addons ?? []).map((a) => ({
+        id: a.id,
+        name: a.name,
+        description: a.description,
+        price: a.price,
+        priceType: a.price_type,
+        imageUrl: a.image_url,
       })),
     });
   }
@@ -146,6 +162,22 @@ Deno.serve(async (req) => {
 
     const quote = quoteStay(unit, checkin, checkout);
 
+    // ---- Tillval: klienten skickar {addons:[{id,quantity}]} — vi prissätter
+    // alltid server-side mot aktiva tillval, aldrig klientens egna summor.
+    const rawSelections = Array.isArray(body?.addons) ? body.addons : [];
+    const { data: availableAddons } = await admin
+      .from("addons")
+      .select("id, name, description, price, price_type, image_url, active, sort_order")
+      .eq("property_id", property.id)
+      .eq("active", true);
+    const pricedAddons = priceAddons(rawSelections, availableAddons ?? [], quote.nights);
+    const addonsTotal = sumAddons(pricedAddons);
+    const grandTotal = quote.total + addonsTotal;
+
+    const guestsRaw = Number(body?.guests);
+    const guests =
+      Number.isInteger(guestsRaw) && guestsRaw > 0 && guestsRaw <= 20 ? guestsRaw : null;
+
     // ---- Betalningsval: gästen väljer, annars Stripe > Swish > ingen ----
     const requested = String(body?.paymentMethod ?? "");
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
@@ -163,6 +195,9 @@ Deno.serve(async (req) => {
     const paymentRef = `SB-${crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase()}`;
     const takesPayment = paymentMethod !== "none";
 
+    const addonsNote = pricedAddons.length
+      ? ` · Tillval: ${pricedAddons.map((p) => `${p.addon.name}×${p.quantity}`).join(", ")}`
+      : "";
     const { data: booking, error } = await admin
       .from("bookings")
       .insert({
@@ -174,15 +209,33 @@ Deno.serve(async (req) => {
         guest_phone: guestPhone || null,
         checkin_date: checkin,
         checkout_date: checkout,
-        notes: `Direktbokning via bokningssidan · ${quote.total} kr`,
+        guests,
+        addons_total: addonsTotal,
+        notes: `Direktbokning via bokningssidan · ${grandTotal} kr${addonsNote}`,
         payment_method: paymentMethod,
         ...(takesPayment
-          ? { payment_status: "pending", payment_amount: quote.total, payment_ref: paymentRef }
+          ? { payment_status: "pending", payment_amount: grandTotal, payment_ref: paymentRef }
           : {}),
       })
       .select("id, guest_token")
       .single();
     if (error) return json({ error: error.message }, 500);
+
+    // Spara valda tillval med fryst pris — historiken ändras aldrig i efterhand.
+    if (pricedAddons.length) {
+      const { error: addonError } = await admin.from("booking_addons").insert(
+        pricedAddons.map((p) => ({
+          booking_id: booking.id,
+          addon_id: p.addon.id,
+          quantity: p.quantity,
+          unit_price: p.addon.price,
+        })),
+      );
+      if (addonError) {
+        await admin.from("bookings").delete().eq("id", booking.id);
+        return json({ error: addonError.message }, 500);
+      }
+    }
 
     // Stripe: skapa Checkout Session och skicka gästen dit. Misslyckas det
     // rullar vi tillbaka bokningen så inga spökbokningar blockerar kalendern.
@@ -191,7 +244,7 @@ Deno.serve(async (req) => {
         const appBase = Deno.env.get("PUBLIC_APP_URL") ?? req.headers.get("origin") ?? "";
         const session = await createCheckoutSession({
           secretKey: stripeKey,
-          amountSek: quote.total,
+          amountSek: grandTotal,
           description: `${unit.name} · ${checkin}–${checkout}`,
           paymentRef,
           bookingId: booking.id,
@@ -205,6 +258,12 @@ Deno.serve(async (req) => {
           bookingId: booking.id,
           guestToken: booking.guest_token,
           price: quote,
+          addons: pricedAddons.map((p) => ({
+            name: p.addon.name,
+            quantity: p.quantity,
+            lineTotal: p.lineTotal,
+          })),
+          grandTotal,
           paymentMethod: "stripe",
           checkoutUrl: session.url,
         });
@@ -219,8 +278,14 @@ Deno.serve(async (req) => {
       bookingId: booking.id,
       guestToken: booking.guest_token,
       price: quote,
+      addons: pricedAddons.map((p) => ({
+        name: p.addon.name,
+        quantity: p.quantity,
+        lineTotal: p.lineTotal,
+      })),
+      grandTotal,
       ...(paymentMethod === "swish"
-        ? { swishNumber: property.swish_number, paymentRef, paymentAmount: quote.total }
+        ? { swishNumber: property.swish_number, paymentRef, paymentAmount: grandTotal }
         : {}),
     });
   }

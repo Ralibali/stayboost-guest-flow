@@ -72,7 +72,8 @@ function StaffView() {
           <UserCheck size={17} className="text-[color:var(--brass)]" /> Dagens tilldelning
         </h2>
         <p className="mt-1 text-[13px] text-[color:var(--ink)]/55">
-          Klicka för att rotera vem som tar uppgiften — uppdateras direkt i Städvyn och Dagsöversikten.
+          Klicka för att rotera vem som tar uppgiften — uppdateras direkt i Städvyn och
+          Dagsöversikten.
         </p>
 
         <div className="mt-5 space-y-3">
@@ -129,8 +130,8 @@ function StaffView() {
 
         <p className="mt-5 flex items-start gap-2 rounded-xl bg-[color:var(--bg)] p-4 text-[13px] text-[color:var(--ink)]/65">
           <Sparkles size={15} className="mt-0.5 shrink-0 text-[color:var(--brass)]" />
-          StayBoost föreslår automatiskt tilldelning utifrån veckoschemat — och meddelar personen via
-          sms när en ny uppgift landar hos dem.
+          StayBoost föreslår automatiskt tilldelning utifrån veckoschemat — och meddelar personen
+          via sms när en ny uppgift landar hos dem.
         </p>
       </motion.div>
     </div>

@@ -18,6 +18,13 @@ import {
   rangesOverlap,
   type UnitPricing,
 } from "../../supabase/functions/_shared/pricing";
+import {
+  addonLineTotal,
+  addonPriceLabel,
+  priceAddons,
+  sumAddons,
+  type Addon,
+} from "../../supabase/functions/_shared/addons";
 import { mapSirvoyPayload } from "../../supabase/functions/_shared/sirvoy";
 import {
   checkoutBody,
@@ -276,6 +283,10 @@ const MIGRATION_SIRVOY = readFileSync(
 );
 const MIGRATION_STRIPE = readFileSync(
   join(__dirname, "../../supabase/migrations/20260720120000_stripe.sql"),
+  "utf8",
+);
+const MIGRATION_ADDONS = readFileSync(
+  join(__dirname, "../../supabase/migrations/20260721000000_addons.sql"),
   "utf8",
 );
 
@@ -615,6 +626,140 @@ describe("Stripe-migration mot Postgres", () => {
          values ($1, 'direct', '2026-09-07', '2026-09-08', 'klarna')`,
         [p.rows[0].id],
       ),
+    ).rejects.toThrow();
+  }, 30000);
+});
+
+/* ================= Tillval (add-ons) ================= */
+
+const ADDON_FIXTURE: Addon[] = [
+  {
+    id: "a1",
+    name: "Badtunna",
+    description: null,
+    price: 495,
+    price_type: "per_booking",
+    image_url: null,
+    active: true,
+    sort_order: 0,
+  },
+  {
+    id: "a2",
+    name: "Frukostkorg",
+    description: null,
+    price: 150,
+    price_type: "per_night",
+    image_url: null,
+    active: true,
+    sort_order: 1,
+  },
+  {
+    id: "a3",
+    name: "Utgånget tillval",
+    description: null,
+    price: 100,
+    price_type: "per_booking",
+    image_url: null,
+    active: false, // inaktiv — ska ignoreras
+    sort_order: 2,
+  },
+];
+
+describe("tillvalsmotor", () => {
+  it("räknar radtotaler: per bokning vs per natt, med antal", () => {
+    // Badtunna 495 kr per bokning, 3 nätter spelar ingen roll
+    expect(addonLineTotal(ADDON_FIXTURE[0], 1, 3)).toBe(495);
+    // Frukost 150 kr/natt × 2 st × 3 nätter = 900
+    expect(addonLineTotal(ADDON_FIXTURE[1], 2, 3)).toBe(900);
+  });
+
+  it("prissätter val server-side: inaktiva/okända ignoreras, galna antal stoppas", () => {
+    const priced = priceAddons(
+      [
+        { id: "a1", quantity: 1 },
+        { id: "a2", quantity: 2 },
+        { id: "a3", quantity: 1 }, // inaktiv
+        { id: "finns-ej", quantity: 1 }, // okänt
+        { id: "a1", quantity: 0 }, // noll
+        { id: "a1", quantity: 999 }, // över max
+      ],
+      ADDON_FIXTURE,
+      3,
+    );
+    expect(priced).toHaveLength(2); // bara a1 och a2 — resten filtreras bort
+    expect(sumAddons(priced)).toBe(495 + 900);
+  });
+
+  it("visar prisetiketter på svenska", () => {
+    expect(addonPriceLabel({ price: 495, price_type: "per_booking" })).toBe("495 kr");
+    expect(addonPriceLabel({ price: 150, price_type: "per_night" })).toBe("150 kr/natt");
+  });
+});
+
+describe("tillvals-migration mot Postgres", () => {
+  it("addons + booking_addons: FK-cascade, fryst pris, guests-kolumn", async () => {
+    const db = new PGlite({ extensions: { pgcrypto } });
+    await db.exec(AUTH_STUB);
+    await db.exec(MIGRATION);
+    await db.exec(MIGRATION_ICAL);
+    await db.exec(MIGRATION_DIRECT);
+    await db.exec(MIGRATION_SIRVOY);
+    await db.exec(MIGRATION_STRIPE);
+    await db.exec(MIGRATION_ADDONS);
+
+    const p = await db.query<{ id: string }>(
+      "insert into properties (owner_id, name) values ('00000000-0000-0000-0000-0000000000a1', 'Glamping') returning id",
+    );
+    const addon = await db.query<{ id: string }>(
+      `insert into addons (property_id, name, price, price_type)
+       values ($1, 'Badtunna', 495, 'per_booking') returning id`,
+      [p.rows[0].id],
+    );
+
+    // Bokning med gäster + tillval med fryst pris
+    const b = await db.query<{ id: string; addons_total: number; guests: number }>(
+      `insert into bookings (property_id, source, checkin_date, checkout_date, guests, addons_total)
+       values ($1, 'direct', '2026-08-10', '2026-08-12', 2, 495)
+       returning id, addons_total, guests`,
+      [p.rows[0].id],
+    );
+    expect(b.rows[0].addons_total).toBe(495);
+    expect(b.rows[0].guests).toBe(2);
+
+    await db.query(
+      "insert into booking_addons (booking_id, addon_id, quantity, unit_price) values ($1, $2, 1, 495)",
+      [b.rows[0].id, addon.rows[0].id],
+    );
+
+    // Ändras tillvalets pris i efterhand påverkas inte den frysta raden
+    await db.query("update addons set price = 795 where id = $1", [addon.rows[0].id]);
+    const line = await db.query<{ unit_price: number }>(
+      "select unit_price from booking_addons where booking_id = $1",
+      [b.rows[0].id],
+    );
+    expect(line.rows[0].unit_price).toBe(495);
+
+    // PK stoppar dubletter av samma tillval på samma bokning
+    await expect(
+      db.query(
+        "insert into booking_addons (booking_id, addon_id, quantity, unit_price) values ($1, $2, 1, 495)",
+        [b.rows[0].id, addon.rows[0].id],
+      ),
+    ).rejects.toThrow();
+
+    // Avbokas/raderas bokningen försvinner tillvalsraderna (cascade)
+    await db.query("delete from bookings where id = $1", [b.rows[0].id]);
+    const left = await db.query<{ n: number }>(
+      "select count(*)::int as n from booking_addons where booking_id = $1",
+      [b.rows[0].id],
+    );
+    expect(left.rows[0].n).toBe(0);
+
+    // Negativa priser och noll-antal tillåts aldrig
+    await expect(
+      db.query("insert into addons (property_id, name, price) values ($1, 'Fel', -10)", [
+        p.rows[0].id,
+      ]),
     ).rejects.toThrow();
   }, 30000);
 });

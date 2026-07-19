@@ -1,11 +1,12 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { CalendarDays, Link2, LogOut, Mail, Settings } from "lucide-react";
+import { CalendarDays, Link2, LogOut, Mail, PackagePlus, Settings } from "lucide-react";
 import type { ReactNode } from "react";
 
 const NAV = [
   { to: "/app/bokningar", label: "Bokningar", icon: CalendarDays },
   { to: "/app/kallor", label: "iCal-källor", icon: Link2 },
   { to: "/app/mallar", label: "Mallar", icon: Mail },
+  { to: "/app/tillval", label: "Tillval", icon: PackagePlus },
   { to: "/app/installningar", label: "Inställningar", icon: Settings },
 ] as const;
 

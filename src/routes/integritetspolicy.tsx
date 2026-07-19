@@ -99,7 +99,9 @@ function PrivacyPolicy() {
         <li>Kunduppgifter: under avtalstiden och därefter så länge det finns en rättslig grund.</li>
         <li>Bokföringsunderlag: 7 år (bokföringslagen).</li>
         <li>Loggar / säkerhetsdata: som regel högst 12 månader.</li>
-        <li>Formulär för sms-demo: telefonnummer sparas endast för frekvensbegränsning i 24 timmar.</li>
+        <li>
+          Formulär för sms-demo: telefonnummer sparas endast för frekvensbegränsning i 24 timmar.
+        </li>
       </ul>
 
       <h2>5. Mottagare och personuppgiftsbiträden</h2>

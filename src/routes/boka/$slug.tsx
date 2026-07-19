@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronLeft, ChevronRight, Copy, Loader2, Users } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Copy, Loader2, Plus, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   nightlyPrice,
@@ -26,6 +26,15 @@ type EngineUnit = {
   booked: { from: string; to: string }[];
 };
 
+type EngineAddon = {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  priceType: "per_booking" | "per_night";
+  imageUrl: string | null;
+};
+
 type EngineData = {
   property: {
     name: string;
@@ -36,6 +45,7 @@ type EngineData = {
     stripeAvailable: boolean;
   };
   units: EngineUnit[];
+  addons: EngineAddon[];
 };
 
 const FUNCTIONS_BASE = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(
@@ -81,6 +91,8 @@ function PublicBookingPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [guests, setGuests] = useState(2);
+  const [addonQty, setAddonQty] = useState<Record<string, number>>({});
   const [sending, setSending] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [payChoice, setPayChoice] = useState<"stripe" | "swish" | null>(null);
@@ -113,6 +125,21 @@ function PublicBookingPage() {
     () => (pricing && checkin && checkout ? quoteStay(pricing, checkin, checkout) : null),
     [pricing, checkin, checkout],
   );
+
+  // Valda tillval med radtotaler (samma logik som motorn räknar server-side)
+  const chosenAddons = useMemo(() => {
+    if (!data || !quote) return [];
+    return data.addons
+      .filter((a) => (addonQty[a.id] ?? 0) > 0)
+      .map((a) => {
+        const qty = addonQty[a.id];
+        const lineTotal =
+          a.priceType === "per_night" ? a.price * qty * quote.nights : a.price * qty;
+        return { ...a, qty, lineTotal };
+      });
+  }, [data, quote, addonQty]);
+  const addonsTotal = chosenAddons.reduce((s, a) => s + a.lineTotal, 0);
+  const grandTotal = (quote?.total ?? 0) + addonsTotal;
 
   const pick = (iso: string) => {
     if (!unit) return;
@@ -155,6 +182,10 @@ function PublicBookingPage() {
           guest_name: name.trim(),
           guest_email: email.trim(),
           guest_phone: phone.trim(),
+          guests,
+          addons: Object.entries(addonQty)
+            .filter(([, q]) => q > 0)
+            .map(([id, quantity]) => ({ id, quantity })),
           ...(payMethod ? { paymentMethod: payMethod } : {}),
         }),
       });
@@ -177,7 +208,7 @@ function PublicBookingPage() {
       } else {
         setDone({
           token: d.guestToken,
-          total: d.price.total,
+          total: d.grandTotal ?? d.price.total,
           swishNumber: d.swishNumber,
           paymentRef: d.paymentRef,
         });
@@ -378,6 +409,75 @@ function PublicBookingPage() {
               </div>
             )}
 
+            {/* Tillval — minimalistiskt: hårlinjer, liten bild, stegvisare */}
+            {unit && data.addons.length > 0 && (
+              <div className="mt-6">
+                <p className="px-1 text-[12px] font-semibold uppercase tracking-wider text-[color:var(--ink)]/45">
+                  Gör vistelsen ännu bättre
+                </p>
+                <div className="mt-2 divide-y divide-[color:var(--line)] rounded-2xl bg-white ring-1 ring-[color:var(--line)]">
+                  {data.addons.map((a) => {
+                    const qty = addonQty[a.id] ?? 0;
+                    return (
+                      <div key={a.id} className="flex items-center gap-3.5 px-4 py-3.5">
+                        {a.imageUrl ? (
+                          <img
+                            src={a.imageUrl}
+                            alt=""
+                            className="h-12 w-12 shrink-0 rounded-xl object-cover"
+                          />
+                        ) : (
+                          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[color:var(--bg)] text-[color:var(--ink)]/25">
+                            <Plus size={16} />
+                          </div>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[14px] font-semibold">{a.name}</p>
+                          {a.description && (
+                            <p className="mt-0.5 line-clamp-1 text-[12px] text-[color:var(--ink)]/50">
+                              {a.description}
+                            </p>
+                          )}
+                          <p className="mt-0.5 text-[12px] font-semibold text-[color:var(--brass)]">
+                            {fmtKr(a.price)}
+                            {a.priceType === "per_night" && "/natt"}
+                          </p>
+                        </div>
+                        {qty === 0 ? (
+                          <button
+                            onClick={() => setAddonQty({ ...addonQty, [a.id]: 1 })}
+                            className="shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-semibold ring-1 ring-[color:var(--line)] transition hover:ring-[color:var(--forest)]"
+                          >
+                            Lägg till
+                          </button>
+                        ) : (
+                          <div className="flex shrink-0 items-center gap-3">
+                            <button
+                              onClick={() => setAddonQty({ ...addonQty, [a.id]: qty - 1 })}
+                              className="grid h-8 w-8 place-items-center rounded-full text-[16px] font-bold ring-1 ring-[color:var(--line)] transition hover:ring-[color:var(--forest)]"
+                              aria-label="Minska"
+                            >
+                              −
+                            </button>
+                            <span className="w-4 text-center text-[14px] font-bold">{qty}</span>
+                            <button
+                              onClick={() =>
+                                setAddonQty({ ...addonQty, [a.id]: Math.min(20, qty + 1) })
+                              }
+                              className="grid h-8 w-8 place-items-center rounded-full text-[16px] font-bold ring-1 ring-[color:var(--line)] transition hover:ring-[color:var(--forest)]"
+                              aria-label="Öka"
+                            >
+                              +
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             {/* Sammanfattning + formulär */}
             <AnimatePresence>
               {quote && unit && (
@@ -391,13 +491,18 @@ function PublicBookingPage() {
                       {unit.name} · {quote.nights} {quote.nights === 1 ? "natt" : "nätter"}
                     </span>
                     <span className="font-[Fraunces] text-xl font-semibold">
-                      {fmtKr(quote.total)}
+                      {fmtKr(grandTotal)}
                     </span>
                   </div>
                   <p className="mt-1 text-[12px] text-[color:var(--ink)]/50">
                     {svDate(checkin!)} – {svDate(checkout!)} · {fmtKr(quote.subtotal)}
                     {quote.cleaningFee > 0 && ` + städning ${fmtKr(quote.cleaningFee)}`}
                   </p>
+                  {chosenAddons.map((a) => (
+                    <p key={a.id} className="mt-0.5 text-[12px] text-[color:var(--ink)]/50">
+                      + {a.name} ×{a.qty} — {fmtKr(a.lineTotal)}
+                    </p>
+                  ))}
                   {!minStayOk && (
                     <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
                       Minsta vistelse i {unit.name} är {unit.minStay} nätter.
@@ -405,12 +510,26 @@ function PublicBookingPage() {
                   )}
 
                   <div className="mt-4 space-y-2.5 border-t border-[color:var(--line)] pt-4">
-                    <input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      placeholder="Ditt namn"
-                      className="inp"
-                    />
+                    <div className="grid grid-cols-[1fr_auto] gap-2.5">
+                      <input
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Ditt namn"
+                        className="inp"
+                      />
+                      <select
+                        value={guests}
+                        onChange={(e) => setGuests(Number(e.target.value))}
+                        className="inp"
+                        aria-label="Antal gäster"
+                      >
+                        {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
+                          <option key={n} value={n}>
+                            {n} gäster
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                     <input
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
@@ -466,8 +585,8 @@ function PublicBookingPage() {
                       {sending
                         ? "Bokar…"
                         : payMethod === "stripe"
-                          ? `Betala ${fmtKr(quote.total)} med kort →`
-                          : `Boka ${fmtKr(quote.total)} →`}
+                          ? `Betala ${fmtKr(grandTotal)} med kort →`
+                          : `Boka ${fmtKr(grandTotal)} →`}
                     </button>
                     <p className="text-center text-[12px] text-[color:var(--ink)]/45">
                       {payMethod === "stripe"

@@ -69,7 +69,9 @@ export function PhoneMockup() {
                 <div className="mx-auto mb-1 h-10 w-10 rounded-full bg-[color:var(--forest)] text-center text-sm font-semibold leading-10 text-white">
                   Sj
                 </div>
-                <div className="text-[13px] font-semibold text-[color:var(--ink)]">Sjöbrisretreatet</div>
+                <div className="text-[13px] font-semibold text-[color:var(--ink)]">
+                  Sjöbrisretreatet
+                </div>
                 <div className="text-[10px] text-[color:var(--ink)]/60">Sms</div>
               </div>
             </div>

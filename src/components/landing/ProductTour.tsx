@@ -490,7 +490,9 @@ function BreakfastDemo() {
           </button>
         </div>
         <div className="flex gap-1 text-[0.72rem]">
-          <button className="rounded-lg bg-[color:var(--forest)] px-2 py-1 text-white">I dag</button>
+          <button className="rounded-lg bg-[color:var(--forest)] px-2 py-1 text-white">
+            I dag
+          </button>
           <button className="rounded-lg border border-[color:var(--line)] px-2 py-1">
             I morgon
           </button>

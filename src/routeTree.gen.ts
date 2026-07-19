@@ -23,17 +23,18 @@ import { Route as AppKallorRouteImport } from './routes/app/kallor'
 import { Route as AppLoginRouteImport } from './routes/app/login'
 import { Route as AppMallarRouteImport } from './routes/app/mallar'
 import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
+import { Route as AppTillvalRouteImport } from './routes/app/tillval'
 import { Route as BokaSlugRouteImport } from './routes/boka/$slug'
 import { Route as DemoIndexRouteImport } from './routes/demo/index'
 import { Route as DemoAdminRouteImport } from './routes/demo/admin'
 import { Route as DemoBokaRouteImport } from './routes/demo/boka'
 import { Route as DemoBokningarRouteImport } from './routes/demo/bokningar'
+import { Route as DemoDagsoversiktRouteImport } from './routes/demo/dagsoversikt'
 import { Route as DemoFrukostRouteImport } from './routes/demo/frukost'
 import { Route as DemoGastRouteImport } from './routes/demo/gast'
 import { Route as DemoGasterRouteImport } from './routes/demo/gaster'
 import { Route as DemoIncheckningRouteImport } from './routes/demo/incheckning'
 import { Route as DemoKanalerRouteImport } from './routes/demo/kanaler'
-import { Route as DemoManifestRouteImport } from './routes/demo/manifest'
 import { Route as DemoMinSidaRouteImport } from './routes/demo/min-sida'
 import { Route as DemoPersonalRouteImport } from './routes/demo/personal'
 import { Route as DemoPresentkortRouteImport } from './routes/demo/presentkort'
@@ -111,6 +112,11 @@ const AppOnboardingRoute = AppOnboardingRouteImport.update({
   path: '/onboarding',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTillvalRoute = AppTillvalRouteImport.update({
+  id: '/tillval',
+  path: '/tillval',
+  getParentRoute: () => AppRoute,
+} as any)
 const BokaSlugRoute = BokaSlugRouteImport.update({
   id: '/boka/$slug',
   path: '/boka/$slug',
@@ -136,6 +142,11 @@ const DemoBokningarRoute = DemoBokningarRouteImport.update({
   path: '/bokningar',
   getParentRoute: () => DemoRoute,
 } as any)
+const DemoDagsoversiktRoute = DemoDagsoversiktRouteImport.update({
+  id: '/dagsoversikt',
+  path: '/dagsoversikt',
+  getParentRoute: () => DemoRoute,
+} as any)
 const DemoFrukostRoute = DemoFrukostRouteImport.update({
   id: '/frukost',
   path: '/frukost',
@@ -159,11 +170,6 @@ const DemoIncheckningRoute = DemoIncheckningRouteImport.update({
 const DemoKanalerRoute = DemoKanalerRouteImport.update({
   id: '/kanaler',
   path: '/kanaler',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoManifestRoute = DemoManifestRouteImport.update({
-  id: '/manifest',
-  path: '/manifest',
   getParentRoute: () => DemoRoute,
 } as any)
 const DemoMinSidaRoute = DemoMinSidaRouteImport.update({
@@ -211,16 +217,17 @@ export interface FileRoutesByFullPath {
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
   '/app/onboarding': typeof AppOnboardingRoute
+  '/app/tillval': typeof AppTillvalRoute
   '/boka/$slug': typeof BokaSlugRoute
   '/demo/admin': typeof DemoAdminRoute
   '/demo/boka': typeof DemoBokaRoute
   '/demo/bokningar': typeof DemoBokningarRoute
+  '/demo/dagsoversikt': typeof DemoDagsoversiktRoute
   '/demo/frukost': typeof DemoFrukostRoute
   '/demo/gast': typeof DemoGastRoute
   '/demo/gaster': typeof DemoGasterRoute
   '/demo/incheckning': typeof DemoIncheckningRoute
   '/demo/kanaler': typeof DemoKanalerRoute
-  '/demo/manifest': typeof DemoManifestRoute
   '/demo/min-sida': typeof DemoMinSidaRoute
   '/demo/personal': typeof DemoPersonalRoute
   '/demo/presentkort': typeof DemoPresentkortRoute
@@ -242,16 +249,17 @@ export interface FileRoutesByTo {
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
   '/app/onboarding': typeof AppOnboardingRoute
+  '/app/tillval': typeof AppTillvalRoute
   '/boka/$slug': typeof BokaSlugRoute
   '/demo/admin': typeof DemoAdminRoute
   '/demo/boka': typeof DemoBokaRoute
   '/demo/bokningar': typeof DemoBokningarRoute
+  '/demo/dagsoversikt': typeof DemoDagsoversiktRoute
   '/demo/frukost': typeof DemoFrukostRoute
   '/demo/gast': typeof DemoGastRoute
   '/demo/gaster': typeof DemoGasterRoute
   '/demo/incheckning': typeof DemoIncheckningRoute
   '/demo/kanaler': typeof DemoKanalerRoute
-  '/demo/manifest': typeof DemoManifestRoute
   '/demo/min-sida': typeof DemoMinSidaRoute
   '/demo/personal': typeof DemoPersonalRoute
   '/demo/presentkort': typeof DemoPresentkortRoute
@@ -276,16 +284,17 @@ export interface FileRoutesById {
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
   '/app/onboarding': typeof AppOnboardingRoute
+  '/app/tillval': typeof AppTillvalRoute
   '/boka/$slug': typeof BokaSlugRoute
   '/demo/admin': typeof DemoAdminRoute
   '/demo/boka': typeof DemoBokaRoute
   '/demo/bokningar': typeof DemoBokningarRoute
+  '/demo/dagsoversikt': typeof DemoDagsoversiktRoute
   '/demo/frukost': typeof DemoFrukostRoute
   '/demo/gast': typeof DemoGastRoute
   '/demo/gaster': typeof DemoGasterRoute
   '/demo/incheckning': typeof DemoIncheckningRoute
   '/demo/kanaler': typeof DemoKanalerRoute
-  '/demo/manifest': typeof DemoManifestRoute
   '/demo/min-sida': typeof DemoMinSidaRoute
   '/demo/personal': typeof DemoPersonalRoute
   '/demo/presentkort': typeof DemoPresentkortRoute
@@ -311,16 +320,17 @@ export interface FileRouteTypes {
     | '/app/login'
     | '/app/mallar'
     | '/app/onboarding'
+    | '/app/tillval'
     | '/boka/$slug'
     | '/demo/admin'
     | '/demo/boka'
     | '/demo/bokningar'
+    | '/demo/dagsoversikt'
     | '/demo/frukost'
     | '/demo/gast'
     | '/demo/gaster'
     | '/demo/incheckning'
     | '/demo/kanaler'
-    | '/demo/manifest'
     | '/demo/min-sida'
     | '/demo/personal'
     | '/demo/presentkort'
@@ -342,16 +352,17 @@ export interface FileRouteTypes {
     | '/app/login'
     | '/app/mallar'
     | '/app/onboarding'
+    | '/app/tillval'
     | '/boka/$slug'
     | '/demo/admin'
     | '/demo/boka'
     | '/demo/bokningar'
+    | '/demo/dagsoversikt'
     | '/demo/frukost'
     | '/demo/gast'
     | '/demo/gaster'
     | '/demo/incheckning'
     | '/demo/kanaler'
-    | '/demo/manifest'
     | '/demo/min-sida'
     | '/demo/personal'
     | '/demo/presentkort'
@@ -375,16 +386,17 @@ export interface FileRouteTypes {
     | '/app/login'
     | '/app/mallar'
     | '/app/onboarding'
+    | '/app/tillval'
     | '/boka/$slug'
     | '/demo/admin'
     | '/demo/boka'
     | '/demo/bokningar'
+    | '/demo/dagsoversikt'
     | '/demo/frukost'
     | '/demo/gast'
     | '/demo/gaster'
     | '/demo/incheckning'
     | '/demo/kanaler'
-    | '/demo/manifest'
     | '/demo/min-sida'
     | '/demo/personal'
     | '/demo/presentkort'
@@ -507,6 +519,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppOnboardingRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/tillval': {
+      id: '/app/tillval'
+      path: '/tillval'
+      fullPath: '/app/tillval'
+      preLoaderRoute: typeof AppTillvalRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/boka/$slug': {
       id: '/boka/$slug'
       path: '/boka/$slug'
@@ -542,6 +561,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoBokningarRouteImport
       parentRoute: typeof DemoRoute
     }
+    '/demo/dagsoversikt': {
+      id: '/demo/dagsoversikt'
+      path: '/dagsoversikt'
+      fullPath: '/demo/dagsoversikt'
+      preLoaderRoute: typeof DemoDagsoversiktRouteImport
+      parentRoute: typeof DemoRoute
+    }
     '/demo/frukost': {
       id: '/demo/frukost'
       path: '/frukost'
@@ -575,13 +601,6 @@ declare module '@tanstack/react-router' {
       path: '/kanaler'
       fullPath: '/demo/kanaler'
       preLoaderRoute: typeof DemoKanalerRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/manifest': {
-      id: '/demo/manifest'
-      path: '/manifest'
-      fullPath: '/demo/manifest'
-      preLoaderRoute: typeof DemoManifestRouteImport
       parentRoute: typeof DemoRoute
     }
     '/demo/min-sida': {
@@ -636,6 +655,7 @@ interface AppRouteChildren {
   AppLoginRoute: typeof AppLoginRoute
   AppMallarRoute: typeof AppMallarRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
+  AppTillvalRoute: typeof AppTillvalRoute
   AppIndexRoute: typeof AppIndexRoute
 }
 
@@ -646,6 +666,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppLoginRoute: AppLoginRoute,
   AppMallarRoute: AppMallarRoute,
   AppOnboardingRoute: AppOnboardingRoute,
+  AppTillvalRoute: AppTillvalRoute,
   AppIndexRoute: AppIndexRoute,
 }
 
@@ -655,12 +676,12 @@ interface DemoRouteChildren {
   DemoAdminRoute: typeof DemoAdminRoute
   DemoBokaRoute: typeof DemoBokaRoute
   DemoBokningarRoute: typeof DemoBokningarRoute
+  DemoDagsoversiktRoute: typeof DemoDagsoversiktRoute
   DemoFrukostRoute: typeof DemoFrukostRoute
   DemoGastRoute: typeof DemoGastRoute
   DemoGasterRoute: typeof DemoGasterRoute
   DemoIncheckningRoute: typeof DemoIncheckningRoute
   DemoKanalerRoute: typeof DemoKanalerRoute
-  DemoManifestRoute: typeof DemoManifestRoute
   DemoMinSidaRoute: typeof DemoMinSidaRoute
   DemoPersonalRoute: typeof DemoPersonalRoute
   DemoPresentkortRoute: typeof DemoPresentkortRoute
@@ -673,12 +694,12 @@ const DemoRouteChildren: DemoRouteChildren = {
   DemoAdminRoute: DemoAdminRoute,
   DemoBokaRoute: DemoBokaRoute,
   DemoBokningarRoute: DemoBokningarRoute,
+  DemoDagsoversiktRoute: DemoDagsoversiktRoute,
   DemoFrukostRoute: DemoFrukostRoute,
   DemoGastRoute: DemoGastRoute,
   DemoGasterRoute: DemoGasterRoute,
   DemoIncheckningRoute: DemoIncheckningRoute,
   DemoKanalerRoute: DemoKanalerRoute,
-  DemoManifestRoute: DemoManifestRoute,
   DemoMinSidaRoute: DemoMinSidaRoute,
   DemoPersonalRoute: DemoPersonalRoute,
   DemoPresentkortRoute: DemoPresentkortRoute,
