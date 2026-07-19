@@ -879,7 +879,7 @@ function BookingFlow() {
                     to="/demo/gast"
                     className="btn-primary flex-1 !rounded-2xl !py-3.5 text-[15px]"
                   >
-                    Se gästhubben <ArrowRight size={16} />
+                    Öppna din gästsida <ArrowRight size={16} />
                   </Link>
                   <Link
                     to="/demo/bokningar"
