@@ -351,13 +351,13 @@ describe("Fas 1-migration mot Postgres", () => {
        values ($1, $2, 'manual', $3, $4) returning id`,
       [pid, uid, today, in3],
     );
-    const msgs2 = await db.query<{ template_id: string }>(
+    const msgs2 = await db.query<{ trigger_type: string }>(
       `select sm.template_id, mt.trigger_type from scheduled_messages sm
        join message_templates mt on mt.id = sm.template_id
        where sm.booking_id = $1`,
       [b2.rows[0].id],
     );
-    const triggers = (msgs2.rows as { trigger_type: string }[]).map((r) => r.trigger_type).sort();
+    const triggers = msgs2.rows.map((r) => r.trigger_type).sort();
     expect(triggers).toEqual(["booking_created", "post_stay"]); // pre_arrival hoppades över
 
     // Omplanering: nya datum → schemat räknas om mot nya datumet
@@ -446,7 +446,7 @@ describe("Fas 1-migration mot Postgres", () => {
        values ($1, $2, 'direct', 'Direktgäst', 'direkt@example.se', '2026-09-10', '2026-09-12') returning id`,
       [p1.rows[0].id, u.rows[0].id],
     );
-    const msgs = await db.query(
+    const msgs = await db.query<{ n: number }>(
       "select count(*)::int as n from scheduled_messages where booking_id = $1",
       [b.rows[0].id],
     );
