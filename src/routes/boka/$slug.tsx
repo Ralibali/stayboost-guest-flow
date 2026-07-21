@@ -1,6 +1,6 @@
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
-import { Check, ChevronLeft, ChevronRight, Copy, Loader2, Plus, Users } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Copy, Loader2, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   nightlyPrice,
@@ -12,6 +12,21 @@ import {
 export const Route = createFileRoute("/boka/$slug")({
   component: PublicBookingPage,
 });
+
+/* ---------- Design: skandinavisk minimalism ---------- */
+
+const C = {
+  bg: "#FAFAF8",
+  ink: "#1B1B19",
+  muted: "#8B8B85",
+  line: "#E7E7E1",
+  soft: "#F1F1EC",
+} as const;
+
+const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.18em]";
+// OBS: statiska klasssträngar — Tailwind kan inte läsa dynamiska värden.
+const hairline = "border-[#E7E7E1]";
+const divideHairline = "divide-[#E7E7E1]";
 
 /* ---------- Typer + API ---------- */
 
@@ -212,6 +227,7 @@ function PublicBookingPage() {
           swishNumber: d.swishNumber,
           paymentRef: d.paymentRef,
         });
+        window.scrollTo({ top: 0 });
       }
     } catch {
       setFormError("Något gick fel — försök igen om en stund.");
@@ -223,10 +239,13 @@ function PublicBookingPage() {
 
   if (error) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[color:var(--bg)] px-6 text-center">
+      <div
+        className="grid min-h-screen place-items-center px-6 text-center"
+        style={{ background: C.bg, color: C.ink }}
+      >
         <div>
-          <p className="font-[Fraunces] text-3xl font-semibold">Bokningssidan hittades inte</p>
-          <p className="mt-3 text-[15px] text-[color:var(--ink)]/60">
+          <p className="font-[Fraunces] text-3xl">Bokningssidan hittades inte</p>
+          <p className="mt-3 text-[15px]" style={{ color: C.muted }}>
             Kontrollera länken — eller hör av dig direkt till oss så hjälper vi dig.
           </p>
         </div>
@@ -236,8 +255,8 @@ function PublicBookingPage() {
 
   if (!data) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[color:var(--bg)]">
-        <Loader2 className="animate-spin text-[color:var(--forest)]" size={32} />
+      <div className="grid min-h-screen place-items-center" style={{ background: C.bg }}>
+        <Loader2 className="animate-spin" style={{ color: C.muted }} size={28} />
       </div>
     );
   }
@@ -245,47 +264,52 @@ function PublicBookingPage() {
   const guestUrl = done ? `${window.location.origin}/g/${done.token}` : null;
 
   return (
-    <div className="min-h-screen bg-[color:var(--bg)] pb-20">
-      <div className="mx-auto max-w-lg px-4 pt-6">
-        {/* Hero */}
-        <div className="overflow-hidden rounded-[24px] bg-[color:var(--forest)] text-white shadow-[0_20px_50px_rgba(20,36,28,0.25)]">
-          <div className="p-6">
-            <p className="text-[12px] uppercase tracking-wide text-white/60">
-              Boka direkt — bästa pris
-            </p>
-            <h1 className="mt-1 font-[Fraunces] text-[28px] font-semibold leading-tight">
-              {data.property.name}
-            </h1>
-            <p className="mt-2 text-[14px] text-white/75">
-              Incheckning från {data.property.checkinTime} · Utcheckning{" "}
-              {data.property.checkoutTime}
-            </p>
-          </div>
-        </div>
+    <div className="min-h-screen pb-24" style={{ background: C.bg, color: C.ink }}>
+      <div className="mx-auto max-w-xl px-5 pt-14">
+        {/* ---------- Sidhuvud ---------- */}
+        <header className={`border-b pb-8 ${hairline}`}>
+          <p className={eyebrow} style={{ color: C.muted }}>
+            Boka direkt
+          </p>
+          <h1 className="mt-3 font-[Fraunces] text-[38px] leading-[1.1]">{data.property.name}</h1>
+          <p className="mt-3 text-[14px]" style={{ color: C.muted }}>
+            Incheckning från {data.property.checkinTime} &nbsp;·&nbsp; Utcheckning{" "}
+            {data.property.checkoutTime}
+          </p>
+        </header>
 
         {done ? (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="card-surface mt-5 p-6 text-center"
+            className="pt-12 text-center"
           >
-            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-[color:var(--success)]/15 text-2xl">
-              ✅
+            <span
+              className="mx-auto grid h-16 w-16 place-items-center rounded-full"
+              style={{ border: `1px solid ${C.ink}` }}
+            >
+              <Check size={24} />
             </span>
-            <h2 className="mt-4 font-[Fraunces] text-2xl font-semibold">Bokningen är klar!</h2>
-            <p className="mt-2 text-[14px] leading-relaxed text-[color:var(--ink)]/65">
+            <h2 className="mt-6 font-[Fraunces] text-3xl">Tack för din bokning</h2>
+            <p
+              className="mx-auto mt-3 max-w-sm text-[15px] leading-relaxed"
+              style={{ color: C.muted }}
+            >
               {unit?.name} · {svLong(checkin!)} – {svLong(checkout!)} · {fmtKr(done.total)}
               <br />
               Bekräftelsen är på väg till dig med all praktisk information.
             </p>
+
             {done.swishNumber && (
-              <div className="mt-5 rounded-2xl bg-[color:var(--brass)]/10 p-4 text-left">
-                <p className="text-[14px] font-bold">💸 Betala med Swish</p>
-                <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--ink)]/65">
-                  Swisha <strong>{fmtKr(done.total)}</strong> inom 24 timmar för att säkra din
-                  bokning:
+              <div className={`mt-8 border-y py-6 text-left ${hairline}`}>
+                <p className={eyebrow} style={{ color: C.muted }}>
+                  Betala med Swish
                 </p>
-                <div className="mt-3 space-y-2">
+                <p className="mt-3 text-[14px] leading-relaxed" style={{ color: C.muted }}>
+                  Swisha <strong style={{ color: C.ink }}>{fmtKr(done.total)}</strong> inom 24
+                  timmar för att säkra din bokning.
+                </p>
+                <div className="mt-4 space-y-2">
                   {[
                     { label: "Swish-nummer", value: done.swishNumber, key: "nr" },
                     { label: "Meddelande", value: done.paymentRef!, key: "ref" },
@@ -297,156 +321,186 @@ function PublicBookingPage() {
                         setCopied(r.key);
                         setTimeout(() => setCopied(null), 1500);
                       }}
-                      className="flex w-full items-center justify-between rounded-xl bg-white px-3.5 py-2.5 text-left ring-1 ring-[color:var(--line)] transition hover:ring-[color:var(--brass)]"
+                      className="flex w-full items-center justify-between py-2.5 text-left"
+                      style={{ borderBottom: `1px solid ${C.line}` }}
                     >
                       <span>
-                        <span className="block text-[11px] text-[color:var(--ink)]/50">
+                        <span className="block text-[11px]" style={{ color: C.muted }}>
                           {r.label} — tryck för att kopiera
                         </span>
-                        <span className="font-mono text-[15px] font-semibold tracking-wide">
-                          {r.value}
-                        </span>
+                        <span className="font-mono text-[16px] tracking-wide">{r.value}</span>
                       </span>
                       {copied === r.key ? (
-                        <Check size={15} className="text-[color:var(--success)]" />
+                        <Check size={15} />
                       ) : (
-                        <Copy size={15} className="text-[color:var(--ink)]/40" />
+                        <Copy size={15} style={{ color: C.muted }} />
                       )}
                     </button>
                   ))}
                 </div>
               </div>
             )}
+
             <button
               onClick={() => {
                 navigator.clipboard.writeText(guestUrl!);
                 setCopied("link");
                 setTimeout(() => setCopied(null), 1500);
               }}
-              className="btn-primary mt-5 w-full justify-center !rounded-xl !py-3 text-[15px]"
+              className="mt-8 w-full rounded-full py-4 text-[15px] font-semibold text-white transition hover:opacity-85"
+              style={{ background: C.ink }}
             >
-              {copied === "link" ? <Check size={16} /> : <Copy size={16} />}
-              {copied === "link" ? "Gästlänk kopierad!" : "Kopiera din gästlänk"}
+              {copied === "link" ? "Gästlänk kopierad" : "Kopiera din gästlänk"}
             </button>
             <a
               href={guestUrl!}
-              className="mt-2 block text-[13px] font-medium text-[color:var(--brass)] hover:underline"
+              className="mt-4 inline-block text-[14px] underline underline-offset-4"
+              style={{ color: C.muted }}
             >
-              Öppna din gästsida →
+              Öppna din gästsida
             </a>
           </motion.div>
         ) : (
           <>
-            {/* Enhetsval */}
+            {/* ---------- Boende ---------- */}
             {data.units.length > 1 && (
-              <div className="mt-5 grid gap-2">
-                {data.units.map((u) => {
-                  const lowestMult = Math.min(...(u.monthlyMult ?? [70]).map(Number));
-                  return (
-                    <button
-                      key={u.id}
-                      onClick={() => {
-                        setUnitId(u.id);
-                        setCheckin(null);
-                        setCheckout(null);
-                      }}
-                      className={`card-surface flex items-center justify-between p-4 text-left transition ${
-                        u.id === unitId ? "ring-2 ring-[color:var(--forest)]" : ""
-                      }`}
-                    >
-                      <span className="text-[15px] font-semibold">{u.name}</span>
-                      <span className="text-[13px] text-[color:var(--ink)]/60">
-                        från {fmtKr(Math.round((u.basePrice * lowestMult) / 100))}/natt
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+              <section className="pt-10">
+                <p className={eyebrow} style={{ color: C.muted }}>
+                  Boende
+                </p>
+                <div className={`mt-4 divide-y border-y ${hairline} ${divideHairline}`}>
+                  {data.units.map((u) => {
+                    const lowestMult = Math.min(...(u.monthlyMult ?? [70]).map(Number));
+                    const selected = u.id === unitId;
+                    return (
+                      <button
+                        key={u.id}
+                        onClick={() => {
+                          setUnitId(u.id);
+                          setCheckin(null);
+                          setCheckout(null);
+                        }}
+                        className="flex w-full items-center gap-4 py-4 text-left"
+                      >
+                        <span
+                          className="grid h-[18px] w-[18px] shrink-0 place-items-center rounded-full"
+                          style={{ border: `1.5px solid ${selected ? C.ink : C.line}` }}
+                        >
+                          {selected && (
+                            <span
+                              className="h-[9px] w-[9px] rounded-full"
+                              style={{ background: C.ink }}
+                            />
+                          )}
+                        </span>
+                        <span className="flex-1 text-[15px] font-medium">{u.name}</span>
+                        <span className="text-[13px]" style={{ color: C.muted }}>
+                          från {fmtKr(Math.round((u.basePrice * lowestMult) / 100))}/natt
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
             )}
 
-            {/* Kalender */}
+            {/* ---------- Kalender ---------- */}
             {unit && (
-              <div className="card-surface mt-4 p-5">
-                <div className="flex items-center justify-between">
-                  <button
-                    onClick={() => setMonthOffset((o) => Math.max(0, o - 1))}
-                    disabled={monthOffset === 0}
-                    className="grid h-9 w-9 place-items-center rounded-full hover:bg-[color:var(--bg)] disabled:opacity-30"
-                    aria-label="Föregående månad"
+              <section className="pt-10">
+                <p className={eyebrow} style={{ color: C.muted }}>
+                  Välj datum
+                </p>
+                <div className={`mt-4 border-y py-5 ${hairline}`}>
+                  <div className="flex items-center justify-between px-1">
+                    <button
+                      onClick={() => setMonthOffset((o) => Math.max(0, o - 1))}
+                      disabled={monthOffset === 0}
+                      className="grid h-9 w-9 place-items-center rounded-full transition disabled:opacity-25"
+                      aria-label="Föregående månad"
+                    >
+                      <ChevronLeft size={17} />
+                    </button>
+                    <span className="text-[13px] font-semibold uppercase tracking-[0.14em]">
+                      {new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth() + monthOffset,
+                        1,
+                      ).toLocaleDateString("sv-SE", { month: "long", year: "numeric" })}
+                    </span>
+                    <button
+                      onClick={() => setMonthOffset((o) => Math.min(11, o + 1))}
+                      className="grid h-9 w-9 place-items-center rounded-full"
+                      aria-label="Nästa månad"
+                    >
+                      <ChevronRight size={17} />
+                    </button>
+                  </div>
+                  <MonthCalendar
+                    monthOffset={monthOffset}
+                    unit={unit}
+                    pricing={pricing!}
+                    checkin={checkin}
+                    checkout={checkout}
+                    onPick={pick}
+                  />
+                  <div
+                    className="mt-3 flex items-center justify-between px-1 text-[12px]"
+                    style={{ color: C.muted }}
                   >
-                    <ChevronLeft size={17} />
-                  </button>
-                  <span className="text-[14px] font-bold capitalize">
-                    {new Date(
-                      new Date().getFullYear(),
-                      new Date().getMonth() + monthOffset,
-                      1,
-                    ).toLocaleDateString("sv-SE", { month: "long", year: "numeric" })}
-                  </span>
-                  <button
-                    onClick={() => setMonthOffset((o) => Math.min(11, o + 1))}
-                    className="grid h-9 w-9 place-items-center rounded-full hover:bg-[color:var(--bg)]"
-                    aria-label="Nästa månad"
-                  >
-                    <ChevronRight size={17} />
-                  </button>
+                    <span>
+                      Minst {unit.minStay} {unit.minStay === 1 ? "natt" : "nätter"}
+                    </span>
+                    <span>Helgpåslag +{unit.weekendPct}% fre/lör</span>
+                  </div>
                 </div>
-                <MonthCalendar
-                  monthOffset={monthOffset}
-                  unit={unit}
-                  pricing={pricing!}
-                  checkin={checkin}
-                  checkout={checkout}
-                  onPick={pick}
-                />
-                <div className="mt-3 flex items-center justify-between text-[12px] text-[color:var(--ink)]/50">
-                  <span className="flex items-center gap-1">
-                    <Users size={13} /> Minst {unit.minStay}{" "}
-                    {unit.minStay === 1 ? "natt" : "nätter"}
-                  </span>
-                  <span>Helgpåslag +{unit.weekendPct}% fre/lör</span>
-                </div>
-              </div>
+              </section>
             )}
 
-            {/* Tillval — minimalistiskt: hårlinjer, liten bild, stegvisare */}
+            {/* ---------- Tillval ---------- */}
             {unit && data.addons.length > 0 && (
-              <div className="mt-6">
-                <p className="px-1 text-[12px] font-semibold uppercase tracking-wider text-[color:var(--ink)]/45">
+              <section className="pt-10">
+                <p className={eyebrow} style={{ color: C.muted }}>
                   Gör vistelsen ännu bättre
                 </p>
-                <div className="mt-2 divide-y divide-[color:var(--line)] rounded-2xl bg-white ring-1 ring-[color:var(--line)]">
+                <div className={`mt-4 divide-y border-y ${hairline} ${divideHairline}`}>
                   {data.addons.map((a) => {
                     const qty = addonQty[a.id] ?? 0;
                     return (
-                      <div key={a.id} className="flex items-center gap-3.5 px-4 py-3.5">
+                      <div key={a.id} className="flex items-center gap-4 py-4">
                         {a.imageUrl ? (
                           <img
                             src={a.imageUrl}
                             alt=""
-                            className="h-12 w-12 shrink-0 rounded-xl object-cover"
+                            className="h-14 w-14 shrink-0 rounded-lg object-cover"
                           />
                         ) : (
-                          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-[color:var(--bg)] text-[color:var(--ink)]/25">
+                          <div
+                            className="grid h-14 w-14 shrink-0 place-items-center rounded-lg"
+                            style={{ background: C.soft, color: C.muted }}
+                          >
                             <Plus size={16} />
                           </div>
                         )}
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-[14px] font-semibold">{a.name}</p>
+                          <p className="text-[15px] font-medium">{a.name}</p>
                           {a.description && (
-                            <p className="mt-0.5 line-clamp-1 text-[12px] text-[color:var(--ink)]/50">
+                            <p
+                              className="mt-0.5 line-clamp-1 text-[13px]"
+                              style={{ color: C.muted }}
+                            >
                               {a.description}
                             </p>
                           )}
-                          <p className="mt-0.5 text-[12px] font-semibold text-[color:var(--brass)]">
+                          <p className="mt-0.5 text-[13px]" style={{ color: C.muted }}>
                             {fmtKr(a.price)}
-                            {a.priceType === "per_night" && "/natt"}
+                            {a.priceType === "per_night" && " per natt"}
                           </p>
                         </div>
                         {qty === 0 ? (
                           <button
                             onClick={() => setAddonQty({ ...addonQty, [a.id]: 1 })}
-                            className="shrink-0 rounded-full px-3.5 py-1.5 text-[13px] font-semibold ring-1 ring-[color:var(--line)] transition hover:ring-[color:var(--forest)]"
+                            className="shrink-0 rounded-full px-4 py-2 text-[13px] font-semibold transition hover:opacity-70"
+                            style={{ border: `1px solid ${C.ink}` }}
                           >
                             Lägg till
                           </button>
@@ -454,17 +508,19 @@ function PublicBookingPage() {
                           <div className="flex shrink-0 items-center gap-3">
                             <button
                               onClick={() => setAddonQty({ ...addonQty, [a.id]: qty - 1 })}
-                              className="grid h-8 w-8 place-items-center rounded-full text-[16px] font-bold ring-1 ring-[color:var(--line)] transition hover:ring-[color:var(--forest)]"
+                              className="grid h-8 w-8 place-items-center rounded-full text-[16px]"
+                              style={{ border: `1px solid ${C.line}` }}
                               aria-label="Minska"
                             >
                               −
                             </button>
-                            <span className="w-4 text-center text-[14px] font-bold">{qty}</span>
+                            <span className="w-4 text-center text-[14px] font-semibold">{qty}</span>
                             <button
                               onClick={() =>
                                 setAddonQty({ ...addonQty, [a.id]: Math.min(20, qty + 1) })
                               }
-                              className="grid h-8 w-8 place-items-center rounded-full text-[16px] font-bold ring-1 ring-[color:var(--line)] transition hover:ring-[color:var(--forest)]"
+                              className="grid h-8 w-8 place-items-center rounded-full text-[16px]"
+                              style={{ border: `1px solid ${C.line}` }}
                               aria-label="Öka"
                             >
                               +
@@ -475,52 +531,72 @@ function PublicBookingPage() {
                     );
                   })}
                 </div>
-              </div>
+              </section>
             )}
 
-            {/* Sammanfattning + formulär */}
+            {/* ---------- Sammanfattning + formulär ---------- */}
             <AnimatePresence>
               {quote && unit && (
-                <motion.div
-                  initial={{ opacity: 0, y: 12 }}
+                <motion.section
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="card-surface mt-4 p-5"
+                  className="pt-10"
                 >
-                  <div className="flex items-baseline justify-between">
-                    <span className="text-[14px] text-[color:var(--ink)]/65">
-                      {unit.name} · {quote.nights} {quote.nights === 1 ? "natt" : "nätter"}
-                    </span>
-                    <span className="font-[Fraunces] text-xl font-semibold">
-                      {fmtKr(grandTotal)}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-[12px] text-[color:var(--ink)]/50">
-                    {svDate(checkin!)} – {svDate(checkout!)} · {fmtKr(quote.subtotal)}
-                    {quote.cleaningFee > 0 && ` + städning ${fmtKr(quote.cleaningFee)}`}
+                  <p className={eyebrow} style={{ color: C.muted }}>
+                    Din bokning
                   </p>
-                  {chosenAddons.map((a) => (
-                    <p key={a.id} className="mt-0.5 text-[12px] text-[color:var(--ink)]/50">
-                      + {a.name} ×{a.qty} — {fmtKr(a.lineTotal)}
-                    </p>
-                  ))}
+                  <div className={`mt-4 border-y py-5 ${hairline}`}>
+                    <div className="space-y-1.5 text-[14px]">
+                      <div className="flex justify-between">
+                        <span style={{ color: C.muted }}>
+                          {unit.name} · {quote.nights} {quote.nights === 1 ? "natt" : "nätter"} ·{" "}
+                          {svDate(checkin!)}–{svDate(checkout!)}
+                        </span>
+                        <span>{fmtKr(quote.subtotal)}</span>
+                      </div>
+                      {quote.cleaningFee > 0 && (
+                        <div className="flex justify-between">
+                          <span style={{ color: C.muted }}>Städning</span>
+                          <span>{fmtKr(quote.cleaningFee)}</span>
+                        </div>
+                      )}
+                      {chosenAddons.map((a) => (
+                        <div key={a.id} className="flex justify-between">
+                          <span style={{ color: C.muted }}>
+                            {a.name} ×{a.qty}
+                          </span>
+                          <span>{fmtKr(a.lineTotal)}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div
+                      className="mt-4 flex items-baseline justify-between pt-4"
+                      style={{ borderTop: `1px solid ${C.line}` }}
+                    >
+                      <span className="text-[14px] font-semibold">Totalt</span>
+                      <span className="font-[Fraunces] text-2xl">{fmtKr(grandTotal)}</span>
+                    </div>
+                  </div>
+
                   {!minStayOk && (
-                    <p className="mt-2 rounded-xl bg-amber-50 px-3 py-2 text-[13px] text-amber-800">
+                    <p className="mt-4 text-[13px]" style={{ color: "#A35D2A" }}>
                       Minsta vistelse i {unit.name} är {unit.minStay} nätter.
                     </p>
                   )}
 
-                  <div className="mt-4 space-y-2.5 border-t border-[color:var(--line)] pt-4">
-                    <div className="grid grid-cols-[1fr_auto] gap-2.5">
+                  {/* Formulär: understrukna fält */}
+                  <div className="mt-6 space-y-1">
+                    <div className="grid grid-cols-[1fr_auto] gap-6">
                       <input
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="Ditt namn"
-                        className="inp"
+                        placeholder="Namn"
+                        className="field"
                       />
                       <select
                         value={guests}
                         onChange={(e) => setGuests(Number(e.target.value))}
-                        className="inp"
+                        className="field"
                         aria-label="Antal gäster"
                       >
                         {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
@@ -533,76 +609,98 @@ function PublicBookingPage() {
                     <input
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      placeholder="E-post (bekräftelse skickas hit)"
+                      placeholder="E-post — bekräftelsen skickas hit"
                       type="email"
-                      className="inp"
+                      className="field"
                     />
                     <input
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="Telefon (sms på incheckningsdagen)"
+                      placeholder="Telefon — SMS på incheckningsdagen"
                       type="tel"
-                      className="inp"
+                      className="field"
                     />
-                    {formError && (
-                      <p className="rounded-xl bg-red-50 px-3.5 py-2.5 text-[13px] text-red-700">
-                        {formError}
+                  </div>
+
+                  {/* Betalsätt: radio-rader */}
+                  {payMethods.length > 0 && (
+                    <div className="mt-6">
+                      <p className={eyebrow} style={{ color: C.muted }}>
+                        Betalning
                       </p>
-                    )}
-                    {payMethods.length > 1 && (
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className={`mt-3 divide-y border-y ${hairline} ${divideHairline}`}>
                         {(
                           [
-                            { id: "stripe", label: "💳 Kort", hint: "Visa · Mastercard" },
+                            { id: "stripe", label: "Kort", hint: "Visa · Mastercard · Stripe" },
                             { id: "swish", label: "Swish", hint: "Direkt i appen" },
                           ] as const
                         )
                           .filter((m) => payMethods.includes(m.id))
-                          .map((m) => (
-                            <button
-                              key={m.id}
-                              type="button"
-                              onClick={() => setPayChoice(m.id)}
-                              className={`rounded-xl px-3 py-2.5 text-left ring-1 transition ${
-                                payMethod === m.id
-                                  ? "bg-[color:var(--forest)]/5 ring-2 ring-[color:var(--forest)]"
-                                  : "ring-[color:var(--line)] hover:ring-[color:var(--ink)]/30"
-                              }`}
-                            >
-                              <span className="block text-[14px] font-bold">{m.label}</span>
-                              <span className="block text-[11px] text-[color:var(--ink)]/50">
-                                {m.hint}
-                              </span>
-                            </button>
-                          ))}
+                          .map((m) => {
+                            const selected = payMethod === m.id;
+                            return (
+                              <button
+                                key={m.id}
+                                type="button"
+                                onClick={() => setPayChoice(m.id)}
+                                className="flex w-full items-center gap-4 py-3.5 text-left"
+                              >
+                                <span
+                                  className="grid h-[18px] w-[18px] place-items-center rounded-full"
+                                  style={{
+                                    border: `1.5px solid ${selected ? C.ink : C.line}`,
+                                  }}
+                                >
+                                  {selected && (
+                                    <span
+                                      className="h-[9px] w-[9px] rounded-full"
+                                      style={{ background: C.ink }}
+                                    />
+                                  )}
+                                </span>
+                                <span className="flex-1 text-[15px] font-medium">{m.label}</span>
+                                <span className="text-[12px]" style={{ color: C.muted }}>
+                                  {m.hint}
+                                </span>
+                              </button>
+                            );
+                          })}
                       </div>
-                    )}
-                    <button
-                      onClick={submit}
-                      disabled={!canSubmit}
-                      className="btn-primary w-full justify-center !rounded-xl !py-3.5 text-[15px] disabled:opacity-40"
-                    >
-                      {sending
-                        ? "Bokar…"
-                        : payMethod === "stripe"
-                          ? `Betala ${fmtKr(grandTotal)} med kort →`
-                          : `Boka ${fmtKr(grandTotal)} →`}
-                    </button>
-                    <p className="text-center text-[12px] text-[color:var(--ink)]/45">
-                      {payMethod === "stripe"
-                        ? "Säker kortbetalning via Stripe — bokningen bekräftas direkt."
-                        : payMethod === "swish"
-                          ? "Du betalar smidigt med Swish direkt efter bokningen."
-                          : "Ingen betalning online — betalning sker enligt överenskommelse med värden."}
+                    </div>
+                  )}
+
+                  {formError && (
+                    <p className="mt-4 text-[13px]" style={{ color: "#A33B2A" }}>
+                      {formError}
                     </p>
-                  </div>
-                </motion.div>
+                  )}
+
+                  <button
+                    onClick={submit}
+                    disabled={!canSubmit}
+                    className="mt-6 w-full rounded-full py-4 text-[15px] font-semibold text-white transition hover:opacity-85 disabled:opacity-30"
+                    style={{ background: C.ink }}
+                  >
+                    {sending
+                      ? "Bokar…"
+                      : payMethod === "stripe"
+                        ? `Betala ${fmtKr(grandTotal)} med kort`
+                        : `Boka · ${fmtKr(grandTotal)}`}
+                  </button>
+                  <p className="mt-3 text-center text-[12px]" style={{ color: C.muted }}>
+                    {payMethod === "stripe"
+                      ? "Säker kortbetalning via Stripe — bokningen bekräftas direkt."
+                      : payMethod === "swish"
+                        ? "Du betalar smidigt med Swish direkt efter bokningen."
+                        : "Betalning sker enligt överenskommelse med värden."}
+                  </p>
+                </motion.section>
               )}
             </AnimatePresence>
           </>
         )}
 
-        <p className="mt-8 text-center text-[12px] text-[color:var(--ink)]/40">
+        <p className="mt-16 text-center text-[12px]" style={{ color: C.muted }}>
           <Link to="/" className="hover:underline">
             Bokningsmotor av StayBoost
           </Link>
@@ -645,13 +743,16 @@ function MonthCalendar({
   ];
 
   return (
-    <div className="mt-3">
-      <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold text-[color:var(--ink)]/45">
+    <div className="mt-4">
+      <div
+        className="grid grid-cols-7 gap-1 text-center text-[10px] font-semibold uppercase tracking-wider"
+        style={{ color: C.muted }}
+      >
         {WEEKDAYS.map((d) => (
           <div key={d}>{d}</div>
         ))}
       </div>
-      <div className="mt-1 grid grid-cols-7 gap-1">
+      <div className="mt-1.5 grid grid-cols-7 gap-1">
         {cells.map((iso, i) => {
           if (!iso) return <div key={`b${i}`} />;
           const past = iso < today;
@@ -666,23 +767,23 @@ function MonthCalendar({
               key={iso}
               disabled={disabled}
               onClick={() => onPick(iso)}
-              className={`flex min-h-[54px] flex-col items-center justify-center rounded-xl px-0.5 py-1 transition ${
-                isStart || isEnd
-                  ? "bg-[color:var(--forest)] text-white"
-                  : inRange
-                    ? "bg-[color:var(--brass)]/20"
-                    : booked
-                      ? "opacity-40"
-                      : "hover:bg-[color:var(--forest)]/8"
-              }`}
+              className="flex min-h-[56px] flex-col items-center justify-center rounded-full transition"
+              style={{
+                background: isStart || isEnd ? C.ink : inRange ? C.soft : "transparent",
+                color: isStart || isEnd ? "#fff" : booked ? C.line : past ? C.line : C.ink,
+              }}
             >
-              <span className="text-[13px] font-semibold">{Number(iso.slice(8))}</span>
               <span
-                className={`text-[10px] ${
-                  isStart || isEnd ? "text-white/80" : "text-[color:var(--ink)]/45"
-                }`}
+                className="text-[13px] font-medium"
+                style={{ textDecoration: booked ? "line-through" : undefined }}
               >
-                {booked ? "Bokad" : price ? price.toLocaleString("sv-SE") : ""}
+                {Number(iso.slice(8))}
+              </span>
+              <span
+                className="text-[10px]"
+                style={{ color: isStart || isEnd ? "rgba(255,255,255,0.75)" : C.muted }}
+              >
+                {booked ? "" : price ? price.toLocaleString("sv-SE") : ""}
               </span>
             </button>
           );

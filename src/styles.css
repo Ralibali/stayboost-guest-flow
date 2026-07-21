@@ -219,3 +219,26 @@
 .inp:focus {
   border-color: var(--forest);
 }
+
+/* Skandinavisk minimalism: understruket formulärfält (publik bokningssida) */
+.field {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #e7e7e1;
+  border-radius: 0;
+  background: transparent;
+  padding: 0.75rem 0.125rem;
+  font-size: 0.9375rem;
+  color: #1b1b19;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.field::placeholder {
+  color: #8b8b85;
+}
+.field:focus {
+  border-bottom-color: #1b1b19;
+}
+select.field {
+  appearance: none;
+}

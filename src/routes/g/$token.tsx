@@ -1,12 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Clock, DoorOpen, House, KeyRound, MapPin, Phone, Wifi } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 
 export const Route = createFileRoute("/g/$token")({
   component: GuestPage,
 });
+
+/* ---------- Design: skandinavisk minimalism ---------- */
+
+const C = {
+  bg: "#FAFAF8",
+  ink: "#1B1B19",
+  muted: "#8B8B85",
+  line: "#E7E7E1",
+} as const;
+
+const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.18em]";
 
 type GuestData = {
   guestName: string | null;
@@ -82,18 +93,24 @@ function GuestPage() {
 
   if (state === "loading") {
     return (
-      <div className="grid min-h-screen place-items-center bg-[color:var(--bg)]">
-        <div className="h-10 w-10 animate-spin rounded-full border-2 border-[color:var(--line)] border-t-[color:var(--forest)]" />
+      <div className="grid min-h-screen place-items-center" style={{ background: C.bg }}>
+        <div
+          className="h-9 w-9 animate-spin rounded-full border-2 border-t-transparent"
+          style={{ borderColor: C.line, borderTopColor: "transparent" }}
+        />
       </div>
     );
   }
 
   if (state === "notfound" || !data) {
     return (
-      <div className="grid min-h-screen place-items-center bg-[color:var(--bg)] px-6 text-center">
+      <div
+        className="grid min-h-screen place-items-center px-6 text-center"
+        style={{ background: C.bg, color: C.ink }}
+      >
         <div>
-          <p className="font-[Fraunces] text-3xl font-semibold">Länken är inte giltig längre</p>
-          <p className="mt-3 text-[15px] text-[color:var(--ink)]/60">
+          <p className="font-[Fraunces] text-3xl">Länken är inte giltig längre</p>
+          <p className="mt-3 text-[15px]" style={{ color: C.muted }}>
             Kontakta oss gärna direkt om du behöver en ny länk till din gästsida.
           </p>
         </div>
@@ -104,65 +121,84 @@ function GuestPage() {
   const p = data.property;
 
   return (
-    <div className="min-h-screen bg-[color:var(--bg)] pb-16">
-      <div className="mx-auto max-w-md px-4 pt-6">
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="overflow-hidden rounded-[24px] bg-[color:var(--forest)] text-white shadow-[0_20px_50px_rgba(20,36,28,0.25)]"
-        >
-          <div className="p-6 pb-5">
-            <p className="text-[12px] uppercase tracking-wide text-white/60">Välkommen till</p>
-            <h1 className="mt-1 font-[Fraunces] text-[26px] font-semibold leading-tight">
-              {p.name}
-            </h1>
-            <div className="mt-4 rounded-2xl bg-white/10 px-4 py-3">
-              <div className="text-[12px] uppercase tracking-wide text-white/60">Gäst</div>
-              <div className="font-semibold">{data.guestName ?? "Välkommen"}</div>
-              <div className="mt-2 text-[14px] text-white/85">
-                {svLong(data.checkinDate)} – {svLong(data.checkoutDate)}
-              </div>
-              {data.unit && (
-                <div className="mt-1 text-[13px] text-white/70">🏠 {data.unit.name}</div>
-              )}
+    <div className="min-h-screen pb-20" style={{ background: C.bg, color: C.ink }}>
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mx-auto max-w-xl px-5 pt-14"
+      >
+        {/* ---------- Sidhuvud ---------- */}
+        <header className="border-b border-[#E7E7E1] pb-8">
+          <p className={eyebrow} style={{ color: C.muted }}>
+            Välkommen till
+          </p>
+          <h1 className="mt-3 font-[Fraunces] text-[36px] leading-[1.1]">{p.name}</h1>
+          <p className="mt-4 text-[15px]">
+            <span style={{ color: C.muted }}>Gäst</span>{" "}
+            <span className="font-medium">{data.guestName ?? "Välkommen"}</span>
+          </p>
+          <p className="mt-1 text-[15px]">
+            {svLong(data.checkinDate)} – {svLong(data.checkoutDate)}
+          </p>
+          {data.unit && (
+            <p className="mt-1 text-[14px]" style={{ color: C.muted }}>
+              {data.unit.name}
+            </p>
+          )}
+          <div className="mt-6 grid grid-cols-2 gap-4 border-t border-[#E7E7E1] pt-5">
+            <div>
+              <p className={eyebrow} style={{ color: C.muted }}>
+                Incheckning
+              </p>
+              <p className="mt-1.5 text-[16px] font-medium">från {p.checkin_time}</p>
+            </div>
+            <div>
+              <p className={eyebrow} style={{ color: C.muted }}>
+                Utcheckning
+              </p>
+              <p className="mt-1.5 text-[16px] font-medium">{p.checkout_time}</p>
             </div>
           </div>
-          <div className="flex items-center justify-between bg-[color:var(--brass)] px-6 py-3.5 text-[14px] font-medium">
-            <span className="flex items-center gap-2">
-              <Clock size={15} /> Incheckning från {p.checkin_time}
-            </span>
-            <span>Ut {p.checkout_time}</span>
-          </div>
-        </motion.div>
+        </header>
 
+        {/* ---------- Betalning ---------- */}
         {data.payment?.status === "paid" && (
-          <div className="card-surface mt-4 p-5 ring-2 ring-[color:var(--success)]">
-            <p className="text-[15px] font-bold">✓ Betalningen är mottagen</p>
-            <p className="mt-1 text-[13px] text-[color:var(--ink)]/60">
-              Din bokning är bekräftad och betald — vi ses snart!
-            </p>
+          <div className="mt-8 flex items-center gap-3 border border-[#1B1B19] px-5 py-4">
+            <Check size={16} />
+            <div>
+              <p className="text-[14px] font-semibold">Betalningen är mottagen</p>
+              <p className="text-[13px]" style={{ color: C.muted }}>
+                Din bokning är bekräftad och betald — vi ses snart.
+              </p>
+            </div>
           </div>
         )}
 
         {justPaid && data.payment?.status === "pending" && (
-          <div className="card-surface mt-4 p-5 ring-2 ring-[color:var(--brass)]">
-            <p className="text-[15px] font-bold">⏳ Din betalning behandlas</p>
-            <p className="mt-1 text-[13px] text-[color:var(--ink)]/60">
+          <div className="mt-8 border border-[#E7E7E1] px-5 py-4">
+            <p className="text-[14px] font-semibold">Din betalning behandlas</p>
+            <p className="text-[13px]" style={{ color: C.muted }}>
               Kortbetalningen registreras just nu — sidan uppdateras automatiskt inom någon minut.
             </p>
           </div>
         )}
 
         {data.payment?.status === "pending" && data.payment.amount && p.swish_number && (
-          <div className="card-surface mt-4 p-5 ring-2 ring-[color:var(--brass)]">
-            <p className="text-[15px] font-bold">💸 Betala med Swish</p>
-            <p className="mt-1 text-[13px] text-[color:var(--ink)]/60">
-              Swisha {data.payment.amount.toLocaleString("sv-SE")} kr till{" "}
-              <span className="font-mono font-semibold">{p.swish_number}</span>
+          <div className="mt-8 border border-[#1B1B19] px-5 py-4">
+            <p className={eyebrow} style={{ color: C.muted }}>
+              Betala med Swish
+            </p>
+            <p className="mt-2 text-[14px] leading-relaxed" style={{ color: C.muted }}>
+              Swisha{" "}
+              <strong style={{ color: C.ink }}>
+                {data.payment.amount.toLocaleString("sv-SE")} kr
+              </strong>{" "}
+              till <span className="font-mono font-semibold text-[#1B1B19]">{p.swish_number}</span>
               {data.payment.ref && (
                 <>
                   {" "}
-                  och märk med <span className="font-mono font-semibold">{data.payment.ref}</span>
+                  och märk med{" "}
+                  <span className="font-mono font-semibold text-[#1B1B19]">{data.payment.ref}</span>
                 </>
               )}
               . Bokningen är säkrad när betalningen kommit in.
@@ -170,124 +206,105 @@ function GuestPage() {
           </div>
         )}
 
-        <div className="mt-4 grid grid-cols-2 gap-3">
-          {data.unit?.door_code && (
-            <InfoCard icon={KeyRound} label="Portkod" value={data.unit.door_code} mono />
-          )}
-          {p.wifi_name && (
-            <button onClick={() => copy(p.wifi_password ?? "", "wifi")} className="text-left">
-              <InfoCard
-                icon={Wifi}
-                label="Wifi"
-                value={p.wifi_name}
-                hint={
-                  copiedField === "wifi"
-                    ? "✓ Lösenord kopierat!"
-                    : `Lösen: ${p.wifi_password ?? ""} · tryck för att kopiera`
-                }
-              />
-            </button>
-          )}
-          <InfoCard
-            icon={DoorOpen}
-            label="Incheckning"
-            value={p.checkin_time}
-            hint={svLong(data.checkinDate)}
-          />
-          <InfoCard
-            icon={Clock}
-            label="Utcheckning"
-            value={p.checkout_time}
-            hint={svLong(data.checkoutDate)}
-          />
-        </div>
+        {/* ---------- Praktiskt ---------- */}
+        <section className="mt-10">
+          <p className={eyebrow} style={{ color: C.muted }}>
+            Praktiskt
+          </p>
+          <div className="mt-3 divide-y divide-[#E7E7E1] border-y border-[#E7E7E1]">
+            {data.unit?.door_code && (
+              <Row label="Portkod">
+                <span className="font-mono text-[16px] tracking-[0.25em]">
+                  {data.unit.door_code}
+                </span>
+              </Row>
+            )}
+            {p.wifi_name && (
+              <Row label="Wifi">
+                <button onClick={() => copy(p.wifi_password ?? "", "wifi")} className="text-right">
+                  <span className="block text-[15px] font-medium">{p.wifi_name}</span>
+                  <span
+                    className="mt-0.5 flex items-center justify-end gap-1.5 text-[12px]"
+                    style={{ color: C.muted }}
+                  >
+                    {copiedField === "wifi" ? (
+                      <>
+                        <Check size={12} /> Lösenord kopierat
+                      </>
+                    ) : (
+                      <>
+                        <Copy size={12} /> {p.wifi_password} · tryck för att kopiera
+                      </>
+                    )}
+                  </span>
+                </button>
+              </Row>
+            )}
+            <Row label="Incheckning">
+              <span className="text-[15px] font-medium">från {p.checkin_time}</span>
+              <span className="block text-[12px]" style={{ color: C.muted }}>
+                {svLong(data.checkinDate)}
+              </span>
+            </Row>
+            <Row label="Utcheckning">
+              <span className="text-[15px] font-medium">{p.checkout_time}</span>
+              <span className="block text-[12px]" style={{ color: C.muted }}>
+                {svLong(data.checkoutDate)}
+              </span>
+            </Row>
+          </div>
+        </section>
 
-        {p.directions && (
-          <Section icon={MapPin} title="Hitta hit">
-            <p className="whitespace-pre-line text-[14px] leading-relaxed text-[color:var(--ink)]/75">
-              {p.directions}
-            </p>
-          </Section>
-        )}
+        {/* ---------- Hitta hit / husregler ---------- */}
+        {p.directions && <Section title="Hitta hit">{p.directions}</Section>}
+        {p.house_rules && <Section title="Husregler">{p.house_rules}</Section>}
 
-        {p.house_rules && (
-          <Section icon={House} title="Husregler">
-            <p className="whitespace-pre-line text-[14px] leading-relaxed text-[color:var(--ink)]/75">
-              {p.house_rules}
-            </p>
-          </Section>
-        )}
-
+        {/* ---------- Kontakt ---------- */}
         {p.contact_phone && (
           <a
             href={`tel:${p.contact_phone.replace(/\s/g, "")}`}
-            className="card-surface mt-4 flex items-center gap-3 p-4"
+            className="mt-10 flex items-center justify-between border-y border-[#E7E7E1] py-4"
           >
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-[color:var(--forest)] text-white">
-              <Phone size={17} />
-            </span>
             <span>
-              <span className="block text-[13px] text-[color:var(--ink)]/55">Frågor? Ring oss</span>
-              <span className="text-[15px] font-semibold">{p.contact_phone}</span>
+              <span className="block text-[12px]" style={{ color: C.muted }}>
+                Frågor? Ring oss gärna
+              </span>
+              <span className="text-[16px] font-medium">{p.contact_phone}</span>
+            </span>
+            <span className="text-[18px]" style={{ color: C.muted }}>
+              →
             </span>
           </a>
         )}
 
-        <p className="mt-8 text-center text-[12px] text-[color:var(--ink)]/40">
+        <p className="mt-14 text-center text-[12px]" style={{ color: C.muted }}>
           Gästsida via StayBoost
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 }
 
-function InfoCard({
-  icon: Icon,
-  label,
-  value,
-  hint,
-  mono,
-}: {
-  icon: typeof KeyRound;
-  label: string;
-  value: string;
-  hint?: string;
-  mono?: boolean;
-}) {
+function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="card-surface h-full p-4">
-      <div className="flex items-center gap-1.5 text-[12px] font-medium uppercase tracking-wide text-[color:var(--ink)]/50">
-        <Icon size={13} />
+    <div className="flex items-center justify-between gap-4 py-4">
+      <span className={eyebrow} style={{ color: C.muted }}>
         {label}
-      </div>
-      <div
-        className={`mt-1.5 break-words text-[17px] font-semibold leading-tight ${mono ? "font-mono tracking-widest" : ""}`}
-      >
-        {value}
-      </div>
-      {hint && (
-        <div className="mt-1 text-[12px] leading-snug text-[color:var(--ink)]/50">{hint}</div>
-      )}
+      </span>
+      <span className="text-right">{children}</span>
     </div>
   );
 }
 
-function Section({
-  icon: Icon,
-  title,
-  children,
-}: {
-  icon: typeof MapPin;
-  title: string;
-  children: React.ReactNode;
-}) {
+function Section({ title, children }: { title: string; children: string }) {
   return (
-    <div className="card-surface mt-4 p-5">
-      <div className="flex items-center gap-2 font-semibold">
-        <Icon size={16} className="text-[color:var(--brass)]" />
+    <section className="mt-10">
+      <p className={eyebrow} style={{ color: C.muted }}>
         {title}
-      </div>
-      <div className="mt-2.5">{children}</div>
-    </div>
+      </p>
+      <p className="mt-3 border-t border-[#E7E7E1] pt-4 text-[15px] leading-relaxed whitespace-pre-line">
+        {children}
+      </p>
+    </section>
   );
 }
