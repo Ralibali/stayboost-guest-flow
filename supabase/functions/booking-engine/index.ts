@@ -1,5 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { nightsBetween, quoteStay, rangesOverlap } from "../_shared/pricing.ts";
+import {
+  checkAvailabilityRules,
+  minStayFromRules,
+  rulesForUnit,
+  type RateRule,
+} from "../_shared/rate-rules.ts";
 import { priceAddons, sumAddons } from "../_shared/addons.ts";
 import { createCheckoutSession } from "../_shared/stripe.ts";
 
