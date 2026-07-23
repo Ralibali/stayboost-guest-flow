@@ -295,7 +295,16 @@ function PublicBookingPage() {
       if (!r.ok) {
         const message: Record<string, string> = {
           unavailable: "Datumen hann tyvärr bokas av någon annan. Välj andra datum.",
-          min_stay: `Minsta vistelse är ${d.minStay ?? unit.minStay} nätter.`,
+          closed: d.date
+            ? `Boendet är stängt för försäljning ${svDate(d.date)}. Välj andra datum.`
+            : "Boendet är stängt för försäljning under valda datum.",
+          no_arrival: d.date
+            ? `Incheckning är inte möjlig ${svDate(d.date)}. Välj en annan ankomstdag.`
+            : "Incheckning är inte möjlig på valt datum.",
+          no_departure: d.date
+            ? `Utcheckning är inte möjlig ${svDate(d.date)}. Välj en annan avresedag.`
+            : "Utcheckning är inte möjlig på valt datum.",
+          min_stay: `Minsta vistelse på dessa datum är ${d.minStay ?? unit.minStay} nätter.`,
           capacity_exceeded: `Det här boendet tar högst ${d.maxGuests ?? unit.maxGuests} gäster.`,
           name_required: "Ange ditt fullständiga namn.",
           email_required: "Ange en giltig e-postadress.",
