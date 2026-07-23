@@ -7,12 +7,14 @@ import {
   Mail,
   PackagePlus,
   Settings,
+  Tag,
 } from "lucide-react";
 import type { ReactNode } from "react";
 
 const NAV = [
   { to: "/app", label: "Översikt", icon: LayoutDashboard },
   { to: "/app/bokningar", label: "Bokningar", icon: CalendarDays },
+  { to: "/app/prisregler", label: "Prisregler", icon: Tag },
   { to: "/app/kallor", label: "iCal-källor", icon: Link2 },
   { to: "/app/mallar", label: "Mallar", icon: Mail },
   { to: "/app/tillval", label: "Tillval", icon: PackagePlus },
