@@ -71,10 +71,14 @@ Deno.serve(async (req) => {
 
   let query = admin
     .from("ical_sources")
-    .select("id, property_id, unit_id, name, url, properties!inner(owner_id)");
+    .select(
+      "id, property_id, unit_id, name, url, paused, consecutive_failures, properties!inner(owner_id)",
+    )
+    .eq("paused", false);
   if (ownerFilter) query = query.eq("properties.owner_id", ownerFilter);
   const { data: sources, error: sourceError } = await query;
   if (sourceError) return json({ error: sourceError.message }, 500);
+
 
   const today = new Date().toISOString().slice(0, 10);
   const results: Array<Record<string, unknown>> = [];
