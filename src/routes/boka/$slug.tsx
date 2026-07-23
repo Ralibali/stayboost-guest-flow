@@ -18,6 +18,7 @@ import {
   rangesOverlap,
   type UnitPricing,
 } from "../../../supabase/functions/_shared/pricing";
+import { normalizePhoneSE } from "@/lib/phone";
 
 export const Route = createFileRoute("/boka/$slug")({
   component: PublicBookingPage,
