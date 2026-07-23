@@ -159,10 +159,27 @@ function PublicBookingPage() {
     if (unit) setGuests((n) => Math.min(Math.max(1, n), unit.maxGuests));
   }, [unit]);
 
+  const unitRules = useMemo<RateRule[]>(() => unit?.rateRules ?? [], [unit]);
+
   const quote = useMemo(
-    () => (pricing && checkin && checkout ? quoteStay(pricing, checkin, checkout) : null),
-    [pricing, checkin, checkout],
+    () =>
+      pricing && checkin && checkout && unit
+        ? quoteStay(pricing, checkin, checkout, { rules: unitRules, unitId: unit.id })
+        : null,
+    [pricing, checkin, checkout, unit, unitRules],
   );
+
+  // Regelbaserad förhandsvalidering (matchar serverns kontroll för snabbare UX).
+  const availabilityIssue = useMemo(() => {
+    if (!unit || !checkin || !checkout) return null;
+    const nights = nightsBetween(checkin, checkout);
+    return checkAvailabilityRules(unitRules, unit.id, nights, checkout);
+  }, [unit, checkin, checkout, unitRules]);
+
+  const ruleMinStay = useMemo(() => {
+    if (!unit || !checkin || !checkout) return 0;
+    return minStayFromRules(unitRules, unit.id, nightsBetween(checkin, checkout));
+  }, [unit, checkin, checkout, unitRules]);
 
   const chosenAddons = useMemo(() => {
     if (!data || !quote) return [];
@@ -193,10 +210,12 @@ function PublicBookingPage() {
     setFormError(null);
   };
 
-  const minStayOk = !quote || !unit || quote.nights >= unit.minStay;
+  const effectiveMinStay = Math.max(unit?.minStay ?? 0, ruleMinStay);
+  const minStayOk = !quote || quote.nights >= effectiveMinStay;
   const emailOk = EMAIL.test(email.trim());
   const normalizedPhone = phone.trim() ? normalizePhoneSE(phone.trim()) : null;
   const phoneOk = !phone.trim() || normalizedPhone !== null;
+
 
   const payMethods = data
     ? ([
