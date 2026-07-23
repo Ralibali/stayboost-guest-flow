@@ -188,17 +188,8 @@ function PublicBookingPage() {
 
   const minStayOk = !quote || !unit || quote.nights >= unit.minStay;
   const emailOk = EMAIL.test(email.trim());
-  const canSubmit = Boolean(
-    unit &&
-      quote &&
-      minStayOk &&
-      name.trim().length >= 2 &&
-      emailOk &&
-      guests >= 1 &&
-      guests <= unit.maxGuests &&
-      termsAccepted &&
-      !sending,
-  );
+  const normalizedPhone = phone.trim() ? normalizePhoneSE(phone.trim()) : null;
+  const phoneOk = !phone.trim() || normalizedPhone !== null;
 
   const payMethods = data
     ? ([
@@ -207,6 +198,21 @@ function PublicBookingPage() {
       ] as ("stripe" | "swish")[])
     : [];
   const payMethod = payChoice && payMethods.includes(payChoice) ? payChoice : (payMethods[0] ?? null);
+  const phoneRequired = payMethod === "swish";
+
+  const canSubmit = Boolean(
+    unit &&
+      quote &&
+      minStayOk &&
+      name.trim().length >= 2 &&
+      emailOk &&
+      phoneOk &&
+      (!phoneRequired || normalizedPhone) &&
+      guests >= 1 &&
+      guests <= unit.maxGuests &&
+      termsAccepted &&
+      !sending,
+  );
 
   const submit = async () => {
     if (!canSubmit || !unit || !checkin || !checkout) return;
