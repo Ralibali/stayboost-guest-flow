@@ -57,11 +57,22 @@ function BookingsPage() {
   const { property, units } = useProperty(session);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [unitFilter, setUnitFilter] = useState("alla");
+  const [filters, setFilters] = useState<BookingFilters>(emptyFilters);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
+
+  const updateFilter = <K extends keyof BookingFilters>(k: K, v: BookingFilters[K]) =>
+    setFilters((f) => ({ ...f, [k]: v }));
+  const activeFilterCount =
+    (filters.search ? 1 : 0) +
+    (filters.unitId !== "alla" ? 1 : 0) +
+    (filters.status !== "all" ? 1 : 0) +
+    (filters.source !== "all" ? 1 : 0) +
+    (filters.payment !== "all" ? 1 : 0) +
+    (filters.from ? 1 : 0) +
+    (filters.to ? 1 : 0);
 
   const load = useCallback(async () => {
     if (!supabase || !property) return;
@@ -82,22 +93,27 @@ function BookingsPage() {
   }, [load]);
 
   const today = new Date().toISOString().slice(0, 10);
+  const filtered = useMemo(() => filterBookings(bookings, filters), [bookings, filters]);
   const upcoming = useMemo(
-    () =>
-      bookings
-        .filter((b) => b.status === "confirmed" && b.checkout_date >= today)
-        .filter((b) => unitFilter === "alla" || b.unit_id === unitFilter),
-    [bookings, today, unitFilter],
+    () => filtered.filter((b) => b.status === "confirmed" && b.checkout_date >= today),
+    [filtered, today],
   );
   const past = useMemo(
-    () =>
-      bookings
-        .filter((b) => !(b.status === "confirmed" && b.checkout_date >= today))
-        .filter((b) => unitFilter === "alla" || b.unit_id === unitFilter)
-        .slice(-20)
-        .reverse(),
-    [bookings, today, unitFilter],
+    () => filtered.filter((b) => !(b.status === "confirmed" && b.checkout_date >= today)).slice(-40).reverse(),
+    [filtered, today],
   );
+
+  const exportCsv = () => {
+    const csv = "\ufeff" + bookingsToCsv(filtered); // BOM för Excel
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = csvFilename();
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
 
   const conflictIds = useMemo(() => {
     const ids = new Set<string>();
