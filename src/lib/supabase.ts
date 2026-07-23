@@ -166,9 +166,9 @@ export function classifyIcalHealth(
   if (source.paused) return "paused";
   const failures = source.consecutive_failures ?? 0;
   if (failures >= 2) return "red";
-  const lastOk = source.last_success_at ?? (
-    source.last_status?.toLowerCase().startsWith("ok") ? source.last_synced_at : null
-  );
+  const lastOk =
+    source.last_success_at ??
+    (source.last_status?.toLowerCase().startsWith("ok") ? source.last_synced_at : null);
   const ageMs = lastOk ? now.getTime() - new Date(lastOk).getTime() : Infinity;
   const sixHours = 6 * 60 * 60 * 1000;
   if (failures >= 1 || ageMs > sixHours) return "yellow";
@@ -178,12 +178,7 @@ export function classifyIcalHealth(
 /* ---------- Prisregler (datumstyrda) ---------- */
 
 export type RateRuleKind =
-  | "price_override"
-  | "price_multiplier"
-  | "min_stay"
-  | "closed"
-  | "no_arrival"
-  | "no_departure";
+  "price_override" | "price_multiplier" | "min_stay" | "closed" | "no_arrival" | "no_departure";
 
 export type RateRule = {
   id: string;
@@ -211,7 +206,6 @@ export const RATE_RULE_LABELS: Record<RateRuleKind, string> = {
   no_arrival: "Stängd ankomst",
   no_departure: "Stängd avresa",
 };
-
 
 export type MessageTemplate = {
   id: string;

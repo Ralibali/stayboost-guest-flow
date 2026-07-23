@@ -37,6 +37,7 @@ import {
   verifyStripeSignature,
 } from "../../supabase/functions/_shared/stripe";
 import { formatSvDate, renderTemplate } from "../../supabase/functions/_shared/templates";
+import { getStrings } from "./boka-i18n";
 
 /* ================= iCal-parser ================= */
 
@@ -875,4 +876,35 @@ describe("chatt-migration mot Postgres", () => {
     const left = await db.query<{ n: number }>("select count(*)::int as n from chat_messages");
     expect(left.rows[0].n).toBe(0);
   }, 30000);
+});
+
+/* ================= Bokningssidans språk (sv/en/de) ================= */
+
+describe("boka-i18n", () => {
+  it("alla tre språk har exakt samma nycklar och typer", () => {
+    const sv = getStrings("sv");
+    for (const lang of ["en", "de"] as const) {
+      const other = getStrings(lang) as Record<string, unknown>;
+      for (const [key, value] of Object.entries(sv as Record<string, unknown>)) {
+        expect(typeof other[key], `${lang}.${key} saknas eller har fel typ`).toBe(typeof value);
+      }
+    }
+  });
+
+  it("plural- och formatfunktioner fungerar på alla språk", () => {
+    expect(getStrings("sv").nights(1)).toBe("natt");
+    expect(getStrings("sv").nights(3)).toBe("nätter");
+    expect(getStrings("en").nights(1)).toBe("night");
+    expect(getStrings("en").nights(3)).toBe("nights");
+    expect(getStrings("de").nights(1)).toBe("Nacht");
+    expect(getStrings("de").nights(3)).toBe("Nächte");
+    expect(getStrings("de").payWithCard("1 250 kr")).toContain("1 250 kr");
+    expect(getStrings("en").minStayWarning("Tältet", 2)).toContain("2 nights");
+  });
+
+  it("veckodagarna har sju dagar på alla språk", () => {
+    for (const lang of ["sv", "en", "de"] as const) {
+      expect(getStrings(lang).weekdays).toHaveLength(7);
+    }
+  });
 });

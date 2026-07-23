@@ -170,9 +170,7 @@ function SourcesPage() {
 
   const sirvoySources = useMemo(
     () =>
-      sources.filter(
-        (source) => (source.channel_type ?? inferChannelType(source)) === "sirvoy",
-      ),
+      sources.filter((source) => (source.channel_type ?? inferChannelType(source)) === "sirvoy"),
     [sources],
   );
   const lastSirvoySync = useMemo(() => {
@@ -198,7 +196,8 @@ function SourcesPage() {
       <p className="eyebrow">Integrationer</p>
       <h1 className="mt-2 font-[Fraunces] text-3xl font-semibold">iCal-källor</h1>
       <p className="mt-1 text-[14px] text-[color:var(--ink)]/65">
-        Lägg till en exportkalender per boende och kanal. Automatisk synkning bör köras var femtonde minut.
+        Lägg till en exportkalender per boende och kanal. Automatisk synkning bör köras var femtonde
+        minut.
       </p>
 
       <div className="card-surface mt-5 border-l-4 border-[color:var(--forest)] p-5">
@@ -206,8 +205,8 @@ function SourcesPage() {
           Sirvoy-parallelläge
         </p>
         <p className="mt-1.5 text-[14px] leading-relaxed text-[color:var(--ink)]/80">
-          Sirvoy är fortsatt primär channel manager mot Booking.com och Airbnb. StayBoost tar
-          emot direktbokningar och importerar Sirvoys iCal-flöden för att blockera dubbelbokningar.
+          Sirvoy är fortsatt primär channel manager mot Booking.com och Airbnb. StayBoost tar emot
+          direktbokningar och importerar Sirvoys iCal-flöden för att blockera dubbelbokningar.
         </p>
         <p className="mt-2 text-[13px] text-[color:var(--ink)]/60">
           Senaste lyckade Sirvoy-synk: <strong>{formatDateTime(lastSirvoySync)}</strong>
@@ -217,8 +216,8 @@ function SourcesPage() {
           <div className="mt-3 flex items-start gap-2 rounded-xl bg-red-50 px-3.5 py-2.5 text-[13px] text-red-800">
             <AlertTriangle size={16} className="mt-0.5 shrink-0" />
             <span>
-              Överväg att pausa direktbokningar för <strong>{unhealthyUnits.join(", ")}</strong> tills
-              kalendersynken fungerar igen — annars riskerar du dubbelbokning.
+              Överväg att pausa direktbokningar för <strong>{unhealthyUnits.join(", ")}</strong>{" "}
+              tills kalendersynken fungerar igen — annars riskerar du dubbelbokning.
             </span>
           </div>
         )}
@@ -266,7 +265,9 @@ function SourcesPage() {
           </button>
         </div>
         {error && (
-          <p className="mt-3 rounded-xl bg-red-50 px-3.5 py-2.5 text-[13px] text-red-700">{error}</p>
+          <p className="mt-3 rounded-xl bg-red-50 px-3.5 py-2.5 text-[13px] text-red-700">
+            {error}
+          </p>
         )}
       </div>
 
@@ -290,7 +291,9 @@ function SourcesPage() {
               >
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
-                    <span className={`inline-flex items-center gap-1.5 text-[12px] font-semibold ${styles.tone}`}>
+                    <span
+                      className={`inline-flex items-center gap-1.5 text-[12px] font-semibold ${styles.tone}`}
+                    >
                       <span className={`h-2 w-2 rounded-full ${styles.dot}`} />
                       {styles.label}
                     </span>
@@ -307,25 +310,37 @@ function SourcesPage() {
                       </span>
                     )}
                   </div>
-                  <p className="mt-1 truncate text-[12px] text-[color:var(--ink)]/50">{source.url}</p>
+                  <p className="mt-1 truncate text-[12px] text-[color:var(--ink)]/50">
+                    {source.url}
+                  </p>
                   <dl className="mt-2 grid gap-x-4 gap-y-0.5 text-[12px] text-[color:var(--ink)]/60 sm:grid-cols-3">
                     <div>
-                      <dt className="inline font-semibold text-[color:var(--ink)]/50">Senaste försök: </dt>
-                      <dd className="inline">{formatDateTime(source.last_attempt_at ?? source.last_synced_at)}</dd>
+                      <dt className="inline font-semibold text-[color:var(--ink)]/50">
+                        Senaste försök:{" "}
+                      </dt>
+                      <dd className="inline">
+                        {formatDateTime(source.last_attempt_at ?? source.last_synced_at)}
+                      </dd>
                     </div>
                     <div>
-                      <dt className="inline font-semibold text-[color:var(--ink)]/50">Senast lyckad: </dt>
+                      <dt className="inline font-semibold text-[color:var(--ink)]/50">
+                        Senast lyckad:{" "}
+                      </dt>
                       <dd className="inline">{formatDateTime(source.last_success_at)}</dd>
                     </div>
                     <div>
-                      <dt className="inline font-semibold text-[color:var(--ink)]/50">Fel i följd: </dt>
+                      <dt className="inline font-semibold text-[color:var(--ink)]/50">
+                        Fel i följd:{" "}
+                      </dt>
                       <dd className="inline">{failures}</dd>
                     </div>
                   </dl>
                   {source.last_status && (
                     <p
                       className={`mt-1 text-[12px] ${
-                        health === "red" || health === "yellow" ? "text-red-700" : "text-[color:var(--ink)]/60"
+                        health === "red" || health === "yellow"
+                          ? "text-red-700"
+                          : "text-[color:var(--ink)]/60"
                       }`}
                     >
                       {source.last_status}

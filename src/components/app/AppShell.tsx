@@ -1,6 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import {
   CalendarDays,
+  CalendarRange,
   LayoutDashboard,
   Link2,
   LogOut,
@@ -14,6 +15,7 @@ import type { ReactNode } from "react";
 const NAV = [
   { to: "/app", label: "Översikt", icon: LayoutDashboard },
   { to: "/app/bokningar", label: "Bokningar", icon: CalendarDays },
+  { to: "/app/kalender", label: "Kalender", icon: CalendarRange },
   { to: "/app/prisregler", label: "Prisregler", icon: Tag },
   { to: "/app/kallor", label: "iCal-källor", icon: Link2 },
   { to: "/app/mallar", label: "Mallar", icon: Mail },
@@ -45,7 +47,10 @@ export function AppShell({
           )}
           <nav className="ml-auto flex items-center gap-0.5 overflow-x-auto">
             {NAV.map((n) => {
-              const active = n.to === "/app" ? pathname === "/app" || pathname === "/app/" : pathname.startsWith(n.to);
+              const active =
+                n.to === "/app"
+                  ? pathname === "/app" || pathname === "/app/"
+                  : pathname.startsWith(n.to);
               return (
                 <Link
                   key={n.to}
@@ -53,7 +58,9 @@ export function AppShell({
                   title={n.label}
                   aria-label={n.label}
                   className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] font-medium transition sm:px-3 ${
-                    active ? "bg-white text-[color:var(--forest)]" : "text-white/75 hover:bg-white/10"
+                    active
+                      ? "bg-white text-[color:var(--forest)]"
+                      : "text-white/75 hover:bg-white/10"
                   }`}
                 >
                   <n.icon size={15} />

@@ -19,6 +19,7 @@ import { Route as VillkorRouteImport } from './routes/villkor'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppBokningarRouteImport } from './routes/app/bokningar'
 import { Route as AppInstallningarRouteImport } from './routes/app/installningar'
+import { Route as AppKalenderRouteImport } from './routes/app/kalender'
 import { Route as AppKallorRouteImport } from './routes/app/kallor'
 import { Route as AppLoginRouteImport } from './routes/app/login'
 import { Route as AppMallarRouteImport } from './routes/app/mallar'
@@ -91,6 +92,11 @@ const AppBokningarRoute = AppBokningarRouteImport.update({
 const AppInstallningarRoute = AppInstallningarRouteImport.update({
   id: '/installningar',
   path: '/installningar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppKalenderRoute = AppKalenderRouteImport.update({
+  id: '/kalender',
+  path: '/kalender',
   getParentRoute: () => AppRoute,
 } as any)
 const AppKallorRoute = AppKallorRouteImport.update({
@@ -219,6 +225,7 @@ export interface FileRoutesByFullPath {
   '/villkor': typeof VillkorRoute
   '/app/bokningar': typeof AppBokningarRoute
   '/app/installningar': typeof AppInstallningarRoute
+  '/app/kalender': typeof AppKalenderRoute
   '/app/kallor': typeof AppKallorRoute
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
@@ -252,6 +259,7 @@ export interface FileRoutesByTo {
   '/villkor': typeof VillkorRoute
   '/app/bokningar': typeof AppBokningarRoute
   '/app/installningar': typeof AppInstallningarRoute
+  '/app/kalender': typeof AppKalenderRoute
   '/app/kallor': typeof AppKallorRoute
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
@@ -288,6 +296,7 @@ export interface FileRoutesById {
   '/villkor': typeof VillkorRoute
   '/app/bokningar': typeof AppBokningarRoute
   '/app/installningar': typeof AppInstallningarRoute
+  '/app/kalender': typeof AppKalenderRoute
   '/app/kallor': typeof AppKallorRoute
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
@@ -325,6 +334,7 @@ export interface FileRouteTypes {
     | '/villkor'
     | '/app/bokningar'
     | '/app/installningar'
+    | '/app/kalender'
     | '/app/kallor'
     | '/app/login'
     | '/app/mallar'
@@ -358,6 +368,7 @@ export interface FileRouteTypes {
     | '/villkor'
     | '/app/bokningar'
     | '/app/installningar'
+    | '/app/kalender'
     | '/app/kallor'
     | '/app/login'
     | '/app/mallar'
@@ -393,6 +404,7 @@ export interface FileRouteTypes {
     | '/villkor'
     | '/app/bokningar'
     | '/app/installningar'
+    | '/app/kalender'
     | '/app/kallor'
     | '/app/login'
     | '/app/mallar'
@@ -501,6 +513,13 @@ declare module '@tanstack/react-router' {
       path: '/installningar'
       fullPath: '/app/installningar'
       preLoaderRoute: typeof AppInstallningarRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/kalender': {
+      id: '/app/kalender'
+      path: '/kalender'
+      fullPath: '/app/kalender'
+      preLoaderRoute: typeof AppKalenderRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/kallor': {
@@ -670,6 +689,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppBokningarRoute: typeof AppBokningarRoute
   AppInstallningarRoute: typeof AppInstallningarRoute
+  AppKalenderRoute: typeof AppKalenderRoute
   AppKallorRoute: typeof AppKallorRoute
   AppLoginRoute: typeof AppLoginRoute
   AppMallarRoute: typeof AppMallarRoute
@@ -682,6 +702,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppBokningarRoute: AppBokningarRoute,
   AppInstallningarRoute: AppInstallningarRoute,
+  AppKalenderRoute: AppKalenderRoute,
   AppKallorRoute: AppKallorRoute,
   AppLoginRoute: AppLoginRoute,
   AppMallarRoute: AppMallarRoute,

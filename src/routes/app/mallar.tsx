@@ -66,9 +66,7 @@ function TemplatesPage() {
 
   const edit = (id: string, patch: Partial<MessageTemplate>) => {
     setTemplates((current) =>
-      current.map((template) =>
-        template.id === id ? { ...template, ...patch } : template,
-      ),
+      current.map((template) => (template.id === id ? { ...template, ...patch } : template)),
     );
     setDirtyIds((current) => new Set(current).add(id));
     setSavedId(null);
@@ -109,9 +107,7 @@ function TemplatesPage() {
       </p>
 
       {error && (
-        <p className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-[13px] text-red-700">
-          {error}
-        </p>
+        <p className="mt-5 rounded-xl bg-red-50 px-4 py-3 text-[13px] text-red-700">{error}</p>
       )}
 
       <div className="mt-4 flex flex-wrap gap-1.5">
@@ -136,12 +132,12 @@ function TemplatesPage() {
             >
               <div className="flex items-center gap-3">
                 <div className="min-w-0 flex-1">
-                  <h2 className="text-[15px] font-bold">
-                    {TRIGGER_LABELS[template.trigger_type]}
-                  </h2>
+                  <h2 className="text-[15px] font-bold">{TRIGGER_LABELS[template.trigger_type]}</h2>
                   <p className="text-[12px] text-[color:var(--ink)]/55">
                     {TRIGGER_HINTS[template.trigger_type]}
-                    {dirty && <span className="font-semibold text-amber-700"> · Osparade ändringar</span>}
+                    {dirty && (
+                      <span className="font-semibold text-amber-700"> · Osparade ändringar</span>
+                    )}
                     {savedId === template.id && (
                       <span className="font-semibold text-[color:var(--success)]"> · ✓ Sparat</span>
                     )}
@@ -199,7 +195,9 @@ function TemplatesPage() {
                   />
                 </label>
                 <label className="block">
-                  <span className="text-[12px] font-medium text-[color:var(--ink)]/55">Klockslag</span>
+                  <span className="text-[12px] font-medium text-[color:var(--ink)]/55">
+                    Klockslag
+                  </span>
                   <input
                     type="time"
                     value={template.send_time}
@@ -220,7 +218,9 @@ function TemplatesPage() {
                 </label>
               )}
               <label className="mt-3 block">
-                <span className="text-[12px] font-medium text-[color:var(--ink)]/55">Meddelande</span>
+                <span className="text-[12px] font-medium text-[color:var(--ink)]/55">
+                  Meddelande
+                </span>
                 <textarea
                   value={template.body}
                   rows={6}

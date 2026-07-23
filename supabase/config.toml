@@ -28,6 +28,11 @@ verify_jwt = false
 [functions.chat-message]
 verify_jwt = false
 
+# Återbetalning kräver inloggad ägare (JWT) — default verify_jwt = true
+# räcker, men vi är explicita.
+[functions.stripe-refund]
+verify_jwt = true
+
 [functions.ical-sync]
 verify_jwt = true
 

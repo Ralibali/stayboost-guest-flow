@@ -79,7 +79,6 @@ Deno.serve(async (req) => {
   const { data: sources, error: sourceError } = await query;
   if (sourceError) return json({ error: sourceError.message }, 500);
 
-
   const today = new Date().toISOString().slice(0, 10);
   const results: Array<Record<string, unknown>> = [];
 
@@ -87,6 +86,7 @@ Deno.serve(async (req) => {
     let created = 0;
     let updated = 0;
     let cancelled = 0;
+    let conflicts = 0;
     try {
       if (!safeFeedUrl(source.url)) throw new Error("otillåten kalender-URL");
 
@@ -124,6 +124,25 @@ Deno.serve(async (req) => {
       for (const event of events) {
         const previous = byUid.get(event.uid);
         if (!previous) {
+          // Krockar eventet med en befintlig bokning (t.ex. direktbokning)?
+          // Då hoppar vi över importen men räknar konflikten — den ska synas,
+          // inte försvinna tyst. Operatören ser den i källans status.
+          let hasConflict = false;
+          if (source.unit_id) {
+            const { data: overlapping } = await admin
+              .from("bookings")
+              .select("id")
+              .eq("unit_id", source.unit_id)
+              .eq("status", "confirmed")
+              .lt("checkin_date", event.endDate)
+              .gt("checkout_date", event.startDate)
+              .limit(1);
+            hasConflict = (overlapping ?? []).length > 0;
+          }
+          if (hasConflict) {
+            conflicts++;
+            continue;
+          }
           const { error } = await admin.from("bookings").insert({
             property_id: source.property_id,
             unit_id: source.unit_id,
@@ -176,10 +195,10 @@ Deno.serve(async (req) => {
           last_attempt_at: nowIso,
           last_success_at: nowIso,
           consecutive_failures: 0,
-          last_status: `ok (${events.length} event, +${created} nya, ${updated} uppdaterade, ${cancelled} avbokade)`,
+          last_status: `ok (${events.length} event, +${created} nya, ${updated} uppdaterade, ${cancelled} avbokade${conflicts > 0 ? `, ⚠ ${conflicts} konflikter hoppades över` : ""})`,
         })
         .eq("id", source.id);
-      results.push({ source: source.name, ok: true, created, updated, cancelled });
+      results.push({ source: source.name, ok: true, created, updated, cancelled, conflicts });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       const nowIso = new Date().toISOString();
@@ -195,7 +214,6 @@ Deno.serve(async (req) => {
       results.push({ source: source.name, ok: false, error: message });
     }
   }
-
 
   return json({ synced: results.length, results });
 });

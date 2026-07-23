@@ -100,14 +100,29 @@ function OnboardingPage() {
 
       <section className="card-surface mt-8 space-y-5 p-6">
         <Field label="Anläggningens namn *">
-          <input value={form.name} onChange={set("name")} placeholder="Bergs Slussar Glamping" className="inp" />
+          <input
+            value={form.name}
+            onChange={set("name")}
+            placeholder="Bergs Slussar Glamping"
+            className="inp"
+          />
         </Field>
         <div className="grid grid-cols-2 gap-4">
           <Field label="Incheckning från">
-            <input type="time" value={form.checkin_time} onChange={set("checkin_time")} className="inp" />
+            <input
+              type="time"
+              value={form.checkin_time}
+              onChange={set("checkin_time")}
+              className="inp"
+            />
           </Field>
           <Field label="Utcheckning senast">
-            <input type="time" value={form.checkout_time} onChange={set("checkout_time")} className="inp" />
+            <input
+              type="time"
+              value={form.checkout_time}
+              onChange={set("checkout_time")}
+              className="inp"
+            />
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -119,10 +134,20 @@ function OnboardingPage() {
           </Field>
         </div>
         <Field label="Vägbeskrivning">
-          <textarea value={form.directions} onChange={set("directions")} rows={2} className="inp resize-none" />
+          <textarea
+            value={form.directions}
+            onChange={set("directions")}
+            rows={2}
+            className="inp resize-none"
+          />
         </Field>
         <Field label="Husregler">
-          <textarea value={form.house_rules} onChange={set("house_rules")} rows={2} className="inp resize-none" />
+          <textarea
+            value={form.house_rules}
+            onChange={set("house_rules")}
+            rows={2}
+            className="inp resize-none"
+          />
         </Field>
         <div className="grid grid-cols-2 gap-4">
           <Field label="Kontakttelefon">
@@ -138,9 +163,14 @@ function OnboardingPage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-[17px] font-bold">Boenden</h2>
-            <p className="text-[13px] text-[color:var(--ink)]/55">Ange rätt maxantal gäster för varje tält, rum eller stuga.</p>
+            <p className="text-[13px] text-[color:var(--ink)]/55">
+              Ange rätt maxantal gäster för varje tält, rum eller stuga.
+            </p>
           </div>
-          <button onClick={() => setUnits((current) => [...current, emptyUnit()])} className="btn-ghost !rounded-xl !px-3 !py-2 text-[13px]">
+          <button
+            onClick={() => setUnits((current) => [...current, emptyUnit()])}
+            className="btn-ghost !rounded-xl !px-3 !py-2 text-[13px]"
+          >
             <Plus size={15} /> Lägg till
           </button>
         </div>
@@ -152,7 +182,11 @@ function OnboardingPage() {
                   <Field label={`Boende ${index + 1} *`}>
                     <input
                       value={unit.name}
-                      onChange={(e) => setUnits((current) => current.map((x, i) => (i === index ? { ...x, name: e.target.value } : x)))}
+                      onChange={(e) =>
+                        setUnits((current) =>
+                          current.map((x, i) => (i === index ? { ...x, name: e.target.value } : x)),
+                        )
+                      }
                       placeholder="Sjöbrisretreatet"
                       className="inp"
                     />
@@ -163,23 +197,62 @@ function OnboardingPage() {
                       min={1}
                       max={20}
                       value={unit.max_guests}
-                      onChange={(e) => setUnits((current) => current.map((x, i) => (i === index ? { ...x, max_guests: Math.min(20, Math.max(1, Number(e.target.value) || 1)) } : x)))}
+                      onChange={(e) =>
+                        setUnits((current) =>
+                          current.map((x, i) =>
+                            i === index
+                              ? {
+                                  ...x,
+                                  max_guests: Math.min(
+                                    20,
+                                    Math.max(1, Number(e.target.value) || 1),
+                                  ),
+                                }
+                              : x,
+                          ),
+                        )
+                      }
                       className="inp"
                     />
                   </Field>
                 </div>
                 {units.length > 1 && (
-                  <button onClick={() => setUnits((current) => current.filter((_, i) => i !== index))} className="mt-5 grid h-9 w-9 shrink-0 place-items-center rounded-full text-[color:var(--ink)]/40 hover:bg-red-50 hover:text-red-600" aria-label="Ta bort boende">
+                  <button
+                    onClick={() => setUnits((current) => current.filter((_, i) => i !== index))}
+                    className="mt-5 grid h-9 w-9 shrink-0 place-items-center rounded-full text-[color:var(--ink)]/40 hover:bg-red-50 hover:text-red-600"
+                    aria-label="Ta bort boende"
+                  >
                     <X size={16} />
                   </button>
                 )}
               </div>
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <Field label="Kort beskrivning">
-                  <input value={unit.description} onChange={(e) => setUnits((current) => current.map((x, i) => (i === index ? { ...x, description: e.target.value } : x)))} placeholder="Glampingtält med utsikt över kanalen" className="inp" />
+                  <input
+                    value={unit.description}
+                    onChange={(e) =>
+                      setUnits((current) =>
+                        current.map((x, i) =>
+                          i === index ? { ...x, description: e.target.value } : x,
+                        ),
+                      )
+                    }
+                    placeholder="Glampingtält med utsikt över kanalen"
+                    className="inp"
+                  />
                 </Field>
                 <Field label="Portkod">
-                  <input value={unit.door_code} onChange={(e) => setUnits((current) => current.map((x, i) => (i === index ? { ...x, door_code: e.target.value } : x)))} className="inp" />
+                  <input
+                    value={unit.door_code}
+                    onChange={(e) =>
+                      setUnits((current) =>
+                        current.map((x, i) =>
+                          i === index ? { ...x, door_code: e.target.value } : x,
+                        ),
+                      )
+                    }
+                    className="inp"
+                  />
                 </Field>
               </div>
             </div>
@@ -187,8 +260,14 @@ function OnboardingPage() {
         </div>
       </section>
 
-      {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-[14px] text-red-700">{error}</p>}
-      <button onClick={submit} disabled={!valid || busy} className="btn-primary mt-6 w-full justify-center !rounded-xl !py-3.5 text-[15px] disabled:opacity-40">
+      {error && (
+        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-[14px] text-red-700">{error}</p>
+      )}
+      <button
+        onClick={submit}
+        disabled={!valid || busy}
+        className="btn-primary mt-6 w-full justify-center !rounded-xl !py-3.5 text-[15px] disabled:opacity-40"
+      >
         {busy ? "Sparar…" : "Skapa anläggning →"}
       </button>
     </div>
@@ -198,7 +277,9 @@ function OnboardingPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-[12px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/55">{label}</span>
+      <span className="text-[12px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/55">
+        {label}
+      </span>
       <span className="mt-1.5 block">{children}</span>
     </label>
   );

@@ -6,7 +6,11 @@ import {
   rulesForUnit,
   type RateRule,
 } from "../../supabase/functions/_shared/rate-rules";
-import { nightsBetween, quoteStay, type UnitPricing } from "../../supabase/functions/_shared/pricing";
+import {
+  nightsBetween,
+  quoteStay,
+  type UnitPricing,
+} from "../../supabase/functions/_shared/pricing";
 
 const UNIT = "unit-1";
 const OTHER = "unit-2";
@@ -115,12 +119,19 @@ describe("rate-rules: tillgänglighet", () => {
 
   it("stängt datum blockerar bokningen med det exakta datumet", () => {
     const rules = [baseRule({ kind: "closed", date_from: "2026-08-12", date_to: "2026-08-12" })];
-    const issue = checkAvailabilityRules(rules, UNIT, nights("2026-08-10", "2026-08-14"), "2026-08-14");
+    const issue = checkAvailabilityRules(
+      rules,
+      UNIT,
+      nights("2026-08-10", "2026-08-14"),
+      "2026-08-14",
+    );
     expect(issue).toEqual({ kind: "closed", date: "2026-08-12" });
   });
 
   it("stängd ankomst gäller bara första natten", () => {
-    const rules = [baseRule({ kind: "no_arrival", date_from: "2026-08-10", date_to: "2026-08-10" })];
+    const rules = [
+      baseRule({ kind: "no_arrival", date_from: "2026-08-10", date_to: "2026-08-10" }),
+    ];
     expect(
       checkAvailabilityRules(rules, UNIT, nights("2026-08-10", "2026-08-12"), "2026-08-12"),
     ).toEqual({ kind: "no_arrival", date: "2026-08-10" });
@@ -131,7 +142,9 @@ describe("rate-rules: tillgänglighet", () => {
   });
 
   it("stängd avresa gäller utcheckningsdatumet, inte nätterna", () => {
-    const rules = [baseRule({ kind: "no_departure", date_from: "2026-08-14", date_to: "2026-08-14" })];
+    const rules = [
+      baseRule({ kind: "no_departure", date_from: "2026-08-14", date_to: "2026-08-14" }),
+    ];
     expect(
       checkAvailabilityRules(rules, UNIT, nights("2026-08-12", "2026-08-14"), "2026-08-14"),
     ).toEqual({ kind: "no_departure", date: "2026-08-14" });

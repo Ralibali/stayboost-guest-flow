@@ -32,8 +32,20 @@ const mk = (over: Partial<Booking>): Booking => ({
 describe("filterBookings", () => {
   const bookings = [
     mk({ id: "1", guest_name: "Anna Andersson", source: "direct", payment_status: "paid" }),
-    mk({ id: "2", guest_name: "Bo Berg", source: "sirvoy", payment_status: "none", status: "cancelled" }),
-    mk({ id: "3", guest_name: "Cecilia", unit_id: "u2", checkin_date: "2026-09-05", checkout_date: "2026-09-08" }),
+    mk({
+      id: "2",
+      guest_name: "Bo Berg",
+      source: "sirvoy",
+      payment_status: "none",
+      status: "cancelled",
+    }),
+    mk({
+      id: "3",
+      guest_name: "Cecilia",
+      unit_id: "u2",
+      checkin_date: "2026-09-05",
+      checkout_date: "2026-09-08",
+    }),
   ];
 
   it("returnerar allt vid tomma filter", () => {
@@ -46,8 +58,12 @@ describe("filterBookings", () => {
   });
 
   it("filtrerar på källa och status", () => {
-    expect(filterBookings(bookings, { ...emptyFilters, source: "sirvoy" }).map((b) => b.id)).toEqual(["2"]);
-    expect(filterBookings(bookings, { ...emptyFilters, status: "cancelled" }).map((b) => b.id)).toEqual(["2"]);
+    expect(
+      filterBookings(bookings, { ...emptyFilters, source: "sirvoy" }).map((b) => b.id),
+    ).toEqual(["2"]);
+    expect(
+      filterBookings(bookings, { ...emptyFilters, status: "cancelled" }).map((b) => b.id),
+    ).toEqual(["2"]);
   });
 
   it("filtrerar på datumintervall", () => {

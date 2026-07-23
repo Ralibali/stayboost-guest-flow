@@ -146,18 +146,38 @@ function DashboardPage() {
   const sourceErrors = sources.filter((s) => s.last_status?.toLowerCase().startsWith("fel"));
   const alerts = [
     metrics.conflicts > 0
-      ? { label: `${metrics.conflicts} kalenderkonflikt${metrics.conflicts === 1 ? "" : "er"}`, to: "/app/bokningar" as const, icon: AlertTriangle }
+      ? {
+          label: `${metrics.conflicts} kalenderkonflikt${metrics.conflicts === 1 ? "" : "er"}`,
+          to: "/app/bokningar" as const,
+          icon: AlertTriangle,
+        }
       : null,
     metrics.pendingPayments.length > 0
-      ? { label: `${metrics.pendingPayments.length} betalning${metrics.pendingPayments.length === 1 ? "" : "ar"} väntar`, to: "/app/bokningar" as const, icon: Clock3 }
+      ? {
+          label: `${metrics.pendingPayments.length} betalning${metrics.pendingPayments.length === 1 ? "" : "ar"} väntar`,
+          to: "/app/bokningar" as const,
+          icon: Clock3,
+        }
       : null,
     failedMessages.length > 0
-      ? { label: `${failedMessages.length} utskick misslyckades`, to: "/app/bokningar" as const, icon: MailWarning }
+      ? {
+          label: `${failedMessages.length} utskick misslyckades`,
+          to: "/app/bokningar" as const,
+          icon: MailWarning,
+        }
       : null,
     sourceErrors.length > 0
-      ? { label: `${sourceErrors.length} kalenderkälla${sourceErrors.length === 1 ? "" : "or"} har fel`, to: "/app/kallor" as const, icon: RefreshCw }
+      ? {
+          label: `${sourceErrors.length} kalenderkälla${sourceErrors.length === 1 ? "" : "or"} har fel`,
+          to: "/app/kallor" as const,
+          icon: RefreshCw,
+        }
       : null,
-  ].filter(Boolean) as { label: string; to: "/app/bokningar" | "/app/kallor"; icon: typeof AlertTriangle }[];
+  ].filter(Boolean) as {
+    label: string;
+    to: "/app/bokningar" | "/app/kallor";
+    icon: typeof AlertTriangle;
+  }[];
 
   return (
     <div>
@@ -169,7 +189,11 @@ function DashboardPage() {
             Verklig data från bokningar, betalningar, utskick och kalenderkopplingar.
           </p>
         </div>
-        <button onClick={load} disabled={loading} className="btn-ghost !rounded-xl !px-4 !py-2.5 text-[13px] disabled:opacity-50">
+        <button
+          onClick={load}
+          disabled={loading}
+          className="btn-ghost !rounded-xl !px-4 !py-2.5 text-[13px] disabled:opacity-50"
+        >
           <RefreshCw size={15} className={loading ? "animate-spin" : ""} /> Uppdatera
         </button>
       </div>
@@ -183,7 +207,11 @@ function DashboardPage() {
       {alerts.length > 0 ? (
         <div className="mt-6 grid gap-2 sm:grid-cols-2">
           {alerts.map((a) => (
-            <Link key={a.label} to={a.to} className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] font-semibold text-amber-900">
+            <Link
+              key={a.label}
+              to={a.to}
+              className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-[13px] font-semibold text-amber-900"
+            >
               <a.icon size={17} />
               <span className="flex-1">{a.label}</span>
               <ArrowRight size={15} />
@@ -192,15 +220,36 @@ function DashboardPage() {
         </div>
       ) : (
         <div className="mt-6 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-[13px] font-semibold text-emerald-900">
-          <CheckCircle2 size={17} /> Allt ser bra ut — inga konflikter, betalningsköer eller integrationsfel.
+          <CheckCircle2 size={17} /> Allt ser bra ut — inga konflikter, betalningsköer eller
+          integrationsfel.
         </div>
       )}
 
       <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi icon={Home} label="Beläggning 30 dagar" value={`${metrics.occupancy} %`} sub={`${units.filter((u) => u.active).length} aktiva boenden`} />
-        <Kpi icon={Banknote} label="Betalt bokningsvärde" value={fmtKr(metrics.paidValue)} sub={`Tillval ${fmtKr(metrics.addonRevenue)}`} />
-        <Kpi icon={CalendarCheck} label="Ankomster i dag" value={String(metrics.arrivals.length)} sub={`${metrics.departures.length} avresor`} />
-        <Kpi icon={WalletCards} label="Väntande betalningar" value={String(metrics.pendingPayments.length)} sub={metrics.pendingPayments.length ? "Kräver kontroll" : "Inga att hantera"} />
+        <Kpi
+          icon={Home}
+          label="Beläggning 30 dagar"
+          value={`${metrics.occupancy} %`}
+          sub={`${units.filter((u) => u.active).length} aktiva boenden`}
+        />
+        <Kpi
+          icon={Banknote}
+          label="Betalt bokningsvärde"
+          value={fmtKr(metrics.paidValue)}
+          sub={`Tillval ${fmtKr(metrics.addonRevenue)}`}
+        />
+        <Kpi
+          icon={CalendarCheck}
+          label="Ankomster i dag"
+          value={String(metrics.arrivals.length)}
+          sub={`${metrics.departures.length} avresor`}
+        />
+        <Kpi
+          icon={WalletCards}
+          label="Väntande betalningar"
+          value={String(metrics.pendingPayments.length)}
+          sub={metrics.pendingPayments.length ? "Kräver kontroll" : "Inga att hantera"}
+        />
       </div>
 
       <div className="mt-6 grid gap-5 lg:grid-cols-[1.4fr_1fr]">
@@ -208,29 +257,53 @@ function DashboardPage() {
           <div className="flex items-center justify-between border-b border-[color:var(--line)] px-5 py-4">
             <div>
               <h2 className="text-[15px] font-bold">Kommande vistelser</h2>
-              <p className="text-[12px] text-[color:var(--ink)]/50">Närmaste bekräftade bokningarna</p>
+              <p className="text-[12px] text-[color:var(--ink)]/50">
+                Närmaste bekräftade bokningarna
+              </p>
             </div>
-            <Link to="/app/bokningar" className="text-[12px] font-semibold text-[color:var(--brass)] hover:underline">Visa alla</Link>
+            <Link
+              to="/app/bokningar"
+              className="text-[12px] font-semibold text-[color:var(--brass)] hover:underline"
+            >
+              Visa alla
+            </Link>
           </div>
           <div className="divide-y divide-[color:var(--line)]">
             {loading ? (
-              <p className="px-5 py-10 text-center text-[13px] text-[color:var(--ink)]/45">Laddar…</p>
+              <p className="px-5 py-10 text-center text-[13px] text-[color:var(--ink)]/45">
+                Laddar…
+              </p>
             ) : metrics.confirmed.length === 0 ? (
-              <p className="px-5 py-10 text-center text-[13px] text-[color:var(--ink)]/45">Inga kommande bokningar.</p>
+              <p className="px-5 py-10 text-center text-[13px] text-[color:var(--ink)]/45">
+                Inga kommande bokningar.
+              </p>
             ) : (
               metrics.confirmed.slice(0, 7).map((b) => (
                 <div key={b.id} className="flex items-center gap-3 px-5 py-3.5">
                   <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[color:var(--forest)] text-[12px] font-bold text-white">
-                    {(b.guest_name ?? "?").split(" ").map((n) => n[0]).slice(0, 2).join("")}
+                    {(b.guest_name ?? "?")
+                      .split(" ")
+                      .map((n) => n[0])
+                      .slice(0, 2)
+                      .join("")}
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-[14px] font-semibold">{b.guest_name ?? "Okänd gäst"}</p>
+                    <p className="truncate text-[14px] font-semibold">
+                      {b.guest_name ?? "Okänd gäst"}
+                    </p>
                     <p className="truncate text-[12px] text-[color:var(--ink)]/50">
-                      {b.unit?.name ?? "Ingen enhet"} · {svDate(b.checkin_date)}–{svDate(b.checkout_date)} · {b.guests ?? "?"} gäster
+                      {b.unit?.name ?? "Ingen enhet"} · {svDate(b.checkin_date)}–
+                      {svDate(b.checkout_date)} · {b.guests ?? "?"} gäster
                     </p>
                   </div>
-                  <span className={`rounded-full px-2 py-1 text-[10px] font-semibold ${b.payment_status === "paid" ? "bg-emerald-100 text-emerald-800" : b.payment_status === "pending" ? "bg-amber-100 text-amber-800" : "bg-[color:var(--bg)] text-[color:var(--ink)]/55"}`}>
-                    {b.payment_status === "paid" ? "Betald" : b.payment_status === "pending" ? "Väntar" : b.source}
+                  <span
+                    className={`rounded-full px-2 py-1 text-[10px] font-semibold ${b.payment_status === "paid" ? "bg-emerald-100 text-emerald-800" : b.payment_status === "pending" ? "bg-amber-100 text-amber-800" : "bg-[color:var(--bg)] text-[color:var(--ink)]/55"}`}
+                  >
+                    {b.payment_status === "paid"
+                      ? "Betald"
+                      : b.payment_status === "pending"
+                        ? "Väntar"
+                        : b.source}
                   </span>
                 </div>
               ))
@@ -245,7 +318,9 @@ function DashboardPage() {
             <MiniStat icon={CalendarDays} label="Avresor" value={metrics.departures.length} />
           </div>
           <div className="mt-5 border-t border-[color:var(--line)] pt-4">
-            <h3 className="text-[12px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/50">Snabblänkar</h3>
+            <h3 className="text-[12px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/50">
+              Snabblänkar
+            </h3>
             <div className="mt-2 space-y-1">
               <QuickLink to="/app/bokningar" label="Skapa eller hantera bokning" />
               <QuickLink to="/app/tillval" label="Redigera tillval" />
@@ -259,17 +334,38 @@ function DashboardPage() {
   );
 }
 
-function Kpi({ icon: Icon, label, value, sub }: { icon: typeof Home; label: string; value: string; sub: string }) {
+function Kpi({
+  icon: Icon,
+  label,
+  value,
+  sub,
+}: {
+  icon: typeof Home;
+  label: string;
+  value: string;
+  sub: string;
+}) {
   return (
     <div className="card-surface p-4 sm:p-5">
-      <div className="flex items-center gap-2 text-[color:var(--ink)]/45"><Icon size={16} /><span className="text-[11px] font-semibold uppercase tracking-wide">{label}</span></div>
+      <div className="flex items-center gap-2 text-[color:var(--ink)]/45">
+        <Icon size={16} />
+        <span className="text-[11px] font-semibold uppercase tracking-wide">{label}</span>
+      </div>
       <p className="mt-3 font-[Fraunces] text-2xl font-semibold sm:text-3xl">{value}</p>
       <p className="mt-1 text-[11px] text-[color:var(--ink)]/45">{sub}</p>
     </div>
   );
 }
 
-function MiniStat({ icon: Icon, label, value }: { icon: typeof Users; label: string; value: number }) {
+function MiniStat({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Users;
+  label: string;
+  value: number;
+}) {
   return (
     <div className="rounded-2xl bg-[color:var(--bg)] p-4">
       <Icon size={17} className="text-[color:var(--forest)]" />
@@ -279,10 +375,20 @@ function MiniStat({ icon: Icon, label, value }: { icon: typeof Users; label: str
   );
 }
 
-function QuickLink({ to, label }: { to: "/app/bokningar" | "/app/tillval" | "/app/installningar" | "/app/mallar"; label: string }) {
+function QuickLink({
+  to,
+  label,
+}: {
+  to: "/app/bokningar" | "/app/tillval" | "/app/installningar" | "/app/mallar";
+  label: string;
+}) {
   return (
-    <Link to={to} className="flex items-center justify-between rounded-xl px-2 py-2 text-[13px] font-medium hover:bg-[color:var(--bg)]">
-      {label}<ArrowRight size={14} className="text-[color:var(--ink)]/35" />
+    <Link
+      to={to}
+      className="flex items-center justify-between rounded-xl px-2 py-2 text-[13px] font-medium hover:bg-[color:var(--bg)]"
+    >
+      {label}
+      <ArrowRight size={14} className="text-[color:var(--ink)]/35" />
     </Link>
   );
 }

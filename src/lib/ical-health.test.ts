@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  classifyIcalHealth,
-  inferChannelType,
-  type IcalSource,
-} from "./supabase";
+import { classifyIcalHealth, inferChannelType, type IcalSource } from "./supabase";
 
 function makeSource(overrides: Partial<IcalSource> = {}): IcalSource {
   return {

@@ -10,7 +10,7 @@ export type BookingFilters = {
   source: "all" | Booking["source"];
   payment: "all" | Booking["payment_status"];
   from: string; // YYYY-MM-DD eller ""
-  to: string;   // YYYY-MM-DD eller ""
+  to: string; // YYYY-MM-DD eller ""
 };
 
 export const emptyFilters: BookingFilters = {
@@ -34,7 +34,8 @@ export function filterBookings(bookings: Booking[], f: BookingFilters): Booking[
     if (f.from && b.checkout_date < f.from) return false;
     if (f.to && b.checkin_date > f.to) return false;
     if (q) {
-      const hay = `${b.guest_name ?? ""} ${b.guest_email ?? ""} ${b.guest_phone ?? ""}`.toLowerCase();
+      const hay =
+        `${b.guest_name ?? ""} ${b.guest_email ?? ""} ${b.guest_phone ?? ""}`.toLowerCase();
       if (!hay.includes(q)) return false;
     }
     return true;
@@ -50,8 +51,19 @@ function csvCell(v: unknown): string {
 /** Bygger CSV med semikolon (Excel-vänligt i sv-SE). */
 export function bookingsToCsv(bookings: Booking[]): string {
   const header = [
-    "Namn", "E-post", "Telefon", "Boende", "Incheckning", "Utcheckning",
-    "Gäster", "Status", "Källa", "Betalstatus", "Belopp", "Betalref", "Skapad",
+    "Namn",
+    "E-post",
+    "Telefon",
+    "Boende",
+    "Incheckning",
+    "Utcheckning",
+    "Gäster",
+    "Status",
+    "Källa",
+    "Betalstatus",
+    "Belopp",
+    "Betalref",
+    "Skapad",
   ];
   const rows = bookings.map((b) => [
     b.guest_name ?? "",

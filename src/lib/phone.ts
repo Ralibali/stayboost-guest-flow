@@ -3,7 +3,7 @@
 // Normaliserar till E.164 (+46XXXXXXXXX) och accepterar vanliga svenska skrivsätt.
 
 /** Rensar bort mellanslag, bindestreck, parenteser och punkter. */
-const strip = (s: string) => s.replace(/[\s().\-]/g, "");
+const strip = (s: string) => s.replace(/[\s().-]/g, "");
 
 /**
  * Normaliserar ett svenskt mobilnummer till E.164.

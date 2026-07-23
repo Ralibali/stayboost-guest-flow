@@ -27,7 +27,9 @@ describe("produktionshärdning", () => {
   it("serialiserar manuella och direkta bokningar per enhet", () => {
     expect(migration).toContain("pg_advisory_xact_lock");
     expect(migration).toContain("booking_overlap");
-    expect(migration).toContain("before insert or update of unit_id, checkin_date, checkout_date, status, source");
+    expect(migration).toContain(
+      "before insert or update of unit_id, checkin_date, checkout_date, status, source",
+    );
   });
 
   it("validerar kapacitet och villkor server-side", () => {
