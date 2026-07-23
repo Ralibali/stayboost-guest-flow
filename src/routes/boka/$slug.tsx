@@ -354,6 +354,43 @@ function PublicBookingPage() {
           </p>
         </header>
 
+        {!done && (
+          <ol
+            className="mt-6 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em]"
+            aria-label="Bokningssteg"
+          >
+            {[
+              { n: 1 as const, label: "Boende" },
+              { n: 2 as const, label: "Datum" },
+              { n: 3 as const, label: "Uppgifter" },
+            ].map((s) => {
+              const state = s.n < currentStep ? "done" : s.n === currentStep ? "active" : "todo";
+              return (
+                <li
+                  key={s.n}
+                  aria-current={state === "active" ? "step" : undefined}
+                  className="flex flex-1 items-center gap-2"
+                >
+                  <span
+                    className="grid h-6 w-6 place-items-center rounded-full text-[11px]"
+                    style={{
+                      background: state === "active" ? C.ink : "transparent",
+                      color: state === "active" ? "#fff" : state === "done" ? C.ink : C.muted,
+                      border: `1.5px solid ${state === "todo" ? C.line : C.ink}`,
+                    }}
+                  >
+                    {state === "done" ? "✓" : s.n}
+                  </span>
+                  <span style={{ color: state === "todo" ? C.muted : C.ink }}>{s.label}</span>
+                  {s.n < 3 && <span aria-hidden className="flex-1 border-t" style={{ borderColor: C.line }} />}
+                </li>
+              );
+            })}
+          </ol>
+        )}
+
+
+
         {done ? (
           <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="pt-12 text-center" aria-live="polite">
             <span className="mx-auto grid h-16 w-16 place-items-center rounded-full" style={{ border: `1px solid ${C.ink}` }}>
