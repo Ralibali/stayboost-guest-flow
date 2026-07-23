@@ -164,7 +164,8 @@ Deno.serve(async (req) => {
     const { slug, unitId, checkin, checkout } = body ?? {};
     const guestName = String(body?.guest_name ?? "").trim();
     const guestEmail = String(body?.guest_email ?? "").trim().toLowerCase();
-    const guestPhone = String(body?.guest_phone ?? "").trim();
+    const guestPhoneRaw = String(body?.guest_phone ?? "").trim();
+    const normalizedPhone = guestPhoneRaw ? normalizePhoneSE(guestPhoneRaw) : null;
 
     if (!ISO_DATE.test(checkin ?? "") || !ISO_DATE.test(checkout ?? "") || checkout <= checkin) {
       return json({ error: "invalid_dates" }, 400);
@@ -174,7 +175,7 @@ Deno.serve(async (req) => {
     if (nightsBetween(checkin, checkout).length > 30) return json({ error: "too_long" }, 400);
     if (guestName.length < 2 || guestName.length > 120) return json({ error: "name_required" }, 400);
     if (!EMAIL.test(guestEmail) || guestEmail.length > 254) return json({ error: "email_required" }, 400);
-    if (guestPhone.length > 40) return json({ error: "invalid_phone" }, 400);
+    if (guestPhoneRaw && !normalizedPhone) return json({ error: "invalid_phone" }, 400);
     if (body?.termsAccepted !== true) return json({ error: "terms_required" }, 400);
 
     const { data: property } = await admin
