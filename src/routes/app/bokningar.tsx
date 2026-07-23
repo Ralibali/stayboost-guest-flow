@@ -155,16 +155,66 @@ function BookingsPage() {
             {upcoming.length} kommande · {upcoming.filter((b) => !b.guest_email).length} saknar e-post
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <select value={unitFilter} onChange={(e) => setUnitFilter(e.target.value)} className="inp !w-auto">
-            <option value="alla">Alla boenden</option>
-            {units.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-          </select>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={exportCsv}
+            disabled={filtered.length === 0}
+            className="btn-ghost !rounded-xl !px-3.5 !py-2.5 text-[13px] disabled:opacity-40"
+            title="Ladda ner filtrerade bokningar som CSV"
+          >
+            <Download size={14} /> CSV ({filtered.length})
+          </button>
           <button onClick={() => setModalOpen(true)} className="btn-primary !rounded-xl !px-4 !py-2.5 text-[13px]">
             <CalendarPlus size={15} /> Ny bokning
           </button>
         </div>
       </div>
+
+      <div className="mt-5 grid gap-2.5 sm:grid-cols-[minmax(200px,1fr)_auto_auto_auto_auto_auto_auto]">
+        <label className="relative">
+          <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--ink)]/40" />
+          <input
+            value={filters.search}
+            onChange={(e) => updateFilter("search", e.target.value)}
+            placeholder="Sök namn, e-post eller mobil"
+            className="inp !pl-9"
+            aria-label="Sök i bokningar"
+          />
+        </label>
+        <select value={filters.unitId} onChange={(e) => updateFilter("unitId", e.target.value)} className="inp !w-auto" aria-label="Filtrera på boende">
+          <option value="alla">Alla boenden</option>
+          {units.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+        </select>
+        <select value={filters.status} onChange={(e) => updateFilter("status", e.target.value as BookingFilters["status"])} className="inp !w-auto" aria-label="Filtrera på status">
+          <option value="all">Alla statusar</option>
+          <option value="confirmed">Bekräftade</option>
+          <option value="cancelled">Avbokade</option>
+        </select>
+        <select value={filters.source} onChange={(e) => updateFilter("source", e.target.value as BookingFilters["source"])} className="inp !w-auto" aria-label="Filtrera på källa">
+          <option value="all">Alla källor</option>
+          <option value="direct">Direkt</option>
+          <option value="sirvoy">Sirvoy</option>
+          <option value="ical">iCal</option>
+          <option value="manual">Manuell</option>
+        </select>
+        <select value={filters.payment} onChange={(e) => updateFilter("payment", e.target.value as BookingFilters["payment"])} className="inp !w-auto" aria-label="Filtrera på betalning">
+          <option value="all">Alla betalstatusar</option>
+          <option value="none">Ingen betalning</option>
+          <option value="pending">Väntar</option>
+          <option value="paid">Betald</option>
+          <option value="refunded">Återbetald</option>
+        </select>
+        <input type="date" value={filters.from} onChange={(e) => updateFilter("from", e.target.value)} className="inp !w-auto" aria-label="Från datum" />
+        <input type="date" value={filters.to} onChange={(e) => updateFilter("to", e.target.value)} className="inp !w-auto" aria-label="Till datum" />
+      </div>
+      {activeFilterCount > 0 && (
+        <button
+          onClick={() => setFilters(emptyFilters)}
+          className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-medium text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]"
+        >
+          <RotateCcw size={12} /> Rensa {activeFilterCount} filter
+        </button>
+      )}
 
       {pageError && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-[13px] text-red-700">{pageError}</p>}
 
