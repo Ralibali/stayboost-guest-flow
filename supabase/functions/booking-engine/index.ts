@@ -94,6 +94,16 @@ Deno.serve(async (req) => {
       .eq("active", true)
       .order("sort_order");
 
+    // Rate rules är opt-in — tabellen kan saknas i äldre miljöer.
+    const today = new Date().toISOString().slice(0, 10);
+    const { data: rulesData } = await admin
+      .from("rate_rules")
+      .select("id, unit_id, kind, date_from, date_to, fixed_price, pct_delta, min_stay, priority, active, name")
+      .eq("property_id", property.id)
+      .eq("active", true)
+      .gte("date_to", today);
+    const rules: RateRule[] = (rulesData ?? []) as RateRule[];
+
     const byUnit = new Map<string, { from: string; to: string }[]>();
     for (const b of bookings ?? []) {
       if (!b.unit_id) continue;
