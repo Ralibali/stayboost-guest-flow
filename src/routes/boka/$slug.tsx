@@ -588,8 +588,27 @@ function PublicBookingPage() {
                     <Field label="E-post *">
                       <input value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="namn@exempel.se" type="email" className="field" />
                     </Field>
-                    <Field label="Telefon">
-                      <input value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="För SMS på incheckningsdagen" type="tel" className="field" />
+                    <Field label={phoneRequired ? "Mobil *" : "Mobil"}>
+                      <input
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        autoComplete="tel"
+                        inputMode="tel"
+                        placeholder="070-123 45 67"
+                        type="tel"
+                        aria-invalid={phone.trim() ? !phoneOk : undefined}
+                        className="field"
+                      />
+                      {phone.trim() && !phoneOk && (
+                        <span className="mt-1 block text-[12px] text-amber-800">
+                          Skriv som svenskt mobilnummer, t.ex. 070-123 45 67.
+                        </span>
+                      )}
+                      {phoneRequired && !phone.trim() && (
+                        <span className="mt-1 block text-[12px]" style={{ color: C.muted }}>
+                          Krävs för Swish — vi hör av oss om betalningen behöver följas upp.
+                        </span>
+                      )}
                     </Field>
                   </div>
                   <input tabIndex={-1} autoComplete="off" aria-hidden="true" value={website} onChange={(e) => setWebsite(e.target.value)} className="absolute -left-[9999px] h-px w-px opacity-0" name="website" />
