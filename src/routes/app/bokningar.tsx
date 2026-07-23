@@ -415,6 +415,26 @@ function BookingCard({
                     Markera betald{b.payment_amount ? ` (${b.payment_amount.toLocaleString("sv-SE")} kr)` : ""}
                   </button>
                 )}
+                {b.payment_status === "paid" && (
+                  <button
+                    onClick={async () => {
+                      if (!supabase) return;
+                      const amount = b.payment_amount
+                        ? ` ${b.payment_amount.toLocaleString("sv-SE")} kr`
+                        : "";
+                      if (!window.confirm(`Bekräfta återbetalning av${amount} till ${b.guest_name ?? "gästen"}. Kom ihåg att göra själva utbetalningen i Swish/Stripe.`)) return;
+                      const { error } = await supabase
+                        .from("bookings")
+                        .update({ payment_status: "refunded" })
+                        .eq("id", b.id);
+                      if (error) onError(error.message);
+                      else onChanged();
+                    }}
+                    className="rounded-xl border border-[color:var(--line)] px-3.5 py-2 text-[13px] font-semibold text-[color:var(--ink)]/75 hover:bg-[color:var(--bg)]"
+                  >
+                    <RotateCcw size={14} className="mr-1 inline" /> Markera återbetald
+                  </button>
+                )}
                 <button onClick={onCopy} className="btn-ghost !rounded-xl !px-3.5 !py-2 text-[13px]">{copied ? <Check size={14} /> : <Copy size={14} />} Gästsidelänk</button>
                 <a href={guestPageUrl(b.guest_token)} target="_blank" rel="noreferrer" className="btn-ghost !rounded-xl !px-3.5 !py-2 text-[13px]"><ExternalLink size={14} /> Öppna gästsidan</a>
                 <button onClick={onCancel} className="ml-auto rounded-xl px-3.5 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-50"><Ban size={14} className="mr-1 inline" /> Avboka</button>
