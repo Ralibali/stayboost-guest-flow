@@ -137,6 +137,7 @@ Deno.serve(async (req) => {
         cleaningFee: u.cleaning_fee,
         monthlyMult: u.monthly_mult,
         booked: byUnit.get(u.id) ?? [],
+        rateRules: rulesForUnit(rules, u.id),
       })),
       addons: (addons ?? []).map((a) => ({
         id: a.id,
