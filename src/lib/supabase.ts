@@ -156,6 +156,44 @@ export function classifyIcalHealth(
   return "green";
 }
 
+/* ---------- Prisregler (datumstyrda) ---------- */
+
+export type RateRuleKind =
+  | "price_override"
+  | "price_multiplier"
+  | "min_stay"
+  | "closed"
+  | "no_arrival"
+  | "no_departure";
+
+export type RateRule = {
+  id: string;
+  property_id: string;
+  unit_id: string | null;
+  name: string | null;
+  kind: RateRuleKind;
+  date_from: string;
+  date_to: string;
+  fixed_price: number | null;
+  pct_delta: number | null;
+  min_stay: number | null;
+  priority: number;
+  active: boolean;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export const RATE_RULE_LABELS: Record<RateRuleKind, string> = {
+  price_override: "Fast nattpris",
+  price_multiplier: "Procentjustering",
+  min_stay: "Minsta vistelse",
+  closed: "Stängt för försäljning",
+  no_arrival: "Stängd ankomst",
+  no_departure: "Stängd avresa",
+};
+
+
 export type MessageTemplate = {
   id: string;
   property_id: string;

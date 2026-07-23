@@ -35,6 +35,7 @@ import { Route as DemoBokaRouteImport } from './routes/demo/boka'
 import { Route as DemoAdminRouteImport } from './routes/demo/admin'
 import { Route as BokaSlugRouteImport } from './routes/boka/$slug'
 import { Route as AppTillvalRouteImport } from './routes/app/tillval'
+import { Route as AppPrisreglerRouteImport } from './routes/app/prisregler'
 import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
 import { Route as AppMallarRouteImport } from './routes/app/mallar'
 import { Route as AppLoginRouteImport } from './routes/app/login'
@@ -172,6 +173,11 @@ const AppTillvalRoute = AppTillvalRouteImport.update({
   path: '/tillval',
   getParentRoute: () => AppRoute,
 } as any)
+const AppPrisreglerRoute = AppPrisreglerRouteImport.update({
+  id: '/prisregler',
+  path: '/prisregler',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppOnboardingRoute = AppOnboardingRouteImport.update({
   id: '/onboarding',
   path: '/onboarding',
@@ -217,6 +223,7 @@ export interface FileRoutesByFullPath {
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
   '/app/onboarding': typeof AppOnboardingRoute
+  '/app/prisregler': typeof AppPrisreglerRoute
   '/app/tillval': typeof AppTillvalRoute
   '/boka/$slug': typeof BokaSlugRoute
   '/demo/admin': typeof DemoAdminRoute
@@ -249,6 +256,7 @@ export interface FileRoutesByTo {
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
   '/app/onboarding': typeof AppOnboardingRoute
+  '/app/prisregler': typeof AppPrisreglerRoute
   '/app/tillval': typeof AppTillvalRoute
   '/boka/$slug': typeof BokaSlugRoute
   '/demo/admin': typeof DemoAdminRoute
@@ -284,6 +292,7 @@ export interface FileRoutesById {
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
   '/app/onboarding': typeof AppOnboardingRoute
+  '/app/prisregler': typeof AppPrisreglerRoute
   '/app/tillval': typeof AppTillvalRoute
   '/boka/$slug': typeof BokaSlugRoute
   '/demo/admin': typeof DemoAdminRoute
@@ -320,6 +329,7 @@ export interface FileRouteTypes {
     | '/app/login'
     | '/app/mallar'
     | '/app/onboarding'
+    | '/app/prisregler'
     | '/app/tillval'
     | '/boka/$slug'
     | '/demo/admin'
@@ -352,6 +362,7 @@ export interface FileRouteTypes {
     | '/app/login'
     | '/app/mallar'
     | '/app/onboarding'
+    | '/app/prisregler'
     | '/app/tillval'
     | '/boka/$slug'
     | '/demo/admin'
@@ -386,6 +397,7 @@ export interface FileRouteTypes {
     | '/app/login'
     | '/app/mallar'
     | '/app/onboarding'
+    | '/app/prisregler'
     | '/app/tillval'
     | '/boka/$slug'
     | '/demo/admin'
@@ -603,6 +615,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTillvalRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/prisregler': {
+      id: '/app/prisregler'
+      path: '/prisregler'
+      fullPath: '/app/prisregler'
+      preLoaderRoute: typeof AppPrisreglerRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/onboarding': {
       id: '/app/onboarding'
       path: '/onboarding'
@@ -655,6 +674,7 @@ interface AppRouteChildren {
   AppLoginRoute: typeof AppLoginRoute
   AppMallarRoute: typeof AppMallarRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
+  AppPrisreglerRoute: typeof AppPrisreglerRoute
   AppTillvalRoute: typeof AppTillvalRoute
   AppIndexRoute: typeof AppIndexRoute
 }
@@ -666,6 +686,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppLoginRoute: AppLoginRoute,
   AppMallarRoute: AppMallarRoute,
   AppOnboardingRoute: AppOnboardingRoute,
+  AppPrisreglerRoute: AppPrisreglerRoute,
   AppTillvalRoute: AppTillvalRoute,
   AppIndexRoute: AppIndexRoute,
 }

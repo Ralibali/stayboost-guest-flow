@@ -2,6 +2,8 @@
 // Ren TypeScript utan Deno-beroenden — delas av edge-funktionen
 // booking-engine, bokningssidan (/boka/$slug) och enhetstesterna.
 
+import { applyPriceRules, type RateRule } from "./rate-rules.ts";
+
 export interface UnitPricing {
   base_price: number;
   weekend_pct: number; // påslag fre/lör-nätter, i procent
@@ -9,9 +11,16 @@ export interface UnitPricing {
   monthly_mult: number[]; // jan..dec, i procent av baspriset
 }
 
+export interface NightlyLine {
+  date: string;
+  price: number;
+  source: "base" | "override" | "multiplier";
+  ruleId?: string;
+}
+
 export interface StayQuote {
   nights: number;
-  nightly: { date: string; price: number }[];
+  nightly: NightlyLine[];
   subtotal: number;
   cleaningFee: number;
   total: number;
@@ -41,19 +50,43 @@ export function isWeekendNight(iso: string): boolean {
   return wd === 5 || wd === 6;
 }
 
-/** Pris för en natt: bas × månadsfaktor × helgpåslag, avrundat till närmaste 5 kr. */
-export function nightlyPrice(u: UnitPricing, iso: string): number {
+/** Bas × månadsfaktor × helgpåslag, avrundat till närmaste 5 kr. */
+export function baseNightlyPrice(u: UnitPricing, iso: string): number {
   const { m } = parseIso(iso);
   const mult = (u.monthly_mult[m - 1] ?? 100) / 100;
   const weekend = isWeekendNight(iso) ? 1 + u.weekend_pct / 100 : 1;
   return Math.round((u.base_price * mult * weekend) / 5) * 5;
 }
 
-export function quoteStay(u: UnitPricing, checkin: string, checkout: string): StayQuote {
-  const nightly = nightsBetween(checkin, checkout).map((date) => ({
-    date,
-    price: nightlyPrice(u, date),
-  }));
+/** Bakåtkompatibelt alias. */
+export const nightlyPrice = baseNightlyPrice;
+
+/**
+ * Priset för en enskild natt: rate-rule (override eller multiplier) vinner
+ * över standardberäkningen. Utan matchande regel = standardpris.
+ */
+export function nightlyPriceWithRules(
+  u: UnitPricing,
+  iso: string,
+  rules: RateRule[],
+  unitId: string,
+): NightlyLine {
+  const base = baseNightlyPrice(u, iso);
+  const applied = applyPriceRules(base, rules, unitId, iso);
+  return { date: iso, price: applied.price, source: applied.source, ruleId: applied.ruleId };
+}
+
+export function quoteStay(
+  u: UnitPricing,
+  checkin: string,
+  checkout: string,
+  opts?: { rules?: RateRule[]; unitId?: string },
+): StayQuote {
+  const rules = opts?.rules ?? [];
+  const unitId = opts?.unitId ?? "";
+  const nightly = nightsBetween(checkin, checkout).map((date) =>
+    nightlyPriceWithRules(u, date, rules, unitId),
+  );
   const subtotal = nightly.reduce((s, n) => s + n.price, 0);
   return {
     nights: nightly.length,
@@ -68,3 +101,4 @@ export function quoteStay(u: UnitPricing, checkin: string, checkout: string): St
 export function rangesOverlap(aFrom: string, aTo: string, bFrom: string, bTo: string): boolean {
   return aFrom < bTo && bFrom < aTo;
 }
+

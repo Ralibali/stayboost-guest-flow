@@ -18,6 +18,12 @@ import {
   rangesOverlap,
   type UnitPricing,
 } from "../../../supabase/functions/_shared/pricing";
+import {
+  checkAvailabilityRules,
+  minStayFromRules,
+  type RateRule,
+} from "../../../supabase/functions/_shared/rate-rules";
+import { nightsBetween } from "../../../supabase/functions/_shared/pricing";
 import { normalizePhoneSE } from "@/lib/phone";
 
 export const Route = createFileRoute("/boka/$slug")({
@@ -52,6 +58,7 @@ type EngineUnit = {
   cleaningFee: number;
   monthlyMult: number[];
   booked: { from: string; to: string }[];
+  rateRules?: RateRule[];
 };
 
 type EngineAddon = {
@@ -152,10 +159,27 @@ function PublicBookingPage() {
     if (unit) setGuests((n) => Math.min(Math.max(1, n), unit.maxGuests));
   }, [unit]);
 
+  const unitRules = useMemo<RateRule[]>(() => unit?.rateRules ?? [], [unit]);
+
   const quote = useMemo(
-    () => (pricing && checkin && checkout ? quoteStay(pricing, checkin, checkout) : null),
-    [pricing, checkin, checkout],
+    () =>
+      pricing && checkin && checkout && unit
+        ? quoteStay(pricing, checkin, checkout, { rules: unitRules, unitId: unit.id })
+        : null,
+    [pricing, checkin, checkout, unit, unitRules],
   );
+
+  // Regelbaserad förhandsvalidering (matchar serverns kontroll för snabbare UX).
+  const availabilityIssue = useMemo(() => {
+    if (!unit || !checkin || !checkout) return null;
+    const nights = nightsBetween(checkin, checkout);
+    return checkAvailabilityRules(unitRules, unit.id, nights, checkout);
+  }, [unit, checkin, checkout, unitRules]);
+
+  const ruleMinStay = useMemo(() => {
+    if (!unit || !checkin || !checkout) return 0;
+    return minStayFromRules(unitRules, unit.id, nightsBetween(checkin, checkout));
+  }, [unit, checkin, checkout, unitRules]);
 
   const chosenAddons = useMemo(() => {
     if (!data || !quote) return [];
@@ -186,10 +210,12 @@ function PublicBookingPage() {
     setFormError(null);
   };
 
-  const minStayOk = !quote || !unit || quote.nights >= unit.minStay;
+  const effectiveMinStay = Math.max(unit?.minStay ?? 0, ruleMinStay);
+  const minStayOk = !quote || quote.nights >= effectiveMinStay;
   const emailOk = EMAIL.test(email.trim());
   const normalizedPhone = phone.trim() ? normalizePhoneSE(phone.trim()) : null;
   const phoneOk = !phone.trim() || normalizedPhone !== null;
+
 
   const payMethods = data
     ? ([
@@ -204,6 +230,7 @@ function PublicBookingPage() {
     unit &&
       quote &&
       minStayOk &&
+      !availabilityIssue &&
       name.trim().length >= 2 &&
       emailOk &&
       phoneOk &&
@@ -268,7 +295,16 @@ function PublicBookingPage() {
       if (!r.ok) {
         const message: Record<string, string> = {
           unavailable: "Datumen hann tyvärr bokas av någon annan. Välj andra datum.",
-          min_stay: `Minsta vistelse är ${d.minStay ?? unit.minStay} nätter.`,
+          closed: d.date
+            ? `Boendet är stängt för försäljning ${svDate(d.date)}. Välj andra datum.`
+            : "Boendet är stängt för försäljning under valda datum.",
+          no_arrival: d.date
+            ? `Incheckning är inte möjlig ${svDate(d.date)}. Välj en annan ankomstdag.`
+            : "Incheckning är inte möjlig på valt datum.",
+          no_departure: d.date
+            ? `Utcheckning är inte möjlig ${svDate(d.date)}. Välj en annan avresedag.`
+            : "Utcheckning är inte möjlig på valt datum.",
+          min_stay: `Minsta vistelse på dessa datum är ${d.minStay ?? unit.minStay} nätter.`,
           capacity_exceeded: `Det här boendet tar högst ${d.maxGuests ?? unit.maxGuests} gäster.`,
           name_required: "Ange ditt fullständiga namn.",
           email_required: "Ange en giltig e-postadress.",
@@ -565,6 +601,27 @@ function PublicBookingPage() {
                         <span style={{ color: C.muted }}>{unit.name} · {quote.nights} {quote.nights === 1 ? "natt" : "nätter"} · {svDate(checkin!)}–{svDate(checkout!)}</span>
                         <span className="shrink-0">{fmtKr(quote.subtotal)}</span>
                       </div>
+                      <details className="group">
+                        <summary className="cursor-pointer list-none text-[12px] font-medium underline decoration-dotted underline-offset-2" style={{ color: C.muted }}>
+                          Visa pris per natt
+                        </summary>
+                        <ul className="mt-2 space-y-1 text-[12.5px]">
+                          {quote.nightly.map((n) => (
+                            <li key={n.date} className="flex justify-between gap-3">
+                              <span style={{ color: C.muted }}>
+                                {svDate(n.date)}
+                                {n.source === "override" && (
+                                  <span className="ml-1.5 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">Kampanj</span>
+                                )}
+                                {n.source === "multiplier" && (
+                                  <span className="ml-1.5 rounded-full bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-900">Justerat</span>
+                                )}
+                              </span>
+                              <span>{fmtKr(n.price)}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </details>
                       {quote.cleaningFee > 0 && <div className="flex justify-between"><span style={{ color: C.muted }}>Städning</span><span>{fmtKr(quote.cleaningFee)}</span></div>}
                       {chosenAddons.map((a) => <div key={a.id} className="flex justify-between"><span style={{ color: C.muted }}>{a.name} ×{a.qty}</span><span>{fmtKr(a.lineTotal)}</span></div>)}
                     </div>
@@ -574,7 +631,26 @@ function PublicBookingPage() {
                     </div>
                   </div>
 
-                  {!minStayOk && <p className="mt-4 text-[13px] text-amber-800">Minsta vistelse i {unit.name} är {unit.minStay} nätter.</p>}
+                  {!minStayOk && (
+                    <p className="mt-4 text-[13px] text-amber-800">
+                      Minsta vistelse på dessa datum är {effectiveMinStay} nätter.
+                    </p>
+                  )}
+                  {availabilityIssue?.kind === "closed" && (
+                    <p className="mt-4 text-[13px] text-amber-800">
+                      Boendet är stängt för försäljning {svDate(availabilityIssue.date)}. Välj andra datum.
+                    </p>
+                  )}
+                  {availabilityIssue?.kind === "no_arrival" && (
+                    <p className="mt-4 text-[13px] text-amber-800">
+                      Incheckning är inte möjlig {svDate(availabilityIssue.date)}. Välj en annan ankomstdag.
+                    </p>
+                  )}
+                  {availabilityIssue?.kind === "no_departure" && (
+                    <p className="mt-4 text-[13px] text-amber-800">
+                      Utcheckning är inte möjlig {svDate(availabilityIssue.date)}. Välj en annan avresedag.
+                    </p>
+                  )}
 
                   <div className="mt-7 grid gap-4 sm:grid-cols-2">
                     <Field label="Namn *">
