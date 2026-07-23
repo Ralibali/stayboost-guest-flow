@@ -265,7 +265,7 @@ Deno.serve(async (req) => {
         source: "direct",
         guest_name: guestName,
         guest_email: guestEmail,
-        guest_phone: guestPhone || null,
+        guest_phone: normalizedPhone,
         checkin_date: checkin,
         checkout_date: checkout,
         guests,
