@@ -1,10 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { formatSvDate, renderTemplate } from "../_shared/templates.ts";
 
-// StayBoost: skickar förfallna schemalagda meddelanden.
+// Skickar förfallna meddelanden och frigör obetalda Swish-reservationer.
 // Körs på cron var 5:e minut med x-cron-secret.
-// Kontakt-gate: saknas e-post/telefon lämnas raden pending (operatören
-// hinner fylla i) tills send_at är 7 dagar gammal ⇒ failed med tydligt fel.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -26,24 +24,37 @@ Deno.serve(async (req) => {
 
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
   const baseUrl = (Deno.env.get("GUEST_PAGE_BASE_URL") ?? "").replace(/\/$/, "");
+  const now = new Date().toISOString();
+
+  const { data: expired, error: expiryError } = await admin
+    .from("bookings")
+    .update({ status: "cancelled" })
+    .eq("status", "confirmed")
+    .eq("payment_status", "pending")
+    .eq("payment_method", "swish")
+    .not("payment_expires_at", "is", null)
+    .lt("payment_expires_at", now)
+    .select("id");
+  if (expiryError) return json({ error: expiryError.message }, 500);
 
   const { data: due, error } = await admin
     .from("scheduled_messages")
     .select(
-      "id, channel, send_at, template:message_templates(subject, body), booking:bookings(id, guest_name, guest_email, guest_phone, checkin_date, checkout_date, guest_token, unit:units(name), property:properties(name, checkin_time, checkout_time, directions, wifi_name, wifi_password, contact_phone, review_url))"
+      "id, channel, send_at, template:message_templates(subject, body), booking:bookings(id, guest_name, guest_email, guest_phone, checkin_date, checkout_date, guest_token, payment_status, unit:units(name), property:properties(name, checkin_time, checkout_time, directions, wifi_name, wifi_password, contact_phone, review_url))",
     )
     .eq("status", "pending")
-    .lte("send_at", new Date().toISOString())
+    .lte("send_at", now)
     .order("send_at", { ascending: true })
     .limit(50);
   if (error) return json({ error: error.message }, 500);
 
-  let sent = 0,
-    failed = 0,
-    waitingContact = 0;
+  let sent = 0;
+  let failed = 0;
+  let waitingContact = 0;
+  let waitingPayment = 0;
   const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
 
   for (const row of due ?? []) {
@@ -56,6 +67,12 @@ Deno.serve(async (req) => {
         .update({ status: "failed", error: "bokning eller mall saknas" })
         .eq("id", row.id);
       failed++;
+      continue;
+    }
+
+    // Skicka aldrig välkomst- eller ankomstmeddelanden innan betalningen är klar.
+    if (b.payment_status === "pending") {
+      waitingPayment++;
       continue;
     }
 
@@ -92,57 +109,65 @@ Deno.serve(async (req) => {
 
     try {
       if (row.channel === "email") {
-        const resp = await fetch("https://api.brevo.com/v3/smtp/email", {
+        const apiKey = Deno.env.get("BREVO_API_KEY") ?? "";
+        const senderEmail = Deno.env.get("BREVO_SENDER_EMAIL") ?? "";
+        if (!apiKey || !senderEmail) throw new Error("Brevo är inte konfigurerat");
+        const response = await fetch("https://api.brevo.com/v3/smtp/email", {
           method: "POST",
-          headers: {
-            "api-key": Deno.env.get("BREVO_API_KEY") ?? "",
-            "Content-Type": "application/json",
-          },
+          headers: { "api-key": apiKey, "Content-Type": "application/json" },
           body: JSON.stringify({
-            sender: {
-              email: Deno.env.get("BREVO_SENDER_EMAIL") ?? "",
-              name: Deno.env.get("BREVO_SENDER_NAME") ?? p.name,
-            },
+            sender: { email: senderEmail, name: Deno.env.get("BREVO_SENDER_NAME") ?? p.name },
             to: [{ email: contact, name: b.guest_name ?? undefined }],
             subject: subject || `Meddelande från ${p.name}`,
             textContent: body,
           }),
         });
-        if (!resp.ok)
-          throw new Error(`Brevo ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
+        if (!response.ok) {
+          throw new Error(`Brevo ${response.status}: ${(await response.text()).slice(0, 200)}`);
+        }
       } else {
-        const auth = btoa(
-          `${Deno.env.get("ELKS_API_USER") ?? ""}:${Deno.env.get("ELKS_API_PASSWORD") ?? ""}`
-        );
-        const resp = await fetch("https://api.46elks.com/a1/sms", {
+        const user = Deno.env.get("ELKS_API_USER") ?? "";
+        const password = Deno.env.get("ELKS_API_PASSWORD") ?? "";
+        if (!user || !password) throw new Error("46elks är inte konfigurerat");
+        const auth = btoa(`${user}:${password}`);
+        const response = await fetch("https://api.46elks.com/a1/sms", {
           method: "POST",
           headers: {
             Authorization: `Basic ${auth}`,
             "Content-Type": "application/x-www-form-urlencoded",
           },
           body: new URLSearchParams({
-            from: Deno.env.get("ELKS_SENDER") ?? "Gastklar",
+            from: Deno.env.get("ELKS_SENDER") ?? "StayBoost",
             to: contact,
             message: body,
           }),
         });
-        if (!resp.ok)
-          throw new Error(`46elks ${resp.status}: ${(await resp.text()).slice(0, 200)}`);
+        if (!response.ok) {
+          throw new Error(`46elks ${response.status}: ${(await response.text()).slice(0, 200)}`);
+        }
       }
+
       await admin
         .from("scheduled_messages")
-        .update({ status: "sent", sent_at: new Date().toISOString() })
+        .update({ status: "sent", sent_at: new Date().toISOString(), error: null })
         .eq("id", row.id);
       sent++;
     } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e);
+      const message = e instanceof Error ? e.message : String(e);
       await admin
         .from("scheduled_messages")
-        .update({ status: "failed", error: msg.slice(0, 500) })
+        .update({ status: "failed", error: message.slice(0, 500) })
         .eq("id", row.id);
       failed++;
     }
   }
 
-  return json({ due: (due ?? []).length, sent, failed, waitingContact });
+  return json({
+    expiredSwishBookings: expired?.length ?? 0,
+    due: due?.length ?? 0,
+    sent,
+    failed,
+    waitingContact,
+    waitingPayment,
+  });
 });

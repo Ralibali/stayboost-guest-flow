@@ -14,7 +14,7 @@ export const supabase: SupabaseClient | null = supabaseConfigured
   ? createClient(url!, anonKey!)
   : null;
 
-/* ---------- Typer (speglar migrationen) ---------- */
+/* ---------- Typer (speglar migrationerna) ---------- */
 
 export type Property = {
   id: string;
@@ -30,6 +30,7 @@ export type Property = {
   contact_phone: string | null;
   review_url: string | null;
   swish_number: string | null;
+  swish_hold_minutes: number;
   sirvoy_webhook_token: string;
 };
 
@@ -37,6 +38,14 @@ export type Unit = {
   id: string;
   property_id: string;
   name: string;
+  description: string | null;
+  image_url: string | null;
+  max_guests: number;
+  bed_description: string | null;
+  size_sqm: number | null;
+  amenities: string[];
+  checkin_instructions: string | null;
+  active: boolean;
   door_code: string | null;
   sort_order: number;
   ical_feed_token: string;
@@ -44,6 +53,7 @@ export type Unit = {
   weekend_pct: number;
   min_stay: number;
   cleaning_fee: number;
+  monthly_mult: number[];
   external_ref: string | null;
 };
 
@@ -70,10 +80,13 @@ export type Booking = {
   payment_amount: number | null;
   payment_ref: string | null;
   payment_method: "none" | "swish" | "stripe";
+  payment_expires_at: string | null;
   stripe_session_id: string | null;
   addons_total: number;
   guests: number | null;
-  unit?: { name: string } | null;
+  created_at: string;
+  updated_at: string;
+  unit?: { name: string; max_guests?: number } | null;
 };
 
 export type ScheduledMessage = {
@@ -121,7 +134,7 @@ export type Addon = {
   property_id: string;
   name: string;
   description: string | null;
-  price: number; // kr
+  price: number;
   price_type: "per_booking" | "per_night";
   image_url: string | null;
   active: boolean;

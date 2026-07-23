@@ -3,12 +3,8 @@ import { nightsBetween, quoteStay, rangesOverlap } from "../_shared/pricing.ts";
 import { priceAddons, sumAddons } from "../_shared/addons.ts";
 import { createCheckoutSession } from "../_shared/stripe.ts";
 
-// StayBoost: publik bokningsmotor (verify_jwt = false, se config.toml).
-//  GET  ?slug=<anläggningens slug>  → enheter, priser och upptagna datum
-//  POST {slug, unitId, guest, checkin, checkout} → skapar direktbokning
-// Integritet: GET lämnar ALDRIG ut gästuppgifter — bara blockerade datum.
-// Överlapp skyddas server-side före insert; full race-säkerhet (exclusion
-// constraint) kommer tillsammans med realtids-API:erna i Fas 2.
+// Publik bokningsmotor. All prissättning, kapacitet och tillgänglighet
+// verifieras server-side. Databastriggern serialiserar samtidiga direktbokningar.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -16,6 +12,14 @@ const corsHeaders = {
 };
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
+const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+async function sha256(value: string) {
+  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
+  return Array.from(new Uint8Array(bytes))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
@@ -32,21 +36,25 @@ Deno.serve(async (req) => {
 
   const url = new URL(req.url);
 
-  // ---------------- GET: ledighet + priser ----------------
+  // ---------------- GET: ledighet + priser + boendeprofil ----------------
   if (req.method === "GET") {
     const slug = url.searchParams.get("slug") ?? "";
     const { data: property } = await admin
       .from("properties")
-      .select("id, name, slug, checkin_time, checkout_time, swish_number")
+      .select("id, name, slug, checkin_time, checkout_time, swish_number, swish_hold_minutes")
       .eq("slug", slug)
       .maybeSingle();
     if (!property) return json({ error: "not_found" }, 404);
 
-    const { data: units } = await admin
+    const { data: units, error: unitsError } = await admin
       .from("units")
-      .select("id, name, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult, sort_order")
+      .select(
+        "id, name, description, image_url, max_guests, bed_description, size_sqm, amenities, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult, sort_order",
+      )
       .eq("property_id", property.id)
+      .eq("active", true)
       .order("sort_order");
+    if (unitsError) return json({ error: unitsError.message }, 500);
 
     const today = new Date().toISOString().slice(0, 10);
     const until = new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10);
@@ -81,11 +89,18 @@ Deno.serve(async (req) => {
         checkinTime: property.checkin_time,
         checkoutTime: property.checkout_time,
         swishNumber: property.swish_number,
+        swishHoldMinutes: property.swish_hold_minutes,
         stripeAvailable: Boolean(Deno.env.get("STRIPE_SECRET_KEY")),
       },
       units: (units ?? []).map((u) => ({
         id: u.id,
         name: u.name,
+        description: u.description,
+        imageUrl: u.image_url,
+        maxGuests: u.max_guests,
+        bedDescription: u.bed_description,
+        sizeSqm: u.size_sqm,
+        amenities: u.amenities ?? [],
         basePrice: u.base_price,
         weekendPct: u.weekend_pct,
         minStay: u.min_stay,
@@ -112,9 +127,28 @@ Deno.serve(async (req) => {
     } catch {
       return json({ error: "invalid_body" }, 400);
     }
+
+    // Honeypot: riktiga användare ser aldrig fältet.
+    if (String(body?.website ?? "").trim()) return json({ error: "invalid_request" }, 400);
+
+    // Begränsa automatiserade massbokningar utan att lagra IP-adressen i klartext.
+    const forwarded = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+    const ip = req.headers.get("cf-connecting-ip") ?? forwarded ?? req.headers.get("x-real-ip") ?? "unknown";
+    const salt = Deno.env.get("RATE_LIMIT_SALT") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "stayboost";
+    const ipHash = await sha256(`${salt}:${ip}`);
+    const windowStart = new Date(Date.now() - 15 * 60_000).toISOString();
+    const { count } = await admin
+      .from("booking_attempts")
+      .select("id", { count: "exact", head: true })
+      .eq("ip_hash", ipHash)
+      .gte("created_at", windowStart);
+    if ((count ?? 0) >= 12) return json({ error: "rate_limited" }, 429);
+    await admin.from("booking_attempts").insert({ ip_hash: ipHash });
+    await admin.from("booking_attempts").delete().lt("created_at", new Date(Date.now() - 86400000).toISOString());
+
     const { slug, unitId, checkin, checkout } = body ?? {};
     const guestName = String(body?.guest_name ?? "").trim();
-    const guestEmail = String(body?.guest_email ?? "").trim();
+    const guestEmail = String(body?.guest_email ?? "").trim().toLowerCase();
     const guestPhone = String(body?.guest_phone ?? "").trim();
 
     if (!ISO_DATE.test(checkin ?? "") || !ISO_DATE.test(checkout ?? "") || checkout <= checkin) {
@@ -123,11 +157,14 @@ Deno.serve(async (req) => {
     const today = new Date().toISOString().slice(0, 10);
     if (checkin < today) return json({ error: "past_checkin" }, 400);
     if (nightsBetween(checkin, checkout).length > 30) return json({ error: "too_long" }, 400);
-    if (!guestEmail && !guestPhone) return json({ error: "contact_required" }, 400);
+    if (guestName.length < 2 || guestName.length > 120) return json({ error: "name_required" }, 400);
+    if (!EMAIL.test(guestEmail) || guestEmail.length > 254) return json({ error: "email_required" }, 400);
+    if (guestPhone.length > 40) return json({ error: "invalid_phone" }, 400);
+    if (body?.termsAccepted !== true) return json({ error: "terms_required" }, 400);
 
     const { data: property } = await admin
       .from("properties")
-      .select("id, swish_number")
+      .select("id, swish_number, swish_hold_minutes")
       .eq("slug", slug)
       .maybeSingle();
     if (!property) return json({ error: "not_found" }, 404);
@@ -135,18 +172,25 @@ Deno.serve(async (req) => {
     const { data: unit } = await admin
       .from("units")
       .select(
-        "id, name, property_id, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult",
+        "id, name, property_id, active, max_guests, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult",
       )
       .eq("id", unitId)
       .eq("property_id", property.id)
+      .eq("active", true)
       .maybeSingle();
     if (!unit) return json({ error: "unit_not_found" }, 404);
+
+    const guestsRaw = Number(body?.guests);
+    if (!Number.isInteger(guestsRaw) || guestsRaw < 1 || guestsRaw > unit.max_guests) {
+      return json({ error: "capacity_exceeded", maxGuests: unit.max_guests }, 400);
+    }
+    const guests = guestsRaw;
 
     if (nightsBetween(checkin, checkout).length < unit.min_stay) {
       return json({ error: "min_stay", minStay: unit.min_stay }, 400);
     }
 
-    // Server-side överlappsskydd: avvisa om någon bekräftad bokning krockar.
+    // Förkontroll för ett vänligt svar. Databastriggern gör samma kontroll atomärt.
     const { data: clashes } = await admin
       .from("bookings")
       .select("checkin_date, checkout_date")
@@ -154,16 +198,12 @@ Deno.serve(async (req) => {
       .eq("status", "confirmed")
       .lt("checkin_date", checkout)
       .gt("checkout_date", checkin);
-    if (
-      (clashes ?? []).some((c) => rangesOverlap(checkin, checkout, c.checkin_date, c.checkout_date))
-    ) {
+    if ((clashes ?? []).some((c) => rangesOverlap(checkin, checkout, c.checkin_date, c.checkout_date))) {
       return json({ error: "unavailable" }, 409);
     }
 
     const quote = quoteStay(unit, checkin, checkout);
 
-    // ---- Tillval: klienten skickar {addons:[{id,quantity}]} — vi prissätter
-    // alltid server-side mot aktiva tillval, aldrig klientens egna summor.
     const rawSelections = Array.isArray(body?.addons) ? body.addons : [];
     const { data: availableAddons } = await admin
       .from("addons")
@@ -174,11 +214,6 @@ Deno.serve(async (req) => {
     const addonsTotal = sumAddons(pricedAddons);
     const grandTotal = quote.total + addonsTotal;
 
-    const guestsRaw = Number(body?.guests);
-    const guests =
-      Number.isInteger(guestsRaw) && guestsRaw > 0 && guestsRaw <= 20 ? guestsRaw : null;
-
-    // ---- Betalningsval: gästen väljer, annars Stripe > Swish > ingen ----
     const requested = String(body?.paymentMethod ?? "");
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
     const stripeOk = Boolean(stripeKey);
@@ -190,22 +225,25 @@ Deno.serve(async (req) => {
     else if (stripeOk) paymentMethod = "stripe";
     else if (swishOk) paymentMethod = "swish";
 
-    // Betalda flöden: bokningen skapas som 'pending' med kort betalningsmärke.
-    // Swish: operatören markerar "Betald" manuellt. Stripe: webhooks gör det.
     const paymentRef = `SB-${crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase()}`;
     const takesPayment = paymentMethod !== "none";
+    const paymentExpiresAt =
+      paymentMethod === "swish"
+        ? new Date(Date.now() + property.swish_hold_minutes * 60_000).toISOString()
+        : null;
 
     const addonsNote = pricedAddons.length
       ? ` · Tillval: ${pricedAddons.map((p) => `${p.addon.name}×${p.quantity}`).join(", ")}`
       : "";
+
     const { data: booking, error } = await admin
       .from("bookings")
       .insert({
         property_id: property.id,
         unit_id: unit.id,
         source: "direct",
-        guest_name: guestName || null,
-        guest_email: guestEmail || null,
+        guest_name: guestName,
+        guest_email: guestEmail,
         guest_phone: guestPhone || null,
         checkin_date: checkin,
         checkout_date: checkout,
@@ -213,15 +251,21 @@ Deno.serve(async (req) => {
         addons_total: addonsTotal,
         notes: `Direktbokning via bokningssidan · ${grandTotal} kr${addonsNote}`,
         payment_method: paymentMethod,
+        payment_expires_at: paymentExpiresAt,
         ...(takesPayment
           ? { payment_status: "pending", payment_amount: grandTotal, payment_ref: paymentRef }
           : {}),
       })
       .select("id, guest_token")
       .single();
-    if (error) return json({ error: error.message }, 500);
 
-    // Spara valda tillval med fryst pris — historiken ändras aldrig i efterhand.
+    if (error) {
+      if (error.code === "23P01" || error.message.includes("booking_overlap")) {
+        return json({ error: "unavailable" }, 409);
+      }
+      return json({ error: "booking_failed", detail: error.message }, 500);
+    }
+
     if (pricedAddons.length) {
       const { error: addonError } = await admin.from("booking_addons").insert(
         pricedAddons.map((p) => ({
@@ -233,12 +277,10 @@ Deno.serve(async (req) => {
       );
       if (addonError) {
         await admin.from("bookings").delete().eq("id", booking.id);
-        return json({ error: addonError.message }, 500);
+        return json({ error: "booking_failed", detail: addonError.message }, 500);
       }
     }
 
-    // Stripe: skapa Checkout Session och skicka gästen dit. Misslyckas det
-    // rullar vi tillbaka bokningen så inga spökbokningar blockerar kalendern.
     if (paymentMethod === "stripe") {
       try {
         const appBase = Deno.env.get("PUBLIC_APP_URL") ?? req.headers.get("origin") ?? "";
@@ -250,7 +292,7 @@ Deno.serve(async (req) => {
           bookingId: booking.id,
           successUrl: `${appBase}/g/${booking.guest_token}?paid=1`,
           cancelUrl: `${appBase}/boka/${slug}`,
-          customerEmail: guestEmail || null,
+          customerEmail: guestEmail,
         });
         await admin.from("bookings").update({ stripe_session_id: session.id }).eq("id", booking.id);
         return json({
@@ -285,7 +327,13 @@ Deno.serve(async (req) => {
       })),
       grandTotal,
       ...(paymentMethod === "swish"
-        ? { swishNumber: property.swish_number, paymentRef, paymentAmount: grandTotal }
+        ? {
+            swishNumber: property.swish_number,
+            paymentRef,
+            paymentAmount: grandTotal,
+            paymentExpiresAt,
+            swishHoldMinutes: property.swish_hold_minutes,
+          }
         : {}),
     });
   }

@@ -1,11 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { verifyStripeSignature } from "../_shared/stripe.ts";
 
-// StayBoost: Stripe-webhook (verify_jwt = false, se config.toml).
-// Stripe signerar varje anrop; vi verifierar HMAC-SHA256 manuellt mot
-// STRIPE_WEBHOOK_SECRET innan vi rör databasen. Vid checkout.session.completed
-// markeras bokningen som betald. Svarar alltid 200 efter lyckad verifiering
-// så att Stripe inte spammar retries för event vi inte bryr oss om.
+// Stripe-webhook. Signaturen, bokningskopplingen, valuta och belopp verifieras
+// innan en bokning markeras som betald.
 
 Deno.serve(async (req) => {
   const json = (body: unknown, status = 200) =>
@@ -38,7 +35,8 @@ Deno.serve(async (req) => {
   }
 
   const session = event.data?.object ?? {};
-  const bookingId: string | undefined = session.client_reference_id ?? session.metadata?.booking_id;
+  const bookingId: string | undefined =
+    session.client_reference_id ?? session.metadata?.booking_id;
   if (!bookingId) return json({ ok: true, ignored: "no_booking_ref" });
 
   const admin = createClient(
@@ -46,21 +44,49 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
 
+  const { data: booking, error: readError } = await admin
+    .from("bookings")
+    .select("id, status, payment_method, payment_status, payment_amount")
+    .eq("id", bookingId)
+    .maybeSingle();
+  if (readError) return json({ error: readError.message }, 500);
+  if (!booking || booking.payment_method !== "stripe") {
+    return json({ error: "booking_not_found" }, 404);
+  }
+
   if (event.type === "checkout.session.completed") {
+    // En sen webhook får aldrig återuppliva en avbokad/utgången bokning.
+    if (booking.status !== "confirmed") {
+      return json({ ok: true, ignored: "booking_not_confirmed" });
+    }
+
+    const amountTotal = Number(session.amount_total);
+    const currency = String(session.currency ?? "").toLowerCase();
+    const expectedAmount = Math.round(Number(booking.payment_amount ?? 0) * 100);
+    if (
+      session.payment_status !== "paid" ||
+      currency !== "sek" ||
+      !Number.isInteger(amountTotal) ||
+      amountTotal !== expectedAmount
+    ) {
+      return json({ error: "payment_mismatch" }, 400);
+    }
+
     const { error } = await admin
       .from("bookings")
-      .update({ payment_status: "paid" })
+      .update({ payment_status: "paid", payment_expires_at: null })
       .eq("id", bookingId)
+      .eq("status", "confirmed")
       .eq("payment_method", "stripe");
     if (error) return json({ error: error.message }, 500);
     return json({ ok: true, bookingId, paymentStatus: "paid" });
   }
 
-  // Sessionen löpte ut utan betalning — avboka så datumen frigörs i kalendern.
   const { error } = await admin
     .from("bookings")
     .update({ status: "cancelled" })
     .eq("id", bookingId)
+    .eq("status", "confirmed")
     .eq("payment_method", "stripe")
     .eq("payment_status", "pending");
   if (error) return json({ error: error.message }, 500);
