@@ -18,6 +18,12 @@ import {
   rangesOverlap,
   type UnitPricing,
 } from "../../../supabase/functions/_shared/pricing";
+import {
+  checkAvailabilityRules,
+  minStayFromRules,
+  type RateRule,
+} from "../../../supabase/functions/_shared/rate-rules";
+import { nightsBetween } from "../../../supabase/functions/_shared/pricing";
 import { normalizePhoneSE } from "@/lib/phone";
 
 export const Route = createFileRoute("/boka/$slug")({
