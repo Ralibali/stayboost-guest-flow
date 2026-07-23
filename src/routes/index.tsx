@@ -75,10 +75,7 @@ function Header() {
       }`}
     >
       <div className="mx-auto flex max-w-[1120px] items-center justify-between gap-3 px-4 py-3 sm:gap-4 sm:px-6 sm:py-4">
-        <a
-          href="#"
-          className="font-[Fraunces] text-lg font-semibold tracking-tight sm:text-2xl"
-        >
+        <a href="#" className="font-[Fraunces] text-lg font-semibold tracking-tight sm:text-2xl">
           {BRAND_NAME}
         </a>
         <nav className="hidden items-center gap-8 text-sm md:flex">
@@ -513,7 +510,10 @@ function Testimonial() {
 function Pricing() {
   const [annual, setAnnual] = useState(false);
   return (
-    <section id="pris" className="border-t border-[color:var(--line)] bg-white/50 py-14 sm:py-20 md:py-32">
+    <section
+      id="pris"
+      className="border-t border-[color:var(--line)] bg-white/50 py-14 sm:py-20 md:py-32"
+    >
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="mx-auto max-w-2xl text-center">
           <p className="eyebrow">Ett pris. Allt ingår.</p>

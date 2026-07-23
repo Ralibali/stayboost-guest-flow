@@ -25,6 +25,11 @@ import {
   sumAddons,
   type Addon,
 } from "../../supabase/functions/_shared/addons";
+import {
+  chatEmailBody,
+  chatEmailSubject,
+  validateChatInput,
+} from "../../supabase/functions/_shared/chat";
 import { mapSirvoyPayload } from "../../supabase/functions/_shared/sirvoy";
 import {
   checkoutBody,
@@ -287,6 +292,10 @@ const MIGRATION_STRIPE = readFileSync(
 );
 const MIGRATION_ADDONS = readFileSync(
   join(__dirname, "../../supabase/migrations/20260721000000_addons.sql"),
+  "utf8",
+);
+const MIGRATION_CHAT = readFileSync(
+  join(__dirname, "../../supabase/migrations/20260721120000_chat.sql"),
   "utf8",
 );
 
@@ -761,5 +770,109 @@ describe("tillvals-migration mot Postgres", () => {
         p.rows[0].id,
       ]),
     ).rejects.toThrow();
+  }, 30000);
+});
+
+/* ================= Chatt-widget ================= */
+
+describe("chatt-validering", () => {
+  it("godkänner ett riktigt meddelande och städar fälten", () => {
+    const v = validateChatInput({
+      name: "  Anna  ",
+      email: "anna@example.se",
+      message: "  Finns badtunnan ledig i augusti?  ",
+      pageUrl: "https://glamping.se/boka",
+    });
+    expect(v).toEqual({
+      name: "Anna",
+      email: "anna@example.se",
+      message: "Finns badtunnan ledig i augusti?",
+      pageUrl: "https://glamping.se/boka",
+    });
+  });
+
+  it("fångar bots i honeypoten", () => {
+    expect(
+      validateChatInput({ email: "bot@spam.ru", message: "köp viagra", company: "spammy" }),
+    ).toBe("bot");
+  });
+
+  it("avvisar ogiltig e-post, tomt meddelande och konstiga sidlänkar", () => {
+    expect(validateChatInput({ email: "inte-en-mejl", message: "Hej" })).toBeNull();
+    expect(validateChatInput({ email: "a@b.se", message: " " })).toBeNull();
+    const v = validateChatInput({
+      email: "a@b.se",
+      message: "Hej",
+      pageUrl: "javascript:alert(1)",
+    });
+    expect(v !== null && v !== "bot" && v.pageUrl).toBeNull();
+  });
+
+  it("bygger ägarmejlet med svar-till och innehåll", () => {
+    expect(chatEmailSubject("Glampingen", "Anna")).toContain("Glampingen");
+    expect(chatEmailSubject("Glampingen", "Anna")).toContain("Anna");
+    const body = chatEmailBody({
+      propertyName: "Glampingen",
+      name: null,
+      email: "gast@example.se",
+      message: "Hej!",
+      pageUrl: null,
+    });
+    expect(body).toContain("gast@example.se");
+    expect(body).toContain("Hej!");
+  });
+});
+
+describe("chatt-migration mot Postgres", () => {
+  it("chat-kolumner med defaults + inkorg med lässtatus", async () => {
+    const db = new PGlite({ extensions: { pgcrypto } });
+    await db.exec(AUTH_STUB);
+    await db.exec(MIGRATION);
+    await db.exec(MIGRATION_ICAL);
+    await db.exec(MIGRATION_DIRECT);
+    await db.exec(MIGRATION_SIRVOY);
+    await db.exec(MIGRATION_STRIPE);
+    await db.exec(MIGRATION_ADDONS);
+    await db.exec(MIGRATION_CHAT);
+
+    // Defaults: avstängd tills ägaren själv slår på den
+    const p = await db.query<{
+      id: string;
+      chat_enabled: boolean;
+      chat_color: string;
+      chat_position: string;
+      chat_button_label: string;
+    }>(
+      "insert into properties (owner_id, name) values ('00000000-0000-0000-0000-0000000000a1', 'Chatt-test') returning id, chat_enabled, chat_color, chat_position, chat_button_label",
+    );
+    expect(p.rows[0].chat_enabled).toBe(false);
+    expect(p.rows[0].chat_color).toBe("#1B1B19");
+    expect(p.rows[0].chat_position).toBe("right");
+    expect(p.rows[0].chat_button_label).toBe("Skicka");
+
+    // Ogiltig placering stoppas
+    await expect(
+      db.query("update properties set chat_position = 'mitten' where id = $1", [p.rows[0].id]),
+    ).rejects.toThrow();
+
+    // Inkorg: meddelande sparas, markeras läst och mejlat
+    const m = await db.query<{ id: string }>(
+      `insert into chat_messages (property_id, visitor_email, message)
+       values ($1, 'gast@example.se', 'Hej, är hunden välkommen?') returning id`,
+      [p.rows[0].id],
+    );
+    await db.query("update chat_messages set read_at = now(), emailed = true where id = $1", [
+      m.rows[0].id,
+    ]);
+    const check = await db.query<{ emailed: boolean; read: boolean }>(
+      "select emailed, (read_at is not null) as read from chat_messages where id = $1",
+      [m.rows[0].id],
+    );
+    expect(check.rows[0]).toEqual({ emailed: true, read: true });
+
+    // Raderas anläggningen försvinner inkorgen
+    await db.query("delete from properties where id = $1", [p.rows[0].id]);
+    const left = await db.query<{ n: number }>("select count(*)::int as n from chat_messages");
+    expect(left.rows[0].n).toBe(0);
   }, 30000);
 });

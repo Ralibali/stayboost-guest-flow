@@ -23,6 +23,11 @@ verify_jwt = false
 [functions.stripe-webhook]
 verify_jwt = false
 
+# Chatt-widgeten är publik — slugen identifierar anläggningen,
+# honeypot + återkomst-spärr skyddar mot spam.
+[functions.chat-message]
+verify_jwt = false
+
 [functions.ical-sync]
 verify_jwt = true
 

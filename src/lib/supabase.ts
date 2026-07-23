@@ -32,6 +32,25 @@ export type Property = {
   swish_number: string | null;
   swish_hold_minutes: number;
   sirvoy_webhook_token: string;
+  chat_enabled: boolean;
+  chat_email: string | null;
+  chat_title: string;
+  chat_greeting: string;
+  chat_color: string;
+  chat_position: "right" | "left";
+  chat_button_label: string;
+};
+
+export type ChatMessage = {
+  id: string;
+  property_id: string;
+  visitor_name: string | null;
+  visitor_email: string;
+  message: string;
+  page_url: string | null;
+  emailed: boolean;
+  read_at: string | null;
+  created_at: string;
 };
 
 export type Unit = {
