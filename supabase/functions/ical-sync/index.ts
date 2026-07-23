@@ -168,23 +168,34 @@ Deno.serve(async (req) => {
         }
       }
 
+      const nowIso = new Date().toISOString();
       await admin
         .from("ical_sources")
         .update({
-          last_synced_at: new Date().toISOString(),
+          last_synced_at: nowIso,
+          last_attempt_at: nowIso,
+          last_success_at: nowIso,
+          consecutive_failures: 0,
           last_status: `ok (${events.length} event, +${created} nya, ${updated} uppdaterade, ${cancelled} avbokade)`,
         })
         .eq("id", source.id);
       results.push({ source: source.name, ok: true, created, updated, cancelled });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      const nowIso = new Date().toISOString();
       await admin
         .from("ical_sources")
-        .update({ last_synced_at: new Date().toISOString(), last_status: `fel: ${message}` })
+        .update({
+          last_synced_at: nowIso,
+          last_attempt_at: nowIso,
+          consecutive_failures: (source.consecutive_failures ?? 0) + 1,
+          last_status: `fel: ${message}`,
+        })
         .eq("id", source.id);
       results.push({ source: source.name, ok: false, error: message });
     }
   }
+
 
   return json({ synced: results.length, results });
 });
