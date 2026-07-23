@@ -1,10 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-// StayBoost: publik gästsida. Gäster loggar aldrig in — token i länken är
-// nyckeln (24 hex-tecken, 96 bitar entropi, unik per bokning).
-// OBS: kräver verify_jwt = false för denna funktion (se supabase/config.toml).
-// Ingen anon-RLS behövs: all läsning sker med service role här, och
-// endast ett kuraterat urval fält lämnar servern.
+// Publik gästsida. Tokenen i länken är nyckeln; endast kuraterade fält lämnar servern.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,19 +20,19 @@ Deno.serve(async (req) => {
     try {
       token = (await req.json())?.token ?? "";
     } catch {
-      /* tomt body är ok */
+      // Tom body är okej.
     }
   }
   if (!/^[0-9a-f]{24}$/.test(token)) return json({ error: "invalid_token" }, 400);
 
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
   const { data, error } = await admin
     .from("bookings")
     .select(
-      "guest_name, checkin_date, checkout_date, status, payment_status, payment_amount, payment_ref, unit:units(name, door_code), property:properties(name, checkin_time, checkout_time, directions, wifi_name, wifi_password, house_rules, contact_phone, swish_number)"
+      "guest_name, checkin_date, checkout_date, status, payment_status, payment_amount, payment_ref, payment_expires_at, unit:units(name, door_code, checkin_instructions), property:properties(name, checkin_time, checkout_time, directions, wifi_name, wifi_password, house_rules, contact_phone, swish_number)",
     )
     .eq("guest_token", token)
     .maybeSingle();
@@ -55,6 +51,7 @@ Deno.serve(async (req) => {
           status: data.payment_status,
           amount: data.payment_amount,
           ref: data.payment_ref,
+          expiresAt: data.payment_expires_at,
         }
       : null,
   });

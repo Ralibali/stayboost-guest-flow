@@ -7,7 +7,14 @@ export const Route = createFileRoute("/app/onboarding")({
   component: OnboardingPage,
 });
 
-type UnitDraft = { name: string; door_code: string };
+type UnitDraft = {
+  name: string;
+  door_code: string;
+  max_guests: number;
+  description: string;
+};
+
+const emptyUnit = (): UnitDraft => ({ name: "", door_code: "", max_guests: 2, description: "" });
 
 function OnboardingPage() {
   const session = useSession();
@@ -24,7 +31,7 @@ function OnboardingPage() {
     contact_phone: "",
     review_url: "",
   });
-  const [units, setUnits] = useState<UnitDraft[]>([{ name: "", door_code: "" }]);
+  const [units, setUnits] = useState<UnitDraft[]>([emptyUnit()]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +45,7 @@ function OnboardingPage() {
     if (!supabase || !session || !valid) return;
     setBusy(true);
     setError(null);
-    const { data: prop, error: pErr } = await supabase
+    const { data: prop, error: propertyError } = await supabase
       .from("properties")
       .insert({
         owner_id: session.user.id,
@@ -54,27 +61,33 @@ function OnboardingPage() {
       })
       .select("id")
       .single();
-    if (pErr || !prop) {
-      setError(pErr?.message ?? "Kunde inte skapa anläggningen");
+
+    if (propertyError || !prop) {
+      setError(propertyError?.message ?? "Kunde inte skapa anläggningen");
       setBusy(false);
       return;
     }
+
     const rows = units
       .filter((u) => u.name.trim())
       .map((u, i) => ({
         property_id: prop.id,
         name: u.name.trim(),
         door_code: u.door_code.trim() || null,
+        max_guests: Math.min(20, Math.max(1, u.max_guests)),
+        description: u.description.trim() || null,
         sort_order: i,
       }));
-    const { error: uErr } = await supabase.from("units").insert(rows);
-    if (uErr) {
-      setError(uErr.message);
+    const { error: unitError } = await supabase.from("units").insert(rows);
+    if (unitError) {
+      await supabase.from("properties").delete().eq("id", prop.id);
+      setError(unitError.message);
       setBusy(false);
       return;
     }
+
     reload();
-    navigate({ to: "/app/bokningar" });
+    navigate({ to: "/app" });
   };
 
   return (
@@ -82,25 +95,19 @@ function OnboardingPage() {
       <p className="eyebrow">Välkommen till StayBoost</p>
       <h1 className="mt-2 font-[Fraunces] text-3xl font-semibold">Berätta om din anläggning</h1>
       <p className="mt-2 text-[15px] text-[color:var(--ink)]/65">
-        Det här syns på gästens sida och i meddelandena. Fyra svenska standardmallar skapas
-        automatiskt när du sparar.
+        Börja med grunderna. Bilder, priser, bäddar och faciliteter kan kompletteras direkt efteråt.
       </p>
 
-      <div className="card-surface mt-8 space-y-5 p-6">
+      <section className="card-surface mt-8 space-y-5 p-6">
         <Field label="Anläggningens namn *">
-          <input
-            value={form.name}
-            onChange={set("name")}
-            placeholder="T.ex. Bergs Slussar Glamping"
-            className="inp"
-          />
+          <input value={form.name} onChange={set("name")} placeholder="Bergs Slussar Glamping" className="inp" />
         </Field>
         <div className="grid grid-cols-2 gap-4">
           <Field label="Incheckning från">
-            <input value={form.checkin_time} onChange={set("checkin_time")} className="inp" />
+            <input type="time" value={form.checkin_time} onChange={set("checkin_time")} className="inp" />
           </Field>
           <Field label="Utcheckning senast">
-            <input value={form.checkout_time} onChange={set("checkout_time")} className="inp" />
+            <input type="time" value={form.checkout_time} onChange={set("checkout_time")} className="inp" />
           </Field>
         </div>
         <div className="grid grid-cols-2 gap-4">
@@ -112,89 +119,76 @@ function OnboardingPage() {
           </Field>
         </div>
         <Field label="Vägbeskrivning">
-          <textarea
-            value={form.directions}
-            onChange={set("directions")}
-            rows={2}
-            className="inp resize-none"
-          />
+          <textarea value={form.directions} onChange={set("directions")} rows={2} className="inp resize-none" />
         </Field>
         <Field label="Husregler">
-          <textarea
-            value={form.house_rules}
-            onChange={set("house_rules")}
-            rows={2}
-            className="inp resize-none"
-          />
+          <textarea value={form.house_rules} onChange={set("house_rules")} rows={2} className="inp resize-none" />
         </Field>
         <div className="grid grid-cols-2 gap-4">
           <Field label="Kontakttelefon">
             <input value={form.contact_phone} onChange={set("contact_phone")} className="inp" />
           </Field>
-          <Field label="Recensionslänk (Google m.m.)">
+          <Field label="Recensionslänk">
             <input value={form.review_url} onChange={set("review_url")} className="inp" />
           </Field>
         </div>
-      </div>
+      </section>
 
-      <div className="card-surface mt-5 p-6">
+      <section className="card-surface mt-5 p-6">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="font-sans text-[17px] font-bold">Enheter</h2>
-            <p className="text-[13px] text-[color:var(--ink)]/55">
-              Stugor, tält eller rum – varje enhet får egna iCal-källor och bokningar
-            </p>
+            <h2 className="text-[17px] font-bold">Boenden</h2>
+            <p className="text-[13px] text-[color:var(--ink)]/55">Ange rätt maxantal gäster för varje tält, rum eller stuga.</p>
           </div>
-          <button
-            onClick={() => setUnits((us) => [...us, { name: "", door_code: "" }])}
-            className="btn-ghost !rounded-xl !px-3 !py-2 text-[13px]"
-          >
+          <button onClick={() => setUnits((current) => [...current, emptyUnit()])} className="btn-ghost !rounded-xl !px-3 !py-2 text-[13px]">
             <Plus size={15} /> Lägg till
           </button>
         </div>
-        <div className="mt-4 space-y-2.5">
-          {units.map((u, i) => (
-            <div key={i} className="flex items-center gap-2.5">
-              <input
-                value={u.name}
-                onChange={(e) =>
-                  setUnits((us) => us.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))
-                }
-                placeholder={`Enhet ${i + 1} — t.ex. Sjöbrisretreatet`}
-                className="inp flex-1"
-              />
-              <input
-                value={u.door_code}
-                onChange={(e) =>
-                  setUnits((us) =>
-                    us.map((x, j) => (j === i ? { ...x, door_code: e.target.value } : x)),
-                  )
-                }
-                placeholder="Portkod"
-                className="inp w-28"
-              />
-              {units.length > 1 && (
-                <button
-                  onClick={() => setUnits((us) => us.filter((_, j) => j !== i))}
-                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full text-[color:var(--ink)]/40 hover:bg-red-50 hover:text-red-600"
-                  aria-label="Ta bort enhet"
-                >
-                  <X size={16} />
-                </button>
-              )}
+        <div className="mt-4 space-y-4">
+          {units.map((unit, index) => (
+            <div key={index} className="rounded-2xl border border-[color:var(--line)] p-4">
+              <div className="flex items-start gap-2.5">
+                <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-[1fr_130px]">
+                  <Field label={`Boende ${index + 1} *`}>
+                    <input
+                      value={unit.name}
+                      onChange={(e) => setUnits((current) => current.map((x, i) => (i === index ? { ...x, name: e.target.value } : x)))}
+                      placeholder="Sjöbrisretreatet"
+                      className="inp"
+                    />
+                  </Field>
+                  <Field label="Max gäster *">
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      value={unit.max_guests}
+                      onChange={(e) => setUnits((current) => current.map((x, i) => (i === index ? { ...x, max_guests: Math.min(20, Math.max(1, Number(e.target.value) || 1)) } : x)))}
+                      className="inp"
+                    />
+                  </Field>
+                </div>
+                {units.length > 1 && (
+                  <button onClick={() => setUnits((current) => current.filter((_, i) => i !== index))} className="mt-5 grid h-9 w-9 shrink-0 place-items-center rounded-full text-[color:var(--ink)]/40 hover:bg-red-50 hover:text-red-600" aria-label="Ta bort boende">
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+              <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                <Field label="Kort beskrivning">
+                  <input value={unit.description} onChange={(e) => setUnits((current) => current.map((x, i) => (i === index ? { ...x, description: e.target.value } : x)))} placeholder="Glampingtält med utsikt över kanalen" className="inp" />
+                </Field>
+                <Field label="Portkod">
+                  <input value={unit.door_code} onChange={(e) => setUnits((current) => current.map((x, i) => (i === index ? { ...x, door_code: e.target.value } : x)))} className="inp" />
+                </Field>
+              </div>
             </div>
           ))}
         </div>
-      </div>
+      </section>
 
-      {error && (
-        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-[14px] text-red-700">{error}</p>
-      )}
-      <button
-        onClick={submit}
-        disabled={!valid || busy}
-        className="btn-primary mt-6 w-full justify-center !rounded-xl !py-3.5 text-[15px] disabled:opacity-40"
-      >
+      {error && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-[14px] text-red-700">{error}</p>}
+      <button onClick={submit} disabled={!valid || busy} className="btn-primary mt-6 w-full justify-center !rounded-xl !py-3.5 text-[15px] disabled:opacity-40">
         {busy ? "Sparar…" : "Skapa anläggning →"}
       </button>
     </div>
@@ -203,11 +197,9 @@ function OnboardingPage() {
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div>
-      <label className="text-[12px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/55">
-        {label}
-      </label>
-      <div className="mt-1.5">{children}</div>
-    </div>
+    <label className="block">
+      <span className="text-[12px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/55">{label}</span>
+      <span className="mt-1.5 block">{children}</span>
+    </label>
   );
 }
