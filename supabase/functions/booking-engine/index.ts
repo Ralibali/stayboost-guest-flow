@@ -21,6 +21,21 @@ async function sha256(value: string) {
     .join("");
 }
 
+// Duplicerar src/lib/phone.ts — måste vara identisk med klientvalideringen.
+function normalizePhoneSE(input: string): string | null {
+  if (!input) return null;
+  let n = input.replace(/[\s().\-]/g, "");
+  if (!n) return null;
+  if (n.startsWith("+")) n = n.slice(1);
+  else if (n.startsWith("00")) n = n.slice(2);
+  else if (n.startsWith("0")) n = "46" + n.slice(1);
+  if (!/^\d+$/.test(n)) return null;
+  if (!n.startsWith("46")) return null;
+  const local = n.slice(2);
+  if (!/^7\d{8}$/.test(local)) return null;
+  return `+46${local}`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   const json = (body: unknown, status = 200) =>
@@ -149,7 +164,8 @@ Deno.serve(async (req) => {
     const { slug, unitId, checkin, checkout } = body ?? {};
     const guestName = String(body?.guest_name ?? "").trim();
     const guestEmail = String(body?.guest_email ?? "").trim().toLowerCase();
-    const guestPhone = String(body?.guest_phone ?? "").trim();
+    const guestPhoneRaw = String(body?.guest_phone ?? "").trim();
+    const normalizedPhone = guestPhoneRaw ? normalizePhoneSE(guestPhoneRaw) : null;
 
     if (!ISO_DATE.test(checkin ?? "") || !ISO_DATE.test(checkout ?? "") || checkout <= checkin) {
       return json({ error: "invalid_dates" }, 400);
@@ -159,7 +175,7 @@ Deno.serve(async (req) => {
     if (nightsBetween(checkin, checkout).length > 30) return json({ error: "too_long" }, 400);
     if (guestName.length < 2 || guestName.length > 120) return json({ error: "name_required" }, 400);
     if (!EMAIL.test(guestEmail) || guestEmail.length > 254) return json({ error: "email_required" }, 400);
-    if (guestPhone.length > 40) return json({ error: "invalid_phone" }, 400);
+    if (guestPhoneRaw && !normalizedPhone) return json({ error: "invalid_phone" }, 400);
     if (body?.termsAccepted !== true) return json({ error: "terms_required" }, 400);
 
     const { data: property } = await admin
@@ -225,6 +241,11 @@ Deno.serve(async (req) => {
     else if (stripeOk) paymentMethod = "stripe";
     else if (swishOk) paymentMethod = "swish";
 
+    // Vid Swish krävs telefon för att kunna följa upp betalning och skicka SMS-påminnelse.
+    if (paymentMethod === "swish" && !normalizedPhone) {
+      return json({ error: "phone_required_for_swish" }, 400);
+    }
+
     const paymentRef = `SB-${crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase()}`;
     const takesPayment = paymentMethod !== "none";
     const paymentExpiresAt =
@@ -244,7 +265,7 @@ Deno.serve(async (req) => {
         source: "direct",
         guest_name: guestName,
         guest_email: guestEmail,
-        guest_phone: guestPhone || null,
+        guest_phone: normalizedPhone,
         checkin_date: checkin,
         checkout_date: checkout,
         guests,

@@ -18,6 +18,7 @@ import {
   rangesOverlap,
   type UnitPricing,
 } from "../../../supabase/functions/_shared/pricing";
+import { normalizePhoneSE } from "@/lib/phone";
 
 export const Route = createFileRoute("/boka/$slug")({
   component: PublicBookingPage,
@@ -187,17 +188,8 @@ function PublicBookingPage() {
 
   const minStayOk = !quote || !unit || quote.nights >= unit.minStay;
   const emailOk = EMAIL.test(email.trim());
-  const canSubmit = Boolean(
-    unit &&
-      quote &&
-      minStayOk &&
-      name.trim().length >= 2 &&
-      emailOk &&
-      guests >= 1 &&
-      guests <= unit.maxGuests &&
-      termsAccepted &&
-      !sending,
-  );
+  const normalizedPhone = phone.trim() ? normalizePhoneSE(phone.trim()) : null;
+  const phoneOk = !phone.trim() || normalizedPhone !== null;
 
   const payMethods = data
     ? ([
@@ -206,11 +198,51 @@ function PublicBookingPage() {
       ] as ("stripe" | "swish")[])
     : [];
   const payMethod = payChoice && payMethods.includes(payChoice) ? payChoice : (payMethods[0] ?? null);
+  const phoneRequired = payMethod === "swish";
+
+  const canSubmit = Boolean(
+    unit &&
+      quote &&
+      minStayOk &&
+      name.trim().length >= 2 &&
+      emailOk &&
+      phoneOk &&
+      (!phoneRequired || normalizedPhone) &&
+      guests >= 1 &&
+      guests <= unit.maxGuests &&
+      termsAccepted &&
+      !sending,
+  );
 
   const submit = async () => {
     if (!canSubmit || !unit || !checkin || !checkout) return;
     setSending(true);
     setFormError(null);
+
+    // Slutlig tillgänglighetskontroll strax före betalning — undviker onödiga
+    // Stripe-sessioner och Swish-hålltider när någon annan hunnit boka datumen.
+    try {
+      const fresh = await fetch(
+        `${FUNCTIONS_BASE}/functions/v1/booking-engine?slug=${encodeURIComponent(slug)}`,
+      ).then((r) => (r.ok ? r.json() : null));
+      const freshUnit = fresh?.units?.find((u: EngineUnit) => u.id === unit.id);
+      if (freshUnit) {
+        setData(fresh);
+        const stillFree = !(freshUnit.booked as { from: string; to: string }[]).some((r) =>
+          rangesOverlap(checkin, checkout, r.from, r.to),
+        );
+        if (!stillFree) {
+          setCheckin(null);
+          setCheckout(null);
+          setFormError("Datumen hann tyvärr bokas av någon annan just nu. Välj andra datum.");
+          setSending(false);
+          return;
+        }
+      }
+    } catch {
+      // Ignorera — servern gör samma kontroll atomärt.
+    }
+
     try {
       const r = await fetch(`${FUNCTIONS_BASE}/functions/v1/booking-engine`, {
         method: "POST",
@@ -222,7 +254,7 @@ function PublicBookingPage() {
           checkout,
           guest_name: name.trim(),
           guest_email: email.trim(),
-          guest_phone: phone.trim(),
+          guest_phone: normalizedPhone ?? "",
           guests,
           termsAccepted,
           website,
@@ -240,9 +272,16 @@ function PublicBookingPage() {
           capacity_exceeded: `Det här boendet tar högst ${d.maxGuests ?? unit.maxGuests} gäster.`,
           name_required: "Ange ditt fullständiga namn.",
           email_required: "Ange en giltig e-postadress.",
+          invalid_phone: "Kontrollera mobilnumret — svenskt format (t.ex. 070-123 45 67).",
+          phone_required_for_swish: "Ange mobilnummer — vi behöver kunna nå dig om Swish-betalningen.",
           terms_required: "Godkänn bokningsvillkoren innan du fortsätter.",
           rate_limited: "För många bokningsförsök. Vänta en stund och försök igen.",
+          past_checkin: "Incheckningsdatumet har passerat. Välj ett nytt datum.",
+          invalid_dates: "Kontrollera in- och utcheckningsdatumen.",
+          too_long: "Vistelsen kan vara max 30 nätter.",
           stripe_failed: "Kortbetalningen kunde inte startas. Försök igen eller välj Swish.",
+          payment_method_unavailable: "Den valda betalmetoden är inte tillgänglig just nu.",
+          booking_failed: "Bokningen kunde inte sparas. Försök igen om en stund.",
         };
         setFormError(message[d.error] ?? "Något gick fel. Kontrollera uppgifterna och försök igen.");
       } else if (d.checkoutUrl) {
@@ -263,6 +302,10 @@ function PublicBookingPage() {
     }
     setSending(false);
   };
+
+  // Enkel 3-stegs indikator: 1) välj boende, 2) välj datum, 3) uppgifter + betala.
+  const currentStep: 1 | 2 | 3 = !unitId ? 1 : !(checkin && checkout) ? 2 : 3;
+
 
   if (error) {
     return (
@@ -310,6 +353,43 @@ function PublicBookingPage() {
             Incheckning från {data.property.checkinTime} · Utcheckning senast {data.property.checkoutTime}
           </p>
         </header>
+
+        {!done && (
+          <ol
+            className="mt-6 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em]"
+            aria-label="Bokningssteg"
+          >
+            {[
+              { n: 1 as const, label: "Boende" },
+              { n: 2 as const, label: "Datum" },
+              { n: 3 as const, label: "Uppgifter" },
+            ].map((s) => {
+              const state = s.n < currentStep ? "done" : s.n === currentStep ? "active" : "todo";
+              return (
+                <li
+                  key={s.n}
+                  aria-current={state === "active" ? "step" : undefined}
+                  className="flex flex-1 items-center gap-2"
+                >
+                  <span
+                    className="grid h-6 w-6 place-items-center rounded-full text-[11px]"
+                    style={{
+                      background: state === "active" ? C.ink : "transparent",
+                      color: state === "active" ? "#fff" : state === "done" ? C.ink : C.muted,
+                      border: `1.5px solid ${state === "todo" ? C.line : C.ink}`,
+                    }}
+                  >
+                    {state === "done" ? "✓" : s.n}
+                  </span>
+                  <span style={{ color: state === "todo" ? C.muted : C.ink }}>{s.label}</span>
+                  {s.n < 3 && <span aria-hidden className="flex-1 border-t" style={{ borderColor: C.line }} />}
+                </li>
+              );
+            })}
+          </ol>
+        )}
+
+
 
         {done ? (
           <motion.section initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="pt-12 text-center" aria-live="polite">
@@ -508,8 +588,27 @@ function PublicBookingPage() {
                     <Field label="E-post *">
                       <input value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" placeholder="namn@exempel.se" type="email" className="field" />
                     </Field>
-                    <Field label="Telefon">
-                      <input value={phone} onChange={(e) => setPhone(e.target.value)} autoComplete="tel" placeholder="För SMS på incheckningsdagen" type="tel" className="field" />
+                    <Field label={phoneRequired ? "Mobil *" : "Mobil"}>
+                      <input
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        autoComplete="tel"
+                        inputMode="tel"
+                        placeholder="070-123 45 67"
+                        type="tel"
+                        aria-invalid={phone.trim() ? !phoneOk : undefined}
+                        className="field"
+                      />
+                      {phone.trim() && !phoneOk && (
+                        <span className="mt-1 block text-[12px] text-amber-800">
+                          Skriv som svenskt mobilnummer, t.ex. 070-123 45 67.
+                        </span>
+                      )}
+                      {phoneRequired && !phone.trim() && (
+                        <span className="mt-1 block text-[12px]" style={{ color: C.muted }}>
+                          Krävs för Swish — vi hör av oss om betalningen behöver följas upp.
+                        </span>
+                      )}
                     </Field>
                   </div>
                   <input tabIndex={-1} autoComplete="off" aria-hidden="true" value={website} onChange={(e) => setWebsite(e.target.value)} className="absolute -left-[9999px] h-px w-px opacity-0" name="website" />

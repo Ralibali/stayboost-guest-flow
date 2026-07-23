@@ -7,8 +7,11 @@ import {
   Check,
   ChevronDown,
   Copy,
+  Download,
   ExternalLink,
   Mail,
+  RotateCcw,
+  Search,
   Smartphone,
   Users,
 } from "lucide-react";
@@ -23,6 +26,13 @@ import {
   type ScheduledMessage,
   type Unit,
 } from "@/lib/supabase";
+import {
+  bookingsToCsv,
+  csvFilename,
+  emptyFilters,
+  filterBookings,
+  type BookingFilters,
+} from "@/lib/booking-filters";
 
 export const Route = createFileRoute("/app/bokningar")({
   component: BookingsPage,
@@ -47,11 +57,22 @@ function BookingsPage() {
   const { property, units } = useProperty(session);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
-  const [unitFilter, setUnitFilter] = useState("alla");
+  const [filters, setFilters] = useState<BookingFilters>(emptyFilters);
   const [expanded, setExpanded] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
+
+  const updateFilter = <K extends keyof BookingFilters>(k: K, v: BookingFilters[K]) =>
+    setFilters((f) => ({ ...f, [k]: v }));
+  const activeFilterCount =
+    (filters.search ? 1 : 0) +
+    (filters.unitId !== "alla" ? 1 : 0) +
+    (filters.status !== "all" ? 1 : 0) +
+    (filters.source !== "all" ? 1 : 0) +
+    (filters.payment !== "all" ? 1 : 0) +
+    (filters.from ? 1 : 0) +
+    (filters.to ? 1 : 0);
 
   const load = useCallback(async () => {
     if (!supabase || !property) return;
@@ -72,22 +93,27 @@ function BookingsPage() {
   }, [load]);
 
   const today = new Date().toISOString().slice(0, 10);
+  const filtered = useMemo(() => filterBookings(bookings, filters), [bookings, filters]);
   const upcoming = useMemo(
-    () =>
-      bookings
-        .filter((b) => b.status === "confirmed" && b.checkout_date >= today)
-        .filter((b) => unitFilter === "alla" || b.unit_id === unitFilter),
-    [bookings, today, unitFilter],
+    () => filtered.filter((b) => b.status === "confirmed" && b.checkout_date >= today),
+    [filtered, today],
   );
   const past = useMemo(
-    () =>
-      bookings
-        .filter((b) => !(b.status === "confirmed" && b.checkout_date >= today))
-        .filter((b) => unitFilter === "alla" || b.unit_id === unitFilter)
-        .slice(-20)
-        .reverse(),
-    [bookings, today, unitFilter],
+    () => filtered.filter((b) => !(b.status === "confirmed" && b.checkout_date >= today)).slice(-40).reverse(),
+    [filtered, today],
   );
+
+  const exportCsv = () => {
+    const csv = "\ufeff" + bookingsToCsv(filtered); // BOM för Excel
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = csvFilename();
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
 
   const conflictIds = useMemo(() => {
     const ids = new Set<string>();
@@ -129,16 +155,66 @@ function BookingsPage() {
             {upcoming.length} kommande · {upcoming.filter((b) => !b.guest_email).length} saknar e-post
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <select value={unitFilter} onChange={(e) => setUnitFilter(e.target.value)} className="inp !w-auto">
-            <option value="alla">Alla boenden</option>
-            {units.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
-          </select>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={exportCsv}
+            disabled={filtered.length === 0}
+            className="btn-ghost !rounded-xl !px-3.5 !py-2.5 text-[13px] disabled:opacity-40"
+            title="Ladda ner filtrerade bokningar som CSV"
+          >
+            <Download size={14} /> CSV ({filtered.length})
+          </button>
           <button onClick={() => setModalOpen(true)} className="btn-primary !rounded-xl !px-4 !py-2.5 text-[13px]">
             <CalendarPlus size={15} /> Ny bokning
           </button>
         </div>
       </div>
+
+      <div className="mt-5 grid gap-2.5 sm:grid-cols-[minmax(200px,1fr)_auto_auto_auto_auto_auto_auto]">
+        <label className="relative">
+          <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--ink)]/40" />
+          <input
+            value={filters.search}
+            onChange={(e) => updateFilter("search", e.target.value)}
+            placeholder="Sök namn, e-post eller mobil"
+            className="inp !pl-9"
+            aria-label="Sök i bokningar"
+          />
+        </label>
+        <select value={filters.unitId} onChange={(e) => updateFilter("unitId", e.target.value)} className="inp !w-auto" aria-label="Filtrera på boende">
+          <option value="alla">Alla boenden</option>
+          {units.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+        </select>
+        <select value={filters.status} onChange={(e) => updateFilter("status", e.target.value as BookingFilters["status"])} className="inp !w-auto" aria-label="Filtrera på status">
+          <option value="all">Alla statusar</option>
+          <option value="confirmed">Bekräftade</option>
+          <option value="cancelled">Avbokade</option>
+        </select>
+        <select value={filters.source} onChange={(e) => updateFilter("source", e.target.value as BookingFilters["source"])} className="inp !w-auto" aria-label="Filtrera på källa">
+          <option value="all">Alla källor</option>
+          <option value="direct">Direkt</option>
+          <option value="sirvoy">Sirvoy</option>
+          <option value="ical">iCal</option>
+          <option value="manual">Manuell</option>
+        </select>
+        <select value={filters.payment} onChange={(e) => updateFilter("payment", e.target.value as BookingFilters["payment"])} className="inp !w-auto" aria-label="Filtrera på betalning">
+          <option value="all">Alla betalstatusar</option>
+          <option value="none">Ingen betalning</option>
+          <option value="pending">Väntar</option>
+          <option value="paid">Betald</option>
+          <option value="refunded">Återbetald</option>
+        </select>
+        <input type="date" value={filters.from} onChange={(e) => updateFilter("from", e.target.value)} className="inp !w-auto" aria-label="Från datum" />
+        <input type="date" value={filters.to} onChange={(e) => updateFilter("to", e.target.value)} className="inp !w-auto" aria-label="Till datum" />
+      </div>
+      {activeFilterCount > 0 && (
+        <button
+          onClick={() => setFilters(emptyFilters)}
+          className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-medium text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]"
+        >
+          <RotateCcw size={12} /> Rensa {activeFilterCount} filter
+        </button>
+      )}
 
       {pageError && <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-[13px] text-red-700">{pageError}</p>}
 
@@ -337,6 +413,26 @@ function BookingCard({
                     className="rounded-xl bg-emerald-600 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-emerald-700"
                   >
                     Markera betald{b.payment_amount ? ` (${b.payment_amount.toLocaleString("sv-SE")} kr)` : ""}
+                  </button>
+                )}
+                {b.payment_status === "paid" && (
+                  <button
+                    onClick={async () => {
+                      if (!supabase) return;
+                      const amount = b.payment_amount
+                        ? ` ${b.payment_amount.toLocaleString("sv-SE")} kr`
+                        : "";
+                      if (!window.confirm(`Bekräfta återbetalning av${amount} till ${b.guest_name ?? "gästen"}. Kom ihåg att göra själva utbetalningen i Swish/Stripe.`)) return;
+                      const { error } = await supabase
+                        .from("bookings")
+                        .update({ payment_status: "refunded" })
+                        .eq("id", b.id);
+                      if (error) onError(error.message);
+                      else onChanged();
+                    }}
+                    className="rounded-xl border border-[color:var(--line)] px-3.5 py-2 text-[13px] font-semibold text-[color:var(--ink)]/75 hover:bg-[color:var(--bg)]"
+                  >
+                    <RotateCcw size={14} className="mr-1 inline" /> Markera återbetald
                   </button>
                 )}
                 <button onClick={onCopy} className="btn-ghost !rounded-xl !px-3.5 !py-2 text-[13px]">{copied ? <Check size={14} /> : <Copy size={14} />} Gästsidelänk</button>
