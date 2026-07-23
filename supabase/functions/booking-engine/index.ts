@@ -21,6 +21,21 @@ async function sha256(value: string) {
     .join("");
 }
 
+// Duplicerar src/lib/phone.ts — måste vara identisk med klientvalideringen.
+function normalizePhoneSE(input: string): string | null {
+  if (!input) return null;
+  let n = input.replace(/[\s().\-]/g, "");
+  if (!n) return null;
+  if (n.startsWith("+")) n = n.slice(1);
+  else if (n.startsWith("00")) n = n.slice(2);
+  else if (n.startsWith("0")) n = "46" + n.slice(1);
+  if (!/^\d+$/.test(n)) return null;
+  if (!n.startsWith("46")) return null;
+  const local = n.slice(2);
+  if (!/^7\d{8}$/.test(local)) return null;
+  return `+46${local}`;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   const json = (body: unknown, status = 200) =>
