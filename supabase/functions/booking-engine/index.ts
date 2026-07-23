@@ -218,8 +218,28 @@ Deno.serve(async (req) => {
     }
     const guests = guestsRaw;
 
-    if (nightsBetween(checkin, checkout).length < unit.min_stay) {
-      return json({ error: "min_stay", minStay: unit.min_stay }, 400);
+    // Datumstyrda regler (opt-in): min-stay, closed, no-arrival, no-departure.
+    const { data: ruleRows } = await admin
+      .from("rate_rules")
+      .select("id, unit_id, kind, date_from, date_to, fixed_price, pct_delta, min_stay, priority, active, name")
+      .eq("property_id", property.id)
+      .eq("active", true)
+      .gte("date_to", checkin);
+    const rules: RateRule[] = (ruleRows ?? []) as RateRule[];
+
+    const stayNights = nightsBetween(checkin, checkout);
+    const ruleMinStay = minStayFromRules(rules, unit.id, stayNights);
+    const requiredMinStay = Math.max(unit.min_stay, ruleMinStay);
+    if (stayNights.length < requiredMinStay) {
+      return json({ error: "min_stay", minStay: requiredMinStay }, 400);
+    }
+
+    const availabilityIssue = checkAvailabilityRules(rules, unit.id, stayNights, checkout);
+    if (availabilityIssue) {
+      return json(
+        { error: availabilityIssue.kind, date: availabilityIssue.date },
+        409,
+      );
     }
 
     // Förkontroll för ett vänligt svar. Databastriggern gör samma kontroll atomärt.
@@ -234,7 +254,7 @@ Deno.serve(async (req) => {
       return json({ error: "unavailable" }, 409);
     }
 
-    const quote = quoteStay(unit, checkin, checkout);
+    const quote = quoteStay(unit, checkin, checkout, { rules, unitId: unit.id });
 
     const rawSelections = Array.isArray(body?.addons) ? body.addons : [];
     const { data: availableAddons } = await admin
