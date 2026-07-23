@@ -99,16 +99,62 @@ export type ScheduledMessage = {
   template?: { trigger_type: string } | null;
 };
 
+export type IcalChannelType = "sirvoy" | "booking" | "airbnb" | "other";
+
 export type IcalSource = {
   id: string;
   property_id: string;
   unit_id: string;
   name: string;
   url: string;
+  channel_type: IcalChannelType;
+  paused: boolean;
   last_synced_at: string | null;
   last_status: string | null;
+  last_attempt_at: string | null;
+  last_success_at: string | null;
+  consecutive_failures: number;
   unit?: { name: string } | null;
 };
+
+export const CHANNEL_LABELS: Record<IcalChannelType, string> = {
+  sirvoy: "Sirvoy",
+  booking: "Booking.com",
+  airbnb: "Airbnb",
+  other: "Annan",
+};
+
+/** Härleder kanaltyp från namn/URL när fältet saknas (t.ex. äldre rader). */
+export function inferChannelType(source: Pick<IcalSource, "name" | "url">): IcalChannelType {
+  const haystack = `${source.name} ${source.url}`.toLowerCase();
+  if (haystack.includes("sirvoy")) return "sirvoy";
+  if (haystack.includes("airbnb")) return "airbnb";
+  if (haystack.includes("booking")) return "booking";
+  return "other";
+}
+
+export type IcalHealth = "green" | "yellow" | "red" | "paused";
+
+/** Klassificerar en källas hälsa. Röd vid ≥2 fel i följd, gul vid ett fel
+ *  eller synk äldre än 6 timmar, grön vid färsk lyckad synk. */
+export function classifyIcalHealth(
+  source: Pick<
+    IcalSource,
+    "paused" | "consecutive_failures" | "last_success_at" | "last_synced_at" | "last_status"
+  >,
+  now: Date = new Date(),
+): IcalHealth {
+  if (source.paused) return "paused";
+  const failures = source.consecutive_failures ?? 0;
+  if (failures >= 2) return "red";
+  const lastOk = source.last_success_at ?? (
+    source.last_status?.toLowerCase().startsWith("ok") ? source.last_synced_at : null
+  );
+  const ageMs = lastOk ? now.getTime() - new Date(lastOk).getTime() : Infinity;
+  const sixHours = 6 * 60 * 60 * 1000;
+  if (failures >= 1 || ageMs > sixHours) return "yellow";
+  return "green";
+}
 
 export type MessageTemplate = {
   id: string;
