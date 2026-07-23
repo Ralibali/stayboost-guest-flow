@@ -230,6 +230,7 @@ function PublicBookingPage() {
     unit &&
       quote &&
       minStayOk &&
+      !availabilityIssue &&
       name.trim().length >= 2 &&
       emailOk &&
       phoneOk &&
