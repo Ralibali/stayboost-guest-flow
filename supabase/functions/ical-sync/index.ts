@@ -71,10 +71,14 @@ Deno.serve(async (req) => {
 
   let query = admin
     .from("ical_sources")
-    .select("id, property_id, unit_id, name, url, properties!inner(owner_id)");
+    .select(
+      "id, property_id, unit_id, name, url, paused, consecutive_failures, properties!inner(owner_id)",
+    )
+    .eq("paused", false);
   if (ownerFilter) query = query.eq("properties.owner_id", ownerFilter);
   const { data: sources, error: sourceError } = await query;
   if (sourceError) return json({ error: sourceError.message }, 500);
+
 
   const today = new Date().toISOString().slice(0, 10);
   const results: Array<Record<string, unknown>> = [];
@@ -164,23 +168,34 @@ Deno.serve(async (req) => {
         }
       }
 
+      const nowIso = new Date().toISOString();
       await admin
         .from("ical_sources")
         .update({
-          last_synced_at: new Date().toISOString(),
+          last_synced_at: nowIso,
+          last_attempt_at: nowIso,
+          last_success_at: nowIso,
+          consecutive_failures: 0,
           last_status: `ok (${events.length} event, +${created} nya, ${updated} uppdaterade, ${cancelled} avbokade)`,
         })
         .eq("id", source.id);
       results.push({ source: source.name, ok: true, created, updated, cancelled });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
+      const nowIso = new Date().toISOString();
       await admin
         .from("ical_sources")
-        .update({ last_synced_at: new Date().toISOString(), last_status: `fel: ${message}` })
+        .update({
+          last_synced_at: nowIso,
+          last_attempt_at: nowIso,
+          consecutive_failures: (source.consecutive_failures ?? 0) + 1,
+          last_status: `fel: ${message}`,
+        })
         .eq("id", source.id);
       results.push({ source: source.name, ok: false, error: message });
     }
   }
+
 
   return json({ synced: results.length, results });
 });
