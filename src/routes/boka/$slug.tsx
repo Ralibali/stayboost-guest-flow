@@ -218,6 +218,31 @@ function PublicBookingPage() {
     if (!canSubmit || !unit || !checkin || !checkout) return;
     setSending(true);
     setFormError(null);
+
+    // Slutlig tillgänglighetskontroll strax före betalning — undviker onödiga
+    // Stripe-sessioner och Swish-hålltider när någon annan hunnit boka datumen.
+    try {
+      const fresh = await fetch(
+        `${FUNCTIONS_BASE}/functions/v1/booking-engine?slug=${encodeURIComponent(slug)}`,
+      ).then((r) => (r.ok ? r.json() : null));
+      const freshUnit = fresh?.units?.find((u: EngineUnit) => u.id === unit.id);
+      if (freshUnit) {
+        setData(fresh);
+        const stillFree = !(freshUnit.booked as { from: string; to: string }[]).some((r) =>
+          rangesOverlap(checkin, checkout, r.from, r.to),
+        );
+        if (!stillFree) {
+          setCheckin(null);
+          setCheckout(null);
+          setFormError("Datumen hann tyvärr bokas av någon annan just nu. Välj andra datum.");
+          setSending(false);
+          return;
+        }
+      }
+    } catch {
+      // Ignorera — servern gör samma kontroll atomärt.
+    }
+
     try {
       const r = await fetch(`${FUNCTIONS_BASE}/functions/v1/booking-engine`, {
         method: "POST",
@@ -229,7 +254,7 @@ function PublicBookingPage() {
           checkout,
           guest_name: name.trim(),
           guest_email: email.trim(),
-          guest_phone: phone.trim(),
+          guest_phone: normalizedPhone ?? "",
           guests,
           termsAccepted,
           website,
@@ -247,9 +272,16 @@ function PublicBookingPage() {
           capacity_exceeded: `Det här boendet tar högst ${d.maxGuests ?? unit.maxGuests} gäster.`,
           name_required: "Ange ditt fullständiga namn.",
           email_required: "Ange en giltig e-postadress.",
+          invalid_phone: "Kontrollera mobilnumret — svenskt format (t.ex. 070-123 45 67).",
+          phone_required_for_swish: "Ange mobilnummer — vi behöver kunna nå dig om Swish-betalningen.",
           terms_required: "Godkänn bokningsvillkoren innan du fortsätter.",
           rate_limited: "För många bokningsförsök. Vänta en stund och försök igen.",
+          past_checkin: "Incheckningsdatumet har passerat. Välj ett nytt datum.",
+          invalid_dates: "Kontrollera in- och utcheckningsdatumen.",
+          too_long: "Vistelsen kan vara max 30 nätter.",
           stripe_failed: "Kortbetalningen kunde inte startas. Försök igen eller välj Swish.",
+          payment_method_unavailable: "Den valda betalmetoden är inte tillgänglig just nu.",
+          booking_failed: "Bokningen kunde inte sparas. Försök igen om en stund.",
         };
         setFormError(message[d.error] ?? "Något gick fel. Kontrollera uppgifterna och försök igen.");
       } else if (d.checkoutUrl) {
@@ -270,6 +302,10 @@ function PublicBookingPage() {
     }
     setSending(false);
   };
+
+  // Enkel 3-stegs indikator: 1) välj boende, 2) välj datum, 3) uppgifter + betala.
+  const currentStep: 1 | 2 | 3 = !unitId ? 1 : !(checkin && checkout) ? 2 : 3;
+
 
   if (error) {
     return (
