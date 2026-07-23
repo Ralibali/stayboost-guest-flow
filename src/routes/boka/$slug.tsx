@@ -58,6 +58,7 @@ type EngineUnit = {
   cleaningFee: number;
   monthlyMult: number[];
   booked: { from: string; to: string }[];
+  rateRules?: RateRule[];
 };
 
 type EngineAddon = {
