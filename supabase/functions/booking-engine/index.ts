@@ -241,6 +241,11 @@ Deno.serve(async (req) => {
     else if (stripeOk) paymentMethod = "stripe";
     else if (swishOk) paymentMethod = "swish";
 
+    // Vid Swish krävs telefon för att kunna följa upp betalning och skicka SMS-påminnelse.
+    if (paymentMethod === "swish" && !normalizedPhone) {
+      return json({ error: "phone_required_for_swish" }, 400);
+    }
+
     const paymentRef = `SB-${crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase()}`;
     const takesPayment = paymentMethod !== "none";
     const paymentExpiresAt =
