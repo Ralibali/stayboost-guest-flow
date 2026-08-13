@@ -11,17 +11,30 @@ const TABS: { key: TabKey; label: string; sub: string }[] = [
 
 export function ProductTour() {
   const [tab, setTab] = useState<TabKey>("gast");
+  const [auto, setAuto] = useState(true);
+  const [hovered, setHovered] = useState(false);
   const tabRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const reduce = useReducedMotion();
+
+  const nextTab = (t: TabKey): TabKey =>
+    TABS[(TABS.findIndex((x) => x.key === t) + 1) % TABS.length].key;
+
+  const pick = (key: TabKey) => {
+    setAuto(false);
+    setTab(key);
+  };
 
   const onKey = (e: React.KeyboardEvent) => {
     const idx = TABS.findIndex((t) => t.key === tab);
     if (e.key === "ArrowRight" || e.key === "ArrowDown") {
       e.preventDefault();
+      setAuto(false);
       const next = TABS[(idx + 1) % TABS.length];
       setTab(next.key);
       tabRefs.current[next.key]?.focus();
     } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
       e.preventDefault();
+      setAuto(false);
       const prev = TABS[(idx - 1 + TABS.length) % TABS.length];
       setTab(prev.key);
       tabRefs.current[prev.key]?.focus();
@@ -51,6 +64,8 @@ export function ProductTour() {
           role="tablist"
           aria-label="Vyer i StayBoost"
           onKeyDown={onKey}
+          onMouseEnter={() => setHovered(true)}
+          onMouseLeave={() => setHovered(false)}
           className="mt-10 grid grid-cols-3 gap-2 rounded-2xl border border-[color:var(--line)] bg-white p-2 md:inline-grid md:auto-cols-max md:grid-flow-col"
         >
           {TABS.map((t) => {
@@ -64,8 +79,8 @@ export function ProductTour() {
                 role="tab"
                 aria-selected={active}
                 tabIndex={active ? 0 : -1}
-                onClick={() => setTab(t.key)}
-                className={`rounded-xl px-5 py-3 text-left transition ${
+                onClick={() => pick(t.key)}
+                className={`relative overflow-hidden rounded-xl px-5 py-3 text-left transition ${
                   active
                     ? "bg-[color:var(--forest)] text-white shadow-sm"
                     : "text-[color:var(--ink)]/70 hover:bg-[color:var(--bg)]"
@@ -79,6 +94,16 @@ export function ProductTour() {
                 >
                   {t.sub}
                 </div>
+                {active && auto && !reduce && (
+                  <span
+                    key={tab}
+                    aria-hidden
+                    onAnimationEnd={() => setTab(nextTab)}
+                    className={`tour-progress absolute inset-x-4 bottom-1 h-0.5 rounded bg-[color:var(--brass)] ${
+                      hovered ? "tour-progress-paused" : ""
+                    }`}
+                  />
+                )}
               </button>
             );
           })}

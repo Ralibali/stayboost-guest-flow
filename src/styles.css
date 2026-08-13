@@ -242,3 +242,25 @@
 select.field {
   appearance: none;
 }
+
+/* ---------- ProductTour auto-advance progress ---------- */
+@keyframes tour-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.tour-progress {
+  animation: tour-progress 6s linear forwards;
+  transform-origin: left;
+}
+.tour-progress-paused {
+  animation-play-state: paused;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tour-progress {
+    animation: none;
+  }
+}

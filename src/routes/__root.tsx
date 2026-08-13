@@ -76,6 +76,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       name: "StayBoost",
+      url: "https://stayboost.se/",
+      description:
+        "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       offers: {
@@ -154,7 +157,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
         },
         { property: "og:type", content: "website" },
-        { property: "og:image", content: "/og-image.png" },
+        { property: "og:url", content: "https://stayboost.se/" },
+        { property: "og:site_name", content: "StayBoost" },
+        { property: "og:locale", content: "sv_SE" },
+        { property: "og:image", content: "https://stayboost.se/og-image.png" },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: "StayBoost — Hela driften för små boenden i ett system" },
         {
@@ -162,9 +168,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           content:
             "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
         },
-        { name: "twitter:image", content: "/og-image.png" },
+        { name: "twitter:image", content: "https://stayboost.se/og-image.png" },
       ],
       links: [
+        { rel: "canonical", href: "https://stayboost.se/" },
         { rel: "stylesheet", href: appCss },
         { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },

@@ -1,4 +1,6 @@
 import { Check, Minus, X } from "lucide-react";
+import { useStayBoostStats } from "@/hooks/useStayBoostStats";
+import { formatInt, formatSek } from "@/lib/stats";
 
 type Cell = "ja" | "nej" | "delvis";
 
@@ -67,6 +69,10 @@ function CellIcon({ v }: { v: Cell }) {
 }
 
 export function Comparison() {
+  const { stats } = useStayBoostStats();
+  const perBooking =
+    stats.bookings2026 > 0 ? Math.round(stats.paidAddonRevenueSek / stats.bookings2026) : 0;
+  const monthsCovered = Math.max(1, Math.floor(stats.paidAddonRevenueSek / 449));
   return (
     <section className="border-t border-[color:var(--line)] bg-white/50 py-16 sm:py-14 sm:py-20 md:py-28">
       <div className="mx-auto max-w-[920px] px-5 sm:px-6">
@@ -81,6 +87,13 @@ export function Comparison() {
           <p className="mt-4 text-[0.975rem] leading-relaxed text-[color:var(--ink)]/75 sm:text-base">
             De byggde för aktivitetsföretag och stora hotell. Vi byggde för dig med ett fåtal
             enheter — och lade till delarna som de aldrig hann med: merförsäljningen och teamvyerna.
+          </p>
+          <p className="mt-5 text-[0.975rem] font-semibold leading-relaxed text-[color:var(--ink)] sm:text-base">
+            Och mot marknadsplatserna är skillnaden ännu enklare: de tar provision på varje gäst de
+            skickar.{" "}
+            <span className="text-[color:var(--brass)]">
+              Vi tar 449 kr i månaden — dina gäster är dina.
+            </span>
           </p>
         </div>
 
@@ -129,6 +142,29 @@ export function Comparison() {
               </tr>
             </tbody>
           </table>
+        </div>
+
+        <div className="card-surface mt-6 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
+          <div>
+            <p className="text-[0.68rem] font-medium uppercase tracking-[0.14em] text-[color:var(--ink)]/45">
+              Konkret exempel — live från piloten
+            </p>
+            <p className="mt-2 text-[0.95rem] leading-relaxed text-[color:var(--ink)]/80">
+              <strong className="font-semibold text-[color:var(--ink)]">
+                {formatSek(perBooking)} i snitt per bokning
+              </strong>{" "}
+              i rena tillvalsintäkter × {formatInt(stats.bookings2026)} bokningar ={" "}
+              <strong className="font-semibold text-[color:var(--ink)]">
+                {formatSek(stats.paidAddonRevenueSek)}
+              </strong>{" "}
+              extra. På ren automatik, utan en enda extra arbetsminut.
+            </p>
+          </div>
+          <p className="rounded-xl bg-[color:var(--forest)]/[0.06] px-4 py-3 text-center text-[0.85rem] font-medium leading-snug text-[color:var(--forest)]">
+            ≈ {formatInt(monthsCovered)} månaders
+            <br />
+            StayBoost-abonnemang
+          </p>
         </div>
 
         <p className="mt-4 text-center text-[12px] leading-relaxed text-[color:var(--ink)]/50">

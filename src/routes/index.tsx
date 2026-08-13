@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, createFileRoute } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import { PhoneMockup } from "@/components/landing/PhoneMockup";
 import { RevenueCalculator } from "@/components/landing/RevenueCalculator";
 import { FAQ } from "@/components/landing/FAQ";
@@ -113,12 +113,13 @@ function Header() {
 
 /* ---------- FadeUp helper ---------- */
 function FadeUp({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
+  const reduce = useReducedMotion();
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24, filter: "blur(8px)" }}
+      whileInView={reduce ? { opacity: 1 } : { opacity: 1, y: 0, filter: "blur(0px)" }}
       viewport={{ once: true, margin: "-80px" }}
-      transition={{ duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>
@@ -632,7 +633,13 @@ function Pricing() {
 /* ---------- Final CTA ---------- */
 function FinalCTA() {
   return (
-    <section className="bg-[color:var(--forest)] py-24 text-[color:var(--bg)] md:py-32">
+    <section
+      className="py-24 text-[color:var(--bg)] md:py-32"
+      style={{
+        background:
+          "radial-gradient(55% 45% at 88% 8%, rgba(176, 141, 62, 0.38), transparent 70%), radial-gradient(45% 40% at 8% 95%, rgba(46, 125, 79, 0.25), transparent 70%), var(--forest)",
+      }}
+    >
       <div className="mx-auto max-w-2xl px-6 text-center">
         <FadeUp>
           <h2 className="text-white" style={{ fontSize: "clamp(2rem, 4.5vw, 3.25rem)" }}>
