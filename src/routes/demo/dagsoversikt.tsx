@@ -12,7 +12,7 @@ import {
   Sailboat,
   Sparkles,
 } from "lucide-react";
-import { ADDONS, GUESTS, PROPERTY, fmtDateLong, unitOf } from "@/lib/demo-data";
+import { ADDONS, CLEANING, GUESTS, PROPERTY, fmtDateLong, unitOf } from "@/lib/demo-data";
 import { RESOURCES, addDays, resourceBooked, startOfDay } from "@/lib/booking-data";
 import { getAssignee } from "@/lib/staff-data";
 
@@ -141,9 +141,18 @@ function Dagsoversikt() {
         {/* Avresor */}
         <Section title={`Avresor (senast ${PROPERTY.checkOutTime})`} icon={ArrowDownLeft}>
           {departures.length === 0 && <Empty text="Inga avresor" />}
-          {departures.map((g) => (
-            <GuestLine key={g.id} guest={g} badge="Städ efter" ok={false} />
-          ))}
+          {departures.map((g) => {
+            const task = CLEANING.find((t) => t.unitId === g.unitId && t.type === "avresa");
+            const badge =
+              task?.status === "klar"
+                ? "Städ klar ✓"
+                : task?.status === "pågår"
+                  ? `Städ pågår · ${task.window}`
+                  : task
+                    ? `Städ väntar · ${task.window}`
+                    : "Städ efter";
+            return <GuestLine key={g.id} guest={g} badge={badge} ok={task?.status === "klar"} />;
+          })}
         </Section>
       </div>
 

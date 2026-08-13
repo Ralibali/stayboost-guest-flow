@@ -1,22 +1,25 @@
 import { useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   BedDouble,
   Check,
   CheckCircle2,
   Circle,
   Clock3,
+  PartyPopper,
   Sparkles,
+  Timer,
   TriangleAlert,
 } from "lucide-react";
-import { CLEANING, unitOf } from "@/lib/demo-data";
+import { CLEANING, fmtTime, unitOf } from "@/lib/demo-data";
 
 export const Route = createFileRoute("/demo/stad")({
   component: CleaningView,
 });
 
 type TaskStatus = "väntar" | "pågår" | "klar";
+type Filter = "alla" | TaskStatus;
 
 const TYPE_LABEL: Record<string, string> = {
   avresa: "Avresestädning",
@@ -24,19 +27,46 @@ const TYPE_LABEL: Record<string, string> = {
   påsläpp: "Påsläpp",
 };
 
+const FILTERS: { key: Filter; label: string }[] = [
+  { key: "alla", label: "Alla" },
+  { key: "väntar", label: "Väntar" },
+  { key: "pågår", label: "Pågår" },
+  { key: "klar", label: "Klara" },
+];
+
 function CleaningView() {
   const [tasks, setTasks] = useState(CLEANING);
   const [reported, setReported] = useState<Record<string, boolean>>({});
+  const [filter, setFilter] = useState<Filter>("alla");
+  const [startedAt, setStartedAt] = useState<Record<string, string>>({});
+  const [finishedAt, setFinishedAt] = useState<Record<string, string>>({});
 
   const doneCount = tasks.filter((t) => t.status === "klar").length;
+  const remainingMin = tasks
+    .filter((t) => t.status !== "klar")
+    .reduce((sum, t) => sum + t.estMin, 0);
+  const allDone = tasks.length > 0 && doneCount === tasks.length;
+  const dayPct = tasks.length === 0 ? 0 : Math.round((doneCount / tasks.length) * 100);
 
-  const setStatus = (unitId: string, status: TaskStatus) =>
-    setTasks((ts) => ts.map((t) => (t.unitId === unitId ? { ...t, status } : t)));
+  const counts: Record<Filter, number> = {
+    alla: tasks.length,
+    väntar: tasks.filter((t) => t.status === "väntar").length,
+    pågår: tasks.filter((t) => t.status === "pågår").length,
+    klar: doneCount,
+  };
+  const visible = filter === "alla" ? tasks : tasks.filter((t) => t.status === filter);
 
-  const toggleItem = (unitId: string, idx: number) =>
+  const setStatus = (id: string, status: TaskStatus) => {
+    const now = fmtTime(new Date());
+    if (status === "pågår") setStartedAt((s) => (s[id] ? s : { ...s, [id]: now }));
+    if (status === "klar") setFinishedAt((s) => ({ ...s, [id]: now }));
+    setTasks((ts) => ts.map((t) => (t.id === id ? { ...t, status } : t)));
+  };
+
+  const toggleItem = (id: string, idx: number) =>
     setTasks((ts) =>
       ts.map((t) =>
-        t.unitId === unitId
+        t.id === id
           ? {
               ...t,
               checklist: t.checklist.map((c, i) => (i === idx ? { ...c, done: !c.done } : c)),
@@ -53,7 +83,9 @@ function CleaningView() {
             <p className="eyebrow">Städvyn</p>
             <h1 className="mt-2 text-3xl">Dagens städning</h1>
             <p className="mt-1 text-[14px] text-[color:var(--ink)]/60">
-              {doneCount} av {tasks.length} enheter klara
+              {allDone
+                ? "Allt klart — dags att andas ut"
+                : `${doneCount} av ${tasks.length} enheter klara · ≈ ${remainingMin} min kvar`}
             </p>
           </div>
           <div className="flex items-center gap-2 rounded-full bg-[color:var(--forest)] px-4 py-2 text-[13px] font-semibold text-white">
@@ -61,16 +93,69 @@ function CleaningView() {
             Städteamet
           </div>
         </div>
+
+        {/* Dagens totala progress */}
+        <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-[color:var(--line)]/60">
+          <motion.div
+            className={`h-full rounded-full ${allDone ? "bg-[color:var(--success)]" : "bg-[color:var(--brass)]"}`}
+            animate={{ width: `${dayPct}%` }}
+            transition={{ duration: 0.5 }}
+          />
+        </div>
+
+        {/* Filter */}
+        <div className="mt-4 flex flex-wrap gap-1.5">
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              onClick={() => setFilter(f.key)}
+              className={`rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition ${
+                filter === f.key
+                  ? "bg-[color:var(--forest)] text-white"
+                  : "border border-[color:var(--line)] bg-white text-[color:var(--ink)]/60 hover:text-[color:var(--ink)]"
+              }`}
+            >
+              {f.label}
+              <span className={filter === f.key ? " text-white/70" : " text-[color:var(--ink)]/40"}>
+                {" "}
+                {counts[f.key]}
+              </span>
+            </button>
+          ))}
+        </div>
       </motion.div>
 
+      {/* Allt-klart-banner */}
+      <AnimatePresence>
+        {allDone && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="mt-6 flex items-center gap-3 rounded-2xl bg-[color:var(--forest)] p-5 text-white"
+          >
+            <PartyPopper size={22} className="shrink-0 text-[color:var(--brass)]" />
+            <div>
+              <p className="font-[Fraunces] text-lg font-semibold">
+                Alla enheter klara — snyggt jobbat!
+              </p>
+              <p className="text-[13px] text-white/70">
+                Ägaren notifieras automatiskt och ankommande gäster kan checka in.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="mt-6 space-y-5">
-        {tasks.map((t, i) => {
+        {visible.map((t, i) => {
           const unit = unitOf(t.unitId);
           const done = t.checklist.filter((c) => c.done).length;
           const pct = Math.round((done / t.checklist.length) * 100);
           return (
             <motion.div
-              key={t.unitId}
+              key={t.id}
+              layout
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.07 * i }}
@@ -90,34 +175,49 @@ function CleaningView() {
                   </span>
                   <div>
                     <h2 className="font-sans text-[17px] font-bold">{unit.name}</h2>
-                    <p className="flex items-center gap-2 text-[13px] text-[color:var(--ink)]/55">
+                    <p className="flex flex-wrap items-center gap-2 text-[13px] text-[color:var(--ink)]/55">
                       <span className="font-medium text-[color:var(--ink)]/75">
                         {TYPE_LABEL[t.type]}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock3 size={12} /> {t.window}
                       </span>
+                      <span className="flex items-center gap-1 rounded-full bg-[color:var(--bg)] px-2 py-0.5 text-[12px] font-medium">
+                        <Timer size={11} /> ≈ {t.estMin} min
+                      </span>
                     </p>
                   </div>
                 </div>
 
-                {/* Statusknappar */}
-                <div className="flex rounded-full border border-[color:var(--line)] bg-[color:var(--bg)] p-1 text-[12px] font-semibold">
-                  {(["väntar", "pågår", "klar"] as const).map((s) => (
-                    <button
-                      key={s}
-                      onClick={() => setStatus(t.unitId, s)}
-                      className={`rounded-full px-3.5 py-1.5 capitalize transition ${
-                        t.status === s
-                          ? s === "klar"
-                            ? "bg-emerald-600 text-white"
-                            : "bg-[color:var(--forest)] text-white"
-                          : "text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]"
-                      }`}
-                    >
-                      {s}
-                    </button>
-                  ))}
+                {/* Statusknappar + tidsstämpel */}
+                <div className="flex flex-col items-end gap-1">
+                  <div className="flex rounded-full border border-[color:var(--line)] bg-[color:var(--bg)] p-1 text-[12px] font-semibold">
+                    {(["väntar", "pågår", "klar"] as const).map((s) => (
+                      <button
+                        key={s}
+                        onClick={() => setStatus(t.id, s)}
+                        className={`rounded-full px-3.5 py-1.5 capitalize transition ${
+                          t.status === s
+                            ? s === "klar"
+                              ? "bg-emerald-600 text-white"
+                              : "bg-[color:var(--forest)] text-white"
+                            : "text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]"
+                        }`}
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                  {t.status === "pågår" && startedAt[t.id] && (
+                    <span className="text-[11px] font-medium text-[color:var(--ink)]/45">
+                      Påbörjad {startedAt[t.id]}
+                    </span>
+                  )}
+                  {t.status === "klar" && finishedAt[t.id] && (
+                    <span className="text-[11px] font-medium text-emerald-700">
+                      Klar {finishedAt[t.id]}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -149,7 +249,7 @@ function CleaningView() {
                   {t.checklist.map((c, idx) => (
                     <li key={idx}>
                       <button
-                        onClick={() => toggleItem(t.unitId, idx)}
+                        onClick={() => toggleItem(t.id, idx)}
                         className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[14px] transition hover:bg-[color:var(--bg)]"
                       >
                         {c.done ? (
@@ -169,10 +269,10 @@ function CleaningView() {
                 </ul>
 
                 <button
-                  onClick={() => setReported((r) => ({ ...r, [t.unitId]: true }))}
+                  onClick={() => setReported((r) => ({ ...r, [t.id]: true }))}
                   className="mt-3 text-[13px] font-medium text-[color:var(--ink)]/50 underline decoration-dotted underline-offset-2 hover:text-[color:var(--ink)]"
                 >
-                  {reported[t.unitId]
+                  {reported[t.id]
                     ? "✓ Problem rapporterat till ägaren"
                     : "Rapportera problem (t.ex. trasigt, saknas)"}
                 </button>

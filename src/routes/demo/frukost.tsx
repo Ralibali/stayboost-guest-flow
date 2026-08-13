@@ -26,18 +26,38 @@ const NEXT: Record<Status, Status> = {
   levererad: "levererad",
 };
 
+const ALLERGY_SHORT: Record<string, string> = {
+  gluten: "gluten",
+  laktos: "laktos",
+  nötter: "nötter",
+};
+
 function BreakfastView() {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
 
   const [statuses, setStatuses] = useState<Record<string, Status>>(
-    Object.fromEntries(BREAKFAST.map((b) => [b.unitId, b.status])),
+    Object.fromEntries(BREAKFAST.map((b) => [b.id, b.status])),
   );
 
   const totalPortions = BREAKFAST.reduce((s, b) => s + b.portions, 0);
   const allergyCount = BREAKFAST.filter((b) => b.allergies.length > 0).length;
   const delivered = Object.values(statuses).filter((s) => s === "levererad").length;
   const progress = Math.round((delivered / BREAKFAST.length) * 100);
+
+  const specialKost = useMemo(() => {
+    const byCombo = new Map<string, number>();
+    for (const b of BREAKFAST) {
+      if (b.allergies.length === 0) continue;
+      const base = [...b.allergies].sort().map((a) => ALLERGY_SHORT[a] ?? a);
+      const combo =
+        base.length === 1
+          ? `${base[0]}fria`
+          : `${base.slice(0, -1).join("- & ")}- & ${base[base.length - 1]}fria`;
+      byCombo.set(combo, (byCombo.get(combo) ?? 0) + b.portions);
+    }
+    return [...byCombo.entries()];
+  }, []);
 
   const sorted = useMemo(
     () => [...BREAKFAST].sort((a, b) => a.deliveryTime.localeCompare(b.deliveryTime)),
@@ -79,15 +99,26 @@ function BreakfastView() {
           />
         </div>
 
+        {/* Specialkost-att-förbereda */}
+        {specialKost.length > 0 && (
+          <div className="mt-4 flex items-start gap-2.5 rounded-xl bg-red-50 px-4 py-3 text-[13px] text-red-800 ring-1 ring-red-200">
+            <AlertTriangle size={15} className="mt-0.5 shrink-0" />
+            <p>
+              <strong className="font-semibold">Att förbereda separat:</strong>{" "}
+              {specialKost.map(([combo, portions]) => `${portions} portioner ${combo}`).join(" · ")}
+            </p>
+          </div>
+        )}
+
         {/* Lista */}
         <div className="mt-6 space-y-4">
           {sorted.map((b, i) => {
             const unit = unitOf(b.unitId);
-            const status = statuses[b.unitId];
+            const status = statuses[b.id];
             const meta = STATUS_META[status];
             return (
               <motion.div
-                key={b.unitId}
+                key={b.id}
                 initial={{ opacity: 0, y: 16 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.07 * i }}
@@ -138,7 +169,7 @@ function BreakfastView() {
                 )}
 
                 <button
-                  onClick={() => setStatuses((s) => ({ ...s, [b.unitId]: NEXT[status] }))}
+                  onClick={() => setStatuses((s) => ({ ...s, [b.id]: NEXT[status] }))}
                   disabled={status === "levererad"}
                   className={`mt-4 w-full rounded-xl py-3 text-[14px] font-semibold transition ${
                     status === "levererad"

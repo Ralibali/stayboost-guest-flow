@@ -59,6 +59,7 @@ export type Order = {
 };
 
 export type BreakfastPrep = {
+  id: string;
   unitId: string;
   guestName: string;
   portions: number;
@@ -69,10 +70,13 @@ export type BreakfastPrep = {
 };
 
 export type CleaningTask = {
+  id: string;
   unitId: string;
   type: "avresa" | "storstäd" | "påsläpp";
   window: string;
   status: "väntar" | "pågår" | "klar";
+  /** Uppskattad arbetstid i minuter — driver "kvar att göra" i städvyn. */
+  estMin: number;
   checklist: { label: string; done: boolean }[];
   note?: string;
 };
@@ -499,6 +503,7 @@ export const ORDERS: Order[] = [
 /* ---------- Frukost (i morgon) ---------- */
 export const BREAKFAST: BreakfastPrep[] = [
   {
+    id: "b1",
     unitId: "sjobris",
     guestName: "Anna Lindqvist",
     portions: 2,
@@ -508,6 +513,7 @@ export const BREAKFAST: BreakfastPrep[] = [
     status: "att_laga",
   },
   {
+    id: "b2",
     unitId: "naturkarnan",
     guestName: "Familj Johansson",
     portions: 4,
@@ -517,6 +523,7 @@ export const BREAKFAST: BreakfastPrep[] = [
     status: "att_laga",
   },
   {
+    id: "b3",
     unitId: "sjobris",
     guestName: "Familj Schneider",
     portions: 3,
@@ -529,10 +536,12 @@ export const BREAKFAST: BreakfastPrep[] = [
 /* ---------- Städning (i dag) ---------- */
 export const CLEANING: CleaningTask[] = [
   {
+    id: "c1",
     unitId: "naturkarnan",
     type: "avresa",
     window: "11:00–15:00",
     status: "väntar",
+    estMin: 45,
     note: "Gästen köpt sen utcheckning — ledigt först 13:00",
     checklist: [
       { label: "Bädda rent & byta handdukar", done: false },
@@ -543,10 +552,12 @@ export const CLEANING: CleaningTask[] = [
     ],
   },
   {
+    id: "c2",
     unitId: "naturkarnan",
     type: "påsläpp",
     window: "12:00–14:00",
     status: "pågår",
+    estMin: 25,
     checklist: [
       { label: "Bädda rent & byta handdukar", done: true },
       { label: "Vädra tältet & borsta innertält", done: true },
@@ -556,10 +567,12 @@ export const CLEANING: CleaningTask[] = [
     ],
   },
   {
+    id: "c3",
     unitId: "sjobris",
     type: "storstäd",
     window: "13:00–16:00",
     status: "väntar",
+    estMin: 60,
     checklist: [
       { label: "Bädda rent & byta handdukar", done: false },
       { label: "Dammsug & våttorka golv", done: false },

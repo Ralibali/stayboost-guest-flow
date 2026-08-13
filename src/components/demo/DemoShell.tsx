@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -51,6 +51,12 @@ const DEMO_GROUPS = [
 
 export function DemoShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const [chosenGroup, setChosenGroup] = useState<string | null>(null);
+
+  const pathGroup =
+    DEMO_GROUPS.find((g) => g.views.some((v) => pathname.startsWith(v.to)))?.label ?? null;
+  const activeGroup = chosenGroup ?? pathGroup ?? "Gäst";
+  const views = DEMO_GROUPS.find((g) => g.label === activeGroup)?.views ?? DEMO_GROUPS[0].views;
 
   return (
     <div className="min-h-screen bg-[color:var(--bg)]">
@@ -71,31 +77,44 @@ export function DemoShell({ children }: { children: ReactNode }) {
           </Link>
         </div>
 
-        {/* Vy-navigation med grupper */}
-        <nav className="mx-auto flex max-w-6xl items-center gap-1 overflow-x-auto border-t border-white/10 px-3 py-2 sm:px-6">
-          {DEMO_GROUPS.map((g, gi) => (
-            <span key={g.label} className="flex items-center gap-1">
-              {gi > 0 && <span className="mx-1.5 h-4 w-px bg-white/20" />}
-              {g.views.map((v) => {
-                const active = pathname.startsWith(v.to);
-                const Icon = v.icon;
-                return (
-                  <Link
-                    key={v.to}
-                    to={v.to}
-                    className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium transition ${
-                      active
-                        ? "bg-white text-[color:var(--forest)]"
-                        : "text-white/75 hover:bg-white/10 hover:text-white"
-                    }`}
-                  >
-                    <Icon size={13} strokeWidth={2.2} />
-                    {v.label}
-                  </Link>
-                );
-              })}
-            </span>
-          ))}
+        {/* Gruppflikar + aktiv gruppens vyer — aldrig fler än en rad */}
+        <nav className="border-t border-white/10">
+          <div className="mx-auto flex max-w-6xl items-center gap-1 overflow-x-auto px-3 py-2 sm:px-6">
+            <div className="mr-2 flex shrink-0 items-center gap-0.5 rounded-full bg-white/10 p-0.5">
+              {DEMO_GROUPS.map((g) => (
+                <button
+                  key={g.label}
+                  onClick={() => setChosenGroup(g.label === activeGroup ? null : g.label)}
+                  className={`rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] transition ${
+                    activeGroup === g.label
+                      ? "bg-[color:var(--brass)] text-[color:var(--forest)]"
+                      : "text-white/70 hover:text-white"
+                  }`}
+                >
+                  {g.label}
+                </button>
+              ))}
+            </div>
+            <span className="h-4 w-px shrink-0 bg-white/20" />
+            {views.map((v) => {
+              const active = pathname.startsWith(v.to);
+              const Icon = v.icon;
+              return (
+                <Link
+                  key={v.to}
+                  to={v.to}
+                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-medium transition ${
+                    active
+                      ? "bg-white text-[color:var(--forest)]"
+                      : "text-white/75 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  <Icon size={13} strokeWidth={2.2} />
+                  {v.label}
+                </Link>
+              );
+            })}
+          </div>
         </nav>
       </header>
 

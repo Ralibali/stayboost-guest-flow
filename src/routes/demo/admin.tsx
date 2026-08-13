@@ -150,7 +150,7 @@ function AdminDashboard() {
         />
       </div>
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-5">
+      <div className="mt-6 grid gap-5 lg:grid-cols-5 lg:items-start">
         {/* Graf */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -218,6 +218,20 @@ function AdminDashboard() {
           <p className="mt-3 border-t border-[color:var(--line)] pt-3 text-[13px] text-[color:var(--ink)]/60">
             💡 Prenumerationen (449 kr/mån) betalades tillbaka efter <strong>första veckan</strong>.
           </p>
+          <div className="mt-3 flex flex-wrap gap-x-6 gap-y-1.5 text-[13px] text-[color:var(--ink)]/60">
+            <span>
+              <strong className="font-semibold text-[color:var(--ink)]">
+                {ADMIN_STATS.giftCardsSoldMonth} presentkort
+              </strong>{" "}
+              sålda i juli · {fmtKr(ADMIN_STATS.giftCardsRevenueMonth)}
+            </span>
+            <span>
+              <strong className="font-semibold text-[color:var(--ink)]">
+                {ADMIN_STATS.bundlesSoldMonth} paket
+              </strong>{" "}
+              sålda i juli
+            </span>
+          </div>
         </motion.div>
 
         {/* Orderfeed */}
