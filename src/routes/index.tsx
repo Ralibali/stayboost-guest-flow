@@ -134,12 +134,12 @@ function Hero() {
     >
       {/* TODO: byt till riktigt kvällsfoto från anläggningen */}
       <div
-        className="absolute inset-0 -z-10 bg-cover bg-center opacity-70 md:opacity-100"
+        className="absolute inset-0 bg-cover bg-center opacity-70 md:opacity-100"
         style={{ backgroundImage: "url('/hero-glamping.jpg')" }}
         aria-hidden
       />
       <div
-        className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(20,40,30,0.88)_0%,rgba(20,40,30,0.78)_100%)] md:bg-[linear-gradient(90deg,rgba(30,58,45,0.92)_0%,rgba(30,58,45,0.75)_45%,rgba(30,58,45,0.15)_100%)]"
+        className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,40,30,0.88)_0%,rgba(20,40,30,0.78)_100%)] md:bg-[linear-gradient(90deg,rgba(30,58,45,0.92)_0%,rgba(30,58,45,0.75)_45%,rgba(30,58,45,0.15)_100%)]"
         aria-hidden
       />
       <span className="sr-only">
