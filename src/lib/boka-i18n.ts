@@ -12,6 +12,7 @@ export const LANGS: { id: Lang; label: string }[] = [
 ];
 
 export function detectLang(): Lang {
+  if (typeof window === "undefined" || typeof navigator === "undefined") return "sv";
   try {
     const saved = localStorage.getItem("boka-lang");
     if (saved === "sv" || saved === "en" || saved === "de") return saved;

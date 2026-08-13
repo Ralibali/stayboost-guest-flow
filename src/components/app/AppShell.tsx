@@ -35,13 +35,13 @@ export function AppShell({
   const { pathname } = useLocation();
   return (
     <div className="min-h-screen bg-[color:var(--bg)]">
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[color:var(--forest)] text-white">
+      <header className="sticky top-0 z-40 border-b border-[color:var(--line)] bg-[color:var(--bg)]/85 text-[color:var(--ink)] backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3 sm:px-5">
-          <Link to="/app" className="font-[Fraunces] text-xl font-semibold">
+          <Link to="/app" className="font-[Fraunces] text-xl font-semibold tracking-tight">
             StayBoost
           </Link>
           {propertyName && (
-            <span className="hidden max-w-48 truncate rounded-full bg-white/10 px-3 py-1 text-[12px] font-medium md:inline">
+            <span className="hidden max-w-48 truncate rounded-full bg-[color:var(--soft)] px-3 py-1 text-[12px] font-medium text-[color:var(--ink)]/70 md:inline">
               {propertyName}
             </span>
           )}
@@ -59,8 +59,8 @@ export function AppShell({
                   aria-label={n.label}
                   className={`flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] font-medium transition sm:px-3 ${
                     active
-                      ? "bg-white text-[color:var(--forest)]"
-                      : "text-white/75 hover:bg-white/10"
+                      ? "bg-[color:var(--ink)] text-[#FAFAF8]"
+                      : "text-[color:var(--ink)]/60 hover:bg-[color:var(--soft)] hover:text-[color:var(--ink)]"
                   }`}
                 >
                   <n.icon size={15} />
@@ -70,7 +70,7 @@ export function AppShell({
             })}
             <button
               onClick={onLogout}
-              className="ml-0.5 flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] font-medium text-white/75 transition hover:bg-white/10 sm:px-3"
+              className="ml-0.5 flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-2 text-[13px] font-medium text-[color:var(--ink)]/60 transition hover:bg-[color:var(--soft)] hover:text-[color:var(--ink)] sm:px-3"
               title="Logga ut"
               aria-label="Logga ut"
             >

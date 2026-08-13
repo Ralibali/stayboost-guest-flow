@@ -354,8 +354,31 @@ describe("Fas 1-migration mot Postgres", () => {
     expect(feed.rows[0].ical_feed_token).toMatch(/^[0-9a-f]{24}$/);
 
     // Framtida bokning → fyra meddelanden schemaläggs (bekräftelse direkt)
-    const in10 = "2026-08-10";
-    const in12 = "2026-08-12";
+    // Datum är relativa mot "i dag" så testet inte ruttnar med kalendern.
+    const addDays = (n: number) => new Date(Date.now() + n * 86400000).toISOString().slice(0, 10);
+    // "dateStr kl HH:MM i Europe/Stockholm" → motsvarande UTC-instant (ISO)
+    const stockholmToUtc = (dateStr: string, hhmm: string) => {
+      let t = new Date(`${dateStr}T${hhmm}:00.000Z`);
+      for (let i = 0; i < 2; i++) {
+        const wall = new Intl.DateTimeFormat("sv-SE", {
+          timeZone: "Europe/Stockholm",
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+          .format(t)
+          .replace(" ", "T");
+        const diff =
+          new Date(`${dateStr}T${hhmm}:00.000Z`).getTime() - new Date(`${wall}:00.000Z`).getTime();
+        t = new Date(t.getTime() + diff);
+      }
+      return t.toISOString();
+    };
+    const in10 = addDays(40);
+    const in12 = addDays(42);
     const b1 = await db.query<{ id: string; guest_token: string }>(
       `insert into bookings (property_id, unit_id, source, ical_source_id, ical_uid, guest_name, checkin_date, checkout_date)
        values ($1, $2, 'ical', $3, 'uid-1', 'Anna', $4, $5) returning id, guest_token`,
@@ -369,9 +392,10 @@ describe("Fas 1-migration mot Postgres", () => {
     );
     expect(msgs.rows).toHaveLength(4); // booking_created + pre_arrival + checkin_day + post_stay
 
-    // pre_arrival: (10 aug - 2 dagar) kl 09:00 Stockholm = 08 aug 07:00 UTC (sommartid)
+    // pre_arrival: (incheckning - 2 dagar) kl 09:00 Stockholm
     const pre = msgs.rows[1];
-    expect(new Date(pre.send_at).toISOString()).toBe("2026-08-08T07:00:00.000Z");
+    const preDate = new Date(new Date(in10).getTime() - 2 * 86400000).toISOString().slice(0, 10);
+    expect(new Date(pre.send_at).toISOString()).toBe(stockholmToUtc(preDate, "09:00"));
 
     // Sen import: incheckning i dag → inga förfallna meddelanden spamas ut
     const today = new Date().toISOString().slice(0, 10);
@@ -391,9 +415,11 @@ describe("Fas 1-migration mot Postgres", () => {
     expect(triggers).toEqual(["booking_created", "post_stay"]); // pre_arrival hoppades över
 
     // Omplanering: nya datum → schemat räknas om mot nya datumet
+    const newIn = addDays(71);
+    const newOut = addDays(73);
     await db.query("update bookings set checkin_date = $1, checkout_date = $2 where id = $3", [
-      "2026-09-10",
-      "2026-09-12",
+      newIn,
+      newOut,
       b1.rows[0].id,
     ]);
     const rebooked = await db.query<{ send_at: string }>(
@@ -403,7 +429,8 @@ describe("Fas 1-migration mot Postgres", () => {
       [b1.rows[0].id],
     );
     expect(rebooked.rows).toHaveLength(1);
-    expect(new Date(rebooked.rows[0].send_at).toISOString()).toBe("2026-09-08T07:00:00.000Z");
+    const newPre = new Date(new Date(newIn).getTime() - 2 * 86400000).toISOString().slice(0, 10);
+    expect(new Date(rebooked.rows[0].send_at).toISOString()).toBe(stockholmToUtc(newPre, "09:00"));
 
     // Avbokning → allt pending släcks
     await db.query("update bookings set status = 'cancelled' where id = $1", [b1.rows[0].id]);

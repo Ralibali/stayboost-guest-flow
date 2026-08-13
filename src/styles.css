@@ -5,8 +5,10 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
- * StayBoost design system.
- * Sparse mässing accent — max one brass element per view.
+ * StayBoost design system — "Nordic paper".
+ * Varm pappersbas, bläck-svart text, hårstreckslinjer.
+ * EN accent: terrakotta, sparsam (eyebrows, små höjdpunkter, glow).
+ * --forest och --brass är kvar som alias för bakåtkompatibilitet.
  */
 
 @theme inline {
@@ -27,27 +29,34 @@
 
   --color-background: var(--bg);
   --color-foreground: var(--ink);
-  --color-primary: var(--brass);
-  --color-primary-foreground: #ffffff;
+  --color-primary: var(--ink);
+  --color-primary-foreground: #fafaf8;
   --color-muted: var(--line);
-  --color-muted-foreground: color-mix(in oklab, var(--ink) 65%, transparent);
+  --color-muted-foreground: var(--muted);
   --color-border: var(--line);
   --color-ring: var(--brass);
   --color-accent: var(--brass);
 
   --font-display: "Fraunces", ui-serif, Georgia, serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
 }
 
 :root {
   --radius: 0.75rem;
-  --bg: #f7f4ee;
-  --ink: #14241c;
-  --forest: #1e3a2d;
-  --brass: #b08d3e;
+  --bg: #fafaf8;
+  --ink: #1b1b19;
+  --muted: #8b8b85;
+  --soft: #f1f1ec;
+  --forest: #1b1b19;
+  --brass: #c05a33;
+  --brass-soft: #f6e9e1;
   --card: #ffffff;
-  --line: #e4ddd0;
+  --line: #e7e7e1;
   --success: #2e7d4f;
+  --shadow-lift: 0 1px 2px rgb(27 27 25 / 0.04), 0 12px 32px -12px rgb(27 27 25 / 0.14);
+  --shadow-hero: 0 1px 2px rgb(27 27 25 / 0.05), 0 32px 80px -32px rgb(27 27 25 / 0.28);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 @layer base {
@@ -60,6 +69,11 @@
   }
   body {
     background-color: var(--bg);
+    /* Subtil pappersstruktur: två fasta varma radialgradienter */
+    background-image:
+      radial-gradient(900px 600px at 18% 8%, rgb(192 90 51 / 0.035), transparent 60%),
+      radial-gradient(1100px 700px at 82% 72%, rgb(27 27 25 / 0.03), transparent 60%);
+    background-attachment: fixed;
     color: var(--ink);
     font-family: var(--font-sans);
     font-size: 1rem;
@@ -84,8 +98,8 @@
   h4 {
     font-family: var(--font-display);
     font-weight: 600;
-    letter-spacing: -0.02em;
-    line-height: 1.1;
+    letter-spacing: -0.025em;
+    line-height: 1.05;
     color: var(--ink);
   }
   :focus-visible {
@@ -93,15 +107,29 @@
     outline-offset: 3px;
     border-radius: 6px;
   }
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
 }
 
 @utility eyebrow {
   font-family: var(--font-sans);
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.16em;
   color: var(--brass);
+}
+
+@utility eyebrow-muted {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--muted);
 }
 
 @utility btn-primary {
@@ -109,27 +137,37 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: var(--brass);
-  color: #ffffff;
-  border-radius: 12px;
-  padding: 12px 22px;
+  background: var(--ink);
+  color: #fafaf8;
+  border-radius: 999px;
+  padding: 12px 24px;
   font-weight: 600;
   font-size: 0.95rem;
   transition:
-    transform 200ms ease,
-    box-shadow 200ms ease,
-    background 200ms ease;
-  box-shadow: 0 6px 18px rgba(176, 141, 62, 0.25);
+    transform 200ms var(--ease-out),
+    box-shadow 200ms var(--ease-out),
+    background 200ms var(--ease-out);
   cursor: pointer;
   border: none;
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(176, 141, 62, 0.35);
+    box-shadow: var(--shadow-lift);
+    background: #000000;
   }
   @media (min-width: 640px) {
-    padding: 16px 32px;
+    padding: 15px 30px;
     font-size: 1rem;
   }
+}
+
+/* Pil som glider 3px vid hover: <a class="btn-primary">Text <span class="btn-arrow">→</span></a> */
+.btn-arrow {
+  display: inline-block;
+  transition: transform 160ms var(--ease-out);
+}
+.btn-primary:hover .btn-arrow,
+.btn-ghost:hover .btn-arrow {
+  transform: translateX(3px);
 }
 
 @utility btn-ghost {
@@ -140,26 +178,47 @@
   background: transparent;
   color: var(--ink);
   border: 1px solid var(--ink);
-  border-radius: 12px;
-  padding: 11px 20px;
+  border-radius: 999px;
+  padding: 11px 22px;
   font-weight: 600;
   font-size: 0.95rem;
-  transition: background 200ms ease;
+  transition:
+    background 200ms var(--ease-out),
+    transform 200ms var(--ease-out);
   cursor: pointer;
   &:hover {
-    background: rgba(20, 36, 28, 0.05);
+    background: rgb(27 27 25 / 0.05);
+    transform: translateY(-2px);
   }
   @media (min-width: 640px) {
-    padding: 15px 28px;
+    padding: 14px 28px;
     font-size: 1rem;
   }
 }
 
+/* Platt yta med hårstreck — ingen skugga i vila (interaktiva kort lyfter via .card-hover) */
 @utility card-surface {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(20, 36, 28, 0.06);
+  border-radius: 14px;
+}
+
+@utility card-hover {
+  transition:
+    transform 200ms var(--ease-out),
+    box-shadow 200ms var(--ease-out),
+    border-color 200ms var(--ease-out);
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lift);
+    border-color: #d8d8d0;
+  }
+}
+
+/* Mörk sektion: bläck botten, papper text */
+@utility dark-band {
+  background: var(--ink);
+  color: #fafaf8;
 }
 
 .legal-prose h2 {
@@ -187,7 +246,7 @@
   text-underline-offset: 2px;
 }
 .legal-prose code {
-  background: rgba(20, 36, 28, 0.06);
+  background: rgb(27 27 25 / 0.06);
   padding: 0.1rem 0.35rem;
   border-radius: 4px;
   font-size: 0.9em;
@@ -209,15 +268,19 @@
 /* Operatörs-UI: formulärfält */
 .inp {
   width: 100%;
-  border-radius: 0.75rem;
+  border-radius: 10px;
   border: 1px solid var(--line);
   background: #fff;
   padding: 0.625rem 0.875rem;
   font-size: 0.875rem;
   outline: none;
+  transition:
+    border-color 150ms var(--ease-out),
+    box-shadow 150ms var(--ease-out);
 }
 .inp:focus {
-  border-color: var(--forest);
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px var(--soft);
 }
 
 /* Skandinavisk minimalism: understruket formulärfält (publik bokningssida) */

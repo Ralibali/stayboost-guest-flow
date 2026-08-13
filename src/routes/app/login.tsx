@@ -38,13 +38,16 @@ function LoginPage() {
   };
 
   return (
-    <div className="grid min-h-screen place-items-center bg-[color:var(--forest)] px-5">
+    <div className="grid min-h-screen place-items-center bg-[color:var(--bg)] px-5">
       <div className="w-full max-w-sm">
         <div className="text-center">
-          <Link to="/" className="font-[Fraunces] text-3xl font-semibold text-white">
+          <Link
+            to="/"
+            className="font-[Fraunces] text-3xl font-semibold tracking-tight text-[color:var(--ink)]"
+          >
             StayBoost
           </Link>
-          <p className="mt-2 text-[14px] text-white/65">Logga in till din anläggning</p>
+          <p className="mt-2 text-[14px] text-[color:var(--muted)]">Logga in till din anläggning</p>
         </div>
         <form onSubmit={submit} className="card-surface mt-8 space-y-4 p-6">
           <label className="block">
