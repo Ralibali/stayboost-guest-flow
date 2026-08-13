@@ -206,6 +206,7 @@ function Hero() {
 
 /* ---------- Social proof ---------- */
 function SocialProof() {
+  const tools = ["Sirvoy", "Booking.com", "Stripe", "Swish"];
   return (
     <section className="border-y border-[color:var(--line)] bg-white/60">
       <div className="mx-auto max-w-[1120px] px-6 py-6">
@@ -217,6 +218,21 @@ function SocialProof() {
             Se siffrorna →
           </a>
         </p>
+        <div className="mt-5 flex flex-col items-center gap-3 border-t border-[color:var(--line)] pt-5">
+          <p className="text-[0.68rem] font-medium uppercase tracking-[0.14em] text-[color:var(--ink)]/45">
+            Fungerar med verktygen du redan använder
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 sm:gap-x-10">
+            {tools.map((tool) => (
+              <span
+                key={tool}
+                className="text-[1.05rem] font-semibold tracking-tight text-[color:var(--ink)]/55 transition-colors hover:text-[color:var(--ink)]/85"
+              >
+                {tool}
+              </span>
+            ))}
+          </div>
+        </div>
       </div>
     </section>
   );
