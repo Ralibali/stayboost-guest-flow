@@ -14,7 +14,7 @@ import { EarlyAccessForm } from "@/components/landing/EarlyAccessForm";
 import { DemoSms } from "@/components/landing/DemoSms";
 import { CaseStudy } from "@/components/landing/CaseStudy";
 import { BookFounder } from "@/components/landing/BookFounder";
-import { HeroProofLine } from "@/components/landing/HeroProofLine";
+import { HeroProofBadge } from "@/components/landing/HeroProofBadge";
 
 const BRAND_NAME = "StayBoost";
 
@@ -149,6 +149,11 @@ function Hero() {
       <div className="relative mx-auto grid max-w-[1120px] items-center gap-10 px-5 sm:gap-16 sm:px-6 md:grid-cols-[55fr_45fr]">
         <div>
           <FadeUp>
+            <div className="mb-5 sm:mb-6">
+              <HeroProofBadge />
+            </div>
+          </FadeUp>
+          <FadeUp delay={0.05}>
             <h1 className="text-white" style={{ fontSize: "clamp(2rem, 8vw, 5rem)" }}>
               Dina gäster vill köpa mer.{" "}
               <em className="not-italic">
@@ -156,17 +161,12 @@ function Hero() {
               </em>
             </h1>
           </FadeUp>
-          <FadeUp delay={0.1}>
+          <FadeUp delay={0.15}>
             <p className="mt-5 max-w-xl text-[0.95rem] leading-relaxed text-white/85 sm:mt-6 sm:text-base">
               {BRAND_NAME} lägger sig ovanpå bokningarna du redan har — egen provisionsfri
               bokningsmotor, automatiserad merförsäljning, gäst-sms, digital incheckning och
               arbetsvyer för frukost och städning. Ett lager driftautomation för små boenden. Utan
               app. Igång på en kväll.
-            </p>
-          </FadeUp>
-          <FadeUp delay={0.15}>
-            <p className="mt-4 text-[0.85rem] leading-relaxed text-[color:var(--brass)] sm:text-[0.9rem]">
-              Bevisat i skarp drift: <HeroProofLine />
             </p>
           </FadeUp>
           <FadeUp delay={0.2}>
