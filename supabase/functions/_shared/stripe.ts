@@ -13,6 +13,7 @@ export interface CheckoutParams {
   cancelUrl: string;
   customerEmail?: string | null;
   expiresAtUnix?: number | null;
+  metadata?: Record<string, string>;
 }
 
 /** Bygg form-encoded body för POST /v1/checkout/sessions. */
@@ -32,10 +33,13 @@ export function checkoutBody(p: CheckoutParams): string {
   params.set("line_items[0][price_data][product_data][name]", p.description);
   params.set("metadata[payment_ref]", p.paymentRef);
   params.set("metadata[booking_id]", p.bookingId);
+  for (const [key, value] of Object.entries(p.metadata ?? {})) {
+    params.set(`metadata[${key}]`, value);
+  }
   if (p.customerEmail) params.set("customer_email", p.customerEmail);
 
   // Stripe tillåter 30 minuter som kortaste Checkout-reservation. Det gör att
-  // en övergiven betalning inte blockerar boendet resten av dagen.
+  // en övergiven betalning inte blockerar boendet/tillvalskapaciteten resten av dagen.
   const expiresAt = p.expiresAtUnix ?? Math.floor(Date.now() / 1000) + 30 * 60;
   params.set("expires_at", String(Math.floor(expiresAt)));
   return params.toString();
