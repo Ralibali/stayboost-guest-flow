@@ -11,6 +11,9 @@ import {
 
 export const Route = createFileRoute("/app/tillval")({ component: AddonsPage });
 
+type ServiceTiming = "arrival" | "each_stay_day" | "each_morning";
+type ManagedAddon = Addon & { service_timing: ServiceTiming };
+
 type Draft = {
   name: string;
   description: string;
@@ -19,6 +22,7 @@ type Draft = {
   image_url: string;
   capacity_per_day: string;
   fulfillment_note: string;
+  service_timing: ServiceTiming;
 };
 
 const EMPTY: Draft = {
@@ -29,6 +33,7 @@ const EMPTY: Draft = {
   image_url: "",
   capacity_per_day: "",
   fulfillment_note: "",
+  service_timing: "arrival",
 };
 
 const PRICE_TYPES: { value: AddonPriceType; label: string }[] = [
@@ -38,8 +43,14 @@ const PRICE_TYPES: { value: AddonPriceType; label: string }[] = [
   { value: "per_person_per_night", label: "Per person & dygn" },
 ];
 
+const SERVICE_TIMINGS: { value: ServiceTiming; label: string }[] = [
+  { value: "arrival", label: "Ankomstdagen" },
+  { value: "each_stay_day", label: "Varje vistelsedag (t.ex. cykel)" },
+  { value: "each_morning", label: "Varje morgon efter övernattning (t.ex. frukost)" },
+];
+
 const fmtKr = (n: number) => `${n.toLocaleString("sv-SE")} kr`;
-const priceLabel = (addon: Addon) => {
+const priceLabel = (addon: ManagedAddon) => {
   const suffix =
     addon.price_type === "per_night"
       ? "/natt"
@@ -54,7 +65,7 @@ const priceLabel = (addon: Addon) => {
 function AddonsPage() {
   const session = useSession();
   const { property } = useProperty(session);
-  const [addons, setAddons] = useState<Addon[]>([]);
+  const [addons, setAddons] = useState<ManagedAddon[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY);
@@ -73,7 +84,7 @@ function AddonsPage() {
       .order("sort_order")
       .order("created_at");
     if (error) setActionError(error.message);
-    setAddons((data as Addon[]) ?? []);
+    setAddons((data as ManagedAddon[]) ?? []);
   }, [property]);
 
   useEffect(() => {
@@ -123,6 +134,7 @@ function AddonsPage() {
       image_url: draft.image_url.trim() || null,
       capacity_per_day: capacity,
       fulfillment_note: draft.fulfillment_note.trim() || null,
+      service_timing: draft.service_timing,
     };
     const result = editingId
       ? await supabase.from("addons").update(row).eq("id", editingId)
@@ -133,7 +145,7 @@ function AddonsPage() {
     load();
   };
 
-  const startEdit = (addon: Addon) => {
+  const startEdit = (addon: ManagedAddon) => {
     setEditingId(addon.id);
     setDraft({
       name: addon.name,
@@ -143,13 +155,14 @@ function AddonsPage() {
       image_url: addon.image_url ?? "",
       capacity_per_day: addon.capacity_per_day ? String(addon.capacity_per_day) : "",
       fulfillment_note: addon.fulfillment_note ?? "",
+      service_timing: addon.service_timing ?? "arrival",
     });
     setShowForm(true);
     setActionError(null);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const toggleActive = async (addon: Addon) => {
+  const toggleActive = async (addon: ManagedAddon) => {
     if (!supabase) return;
     const next = !addon.active;
     setAddons((items) => items.map((item) => (item.id === addon.id ? { ...item, active: next } : item)));
@@ -160,7 +173,7 @@ function AddonsPage() {
     }
   };
 
-  const remove = async (addon: Addon) => {
+  const remove = async (addon: ManagedAddon) => {
     if (!supabase) return;
     const { error } = await supabase.from("addons").delete().eq("id", addon.id);
     if (error) return setActionError(`Kunde inte ta bort tillvalet: ${error.message}`);
@@ -214,6 +227,12 @@ function AddonsPage() {
               <input value={draft.capacity_per_day} onChange={(e) => setDraft({ ...draft, capacity_per_day: e.target.value.replace(/[^\d]/g, "") })} placeholder="Tomt = obegränsat, t.ex. 6 cyklar" inputMode="numeric" className="inp" />
             </div>
             <div>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/50">När ska det förberedas?</label>
+              <select value={draft.service_timing} onChange={(e) => setDraft({ ...draft, service_timing: e.target.value as ServiceTiming })} className="inp">
+                {SERVICE_TIMINGS.map((timing) => <option key={timing.value} value={timing.value}>{timing.label}</option>)}
+              </select>
+            </div>
+            <div className="sm:col-span-2">
               <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/50">Driftinstruktion</label>
               <input value={draft.fulfillment_note} onChange={(e) => setDraft({ ...draft, fulfillment_note: e.target.value })} placeholder="T.ex. Matsäck i Guest Pantry kl 08.30" className="inp" />
             </div>
@@ -263,6 +282,7 @@ function AddonsPage() {
                 {addon.description && <p className="mt-2 text-[13px] leading-relaxed text-[color:var(--ink)]/55">{addon.description}</p>}
                 <div className="mt-3 flex flex-wrap gap-2 text-[11px] text-[color:var(--ink)]/55">
                   {addon.capacity_per_day && <span className="rounded-full bg-[color:var(--bg)] px-2.5 py-1">Max {addon.capacity_per_day}/dag</span>}
+                  <span className="rounded-full bg-[color:var(--bg)] px-2.5 py-1">{SERVICE_TIMINGS.find((x) => x.value === addon.service_timing)?.label ?? "Ankomstdagen"}</span>
                   {addon.fulfillment_note && <span className="rounded-full bg-[color:var(--bg)] px-2.5 py-1">{addon.fulfillment_note}</span>}
                 </div>
               </div>
