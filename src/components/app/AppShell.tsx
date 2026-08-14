@@ -1,5 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import {
+  CalendarClock,
   CalendarDays,
   CalendarRange,
   LayoutDashboard,
@@ -14,6 +15,7 @@ import type { ReactNode } from "react";
 
 const NAV = [
   { to: "/app", label: "Översikt", icon: LayoutDashboard },
+  { to: "/app/dagsoversikt", label: "Dagsöversikt", icon: CalendarClock },
   { to: "/app/bokningar", label: "Bokningar", icon: CalendarDays },
   { to: "/app/kalender", label: "Kalender", icon: CalendarRange },
   { to: "/app/prisregler", label: "Prisregler", icon: Tag },
