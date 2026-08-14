@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
-import { Check, Copy } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Check, Copy, Loader2, Minus, Plus, ShoppingBag } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
 
 export const Route = createFileRoute("/g/$token")({
@@ -11,11 +11,38 @@ export const Route = createFileRoute("/g/$token")({
 const C = { bg: "#FAFAF8", ink: "#1B1B19", muted: "#777772", line: "#E2E2DC" } as const;
 const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.18em]";
 
+type GuestAddon = {
+  id: string;
+  name: string;
+  description: string | null;
+  price: number;
+  price_type: "per_booking" | "per_night" | "per_person" | "per_person_per_night";
+  image_url: string | null;
+  capacity_per_day: number | null;
+  fulfillment_note: string | null;
+};
+
+type PurchasedAddon = {
+  id: string;
+  name: string;
+  quantity: number;
+  unitPrice: number;
+  priceType: GuestAddon["price_type"];
+  fulfillmentNote: string | null;
+};
+
 type GuestData = {
   guestName: string | null;
+  guests: number | null;
   checkinDate: string;
   checkoutDate: string;
   unit: { name: string; door_code: string | null; checkin_instructions: string | null } | null;
+  access: {
+    unlocked: boolean;
+    availableAt: string;
+    leadMinutes: number;
+    timezone: string;
+  };
   property: {
     name: string;
     checkin_time: string;
@@ -33,6 +60,9 @@ type GuestData = {
     ref: string | null;
     expiresAt: string | null;
   } | null;
+  addons: GuestAddon[];
+  purchasedAddons: PurchasedAddon[];
+  canBuyAddons: boolean;
 };
 
 const svLong = (iso: string) =>
@@ -42,15 +72,26 @@ const svLong = (iso: string) =>
     month: "long",
   });
 
+const addonPriceLabel = (addon: GuestAddon) => {
+  const price = `${addon.price.toLocaleString("sv-SE")} kr`;
+  if (addon.price_type === "per_night") return `${price}/natt`;
+  if (addon.price_type === "per_person") return `${price}/person`;
+  if (addon.price_type === "per_person_per_night") return `${price}/person & dygn`;
+  return price;
+};
+
 function GuestPage() {
   const { token } = Route.useParams();
   const [state, setState] = useState<"loading" | "ok" | "notfound">("loading");
   const [data, setData] = useState<GuestData | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
-  const [justPaid] = useState(
-    () => new URLSearchParams(window.location.search).get("paid") === "1",
-  );
+  const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [buyingId, setBuyingId] = useState<string | null>(null);
+  const [buyError, setBuyError] = useState<string | null>(null);
   const [polls, setPolls] = useState(0);
+  const params = useMemo(() => new URLSearchParams(window.location.search), []);
+  const justPaid = params.get("paid") === "1";
+  const addonPaid = params.get("addon_paid") === "1";
 
   useEffect(() => {
     if (!supabaseConfigured || !supabase) {
@@ -64,7 +105,13 @@ function GuestPage() {
         if (cancelled) return;
         if (error || !data || (data as { error?: string }).error) setState("notfound");
         else {
-          setData(data as GuestData);
+          const guest = data as GuestData;
+          setData(guest);
+          setQuantities((current) => {
+            const next = { ...current };
+            for (const addon of guest.addons ?? []) if (!next[addon.id]) next[addon.id] = 1;
+            return next;
+          });
           setState("ok");
         }
       })
@@ -84,6 +131,37 @@ function GuestPage() {
     navigator.clipboard.writeText(text);
     setCopiedField(field);
     setTimeout(() => setCopiedField(null), 1500);
+  };
+
+  const changeQuantity = (addon: GuestAddon, delta: number) => {
+    const current = quantities[addon.id] ?? 1;
+    const max =
+      addon.price_type === "per_person" || addon.price_type === "per_person_per_night"
+        ? Math.max(1, data?.guests ?? 1)
+        : 20;
+    setQuantities((q) => ({ ...q, [addon.id]: Math.min(max, Math.max(1, current + delta)) }));
+  };
+
+  const buyAddon = async (addon: GuestAddon) => {
+    if (!supabase) return;
+    setBuyingId(addon.id);
+    setBuyError(null);
+    const { data: result, error } = await supabase.functions.invoke("guest-addon-checkout", {
+      body: { token, addons: [{ id: addon.id, quantity: quantities[addon.id] ?? 1 }] },
+    });
+    setBuyingId(null);
+    const code = (result as { error?: string } | null)?.error;
+    if (error || code) {
+      setBuyError(
+        code === "addon_capacity_exceeded"
+          ? "Det tillvalet hann tyvärr bli fullbokat för någon av era dagar."
+          : "Köpet kunde inte startas. Försök igen eller kontakta oss.",
+      );
+      return;
+    }
+    const checkoutUrl = (result as { checkoutUrl?: string } | null)?.checkoutUrl;
+    if (checkoutUrl) window.location.assign(checkoutUrl);
+    else setBuyError("Stripe-länken saknades. Försök igen.");
   };
 
   if (state === "loading") {
@@ -124,52 +202,42 @@ function GuestPage() {
         className="mx-auto max-w-xl px-5 pt-14"
       >
         <header className="border-b pb-8" style={{ borderColor: C.line }}>
-          <p className={eyebrow} style={{ color: C.muted }}>
-            Välkommen till
-          </p>
+          <p className={eyebrow} style={{ color: C.muted }}>Välkommen till</p>
           <h1 className="mt-3 font-[Fraunces] text-[36px] leading-[1.1]">{p.name}</h1>
           <p className="mt-4 text-[15px]">
             <span style={{ color: C.muted }}>Gäst </span>
             <span className="font-medium">{data.guestName ?? "Välkommen"}</span>
           </p>
-          <p className="mt-1 text-[15px]">
-            {svLong(data.checkinDate)}–{svLong(data.checkoutDate)}
-          </p>
-          {data.unit && (
-            <p className="mt-1 text-[14px]" style={{ color: C.muted }}>
-              {data.unit.name}
-            </p>
-          )}
-          <div
-            className="mt-6 grid grid-cols-2 gap-4 border-t pt-5"
-            style={{ borderColor: C.line }}
-          >
+          <p className="mt-1 text-[15px]">{svLong(data.checkinDate)}–{svLong(data.checkoutDate)}</p>
+          {data.unit && <p className="mt-1 text-[14px]" style={{ color: C.muted }}>{data.unit.name}</p>}
+          <div className="mt-6 grid grid-cols-2 gap-4 border-t pt-5" style={{ borderColor: C.line }}>
             <div>
-              <p className={eyebrow} style={{ color: C.muted }}>
-                Incheckning
-              </p>
+              <p className={eyebrow} style={{ color: C.muted }}>Incheckning</p>
               <p className="mt-1.5 text-[16px] font-medium">från {p.checkin_time}</p>
             </div>
             <div>
-              <p className={eyebrow} style={{ color: C.muted }}>
-                Utcheckning
-              </p>
+              <p className={eyebrow} style={{ color: C.muted }}>Utcheckning</p>
               <p className="mt-1.5 text-[16px] font-medium">senast {p.checkout_time}</p>
             </div>
           </div>
         </header>
 
+        {addonPaid && (
+          <div className="mt-8 flex items-center gap-3 border px-5 py-4" style={{ borderColor: C.ink }}>
+            <Check size={16} />
+            <div>
+              <p className="text-[14px] font-semibold">Tillvalet är betalt</p>
+              <p className="text-[13px]" style={{ color: C.muted }}>Vi har lagt det till er vistelse.</p>
+            </div>
+          </div>
+        )}
+
         {data.payment?.status === "paid" && (
-          <div
-            className="mt-8 flex items-center gap-3 border px-5 py-4"
-            style={{ borderColor: C.ink }}
-          >
+          <div className="mt-8 flex items-center gap-3 border px-5 py-4" style={{ borderColor: C.ink }}>
             <Check size={16} />
             <div>
               <p className="text-[14px] font-semibold">Betalningen är mottagen</p>
-              <p className="text-[13px]" style={{ color: C.muted }}>
-                Din bokning är bekräftad och betald.
-              </p>
+              <p className="text-[13px]" style={{ color: C.muted }}>Din bokning är bekräftad och betald.</p>
             </div>
           </div>
         )}
@@ -177,126 +245,130 @@ function GuestPage() {
         {justPaid && data.payment?.status === "pending" && (
           <div className="mt-8 border px-5 py-4" style={{ borderColor: C.line }}>
             <p className="text-[14px] font-semibold">Din betalning behandlas</p>
-            <p className="text-[13px]" style={{ color: C.muted }}>
-              Sidan uppdateras automatiskt när Stripe har bekräftat betalningen.
-            </p>
+            <p className="text-[13px]" style={{ color: C.muted }}>Sidan uppdateras automatiskt när Stripe har bekräftat betalningen.</p>
           </div>
         )}
 
         {data.payment?.status === "pending" && data.payment.amount && p.swish_number && (
           <div className="mt-8 border px-5 py-4" style={{ borderColor: C.ink }}>
-            <p className={eyebrow} style={{ color: C.muted }}>
-              Betala med Swish
-            </p>
+            <p className={eyebrow} style={{ color: C.muted }}>Betala med Swish</p>
             <p className="mt-2 text-[14px] leading-relaxed" style={{ color: C.muted }}>
-              Swisha{" "}
-              <strong style={{ color: C.ink }}>
-                {data.payment.amount.toLocaleString("sv-SE")} kr
-              </strong>{" "}
-              till{" "}
-              <span className="font-mono font-semibold" style={{ color: C.ink }}>
-                {p.swish_number}
-              </span>
-              {data.payment.ref && (
-                <>
-                  {" "}
-                  och märk betalningen med{" "}
-                  <span className="font-mono font-semibold" style={{ color: C.ink }}>
-                    {data.payment.ref}
-                  </span>
-                </>
-              )}
-              .
-              {expires && (
-                <>
-                  {" "}
-                  Datumen reserveras till{" "}
-                  <strong style={{ color: C.ink }}>
-                    {expires.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}
-                  </strong>
-                  .
-                </>
-              )}
+              Swisha <strong style={{ color: C.ink }}>{data.payment.amount.toLocaleString("sv-SE")} kr</strong> till{" "}
+              <span className="font-mono font-semibold" style={{ color: C.ink }}>{p.swish_number}</span>
+              {data.payment.ref && <> och märk betalningen med <span className="font-mono font-semibold" style={{ color: C.ink }}>{data.payment.ref}</span></>}.
+              {expires && <> Datumen reserveras till <strong style={{ color: C.ink }}>{expires.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}</strong>.</>}
             </p>
           </div>
         )}
 
-        {data.unit?.checkin_instructions && (
-          <Section title={`Hitta till ${data.unit.name}`}>{data.unit.checkin_instructions}</Section>
-        )}
+        {data.unit?.checkin_instructions && <Section title={`Hitta till ${data.unit.name}`}>{data.unit.checkin_instructions}</Section>}
 
         <section className="mt-10">
-          <p className={eyebrow} style={{ color: C.muted }}>
-            Praktiskt
-          </p>
+          <p className={eyebrow} style={{ color: C.muted }}>Praktiskt</p>
           <div className="mt-3 divide-y border-y" style={{ borderColor: C.line }}>
-            {data.unit?.door_code && (
+            {data.unit?.door_code ? (
               <Row label="Portkod">
-                <span className="font-mono text-[16px] tracking-[0.25em]">
-                  {data.unit.door_code}
+                <span className="font-mono text-[16px] tracking-[0.25em]">{data.unit.door_code}</span>
+              </Row>
+            ) : data.access && !data.access.unlocked ? (
+              <Row label="Portkod">
+                <span className="max-w-[230px] text-[13px]" style={{ color: C.muted }}>
+                  Visas automatiskt strax före incheckning
                 </span>
               </Row>
-            )}
+            ) : null}
             {p.wifi_name && (
               <Row label="Wifi">
                 <button onClick={() => copy(p.wifi_password ?? "", "wifi")} className="text-right">
                   <span className="block text-[15px] font-medium">{p.wifi_name}</span>
-                  <span
-                    className="mt-0.5 flex items-center justify-end gap-1.5 text-[12px]"
-                    style={{ color: C.muted }}
-                  >
-                    {copiedField === "wifi" ? (
-                      <>
-                        <Check size={12} /> Lösenord kopierat
-                      </>
-                    ) : (
-                      <>
-                        <Copy size={12} /> {p.wifi_password} · kopiera
-                      </>
-                    )}
+                  <span className="mt-0.5 flex items-center justify-end gap-1.5 text-[12px]" style={{ color: C.muted }}>
+                    {copiedField === "wifi" ? <><Check size={12} /> Lösenord kopierat</> : <><Copy size={12} /> {p.wifi_password} · kopiera</>}
                   </span>
                 </button>
               </Row>
             )}
-            <Row label="Incheckning">
-              <span className="text-[15px] font-medium">från {p.checkin_time}</span>
-              <span className="block text-[12px]" style={{ color: C.muted }}>
-                {svLong(data.checkinDate)}
-              </span>
-            </Row>
-            <Row label="Utcheckning">
-              <span className="text-[15px] font-medium">senast {p.checkout_time}</span>
-              <span className="block text-[12px]" style={{ color: C.muted }}>
-                {svLong(data.checkoutDate)}
-              </span>
-            </Row>
+            <Row label="Incheckning"><span className="text-[15px] font-medium">från {p.checkin_time}</span></Row>
+            <Row label="Utcheckning"><span className="text-[15px] font-medium">senast {p.checkout_time}</span></Row>
           </div>
         </section>
+
+        {data.purchasedAddons.length > 0 && (
+          <section className="mt-10">
+            <p className={eyebrow} style={{ color: C.muted }}>Era tillval</p>
+            <div className="mt-3 divide-y border-y" style={{ borderColor: C.line }}>
+              {data.purchasedAddons.map((addon) => (
+                <div key={addon.id} className="flex items-start justify-between gap-4 py-4">
+                  <div>
+                    <p className="text-[14px] font-semibold">{addon.name}</p>
+                    {addon.fulfillmentNote && <p className="mt-1 text-[12px]" style={{ color: C.muted }}>{addon.fulfillmentNote}</p>}
+                  </div>
+                  <span className="text-[13px] font-medium">× {addon.quantity}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {data.canBuyAddons && data.addons.length > 0 && (
+          <section className="mt-12">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className={eyebrow} style={{ color: C.muted }}>Gör vistelsen komplett</p>
+                <h2 className="mt-2 font-[Fraunces] text-2xl">Lägg till en upplevelse</h2>
+              </div>
+              <ShoppingBag size={20} style={{ color: C.muted }} />
+            </div>
+            {buyError && <p className="mt-4 border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">{buyError}</p>}
+            <div className="mt-5 space-y-4">
+              {data.addons.map((addon) => {
+                const qty = quantities[addon.id] ?? 1;
+                const personPriced = addon.price_type === "per_person" || addon.price_type === "per_person_per_night";
+                const max = personPriced ? Math.max(1, data.guests ?? 1) : 20;
+                return (
+                  <article key={addon.id} className="overflow-hidden border bg-white" style={{ borderColor: C.line }}>
+                    {addon.image_url && <img src={addon.image_url} alt="" className="h-40 w-full object-cover" />}
+                    <div className="p-5">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <h3 className="text-[16px] font-semibold">{addon.name}</h3>
+                          {addon.description && <p className="mt-1.5 text-[13px] leading-relaxed" style={{ color: C.muted }}>{addon.description}</p>}
+                        </div>
+                        <span className="shrink-0 text-[13px] font-semibold">{addonPriceLabel(addon)}</span>
+                      </div>
+                      <div className="mt-5 flex items-center justify-between gap-4">
+                        <div className="flex items-center border" style={{ borderColor: C.line }}>
+                          <button onClick={() => changeQuantity(addon, -1)} disabled={qty <= 1} className="grid h-10 w-10 place-items-center disabled:opacity-30" aria-label="Minska antal"><Minus size={14} /></button>
+                          <span className="w-9 text-center text-[14px] font-semibold">{qty}</span>
+                          <button onClick={() => changeQuantity(addon, 1)} disabled={qty >= max} className="grid h-10 w-10 place-items-center disabled:opacity-30" aria-label="Öka antal"><Plus size={14} /></button>
+                        </div>
+                        <button onClick={() => buyAddon(addon)} disabled={buyingId !== null} className="flex min-h-10 items-center gap-2 bg-[color:var(--forest)] px-4 py-2.5 text-[13px] font-semibold text-white disabled:opacity-60">
+                          {buyingId === addon.id && <Loader2 size={14} className="animate-spin" />}
+                          Köp med kort
+                        </button>
+                      </div>
+                      {addon.capacity_per_day && <p className="mt-3 text-[11px]" style={{ color: C.muted }}>Begränsad kapacitet · bokningen säkras först när betalningen är klar.</p>}
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {p.directions && <Section title="Hitta hit">{p.directions}</Section>}
         {p.house_rules && <Section title="Husregler">{p.house_rules}</Section>}
 
         {p.contact_phone && (
-          <a
-            href={`tel:${p.contact_phone.replace(/\s/g, "")}`}
-            className="mt-10 flex items-center justify-between border-y py-4"
-            style={{ borderColor: C.line }}
-          >
+          <a href={`tel:${p.contact_phone.replace(/\s/g, "")}`} className="mt-10 flex items-center justify-between border-y py-4" style={{ borderColor: C.line }}>
             <span>
-              <span className="block text-[12px]" style={{ color: C.muted }}>
-                Frågor? Ring oss gärna
-              </span>
+              <span className="block text-[12px]" style={{ color: C.muted }}>Frågor? Ring oss gärna</span>
               <span className="text-[16px] font-medium">{p.contact_phone}</span>
             </span>
-            <span className="text-[18px]" style={{ color: C.muted }}>
-              →
-            </span>
+            <span className="text-[18px]" style={{ color: C.muted }}>→</span>
           </a>
         )}
 
-        <p className="mt-14 text-center text-[12px]" style={{ color: C.muted }}>
-          Gästsida via StayBoost
-        </p>
+        <p className="mt-14 text-center text-[12px]" style={{ color: C.muted }}>Gästsida via StayBoost</p>
       </motion.main>
     </div>
   );
@@ -305,9 +377,7 @@ function GuestPage() {
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4 py-4">
-      <span className={eyebrow} style={{ color: C.muted }}>
-        {label}
-      </span>
+      <span className={eyebrow} style={{ color: C.muted }}>{label}</span>
       <span className="text-right">{children}</span>
     </div>
   );
@@ -316,15 +386,8 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 function Section({ title, children }: { title: string; children: string }) {
   return (
     <section className="mt-10">
-      <p className={eyebrow} style={{ color: C.muted }}>
-        {title}
-      </p>
-      <p
-        className="mt-3 whitespace-pre-line border-t pt-4 text-[15px] leading-relaxed"
-        style={{ borderColor: C.line }}
-      >
-        {children}
-      </p>
+      <p className={eyebrow} style={{ color: C.muted }}>{title}</p>
+      <p className="mt-3 whitespace-pre-line border-t pt-4 text-[15px] leading-relaxed" style={{ borderColor: C.line }}>{children}</p>
     </section>
   );
 }
