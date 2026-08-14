@@ -29,7 +29,7 @@ Den här rundan gör StayBoost redo för en mer självgående premiumdrift på B
 
 ## Deploy
 
-1. Kör de två migrationerna från 2026-08-15.
+1. Kör de tre migrationerna från 2026-08-15 i ordning.
 2. Deploya `guest-addon-checkout`, uppdaterad `guest-page`, `booking-engine` och `stripe-webhook`.
 3. Kontrollera att `PUBLIC_APP_URL`, Stripe live-secrets och webhooken är satta.
 4. Lägg in/uppdatera tillvalen i `/app/tillval`.
