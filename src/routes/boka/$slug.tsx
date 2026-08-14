@@ -14,8 +14,6 @@ export const Route = createFileRoute("/boka/$slug")({
   component: PublicBookingPage,
 });
 
-/* ---------- Design: skandinavisk minimalism ---------- */
-
 const C = {
   bg: "#FAFAF8",
   ink: "#1B1B19",
@@ -27,8 +25,6 @@ const C = {
 const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.18em]";
 const hairline = "border-[#E7E7E1]";
 const divideHairline = "divide-[#E7E7E1]";
-
-/* ---------- Typer + API ---------- */
 
 type EngineUnit = {
   id: string;
@@ -113,7 +109,7 @@ function PublicBookingPage() {
   const fmtKr = (n: number) => `${n.toLocaleString(locale)} kr`;
   const addonSuffix = (a: EngineAddon) => {
     if (a.priceType === "per_night") return t.perNight;
-    if (a.priceType === "per_person") return lang === "sv" ? "/person" : "/person";
+    if (a.priceType === "per_person") return "/person";
     if (a.priceType === "per_person_per_night")
       return lang === "sv" ? "/person & dygn" : "/person & day";
     return "";
@@ -133,6 +129,7 @@ function PublicBookingPage() {
   const [sending, setSending] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [payChoice, setPayChoice] = useState<"stripe" | "swish" | null>(null);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [done, setDone] = useState<{
     token: string;
     total: number;
@@ -201,7 +198,7 @@ function PublicBookingPage() {
     : [];
   const payMethod = payChoice && payMethods.includes(payChoice) ? payChoice : (payMethods[0] ?? null);
   const canSubmit =
-    Boolean(unit && quote && minStayOk && name.trim().length >= 2 && email.trim()) &&
+    Boolean(unit && quote && minStayOk && name.trim().length >= 2 && email.trim() && termsAccepted) &&
     (payMethod !== "swish" || Boolean(phone.trim())) &&
     !sending;
 
@@ -226,7 +223,7 @@ function PublicBookingPage() {
             .filter(([, q]) => q > 0)
             .map(([id, quantity]) => ({ id, quantity })),
           ...(payMethod ? { paymentMethod: payMethod } : {}),
-          termsAccepted: true,
+          termsAccepted,
         }),
       });
       const d = await r.json();
@@ -242,11 +239,15 @@ function PublicBookingPage() {
                   ? lang === "sv"
                     ? "Det valda tillvalet är fullbokat någon av dagarna."
                     : "The selected extra is sold out for one of the days."
-                  : d.error === "contact_required" || d.error === "email_required"
-                    ? t.errContact
-                    : d.error === "stripe_failed"
-                      ? t.errStripe
-                      : t.errGeneric,
+                  : d.error === "terms_required"
+                    ? lang === "sv"
+                      ? "Du behöver godkänna bokningsvillkoren."
+                      : "You need to accept the booking terms."
+                    : d.error === "contact_required" || d.error === "email_required"
+                      ? t.errContact
+                      : d.error === "stripe_failed"
+                        ? t.errStripe
+                        : t.errGeneric,
         );
       } else if (d.checkoutUrl) {
         window.location.href = d.checkoutUrl;
@@ -470,6 +471,26 @@ function PublicBookingPage() {
                       </div>
                     </div>
                   )}
+
+                  <label className="mt-6 flex cursor-pointer items-start gap-3 text-[12px] leading-relaxed" style={{ color: C.muted }}>
+                    <input
+                      type="checkbox"
+                      checked={termsAccepted}
+                      onChange={(e) => setTermsAccepted(e.target.checked)}
+                      className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--forest)]"
+                    />
+                    <span>
+                      {lang === "sv" ? "Jag godkänner " : "I accept the "}
+                      <Link to="/villkor" target="_blank" className="font-semibold underline underline-offset-2" style={{ color: C.ink }}>
+                        {lang === "sv" ? "bokningsvillkoren" : "booking terms"}
+                      </Link>
+                      {lang === "sv" ? " och har läst " : " and have read the "}
+                      <Link to="/integritetspolicy" target="_blank" className="font-semibold underline underline-offset-2" style={{ color: C.ink }}>
+                        {lang === "sv" ? "integritetspolicyn" : "privacy policy"}
+                      </Link>
+                      .
+                    </span>
+                  </label>
 
                   {formError && <p className="mt-4 text-[13px]" style={{ color: "#A33B2A" }}>{formError}</p>}
 
