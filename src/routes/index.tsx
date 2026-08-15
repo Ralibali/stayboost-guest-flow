@@ -567,7 +567,7 @@ function Pricing() {
                   <div className="flex items-baseline justify-center gap-2">
                     <span className="text-lg text-[color:var(--ink)]/40 line-through">449</span>
                     <span
-                      className="font-[Fraunces] font-semibold text-[color:var(--brass)]"
+                      className="font-[Fraunces] font-normal text-[color:var(--ink)]"
                       style={{ fontSize: "4rem", lineHeight: 1 }}
                     >
                       374
@@ -579,7 +579,7 @@ function Pricing() {
               ) : (
                 <div className="flex items-baseline justify-center gap-2">
                   <span
-                    className="font-[Fraunces] font-semibold"
+                    className="font-[Fraunces] font-normal"
                     style={{ fontSize: "4rem", lineHeight: 1 }}
                   >
                     449
