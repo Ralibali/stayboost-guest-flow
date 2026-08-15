@@ -243,17 +243,14 @@ function SocialProof() {
 function Problem() {
   const items = [
     {
-      icon: "🔁",
       title: "Samma fråga, 200:e gången",
       body: '"Vad är portkoden?" "Finns det wifi?" Du är receptionist dygnet runt, gratis.',
     },
     {
-      icon: "💸",
       title: "Intäkter som aldrig säljs",
       body: "Sen utcheckning, frukostkorg, ved. Gästen hade sagt ja — om någon frågat i rätt ögonblick.",
     },
     {
-      icon: "📝",
       title: "Lappar, grupptråden och huvudet",
       body: "Vem städar Tält 2? Hur många frukostar i morgon? Var allergin gluten eller laktos? Driften bor i ditt minne — tills den inte gör det.",
     },
