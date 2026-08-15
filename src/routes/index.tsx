@@ -243,17 +243,14 @@ function SocialProof() {
 function Problem() {
   const items = [
     {
-      icon: "🔁",
       title: "Samma fråga, 200:e gången",
       body: '"Vad är portkoden?" "Finns det wifi?" Du är receptionist dygnet runt, gratis.',
     },
     {
-      icon: "💸",
       title: "Intäkter som aldrig säljs",
       body: "Sen utcheckning, frukostkorg, ved. Gästen hade sagt ja — om någon frågat i rätt ögonblick.",
     },
     {
-      icon: "📝",
       title: "Lappar, grupptråden och huvudet",
       body: "Vem städar Tält 2? Hur många frukostar i morgon? Var allergin gluten eller laktos? Driften bor i ditt minne — tills den inte gör det.",
     },
@@ -267,17 +264,17 @@ function Problem() {
             Du driver en hotellverksamhet — med en personalstyrka på en.
           </h2>
         </div>
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+        <div className="mt-12 grid gap-10 border-t border-[color:var(--line)] pt-10 md:grid-cols-3 md:gap-12">
           {items.map((it, i) => (
             <FadeUp key={i} delay={i * 0.1}>
-              <div className="card-surface h-full p-8">
-                <div
-                  className="mb-5 grid h-12 w-12 place-items-center rounded-full border border-[color:var(--brass)] text-xl"
+              <div className="h-full md:border-l md:border-[color:var(--line)] md:pl-8 md:first:border-l-0 md:first:pl-0">
+                <span
+                  className="font-[Fraunces] text-sm italic text-[color:var(--ink)]/45"
                   aria-hidden
                 >
-                  {it.icon}
-                </div>
-                <h3 className="text-xl">{it.title}</h3>
+                  0{i + 1}
+                </span>
+                <h3 className="mt-3 text-xl">{it.title}</h3>
                 <p className="mt-3 text-[color:var(--ink)]/75">{it.body}</p>
               </div>
             </FadeUp>
@@ -328,7 +325,7 @@ function HowItWorks() {
           {steps.map((s, i) => (
             <FadeUp key={s.n} delay={i * 0.1}>
               <div className="relative flex gap-5 md:flex-col md:gap-6">
-                <div className="relative z-10 grid h-16 w-16 shrink-0 place-items-center rounded-full border border-[color:var(--brass)] bg-[color:var(--bg)] font-[Fraunces] text-2xl font-semibold text-[color:var(--brass)]">
+                <div className="relative z-10 w-16 shrink-0 bg-white/0 font-[Fraunces] text-4xl font-normal italic text-[color:var(--ink)]/30 md:bg-[color:var(--bg)]">
                   {s.n}
                 </div>
                 <div>
@@ -540,29 +537,27 @@ function Pricing() {
         </div>
 
         <FadeUp>
-          <div
-            className="card-surface mx-auto mt-12 max-w-[480px] p-8 md:p-10"
-            style={{
-              borderColor: "var(--brass)",
-              boxShadow: "0 20px 60px rgba(20,36,28,0.12)",
-            }}
-          >
-            <div className="mx-auto mb-6 inline-flex w-full items-center justify-center rounded-full border border-[color:var(--line)] bg-[color:var(--bg)] p-1 text-sm">
+          <div className="mx-auto mt-12 max-w-[520px] border-y border-[color:var(--line)] px-0 py-10 md:border md:px-10">
+            <div className="mb-8 flex items-center justify-center gap-6 text-sm">
               <button
                 onClick={() => setAnnual(false)}
-                className={`flex-1 rounded-full px-4 py-2 transition ${
-                  !annual ? "bg-white shadow-sm font-semibold" : "text-[color:var(--ink)]/60"
+                className={`pb-1 transition ${
+                  !annual
+                    ? "border-b border-[color:var(--ink)] font-medium"
+                    : "text-[color:var(--ink)]/50 hover:text-[color:var(--ink)]"
                 }`}
               >
                 Månadsvis
               </button>
               <button
                 onClick={() => setAnnual(true)}
-                className={`flex-1 rounded-full px-4 py-2 transition ${
-                  annual ? "bg-white shadow-sm font-semibold" : "text-[color:var(--ink)]/60"
+                className={`pb-1 transition ${
+                  annual
+                    ? "border-b border-[color:var(--ink)] font-medium"
+                    : "text-[color:var(--ink)]/50 hover:text-[color:var(--ink)]"
                 }`}
               >
-                Årsvis <span className="text-[color:var(--brass)]">(2 mån gratis)</span>
+                Årsvis <span className="italic text-[color:var(--ink)]/50">(2 mån gratis)</span>
               </button>
             </div>
 
@@ -572,7 +567,7 @@ function Pricing() {
                   <div className="flex items-baseline justify-center gap-2">
                     <span className="text-lg text-[color:var(--ink)]/40 line-through">449</span>
                     <span
-                      className="font-[Fraunces] font-semibold text-[color:var(--brass)]"
+                      className="font-[Fraunces] font-normal text-[color:var(--ink)]"
                       style={{ fontSize: "4rem", lineHeight: 1 }}
                     >
                       374
@@ -584,7 +579,7 @@ function Pricing() {
               ) : (
                 <div className="flex items-baseline justify-center gap-2">
                   <span
-                    className="font-[Fraunces] font-semibold"
+                    className="font-[Fraunces] font-normal"
                     style={{ fontSize: "4rem", lineHeight: 1 }}
                   >
                     449
@@ -608,11 +603,11 @@ function Pricing() {
                 "Svensk support",
                 "Ingen startavgift, ingen bindningstid",
               ].map((f) => (
-                <li key={f} className="flex items-start gap-3">
-                  <span className="mt-0.5 text-[color:var(--brass)]" aria-hidden>
-                    ✓
-                  </span>
-                  <span>{f}</span>
+                <li
+                  key={f}
+                  className="border-b border-[color:var(--line)] pb-3 text-[color:var(--ink)]/80 last:border-b-0"
+                >
+                  {f}
                 </li>
               ))}
             </ul>
@@ -635,10 +630,7 @@ function FinalCTA() {
   return (
     <section
       className="py-24 text-[color:var(--bg)] md:py-32"
-      style={{
-        background:
-          "radial-gradient(55% 45% at 88% 8%, rgba(176, 141, 62, 0.38), transparent 70%), radial-gradient(45% 40% at 8% 95%, rgba(46, 125, 79, 0.25), transparent 70%), var(--forest)",
-      }}
+      style={{ background: "var(--forest)" }}
     >
       <div className="mx-auto max-w-2xl px-6 text-center">
         <FadeUp>

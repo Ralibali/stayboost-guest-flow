@@ -40,13 +40,13 @@
 }
 
 :root {
-  --radius: 0.75rem;
-  --bg: #f7f4ee;
-  --ink: #14241c;
+  --radius: 0.25rem;
+  --bg: #f4f1ea;
+  --ink: #1a2620;
   --forest: #1e3a2d;
-  --brass: #b08d3e;
-  --card: #ffffff;
-  --line: #e4ddd0;
+  --brass: #96762f;
+  --card: #fbfaf6;
+  --line: #ddd6c8;
   --success: #2e7d4f;
 }
 
@@ -96,12 +96,13 @@
 }
 
 @utility eyebrow {
-  font-family: var(--font-sans);
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--brass);
+  font-family: var(--font-display);
+  font-style: italic;
+  font-size: 1rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: color-mix(in oklab, var(--ink) 55%, transparent);
 }
 
 @utility btn-primary {
@@ -109,26 +110,25 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  background: var(--brass);
+  background: var(--forest);
   color: #ffffff;
-  border-radius: 12px;
+  border-radius: 2px;
   padding: 12px 22px;
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
   transition:
-    transform 200ms ease,
-    box-shadow 200ms ease,
-    background 200ms ease;
-  box-shadow: 0 6px 18px rgba(176, 141, 62, 0.25);
+    background 200ms ease,
+    opacity 200ms ease;
+  box-shadow: none;
   cursor: pointer;
-  border: none;
+  border: 1px solid var(--forest);
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 28px rgba(176, 141, 62, 0.35);
+    background: color-mix(in oklab, var(--forest) 85%, black);
   }
   @media (min-width: 640px) {
-    padding: 16px 32px;
-    font-size: 1rem;
+    padding: 15px 30px;
+    font-size: 0.95rem;
   }
 }
 
@@ -139,27 +139,30 @@
   gap: 0.5rem;
   background: transparent;
   color: var(--ink);
-  border: 1px solid var(--ink);
-  border-radius: 12px;
+  border: 1px solid color-mix(in oklab, var(--ink) 35%, transparent);
+  border-radius: 2px;
   padding: 11px 20px;
-  font-weight: 600;
-  font-size: 0.95rem;
-  transition: background 200ms ease;
+  font-weight: 500;
+  font-size: 0.9rem;
+  transition:
+    background 200ms ease,
+    border-color 200ms ease;
   cursor: pointer;
   &:hover {
-    background: rgba(20, 36, 28, 0.05);
+    background: rgba(20, 36, 28, 0.04);
+    border-color: var(--ink);
   }
   @media (min-width: 640px) {
-    padding: 15px 28px;
-    font-size: 1rem;
+    padding: 14px 26px;
+    font-size: 0.95rem;
   }
 }
 
 @utility card-surface {
   background: var(--card);
   border: 1px solid var(--line);
-  border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(20, 36, 28, 0.06);
+  border-radius: 3px;
+  box-shadow: none;
 }
 
 .legal-prose h2 {

@@ -64,7 +64,7 @@ export function EarlyAccessForm({
       <motion.div
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
-        className={`rounded-xl border border-[color:var(--brass)]/50 bg-[color:var(--brass)]/10 px-4 py-3 font-semibold text-[color:var(--brass)] ${className}`}
+        className={`rounded-[2px] border border-[color:var(--brass)]/50 bg-[color:var(--brass)]/10 px-4 py-3 font-semibold text-[color:var(--brass)] ${className}`}
       >
         Tack! Du står på listan ✓
       </motion.div>
@@ -89,7 +89,7 @@ export function EarlyAccessForm({
           aria-invalid={state === "error"}
           aria-describedby={error ? `ea-${location}-err` : undefined}
           disabled={state === "loading"}
-          className={`flex-1 rounded-xl border px-4 py-3 text-base outline-none focus:border-[color:var(--brass)] ${
+          className={`flex-1 rounded-[2px] border px-4 py-3 text-base outline-none focus:border-[color:var(--brass)] ${
             dark
               ? "border-white/25 bg-white/10 text-white placeholder:text-white/50"
               : "border-[color:var(--line)] bg-white text-[color:var(--ink)]"
