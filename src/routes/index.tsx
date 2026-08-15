@@ -264,17 +264,17 @@ function Problem() {
             Du driver en hotellverksamhet — med en personalstyrka på en.
           </h2>
         </div>
-        <div className="mt-14 grid gap-6 md:grid-cols-3">
+        <div className="mt-12 grid gap-10 border-t border-[color:var(--line)] pt-10 md:grid-cols-3 md:gap-12">
           {items.map((it, i) => (
             <FadeUp key={i} delay={i * 0.1}>
-              <div className="card-surface h-full p-8">
-                <div
-                  className="mb-5 grid h-12 w-12 place-items-center rounded-full border border-[color:var(--brass)] text-xl"
+              <div className="h-full md:border-l md:border-[color:var(--line)] md:pl-8 md:first:border-l-0 md:first:pl-0">
+                <span
+                  className="font-[Fraunces] text-sm italic text-[color:var(--ink)]/45"
                   aria-hidden
                 >
-                  {it.icon}
-                </div>
-                <h3 className="text-xl">{it.title}</h3>
+                  0{i + 1}
+                </span>
+                <h3 className="mt-3 text-xl">{it.title}</h3>
                 <p className="mt-3 text-[color:var(--ink)]/75">{it.body}</p>
               </div>
             </FadeUp>
