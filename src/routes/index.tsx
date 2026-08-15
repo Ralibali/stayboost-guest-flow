@@ -325,7 +325,7 @@ function HowItWorks() {
           {steps.map((s, i) => (
             <FadeUp key={s.n} delay={i * 0.1}>
               <div className="relative flex gap-5 md:flex-col md:gap-6">
-                <div className="relative z-10 grid h-16 w-16 shrink-0 place-items-center rounded-full border border-[color:var(--brass)] bg-[color:var(--bg)] font-[Fraunces] text-2xl font-semibold text-[color:var(--brass)]">
+                <div className="relative z-10 w-16 shrink-0 bg-white/0 font-[Fraunces] text-4xl font-normal italic text-[color:var(--ink)]/30 md:bg-[color:var(--bg)]">
                   {s.n}
                 </div>
                 <div>
@@ -537,29 +537,27 @@ function Pricing() {
         </div>
 
         <FadeUp>
-          <div
-            className="card-surface mx-auto mt-12 max-w-[480px] p-8 md:p-10"
-            style={{
-              borderColor: "var(--brass)",
-              boxShadow: "0 20px 60px rgba(20,36,28,0.12)",
-            }}
-          >
-            <div className="mx-auto mb-6 inline-flex w-full items-center justify-center rounded-full border border-[color:var(--line)] bg-[color:var(--bg)] p-1 text-sm">
+          <div className="mx-auto mt-12 max-w-[520px] border-y border-[color:var(--line)] px-0 py-10 md:border md:px-10">
+            <div className="mb-8 flex items-center justify-center gap-6 text-sm">
               <button
                 onClick={() => setAnnual(false)}
-                className={`flex-1 rounded-full px-4 py-2 transition ${
-                  !annual ? "bg-white shadow-sm font-semibold" : "text-[color:var(--ink)]/60"
+                className={`pb-1 transition ${
+                  !annual
+                    ? "border-b border-[color:var(--ink)] font-medium"
+                    : "text-[color:var(--ink)]/50 hover:text-[color:var(--ink)]"
                 }`}
               >
                 Månadsvis
               </button>
               <button
                 onClick={() => setAnnual(true)}
-                className={`flex-1 rounded-full px-4 py-2 transition ${
-                  annual ? "bg-white shadow-sm font-semibold" : "text-[color:var(--ink)]/60"
+                className={`pb-1 transition ${
+                  annual
+                    ? "border-b border-[color:var(--ink)] font-medium"
+                    : "text-[color:var(--ink)]/50 hover:text-[color:var(--ink)]"
                 }`}
               >
-                Årsvis <span className="text-[color:var(--brass)]">(2 mån gratis)</span>
+                Årsvis <span className="italic text-[color:var(--ink)]/50">(2 mån gratis)</span>
               </button>
             </div>
 
