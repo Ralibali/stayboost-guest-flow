@@ -314,6 +314,7 @@ export function formatUpdatedAt(iso: string): string {
     return new Intl.DateTimeFormat("sv-SE", {
       dateStyle: "long",
       timeStyle: "short",
+      timeZone: "Europe/Stockholm",
     })
       .format(d)
       .replace(new RegExp(nbsp, "g"), " ");

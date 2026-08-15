@@ -40,13 +40,13 @@
 }
 
 :root {
-  --radius: 0.75rem;
-  --bg: #f7f4ee;
-  --ink: #14241c;
+  --radius: 0.25rem;
+  --bg: #f4f1ea;
+  --ink: #1a2620;
   --forest: #1e3a2d;
-  --brass: #b08d3e;
-  --card: #ffffff;
-  --line: #e4ddd0;
+  --brass: #96762f;
+  --card: #fbfaf6;
+  --line: #ddd6c8;
   --success: #2e7d4f;
 }
 
