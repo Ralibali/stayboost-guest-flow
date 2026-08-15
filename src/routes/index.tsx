@@ -603,11 +603,11 @@ function Pricing() {
                 "Svensk support",
                 "Ingen startavgift, ingen bindningstid",
               ].map((f) => (
-                <li key={f} className="flex items-start gap-3">
-                  <span className="mt-0.5 text-[color:var(--brass)]" aria-hidden>
-                    ✓
-                  </span>
-                  <span>{f}</span>
+                <li
+                  key={f}
+                  className="border-b border-[color:var(--line)] pb-3 text-[color:var(--ink)]/80 last:border-b-0"
+                >
+                  {f}
                 </li>
               ))}
             </ul>
@@ -630,10 +630,7 @@ function FinalCTA() {
   return (
     <section
       className="py-24 text-[color:var(--bg)] md:py-32"
-      style={{
-        background:
-          "radial-gradient(55% 45% at 88% 8%, rgba(176, 141, 62, 0.38), transparent 70%), radial-gradient(45% 40% at 8% 95%, rgba(46, 125, 79, 0.25), transparent 70%), var(--forest)",
-      }}
+      style={{ background: "var(--forest)" }}
     >
       <div className="mx-auto max-w-2xl px-6 text-center">
         <FadeUp>
