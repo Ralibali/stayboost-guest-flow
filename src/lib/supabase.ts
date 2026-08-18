@@ -39,6 +39,8 @@ export type Property = {
   chat_color: string;
   chat_position: "right" | "left";
   chat_button_label: string;
+  timezone: string;
+  access_code_lead_minutes: number;
 };
 
 export type ChatMessage = {
@@ -178,7 +180,12 @@ export function classifyIcalHealth(
 /* ---------- Prisregler (datumstyrda) ---------- */
 
 export type RateRuleKind =
-  "price_override" | "price_multiplier" | "min_stay" | "closed" | "no_arrival" | "no_departure";
+  | "price_override"
+  | "price_multiplier"
+  | "min_stay"
+  | "closed"
+  | "no_arrival"
+  | "no_departure";
 
 export type RateRule = {
   id: string;
@@ -226,16 +233,37 @@ export const TRIGGER_LABELS: Record<MessageTemplate["trigger_type"], string> = {
   post_stay: "Efter vistelsen",
 };
 
+export type AddonPriceType =
+  | "per_booking"
+  | "per_night"
+  | "per_person"
+  | "per_person_per_night";
+
 export type Addon = {
   id: string;
   property_id: string;
   name: string;
   description: string | null;
   price: number;
-  price_type: "per_booking" | "per_night";
+  price_type: AddonPriceType;
   image_url: string | null;
   active: boolean;
   sort_order: number;
+  capacity_per_day: number | null;
+  fulfillment_note: string | null;
+};
+
+export type AddonOrder = {
+  id: string;
+  booking_id: string;
+  status: "pending" | "paid" | "expired" | "cancelled" | "failed";
+  amount: number;
+  payment_ref: string;
+  stripe_session_id: string | null;
+  expires_at: string;
+  paid_at: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 /* ---------- Hooks ---------- */

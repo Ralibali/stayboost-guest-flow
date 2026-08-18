@@ -27,7 +27,6 @@ async function sha256(value: string) {
     .join("");
 }
 
-// Duplicerar src/lib/phone.ts — måste vara identisk med klientvalideringen.
 function normalizePhoneSE(input: string): string | null {
   if (!input) return null;
   let n = input.replace(/[\s().\-]/g, "");
@@ -57,7 +56,6 @@ Deno.serve(async (req) => {
 
   const url = new URL(req.url);
 
-  // ---------------- GET: ledighet + priser + boendeprofil ----------------
   if (req.method === "GET") {
     const slug = url.searchParams.get("slug") ?? "";
     const { data: property } = await admin
@@ -89,12 +87,13 @@ Deno.serve(async (req) => {
 
     const { data: addons } = await admin
       .from("addons")
-      .select("id, name, description, price, price_type, image_url, sort_order")
+      .select(
+        "id, name, description, price, price_type, image_url, sort_order, capacity_per_day, fulfillment_note, service_timing",
+      )
       .eq("property_id", property.id)
       .eq("active", true)
       .order("sort_order");
 
-    // Rate rules är opt-in — tabellen kan saknas i äldre miljöer.
     const { data: rulesData } = await admin
       .from("rate_rules")
       .select("id, unit_id, kind, date_from, date_to, fixed_price, pct_delta, min_stay, priority, active, name")
@@ -146,11 +145,13 @@ Deno.serve(async (req) => {
         price: a.price,
         priceType: a.price_type,
         imageUrl: a.image_url,
+        capacityPerDay: a.capacity_per_day,
+        fulfillmentNote: a.fulfillment_note,
+        serviceTiming: a.service_timing,
       })),
     });
   }
 
-  // ---------------- POST: skapa direktbokning ----------------
   if (req.method === "POST") {
     let body: any;
     try {
@@ -159,10 +160,8 @@ Deno.serve(async (req) => {
       return json({ error: "invalid_body" }, 400);
     }
 
-    // Honeypot: riktiga användare ser aldrig fältet.
     if (String(body?.website ?? "").trim()) return json({ error: "invalid_request" }, 400);
 
-    // Begränsa automatiserade massbokningar utan att lagra IP-adressen i klartext.
     const forwarded = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
     const ip = req.headers.get("cf-connecting-ip") ?? forwarded ?? req.headers.get("x-real-ip") ?? "unknown";
     const salt = Deno.env.get("RATE_LIMIT_SALT") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "stayboost";
@@ -218,7 +217,6 @@ Deno.serve(async (req) => {
     }
     const guests = guestsRaw;
 
-    // Datumstyrda regler (opt-in): min-stay, closed, no-arrival, no-departure.
     const { data: ruleRows } = await admin
       .from("rate_rules")
       .select("id, unit_id, kind, date_from, date_to, fixed_price, pct_delta, min_stay, priority, active, name")
@@ -236,13 +234,9 @@ Deno.serve(async (req) => {
 
     const availabilityIssue = checkAvailabilityRules(rules, unit.id, stayNights, checkout);
     if (availabilityIssue) {
-      return json(
-        { error: availabilityIssue.kind, date: availabilityIssue.date },
-        409,
-      );
+      return json({ error: availabilityIssue.kind, date: availabilityIssue.date }, 409);
     }
 
-    // Förkontroll för ett vänligt svar. Databastriggern gör samma kontroll atomärt.
     const { data: clashes } = await admin
       .from("bookings")
       .select("checkin_date, checkout_date")
@@ -259,9 +253,23 @@ Deno.serve(async (req) => {
     const rawSelections = Array.isArray(body?.addons) ? body.addons : [];
     const { data: availableAddons } = await admin
       .from("addons")
-      .select("id, name, description, price, price_type, image_url, active, sort_order")
+      .select(
+        "id, name, description, price, price_type, image_url, active, sort_order, capacity_per_day, fulfillment_note, service_timing",
+      )
       .eq("property_id", property.id)
       .eq("active", true);
+
+    for (const selection of rawSelections) {
+      const addon = (availableAddons ?? []).find((a: any) => a.id === selection?.id);
+      if (!addon) continue;
+      if (
+        (addon.price_type === "per_person" || addon.price_type === "per_person_per_night") &&
+        Number(selection?.quantity) > guests
+      ) {
+        return json({ error: "addon_quantity_exceeds_guests", maxGuests: guests }, 400);
+      }
+    }
+
     const pricedAddons = priceAddons(rawSelections, availableAddons ?? [], quote.nights);
     const addonsTotal = sumAddons(pricedAddons);
     const grandTotal = quote.total + addonsTotal;
@@ -277,7 +285,6 @@ Deno.serve(async (req) => {
     else if (stripeOk) paymentMethod = "stripe";
     else if (swishOk) paymentMethod = "swish";
 
-    // Vid Swish krävs telefon för att kunna följa upp betalning och skicka SMS-påminnelse.
     if (paymentMethod === "swish" && !normalizedPhone) {
       return json({ error: "phone_required_for_swish" }, 400);
     }
@@ -334,6 +341,9 @@ Deno.serve(async (req) => {
       );
       if (addonError) {
         await admin.from("bookings").delete().eq("id", booking.id);
+        if (String(addonError.message).includes("addon_capacity_exceeded")) {
+          return json({ error: "addon_capacity_exceeded" }, 409);
+        }
         return json({ error: "booking_failed", detail: addonError.message }, 500);
       }
     }

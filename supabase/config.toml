@@ -4,6 +4,10 @@ project_id = "stayboost-guest-flow"
 [functions.guest-page]
 verify_jwt = false
 
+# Efterköp från gästsidan använder samma guest_token och server-side Stripe.
+[functions.guest-addon-checkout]
+verify_jwt = false
+
 # iCal-exportflödet är publikt — kanalerna pollar det utan JWT,
 # enhetens feed-token i länken är nyckeln.
 [functions.ical-export]
