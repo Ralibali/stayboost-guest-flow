@@ -1,5 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import {
+  BarChart3,
   CalendarDays,
   CalendarRange,
   ChevronRight,
@@ -19,6 +20,7 @@ const NAV = [
   { to: "/app", label: "Översikt", icon: LayoutDashboard, group: "Drift" },
   { to: "/app/bokningar", label: "Bokningar", icon: CalendarDays, group: "Drift" },
   { to: "/app/kalender", label: "Kalender", icon: CalendarRange, group: "Drift" },
+  { to: "/app/intakter", label: "Intäkter", icon: BarChart3, group: "Försäljning" },
   { to: "/app/prisregler", label: "Pris & regler", icon: Tag, group: "Försäljning" },
   { to: "/app/tillval", label: "Tillval", icon: PackagePlus, group: "Försäljning" },
   { to: "/app/mallar", label: "Gästkommunikation", icon: Mail, group: "Gästresa" },
@@ -132,7 +134,7 @@ export function AppShell({
             )}
           </div>
           <nav className="scrollbar-none flex gap-1 overflow-x-auto px-3 pb-2.5">
-            {NAV.slice(0, 6).map((item) => {
+            {NAV.slice(0, 7).map((item) => {
               const active = isActive(item.to);
               return (
                 <Link
