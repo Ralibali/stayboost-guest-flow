@@ -60,7 +60,7 @@ function AppLayout() {
     );
   }
 
-  if (!session) return null; // omdirigering pågår
+  if (!session) return null;
 
   return (
     <AppShell
@@ -69,6 +69,7 @@ function AppLayout() {
         navigate({ to: "/app/login" });
       }}
       propertyName={property?.name ?? null}
+      propertySlug={property?.slug ?? null}
     >
       <Outlet />
     </AppShell>

@@ -3,10 +3,12 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   AlertTriangle,
   Ban,
+  CalendarClock,
   CalendarPlus,
   Check,
   ChevronDown,
   Copy,
+  CreditCard,
   Download,
   ExternalLink,
   Mail,
@@ -40,6 +42,7 @@ export const Route = createFileRoute("/app/bokningar")({
 
 const svDate = (iso: string) =>
   new Date(iso + "T12:00:00").toLocaleDateString("sv-SE", { day: "numeric", month: "short" });
+const fmtKr = (n: number) => `${Math.round(n).toLocaleString("sv-SE")} kr`;
 
 function overlaps(a: Booking, b: Booking) {
   return Boolean(
@@ -52,12 +55,15 @@ function overlaps(a: Booking, b: Booking) {
   );
 }
 
+type View = "upcoming" | "attention" | "history";
+
 function BookingsPage() {
   const session = useSession();
   const { property, units } = useProperty(session);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<BookingFilters>(emptyFilters);
+  const [view, setView] = useState<View>("upcoming");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
@@ -102,21 +108,10 @@ function BookingsPage() {
     () =>
       filtered
         .filter((b) => !(b.status === "confirmed" && b.checkout_date >= today))
-        .slice(-40)
+        .slice(-80)
         .reverse(),
     [filtered, today],
   );
-
-  const exportCsv = () => {
-    const csv = "\ufeff" + bookingsToCsv(filtered); // BOM för Excel
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = csvFilename();
-    a.click();
-    URL.revokeObjectURL(url);
-  };
 
   const conflictIds = useMemo(() => {
     const ids = new Set<string>();
@@ -131,6 +126,30 @@ function BookingsPage() {
     }
     return ids;
   }, [bookings]);
+
+  const attention = useMemo(
+    () =>
+      upcoming.filter(
+        (b) => conflictIds.has(b.id) || b.payment_status === "pending" || !b.guest_email || !b.guest_phone,
+      ),
+    [upcoming, conflictIds],
+  );
+
+  const paidUpcoming = upcoming
+    .filter((b) => b.payment_status === "paid")
+    .reduce((sum, b) => sum + (b.payment_amount ?? 0), 0);
+  const arrivingToday = upcoming.filter((b) => b.checkin_date === today).length;
+
+  const exportCsv = () => {
+    const csv = "\ufeff" + bookingsToCsv(filtered);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = csvFilename();
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   const cancel = async (booking: Booking) => {
     if (!supabase) return;
@@ -156,143 +175,119 @@ function BookingsPage() {
 
   if (!property) return null;
 
+  const visible = view === "attention" ? attention : upcoming;
+
   return (
-    <div>
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className="space-y-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <p className="eyebrow">Drift</p>
-          <h1 className="mt-2 font-[Fraunces] text-3xl font-semibold">Bokningar</h1>
-          <p className="text-[13px] text-[color:var(--ink)]/55">
-            {upcoming.length} kommande · {upcoming.filter((b) => !b.guest_email).length} saknar
-            e-post
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#2d684c]/60">Drift & gäster</p>
+          <h1 className="mt-1.5 font-[Fraunces] text-[32px] font-semibold leading-tight text-[#173c2b] sm:text-[38px]">
+            Bokningar
+          </h1>
+          <p className="mt-1 text-[12px] text-[color:var(--ink)]/45">
+            En arbetsvy för ankomster, betalningar, kontaktuppgifter och gästkommunikation.
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={exportCsv}
             disabled={filtered.length === 0}
-            className="btn-ghost !rounded-xl !px-3.5 !py-2.5 text-[13px] disabled:opacity-40"
-            title="Ladda ner filtrerade bokningar som CSV"
+            className="inline-flex items-center gap-2 rounded-xl border border-black/[0.09] bg-white px-3.5 py-2.5 text-[12px] font-bold text-[color:var(--ink)]/60 shadow-sm transition hover:border-black/20 disabled:opacity-35"
           >
-            <Download size={14} /> CSV ({filtered.length})
+            <Download size={14} /> Exportera
           </button>
           <button
             onClick={() => setModalOpen(true)}
-            className="btn-primary !rounded-xl !px-4 !py-2.5 text-[13px]"
+            className="inline-flex items-center gap-2 rounded-xl bg-[#173c2b] px-4 py-2.5 text-[12px] font-bold text-white shadow-[0_8px_22px_rgba(23,60,43,0.18)] transition hover:-translate-y-0.5"
           >
             <CalendarPlus size={15} /> Ny bokning
           </button>
         </div>
       </div>
 
-      <div className="mt-5 grid gap-2.5 sm:grid-cols-[minmax(200px,1fr)_auto_auto_auto_auto_auto_auto]">
-        <label className="relative">
-          <Search
-            size={14}
-            className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--ink)]/40"
-          />
-          <input
-            value={filters.search}
-            onChange={(e) => updateFilter("search", e.target.value)}
-            placeholder="Sök namn, e-post eller mobil"
-            className="inp !pl-9"
-            aria-label="Sök i bokningar"
-          />
-        </label>
-        <select
-          value={filters.unitId}
-          onChange={(e) => updateFilter("unitId", e.target.value)}
-          className="inp !w-auto"
-          aria-label="Filtrera på boende"
-        >
-          <option value="alla">Alla boenden</option>
-          {units.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name}
-            </option>
-          ))}
-        </select>
-        <select
-          value={filters.status}
-          onChange={(e) => updateFilter("status", e.target.value as BookingFilters["status"])}
-          className="inp !w-auto"
-          aria-label="Filtrera på status"
-        >
-          <option value="all">Alla statusar</option>
-          <option value="confirmed">Bekräftade</option>
-          <option value="cancelled">Avbokade</option>
-        </select>
-        <select
-          value={filters.source}
-          onChange={(e) => updateFilter("source", e.target.value as BookingFilters["source"])}
-          className="inp !w-auto"
-          aria-label="Filtrera på källa"
-        >
-          <option value="all">Alla källor</option>
-          <option value="direct">Direkt</option>
-          <option value="sirvoy">Sirvoy</option>
-          <option value="ical">iCal</option>
-          <option value="manual">Manuell</option>
-        </select>
-        <select
-          value={filters.payment}
-          onChange={(e) => updateFilter("payment", e.target.value as BookingFilters["payment"])}
-          className="inp !w-auto"
-          aria-label="Filtrera på betalning"
-        >
-          <option value="all">Alla betalstatusar</option>
-          <option value="none">Ingen betalning</option>
-          <option value="pending">Väntar</option>
-          <option value="paid">Betald</option>
-          <option value="refunded">Återbetald</option>
-        </select>
-        <input
-          type="date"
-          value={filters.from}
-          onChange={(e) => updateFilter("from", e.target.value)}
-          className="inp !w-auto"
-          aria-label="Från datum"
-        />
-        <input
-          type="date"
-          value={filters.to}
-          onChange={(e) => updateFilter("to", e.target.value)}
-          className="inp !w-auto"
-          aria-label="Till datum"
-        />
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <SummaryCard label="Kommande" value={String(upcoming.length)} sub="bekräftade vistelser" />
+        <SummaryCard label="Ankommer idag" value={String(arrivingToday)} sub="gäster att ta emot" />
+        <SummaryCard label="Behöver åtgärd" value={String(attention.length)} sub="kontakt, betalning eller krock" warn={attention.length > 0} />
+        <SummaryCard label="Betalt framåt" value={fmtKr(paidUpcoming)} sub="registrerat bokningsvärde" />
       </div>
-      {activeFilterCount > 0 && (
-        <button
-          onClick={() => setFilters(emptyFilters)}
-          className="mt-2 inline-flex items-center gap-1.5 text-[12px] font-medium text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]"
-        >
-          <RotateCcw size={12} /> Rensa {activeFilterCount} filter
-        </button>
-      )}
 
-      {pageError && (
-        <p className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-[13px] text-red-700">{pageError}</p>
-      )}
+      <section className="rounded-[22px] border border-black/[0.07] bg-white p-3 shadow-[0_7px_26px_rgba(25,40,31,0.04)] sm:p-4">
+        <div className="flex flex-col gap-3 xl:flex-row xl:items-center">
+          <div className="inline-flex w-full rounded-xl bg-[#f1f3ef] p-1 xl:w-auto">
+            <ViewButton active={view === "upcoming"} onClick={() => setView("upcoming")} label={`Kommande ${upcoming.length}`} />
+            <ViewButton active={view === "attention"} onClick={() => setView("attention")} label={`Åtgärda ${attention.length}`} warn={attention.length > 0} />
+            <ViewButton active={view === "history"} onClick={() => setView("history")} label={`Historik ${past.length}`} />
+          </div>
+
+          <label className="relative min-w-0 flex-1">
+            <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--ink)]/35" />
+            <input
+              value={filters.search}
+              onChange={(e) => updateFilter("search", e.target.value)}
+              placeholder="Sök gäst, e-post eller mobil…"
+              className="inp !rounded-xl !border-black/[0.08] !bg-[#fafbf9] !pl-9"
+              aria-label="Sök i bokningar"
+            />
+          </label>
+
+          <div className="scrollbar-none flex gap-2 overflow-x-auto">
+            <select value={filters.unitId} onChange={(e) => updateFilter("unitId", e.target.value)} className="inp !w-auto !shrink-0 !rounded-xl !border-black/[0.08] !bg-[#fafbf9] !text-[12px]" aria-label="Filtrera på boende">
+              <option value="alla">Alla boenden</option>
+              {units.map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+            </select>
+            <select value={filters.source} onChange={(e) => updateFilter("source", e.target.value as BookingFilters["source"])} className="inp !w-auto !shrink-0 !rounded-xl !border-black/[0.08] !bg-[#fafbf9] !text-[12px]" aria-label="Filtrera på källa">
+              <option value="all">Alla källor</option>
+              <option value="direct">Direkt</option>
+              <option value="sirvoy">Sirvoy</option>
+              <option value="ical">iCal</option>
+              <option value="manual">Manuell</option>
+            </select>
+            <select value={filters.payment} onChange={(e) => updateFilter("payment", e.target.value as BookingFilters["payment"])} className="inp !w-auto !shrink-0 !rounded-xl !border-black/[0.08] !bg-[#fafbf9] !text-[12px]" aria-label="Filtrera på betalning">
+              <option value="all">Alla betalningar</option>
+              <option value="none">Ingen betalning</option>
+              <option value="pending">Väntar</option>
+              <option value="paid">Betald</option>
+              <option value="refunded">Återbetald</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-black/[0.055] pt-3">
+          <input type="date" value={filters.from} onChange={(e) => updateFilter("from", e.target.value)} className="inp !w-auto !rounded-xl !border-black/[0.08] !bg-[#fafbf9] !text-[12px]" aria-label="Från datum" />
+          <span className="text-[11px] text-[color:var(--ink)]/30">till</span>
+          <input type="date" value={filters.to} onChange={(e) => updateFilter("to", e.target.value)} className="inp !w-auto !rounded-xl !border-black/[0.08] !bg-[#fafbf9] !text-[12px]" aria-label="Till datum" />
+          {activeFilterCount > 0 && (
+            <button onClick={() => setFilters(emptyFilters)} className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] font-bold text-[color:var(--ink)]/45 hover:bg-[#f1f3ef] hover:text-[color:var(--ink)]/70">
+              <RotateCcw size={12} /> Rensa filter ({activeFilterCount})
+            </button>
+          )}
+        </div>
+      </section>
+
+      {pageError && <p className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[12px] font-medium text-red-700">{pageError}</p>}
 
       {conflictIds.size > 0 && (
-        <div className="mt-5 flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-800">
+        <div className="flex items-start gap-3 rounded-2xl border border-red-200 bg-red-50 px-4 py-3.5 text-[12px] text-red-800">
           <AlertTriangle size={17} className="mt-0.5 shrink-0" />
-          <span>
-            <strong>{conflictIds.size} bokningar krockar.</strong> Detta kan komma från
-            kanalimporter. Kontrollera dem direkt och avboka eller flytta den felaktiga bokningen.
-          </span>
+          <span><strong>{conflictIds.size} bokningar krockar.</strong> Kontrollera dem direkt och avboka eller flytta den felaktiga bokningen.</span>
         </div>
       )}
 
       {loading ? (
-        <p className="mt-10 text-center text-[14px] text-[color:var(--ink)]/45">Laddar…</p>
-      ) : upcoming.length === 0 ? (
-        <div className="card-surface mt-6 p-10 text-center">
-          <p className="text-[15px] text-[color:var(--ink)]/60">Inga kommande bokningar ännu.</p>
-        </div>
+        <div className="rounded-[22px] border border-black/[0.06] bg-white py-16 text-center text-[13px] text-[color:var(--ink)]/40">Laddar bokningar…</div>
+      ) : view === "history" ? (
+        past.length === 0 ? <EmptyState text="Ingen historik matchar filtren." /> : (
+          <div className="space-y-2">
+            {past.map((booking) => <PastBookingCard key={booking.id} booking={booking} />)}
+          </div>
+        )
+      ) : visible.length === 0 ? (
+        <EmptyState text={view === "attention" ? "Snyggt — inget behöver åtgärdas just nu." : "Inga kommande bokningar matchar filtren."} />
       ) : (
-        <div className="mt-6 space-y-3">
-          {upcoming.map((booking) => (
+        <div className="space-y-2.5">
+          {visible.map((booking) => (
             <BookingCard
               key={booking.id}
               booking={booking}
@@ -309,33 +304,6 @@ function BookingsPage() {
         </div>
       )}
 
-      {past.length > 0 && (
-        <details className="mt-8">
-          <summary className="cursor-pointer text-[13px] font-medium text-[color:var(--ink)]/50">
-            Tidigare och avbokade ({past.length})
-          </summary>
-          <div className="mt-3 space-y-2 opacity-75">
-            {past.map((booking) => (
-              <div
-                key={booking.id}
-                className="card-surface flex items-center gap-3 !rounded-2xl px-4 py-3 text-[13px]"
-              >
-                <span className="font-semibold">{booking.guest_name ?? "Okänd gäst"}</span>
-                <span className="text-[color:var(--ink)]/55">
-                  {booking.unit?.name ?? "—"} · {svDate(booking.checkin_date)}–
-                  {svDate(booking.checkout_date)}
-                </span>
-                <span
-                  className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold ${booking.status === "cancelled" ? "bg-red-50 text-red-700" : "bg-[color:var(--bg)]"}`}
-                >
-                  {booking.status === "cancelled" ? "Avbokad" : "Utcheckad"}
-                </span>
-              </div>
-            ))}
-          </div>
-        </details>
-      )}
-
       {modalOpen && (
         <ManualBookingModal
           propertyId={property.id}
@@ -347,6 +315,38 @@ function BookingsPage() {
           }}
         />
       )}
+    </div>
+  );
+}
+
+function SummaryCard({ label, value, sub, warn = false }: { label: string; value: string; sub: string; warn?: boolean }) {
+  return (
+    <div className={`rounded-[18px] border bg-white p-4 shadow-[0_5px_18px_rgba(25,40,31,0.035)] ${warn ? "border-amber-200" : "border-black/[0.06]"}`}>
+      <p className={`text-[9px] font-bold uppercase tracking-[0.13em] ${warn ? "text-amber-700" : "text-[color:var(--ink)]/35"}`}>{label}</p>
+      <p className={`mt-2 font-[Fraunces] text-[25px] font-semibold leading-none ${warn ? "text-amber-900" : "text-[#173c2b]"}`}>{value}</p>
+      <p className="mt-1.5 text-[9px] text-[color:var(--ink)]/35">{sub}</p>
+    </div>
+  );
+}
+
+function ViewButton({ active, onClick, label, warn = false }: { active: boolean; onClick: () => void; label: string; warn?: boolean }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-[11px] font-bold transition xl:flex-none ${
+        active ? "bg-white text-[#173c2b] shadow-sm" : warn ? "text-amber-700 hover:text-amber-900" : "text-[color:var(--ink)]/45 hover:text-[color:var(--ink)]/70"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+function EmptyState({ text }: { text: string }) {
+  return (
+    <div className="rounded-[22px] border border-dashed border-black/[0.11] bg-white/70 px-6 py-14 text-center">
+      <CalendarClock className="mx-auto text-[#2d684c]/25" size={28} />
+      <p className="mt-3 text-[13px] font-semibold text-[color:var(--ink)]/45">{text}</p>
     </div>
   );
 }
@@ -383,9 +383,7 @@ function BookingCard({
     if (!expanded || !supabase) return;
     supabase
       .from("scheduled_messages")
-      .select(
-        "id, booking_id, channel, send_at, status, error, template:message_templates(trigger_type)",
-      )
+      .select("id, booking_id, channel, send_at, status, error, template:message_templates(trigger_type)")
       .eq("booking_id", b.id)
       .order("send_at")
       .then(({ data }) => setMessages((data as unknown as ScheduledMessage[]) ?? []));
@@ -409,156 +407,82 @@ function BookingCard({
     onChanged();
   };
 
+  const needsContact = !b.guest_email || !b.guest_phone;
+
   return (
-    <div className={`card-surface overflow-hidden ${conflicting ? "ring-2 ring-red-400" : ""}`}>
-      <button onClick={onToggle} className="flex w-full items-center gap-3 px-5 py-4 text-left">
-        <span
-          className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-[13px] font-bold text-white ${conflicting ? "bg-red-600" : "bg-[color:var(--forest)]"}`}
-        >
-          {(b.guest_name ?? "?")
-            .split(" ")
-            .map((n) => n[0])
-            .slice(0, 2)
-            .join("")}
-        </span>
+    <div className={`overflow-hidden rounded-[20px] border bg-white shadow-[0_6px_24px_rgba(25,40,31,0.035)] transition ${conflicting ? "border-red-300 ring-1 ring-red-200" : "border-black/[0.065] hover:border-black/[0.11]"}`}>
+      <button onClick={onToggle} className="flex w-full items-center gap-3 px-4 py-3.5 text-left sm:gap-4 sm:px-5">
+        <div className={`w-[54px] shrink-0 rounded-xl px-2 py-2 text-center ${conflicting ? "bg-red-50 text-red-800" : "bg-[#edf2ed] text-[#173c2b]"}`}>
+          <span className="block text-[9px] font-bold uppercase tracking-wider opacity-55">
+            {new Date(b.checkin_date + "T12:00:00").toLocaleDateString("sv-SE", { month: "short" })}
+          </span>
+          <span className="block font-[Fraunces] text-[21px] font-semibold leading-none">{new Date(b.checkin_date + "T12:00:00").getDate()}</span>
+        </div>
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="text-[15px] font-semibold">{b.guest_name ?? "Okänd gäst"}</span>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="truncate text-[13px] font-bold sm:text-[14px]">{b.guest_name ?? "Okänd gäst"}</span>
             <SourceBadge source={b.source} />
-            {b.payment_status === "pending" && (
-              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-semibold text-amber-800">
-                Betalning väntar
-              </span>
-            )}
-            {b.payment_status === "paid" && (
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
-                Betald
-              </span>
-            )}
-            {conflicting && (
-              <span className="rounded-full bg-red-100 px-2 py-0.5 text-[11px] font-semibold text-red-800">
-                Krock
-              </span>
-            )}
+            {b.payment_status === "pending" && <Badge tone="amber">Betalning väntar</Badge>}
+            {b.payment_status === "paid" && <Badge tone="green">Betald</Badge>}
+            {conflicting && <Badge tone="red">Krock</Badge>}
+            {needsContact && <Badge tone="amber">Kontakt saknas</Badge>}
           </div>
-          <div className="text-[13px] text-[color:var(--ink)]/55">
-            {b.unit?.name ?? "Ingen enhet"} · {svDate(b.checkin_date)}–{svDate(b.checkout_date)} ·{" "}
-            {b.guests ?? "?"} gäster
+          <div className="mt-0.5 truncate text-[11px] text-[color:var(--ink)]/43 sm:text-[12px]">
+            {b.unit?.name ?? "Ingen enhet"} · {svDate(b.checkin_date)}–{svDate(b.checkout_date)} · {b.guests ?? "?"} gäster
           </div>
         </div>
-        <ChevronDown
-          size={17}
-          className={`shrink-0 text-[color:var(--ink)]/40 transition-transform ${expanded ? "rotate-180" : ""}`}
-        />
+        <div className="hidden shrink-0 text-right md:block">
+          <p className="text-[12px] font-bold text-[#173c2b]">{b.payment_amount ? fmtKr(b.payment_amount) : "—"}</p>
+          <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider text-[color:var(--ink)]/28">{b.payment_method ?? b.source}</p>
+        </div>
+        <ChevronDown size={16} className={`shrink-0 text-[color:var(--ink)]/30 transition-transform ${expanded ? "rotate-180" : ""}`} />
       </button>
 
       <AnimatePresence initial={false}>
         {expanded && (
-          <motion.div
-            initial={{ height: 0 }}
-            animate={{ height: "auto" }}
-            exit={{ height: 0 }}
-            className="overflow-hidden"
-          >
-            <div className="space-y-4 border-t border-[color:var(--line)] px-5 py-4">
-              <div className="grid gap-2.5 sm:grid-cols-[1fr_1fr_110px_auto]">
-                <input
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Gästens e-post"
-                  type="email"
-                  className="inp"
-                />
-                <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="Gästens mobil"
-                  className="inp"
-                />
-                <label className="relative">
-                  <Users
-                    size={14}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--ink)]/40"
-                  />
-                  <input
-                    type="number"
-                    min={1}
-                    max={maxGuests}
-                    value={guestCount}
-                    onChange={(e) => setGuestCount(Number(e.target.value))}
-                    className="inp !pl-8"
-                    aria-label="Antal gäster"
-                  />
-                </label>
-                <button
-                  onClick={saveDetails}
-                  className="btn-ghost !rounded-xl !px-4 !py-2.5 text-[13px]"
-                >
-                  {saved ? "✓ Sparat" : "Spara"}
-                </button>
+          <motion.div initial={{ height: 0 }} animate={{ height: "auto" }} exit={{ height: 0 }} className="overflow-hidden">
+            <div className="space-y-5 border-t border-black/[0.055] bg-[#fafbf9] px-4 py-4 sm:px-5 sm:py-5">
+              <div>
+                <div className="mb-2 flex items-center justify-between">
+                  <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[color:var(--ink)]/35">Gästuppgifter</p>
+                  <span className="text-[9px] text-[color:var(--ink)]/30">Redigera direkt här</span>
+                </div>
+                <div className="grid gap-2.5 sm:grid-cols-[1fr_1fr_110px_auto]">
+                  <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Gästens e-post" type="email" className="inp !rounded-xl !border-black/[0.08]" />
+                  <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Gästens mobil" className="inp !rounded-xl !border-black/[0.08]" />
+                  <label className="relative">
+                    <Users size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--ink)]/35" />
+                    <input type="number" min={1} max={maxGuests} value={guestCount} onChange={(e) => setGuestCount(Number(e.target.value))} className="inp !rounded-xl !border-black/[0.08] !pl-8" aria-label="Antal gäster" />
+                  </label>
+                  <button onClick={saveDetails} className="rounded-xl border border-black/[0.09] bg-white px-4 py-2.5 text-[12px] font-bold shadow-sm transition hover:border-black/20">{saved ? "✓ Sparat" : "Spara"}</button>
+                </div>
               </div>
 
               {b.payment_status === "pending" && b.payment_expires_at && (
-                <p className="rounded-xl bg-amber-50 px-3.5 py-2.5 text-[12px] text-amber-800">
-                  Reservationen löper ut{" "}
-                  {new Date(b.payment_expires_at).toLocaleString("sv-SE", {
-                    day: "numeric",
-                    month: "short",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}{" "}
-                  om den inte markeras betald.
+                <p className="rounded-xl border border-amber-100 bg-amber-50 px-3.5 py-2.5 text-[11px] text-amber-800">
+                  Reservationen löper ut {new Date(b.payment_expires_at).toLocaleString("sv-SE", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })} om den inte markeras betald.
                 </p>
               )}
 
               <div>
-                <p className="text-[12px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/50">
-                  Meddelandekö
-                </p>
+                <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[color:var(--ink)]/35">Meddelandekö</p>
                 <div className="mt-2 space-y-1.5">
                   {!messages ? (
-                    <p className="text-[13px] text-[color:var(--ink)]/45">Laddar…</p>
+                    <p className="text-[12px] text-[color:var(--ink)]/40">Laddar…</p>
                   ) : messages.length === 0 ? (
-                    <p className="text-[13px] text-[color:var(--ink)]/45">
-                      Inga meddelanden schemalagda.
-                    </p>
+                    <p className="rounded-xl border border-dashed border-black/[0.09] bg-white px-3 py-3 text-[11px] text-[color:var(--ink)]/40">Inga meddelanden schemalagda.</p>
                   ) : (
                     messages.map((message) => (
-                      <div
-                        key={message.id}
-                        className="flex items-center gap-2.5 rounded-xl bg-[color:var(--bg)] px-3 py-2 text-[13px]"
-                      >
-                        {message.channel === "email" ? (
-                          <Mail size={14} />
-                        ) : (
-                          <Smartphone size={14} />
-                        )}
-                        <span className="font-medium">
-                          {message.template
-                            ? (TRIGGER_LABELS[
-                                message.template.trigger_type as keyof typeof TRIGGER_LABELS
-                              ] ?? "Meddelande")
-                            : "Meddelande"}
+                      <div key={message.id} className="flex items-center gap-2.5 rounded-xl border border-black/[0.055] bg-white px-3 py-2.5 text-[11px]">
+                        {message.channel === "email" ? <Mail size={13} /> : <Smartphone size={13} />}
+                        <span className="font-bold">
+                          {message.template ? (TRIGGER_LABELS[message.template.trigger_type as keyof typeof TRIGGER_LABELS] ?? "Meddelande") : "Meddelande"}
                         </span>
-                        <span className="text-[color:var(--ink)]/50">
-                          {new Date(message.send_at).toLocaleString("sv-SE", {
-                            day: "numeric",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
+                        <span className="text-[color:var(--ink)]/40">
+                          {new Date(message.send_at).toLocaleString("sv-SE", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
                         </span>
-                        <span
-                          className={`ml-auto rounded-full px-2 py-0.5 text-[11px] font-semibold ${message.status === "sent" ? "bg-emerald-100 text-emerald-800" : message.status === "failed" ? "bg-red-50 text-red-700" : message.status === "cancelled" ? "bg-[color:var(--line)]/60 text-[color:var(--ink)]/50" : "bg-amber-100 text-amber-800"}`}
-                          title={message.error ?? undefined}
-                        >
-                          {message.status === "sent"
-                            ? "Skickat"
-                            : message.status === "failed"
-                              ? "Misslyckades"
-                              : message.status === "cancelled"
-                                ? "Avbrutet"
-                                : "Väntar"}
+                        <span className={`ml-auto rounded-full px-2 py-0.5 text-[9px] font-bold ${message.status === "sent" ? "bg-emerald-100 text-emerald-800" : message.status === "failed" ? "bg-red-50 text-red-700" : message.status === "cancelled" ? "bg-black/5 text-[color:var(--ink)]/45" : "bg-amber-100 text-amber-800"}`} title={message.error ?? undefined}>
+                          {message.status === "sent" ? "Skickat" : message.status === "failed" ? "Misslyckades" : message.status === "cancelled" ? "Avbrutet" : "Väntar"}
                         </span>
                       </div>
                     ))
@@ -566,86 +490,51 @@ function BookingCard({
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 border-t border-black/[0.055] pt-4">
                 {b.payment_status === "pending" && (
                   <button
                     onClick={async () => {
                       if (!supabase) return;
-                      const { error } = await supabase
-                        .from("bookings")
-                        .update({ payment_status: "paid", payment_expires_at: null })
-                        .eq("id", b.id);
-                      if (error) onError(error.message);
-                      else onChanged();
+                      const { error } = await supabase.from("bookings").update({ payment_status: "paid", payment_expires_at: null }).eq("id", b.id);
+                      if (error) onError(error.message); else onChanged();
                     }}
-                    className="rounded-xl bg-emerald-600 px-3.5 py-2 text-[13px] font-semibold text-white hover:bg-emerald-700"
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3.5 py-2 text-[11px] font-bold text-white hover:bg-emerald-800"
                   >
-                    Markera betald
-                    {b.payment_amount ? ` (${b.payment_amount.toLocaleString("sv-SE")} kr)` : ""}
+                    <CreditCard size={13} /> Markera betald{b.payment_amount ? ` · ${fmtKr(b.payment_amount)}` : ""}
                   </button>
                 )}
                 {b.payment_status === "paid" && (
                   <button
                     onClick={async () => {
                       if (!supabase) return;
-                      const amount = b.payment_amount
-                        ? ` ${b.payment_amount.toLocaleString("sv-SE")} kr`
-                        : "";
+                      const amount = b.payment_amount ? ` ${b.payment_amount.toLocaleString("sv-SE")} kr` : "";
                       const isStripe = b.payment_method === "stripe";
-                      if (
-                        !window.confirm(
-                          isStripe
-                            ? `Återbetala${amount} till ${b.guest_name ?? "gästen"}? Pengarna skickas tillbaka automatiskt via Stripe.`
-                            : `Markera${amount} som återbetald till ${b.guest_name ?? "gästen"}? Kom ihåg att swisha tillbaka pengarna.`,
-                        )
-                      )
-                        return;
+                      if (!window.confirm(isStripe ? `Återbetala${amount} till ${b.guest_name ?? "gästen"}? Pengarna skickas tillbaka automatiskt via Stripe.` : `Markera${amount} som återbetald till ${b.guest_name ?? "gästen"}? Kom ihåg att swisha tillbaka pengarna.`)) return;
                       if (isStripe) {
-                        // Riktig återbetalning via Stripe — funktionen äger även statusen.
-                        const { data, error } = await supabase.functions.invoke("stripe-refund", {
-                          body: { bookingId: b.id },
-                        });
+                        const { data, error } = await supabase.functions.invoke("stripe-refund", { body: { bookingId: b.id } });
                         if (error || (data as { error?: string } | null)?.error) {
-                          onError(
-                            `Återbetalningen misslyckades: ${(data as { detail?: string; error?: string } | null)?.detail ?? (data as { error?: string } | null)?.error ?? error?.message}`,
-                          );
+                          onError(`Återbetalningen misslyckades: ${(data as { detail?: string; error?: string } | null)?.detail ?? (data as { error?: string } | null)?.error ?? error?.message}`);
                           return;
                         }
                         onChanged();
                         return;
                       }
-                      const { error } = await supabase
-                        .from("bookings")
-                        .update({ payment_status: "refunded" })
-                        .eq("id", b.id);
-                      if (error) onError(error.message);
-                      else onChanged();
+                      const { error } = await supabase.from("bookings").update({ payment_status: "refunded" }).eq("id", b.id);
+                      if (error) onError(error.message); else onChanged();
                     }}
-                    className="rounded-xl border border-[color:var(--line)] px-3.5 py-2 text-[13px] font-semibold text-[color:var(--ink)]/75 hover:bg-[color:var(--bg)]"
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-black/[0.09] bg-white px-3.5 py-2 text-[11px] font-bold text-[color:var(--ink)]/65 hover:border-black/20"
                   >
-                    <RotateCcw size={14} className="mr-1 inline" />{" "}
-                    {b.payment_method === "stripe" ? "Återbetala via Stripe" : "Markera återbetald"}
+                    <RotateCcw size={13} /> {b.payment_method === "stripe" ? "Återbetala via Stripe" : "Markera återbetald"}
                   </button>
                 )}
-                <button
-                  onClick={onCopy}
-                  className="btn-ghost !rounded-xl !px-3.5 !py-2 text-[13px]"
-                >
-                  {copied ? <Check size={14} /> : <Copy size={14} />} Gästsidelänk
+                <button onClick={onCopy} className="inline-flex items-center gap-1.5 rounded-xl border border-black/[0.09] bg-white px-3.5 py-2 text-[11px] font-bold text-[color:var(--ink)]/65 hover:border-black/20">
+                  {copied ? <Check size={13} /> : <Copy size={13} />} Gästlänk
                 </button>
-                <a
-                  href={guestPageUrl(b.guest_token)}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn-ghost !rounded-xl !px-3.5 !py-2 text-[13px]"
-                >
-                  <ExternalLink size={14} /> Öppna gästsidan
+                <a href={guestPageUrl(b.guest_token)} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-xl border border-black/[0.09] bg-white px-3.5 py-2 text-[11px] font-bold text-[color:var(--ink)]/65 hover:border-black/20">
+                  <ExternalLink size={13} /> Öppna gästsidan
                 </a>
-                <button
-                  onClick={onCancel}
-                  className="ml-auto rounded-xl px-3.5 py-2 text-[13px] font-semibold text-red-600 hover:bg-red-50"
-                >
-                  <Ban size={14} className="mr-1 inline" /> Avboka
+                <button onClick={onCancel} className="ml-auto inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[11px] font-bold text-red-600 hover:bg-red-50">
+                  <Ban size={13} /> Avboka
                 </button>
               </div>
             </div>
@@ -656,33 +545,34 @@ function BookingCard({
   );
 }
 
+function Badge({ children, tone }: { children: string; tone: "amber" | "green" | "red" }) {
+  const cls = tone === "green" ? "bg-emerald-100 text-emerald-800" : tone === "red" ? "bg-red-100 text-red-800" : "bg-amber-100 text-amber-800";
+  return <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold ${cls}`}>{children}</span>;
+}
+
 function SourceBadge({ source }: { source: Booking["source"] }) {
-  const label =
-    source === "ical"
-      ? "iCal"
-      : source === "direct"
-        ? "Direkt"
-        : source === "sirvoy"
-          ? "Sirvoy"
-          : "Manuell";
+  const label = source === "ical" ? "iCal" : source === "direct" ? "Direkt" : source === "sirvoy" ? "Sirvoy" : "Manuell";
+  return <span className="rounded-full bg-[#eff2ee] px-2 py-0.5 text-[9px] font-bold text-[color:var(--ink)]/45">{label}</span>;
+}
+
+function PastBookingCard({ booking }: { booking: Booking }) {
   return (
-    <span className="rounded-full bg-[color:var(--bg)] px-2 py-0.5 text-[11px] font-semibold text-[color:var(--ink)]/60">
-      {label}
-    </span>
+    <div className="flex items-center gap-3 rounded-[18px] border border-black/[0.055] bg-white px-4 py-3 text-[12px] shadow-[0_4px_16px_rgba(25,40,31,0.025)]">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#f1f3ef] font-[Fraunces] text-[14px] font-semibold text-[#173c2b]">
+        {(booking.guest_name ?? "?").slice(0, 1).toUpperCase()}
+      </span>
+      <div className="min-w-0 flex-1">
+        <p className="truncate font-bold">{booking.guest_name ?? "Okänd gäst"}</p>
+        <p className="truncate text-[10px] text-[color:var(--ink)]/38">{booking.unit?.name ?? "—"} · {svDate(booking.checkin_date)}–{svDate(booking.checkout_date)}</p>
+      </div>
+      <span className={`rounded-full px-2 py-1 text-[9px] font-bold ${booking.status === "cancelled" ? "bg-red-50 text-red-700" : "bg-[#f1f3ef] text-[color:var(--ink)]/45"}`}>
+        {booking.status === "cancelled" ? "Avbokad" : "Utcheckad"}
+      </span>
+    </div>
   );
 }
 
-function ManualBookingModal({
-  propertyId,
-  units,
-  onClose,
-  onCreated,
-}: {
-  propertyId: string;
-  units: Unit[];
-  onClose: () => void;
-  onCreated: () => void;
-}) {
+function ManualBookingModal({ propertyId, units, onClose, onCreated }: { propertyId: string; units: Unit[]; onClose: () => void; onCreated: () => void }) {
   const [unitId, setUnitId] = useState(units[0]?.id ?? "");
   const selectedUnit = units.find((u) => u.id === unitId) ?? units[0];
   const [name, setName] = useState("");
@@ -698,15 +588,7 @@ function ManualBookingModal({
     if (selectedUnit) setGuests((n) => Math.min(n, selectedUnit.max_guests));
   }, [selectedUnit]);
 
-  const valid = Boolean(
-    unitId &&
-    name.trim().length >= 2 &&
-    checkin &&
-    checkout &&
-    checkout > checkin &&
-    guests >= 1 &&
-    guests <= (selectedUnit?.max_guests ?? 1),
-  );
+  const valid = Boolean(unitId && name.trim().length >= 2 && checkin && checkout && checkout > checkin && guests >= 1 && guests <= (selectedUnit?.max_guests ?? 1));
 
   const submit = async () => {
     if (!supabase || !valid) return;
@@ -725,111 +607,41 @@ function ManualBookingModal({
     });
     setBusy(false);
     if (error) {
-      setError(
-        error.code === "23P01" || error.message.includes("booking_overlap")
-          ? "Boendet är redan bokat under hela eller delar av perioden."
-          : error.message,
-      );
+      setError(error.code === "23P01" || error.message.includes("booking_overlap") ? "Boendet är redan bokat under hela eller delar av perioden." : error.message);
     } else onCreated();
   };
 
   return (
     <>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        onClick={onClose}
-        className="fixed inset-0 z-40 bg-black/45"
-      />
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="fixed left-1/2 top-1/2 z-50 max-h-[calc(100vh-2rem)] w-[min(460px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[24px] bg-white p-6 shadow-2xl"
-      >
-        <h3 className="font-[Fraunces] text-xl font-semibold">Ny manuell bokning</h3>
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} onClick={onClose} className="fixed inset-0 z-40 bg-[#0b1711]/55 backdrop-blur-[2px]" />
+      <motion.div initial={{ opacity: 0, y: 20, scale: 0.985 }} animate={{ opacity: 1, y: 0, scale: 1 }} className="fixed left-1/2 top-1/2 z-50 max-h-[calc(100vh-2rem)] w-[min(520px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[26px] bg-white p-5 shadow-2xl sm:p-6">
+        <div className="rounded-2xl bg-[#edf2ed] p-4">
+          <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-[#2d684c]/60">Manuell reservation</p>
+          <h3 className="mt-1 font-[Fraunces] text-[24px] font-semibold text-[#173c2b]">Ny bokning</h3>
+          <p className="mt-1 text-[10px] text-[color:var(--ink)]/40">För telefonbokning, drop-in eller bokning utanför den publika motorn.</p>
+        </div>
         <div className="mt-5 space-y-3.5">
           <label className="block">
-            <span className="text-[12px] font-medium text-[color:var(--ink)]/55">Boende</span>
-            <select value={unitId} onChange={(e) => setUnitId(e.target.value)} className="inp mt-1">
-              {units.map((u) => (
-                <option key={u.id} value={u.id}>
-                  {u.name} · max {u.max_guests}
-                </option>
-              ))}
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink)]/35">Boende</span>
+            <select value={unitId} onChange={(e) => setUnitId(e.target.value)} className="inp mt-1 !rounded-xl !border-black/[0.08]">
+              {units.map((u) => <option key={u.id} value={u.id}>{u.name} · max {u.max_guests}</option>)}
             </select>
           </label>
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Gästens namn *"
-            className="inp"
-          />
+          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Gästens namn *" className="inp !rounded-xl !border-black/[0.08]" />
           <div className="grid grid-cols-2 gap-3">
-            <label>
-              <span className="text-[12px] font-medium text-[color:var(--ink)]/55">
-                Incheckning
-              </span>
-              <input
-                type="date"
-                value={checkin}
-                onChange={(e) => setCheckin(e.target.value)}
-                className="inp mt-1"
-              />
-            </label>
-            <label>
-              <span className="text-[12px] font-medium text-[color:var(--ink)]/55">
-                Utcheckning
-              </span>
-              <input
-                type="date"
-                value={checkout}
-                onChange={(e) => setCheckout(e.target.value)}
-                className="inp mt-1"
-              />
-            </label>
+            <label><span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink)]/35">Incheckning</span><input type="date" value={checkin} onChange={(e) => setCheckin(e.target.value)} className="inp mt-1 !rounded-xl !border-black/[0.08]" /></label>
+            <label><span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink)]/35">Utcheckning</span><input type="date" value={checkout} onChange={(e) => setCheckout(e.target.value)} className="inp mt-1 !rounded-xl !border-black/[0.08]" /></label>
           </div>
-          <label>
-            <span className="text-[12px] font-medium text-[color:var(--ink)]/55">
-              Antal gäster · max {selectedUnit?.max_guests ?? 1}
-            </span>
-            <input
-              type="number"
-              min={1}
-              max={selectedUnit?.max_guests ?? 1}
-              value={guests}
-              onChange={(e) => setGuests(Number(e.target.value))}
-              className="inp mt-1"
-            />
-          </label>
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="E-post"
-            type="email"
-            className="inp"
-          />
-          <input
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="Mobil"
-            className="inp"
-          />
-          {error && (
-            <p className="rounded-xl bg-red-50 px-3.5 py-2.5 text-[13px] text-red-700">{error}</p>
-          )}
-          <button
-            onClick={submit}
-            disabled={!valid || busy}
-            className="btn-primary w-full justify-center !rounded-xl !py-3 text-[15px] disabled:opacity-40"
-          >
-            {busy ? "Sparar…" : "Skapa bokning"}
-          </button>
-          <button
-            onClick={onClose}
-            className="w-full text-center text-[13px] font-medium text-[color:var(--ink)]/50"
-          >
-            Avbryt
-          </button>
+          <label><span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink)]/35">Antal gäster · max {selectedUnit?.max_guests ?? 1}</span><input type="number" min={1} max={selectedUnit?.max_guests ?? 1} value={guests} onChange={(e) => setGuests(Number(e.target.value))} className="inp mt-1 !rounded-xl !border-black/[0.08]" /></label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="E-post" type="email" className="inp !rounded-xl !border-black/[0.08]" />
+            <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Mobil" className="inp !rounded-xl !border-black/[0.08]" />
+          </div>
+          {error && <p className="rounded-xl bg-red-50 px-3.5 py-2.5 text-[12px] text-red-700">{error}</p>}
+          <div className="flex gap-2 pt-1">
+            <button onClick={onClose} className="flex-1 rounded-xl border border-black/[0.09] px-4 py-3 text-[12px] font-bold text-[color:var(--ink)]/55">Avbryt</button>
+            <button onClick={submit} disabled={!valid || busy} className="flex-[1.4] rounded-xl bg-[#173c2b] px-4 py-3 text-[12px] font-bold text-white shadow-sm disabled:opacity-35">{busy ? "Sparar…" : "Skapa bokning"}</button>
+          </div>
         </div>
       </motion.div>
     </>
