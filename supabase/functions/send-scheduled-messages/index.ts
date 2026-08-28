@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { formatSvDate, renderTemplate } from "../_shared/templates.ts";
+import { resolveGuestPageBaseUrl } from "../_shared/site-url.ts";
 
 // Skickar förfallna meddelanden och frigör obetalda Swish-reservationer.
 // Körs på cron var 5:e minut med x-cron-secret.
@@ -26,7 +27,10 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
-  const baseUrl = (Deno.env.get("GUEST_PAGE_BASE_URL") ?? "").replace(/\/$/, "");
+  const baseUrl = resolveGuestPageBaseUrl(
+    Deno.env.get("GUEST_PAGE_BASE_URL"),
+    Deno.env.get("PUBLIC_APP_URL"),
+  );
   const now = new Date().toISOString();
 
   const { data: expired, error: expiryError } = await admin

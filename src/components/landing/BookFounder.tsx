@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 
-// TODO: byt till din riktiga bokningslänk (Cal.com / Savvycal / SimplyBook).
-// Cal.com stödjer inbäddning direkt via iframe och postar bekräftelser via postMessage.
-const BOOKING_URL =
-  (typeof import.meta !== "undefined" &&
-    (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_PUBLIC_BOOKING_URL) ||
-  "https://cal.com/stayboost/20min";
+// Embed only when HQ sets a real booking URL. Do not invent a Cal.com account.
+const BOOKING_URL = (
+  typeof import.meta !== "undefined"
+    ? (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_PUBLIC_BOOKING_URL
+    : undefined
+)?.trim();
 
 type PlausibleWin = {
   plausible?: (e: string, opts?: { props?: Record<string, string> }) => void;
@@ -13,16 +13,15 @@ type PlausibleWin = {
 
 export function BookFounder() {
   const [booked, setBooked] = useState(false);
+  const hasBookingUrl = Boolean(BOOKING_URL);
 
   useEffect(() => {
-    // Cal.com postar events till parent-fönstret. Vi lyssnar brett och
-    // matchar på det som ser ut som en lyckad bokning.
+    if (!hasBookingUrl) return;
+
     function onMessage(ev: MessageEvent) {
       const data = ev.data;
       if (!data) return;
 
-      // Cal.com format: { type: "__iframeReady" | "linkReady" | "eventTypeSelected" | "bookingSuccessful" ... }
-      // eller nested: { type: "CAL:...", data: {...} }
       const raw = typeof data === "string" ? data : typeof data?.type === "string" ? data.type : "";
       const t = String(raw).toLowerCase();
 
@@ -42,7 +41,7 @@ export function BookFounder() {
     }
     window.addEventListener("message", onMessage);
     return () => window.removeEventListener("message", onMessage);
-  }, []);
+  }, [hasBookingUrl]);
 
   return (
     <section
@@ -122,7 +121,7 @@ export function BookFounder() {
                   Boka en till tid
                 </button>
               </div>
-            ) : (
+            ) : hasBookingUrl ? (
               <div
                 className="overflow-hidden rounded-2xl border border-[color:var(--line)] bg-white shadow-[0_20px_60px_-30px_rgba(0,0,0,0.25)]"
                 style={{ height: "min(680px, 78vh)" }}
@@ -135,11 +134,37 @@ export function BookFounder() {
                   allow="camera; microphone; fullscreen; clipboard-read; clipboard-write"
                 />
               </div>
+            ) : (
+              <div className="card-surface flex flex-col items-start gap-4 p-6 sm:p-8">
+                <p className="text-[12px] font-semibold uppercase tracking-wide text-[color:var(--brass)]">
+                  Kalenderbokning öppnas snart
+                </p>
+                <h3 className="font-[Fraunces] text-2xl tracking-tight">
+                  Skriv till oss så bokar vi tiden manuellt.
+                </h3>
+                <p className="text-[color:var(--ink)]/75">
+                  Den inbäddade kalendern är avstängd tills en fungerande bokningslänk är satt.
+                  Mejla grundaren eller lämna din e-post — vi återkommer med en tid.
+                </p>
+                <div className="flex flex-wrap gap-3">
+                  <a href="mailto:info@stayboost.se" className="btn-primary">
+                    Mejla info@stayboost.se
+                  </a>
+                  <a
+                    href="#hero-form"
+                    className="rounded-xl border border-[color:var(--line)] px-4 py-2.5 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--bg)]"
+                  >
+                    Få tidig tillgång
+                  </a>
+                </div>
+              </div>
             )}
-            <p className="mt-3 text-[0.8rem] text-[color:var(--ink)]/55">
-              Bokningen laddas i en säker ram. Inga cookies delas med tredje part förrän du väljer
-              en tid.
-            </p>
+            {hasBookingUrl && (
+              <p className="mt-3 text-[0.8rem] text-[color:var(--ink)]/55">
+                Bokningen laddas i en säker ram. Inga cookies delas med tredje part förrän du väljer
+                en tid.
+              </p>
+            )}
           </div>
         </div>
       </div>

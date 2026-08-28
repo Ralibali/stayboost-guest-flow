@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AlertTriangle, Link2, Pause, Play, RefreshCw, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { BookingComLagNotice } from "@/components/app/BookingComLagNotice";
 import {
   CHANNEL_LABELS,
   classifyIcalHealth,
@@ -197,8 +198,10 @@ function SourcesPage() {
       <h1 className="mt-2 font-[Fraunces] text-3xl font-semibold">iCal-källor</h1>
       <p className="mt-1 text-[14px] text-[color:var(--ink)]/65">
         Lägg till en exportkalender per boende och kanal. Automatisk synkning bör köras var femtonde
-        minut.
+        minut. StayBoost synkar inte Booking.com via API — bara iCal.
       </p>
+
+      <BookingComLagNotice className="mt-5" />
 
       <div className="card-surface mt-5 border-l-4 border-[color:var(--forest)] p-5">
         <p className="text-[12px] font-semibold uppercase tracking-wide text-[color:var(--forest)]">

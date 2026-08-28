@@ -8,6 +8,7 @@ import {
 } from "../_shared/rate-rules.ts";
 import { priceAddons, sumAddons } from "../_shared/addons.ts";
 import { createCheckoutSession } from "../_shared/stripe.ts";
+import { resolvePublicAppUrl } from "../_shared/site-url.ts";
 
 // Publik bokningsmotor. All prissättning, kapacitet och tillgänglighet
 // verifieras server-side. Databastriggern serialiserar samtidiga direktbokningar.
@@ -340,7 +341,7 @@ Deno.serve(async (req) => {
 
     if (paymentMethod === "stripe") {
       try {
-        const appBase = Deno.env.get("PUBLIC_APP_URL") ?? req.headers.get("origin") ?? "";
+        const appBase = resolvePublicAppUrl(Deno.env.get("PUBLIC_APP_URL"));
         const session = await createCheckoutSession({
           secretKey: stripeKey,
           amountSek: grandTotal,

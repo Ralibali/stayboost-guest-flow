@@ -12,6 +12,7 @@ import {
   Trash2,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { BookingComLagNotice } from "@/components/app/BookingComLagNotice";
 import {
   icalExportUrl,
   supabase,
@@ -507,7 +508,8 @@ function SettingsPage() {
             <p className="eyebrow">Boenden</p>
             <h2 className="mt-2 font-[Fraunces] text-2xl font-semibold">Tält, stugor och rum</h2>
             <p className="mt-1 text-[13px] text-[color:var(--ink)]/55">
-              Maxgäster styr exakt hur många som går att boka i respektive boende.
+              Maxgäster styr exakt hur många som går att boka i respektive boende. Exportlänken
+              nedan klistras in i Airbnb eller Booking.com — det är iCal, inte tvåvägs API.
             </p>
           </div>
           <div className="flex w-full gap-2 sm:w-auto">
@@ -526,6 +528,8 @@ function SettingsPage() {
             </button>
           </div>
         </div>
+
+        <BookingComLagNotice className="mt-5" />
 
         <div className="mt-5 space-y-5">
           {units.map((u) => (
@@ -749,6 +753,9 @@ function SettingsPage() {
                       ? "Exportlänk kopierad"
                       : "Kopiera iCal-exportlänk till Airbnb/Booking"}
                   </button>
+                  <p className="mt-1 text-[11px] leading-relaxed text-amber-900/80">
+                    Booking.com pollar denna länk var 2–4:e timme. Inte realtidssynk.
+                  </p>
                 </div>
               </div>
             </article>

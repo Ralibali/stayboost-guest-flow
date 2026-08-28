@@ -45,6 +45,11 @@ describe("produktionshärdning", () => {
     expect(rangesOverlap("2026-08-10", "2026-08-13", "2026-08-12", "2026-08-14")).toBe(true);
   });
 
+  it("defaultar Stripe success/cancel till stayboost.se i stället för Origin", () => {
+    expect(bookingEngine).toContain("resolvePublicAppUrl");
+    expect(bookingEngine).toContain("PUBLIC_APP_URL");
+  });
+
   it("begränsar bildpolicies till den inloggades anläggningsmapp", () => {
     expect(migration).toContain("p.owner_id = auth.uid()");
     expect(migration).toContain("p.id::text = (storage.foldername(name))[1]");

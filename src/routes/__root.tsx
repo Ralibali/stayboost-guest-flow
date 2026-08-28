@@ -9,6 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
+import { CANONICAL_ORIGIN, canonicalUrl } from "../lib/site-url";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -70,13 +71,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       (typeof import.meta !== "undefined" &&
         (import.meta as unknown as { env?: Record<string, string> }).env
           ?.VITE_PUBLIC_PLAUSIBLE_DOMAIN) ||
-      "stayboost.se";
+      CANONICAL_ORIGIN.replace(/^https:\/\//, "");
 
     const softwareLd = {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       name: "StayBoost",
-      url: "https://stayboost.se/",
+      url: canonicalUrl("/"),
       description:
         "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
       applicationCategory: "BusinessApplication",
@@ -157,10 +158,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
         },
         { property: "og:type", content: "website" },
-        { property: "og:url", content: "https://stayboost.se/" },
+        { property: "og:url", content: canonicalUrl("/") },
         { property: "og:site_name", content: "StayBoost" },
         { property: "og:locale", content: "sv_SE" },
-        { property: "og:image", content: "https://stayboost.se/og-image.png" },
+        { property: "og:image", content: canonicalUrl("/og-image.png") },
         { name: "twitter:card", content: "summary_large_image" },
         { name: "twitter:title", content: "StayBoost — Hela driften för små boenden i ett system" },
         {
@@ -168,10 +169,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           content:
             "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
         },
-        { name: "twitter:image", content: "https://stayboost.se/og-image.png" },
+        { name: "twitter:image", content: canonicalUrl("/og-image.png") },
       ],
       links: [
-        { rel: "canonical", href: "https://stayboost.se/" },
+        { rel: "canonical", href: canonicalUrl("/") },
         { rel: "stylesheet", href: appCss },
         { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },

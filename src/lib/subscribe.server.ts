@@ -2,6 +2,8 @@
 // Kept out of *.functions.ts because module-scope helpers get stripped
 // from server-fn splits and would throw ReferenceError at runtime.
 
+import { leadMagnetPdfUrl } from "./site-url";
+
 type RateBucket = { count: number; resetAt: number };
 const ipHits = new Map<string, RateBucket>();
 const HOUR = 60 * 60 * 1000;
@@ -76,8 +78,7 @@ export async function sendBrevoTemplate(
   if (!templateId) return { ok: true }; // ingen mall konfigurerad → hoppa tyst
   const params: Record<string, unknown> = { source };
   if (source === "sms-mallar") {
-    params.pdf_url =
-      process.env.PUBLIC_LEADMAGNET_PDF_URL ?? "https://stayboost.se/mallar/stayboost-12-sms.pdf";
+    params.pdf_url = leadMagnetPdfUrl(process.env.PUBLIC_LEADMAGNET_PDF_URL);
   }
   const res = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
