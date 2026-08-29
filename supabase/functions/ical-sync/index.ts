@@ -147,13 +147,18 @@ Deno.serve(async (req) => {
       if (rawCalendar.length > 2_000_000) throw new Error("kalenderfilen är för stor");
 
       // Shadow occupancy: calendar_events only. Never cancels Sirvoy bookings.
-      await persistShadowFeed(admin, {
-        tenantId,
-        unitId: source.unit_id,
-        channel,
-        sourceId: source.id,
-        rawIcs: rawCalendar,
-      });
+      // A missing shadow table must not abort the live booking import.
+      try {
+        await persistShadowFeed(admin, {
+          tenantId,
+          unitId: source.unit_id,
+          channel,
+          sourceId: source.id,
+          rawIcs: rawCalendar,
+        });
+      } catch {
+        /* shadow write is best-effort until owner gate */
+      }
 
       const events = parseIcs(rawCalendar).filter(
         (event) => !isBlockEvent(event) && event.status !== "CANCELLED",

@@ -69,6 +69,7 @@ export function feedHealthAfterFailure(error: string, fetchedAt: string) {
   return {
     health: "FAILED" as const,
     last_fetch: fetchedAt,
+    last_success: undefined as string | undefined,
     last_error: error,
   };
 }
