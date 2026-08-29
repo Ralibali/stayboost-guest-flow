@@ -2,6 +2,7 @@ import "./lib/error-capture";
 
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
+import { gscHtmlResponse, isGscVerificationRequest } from "./lib/gsc-verification";
 
 type ServerEntry = {
   fetch: (request: Request, env: unknown, ctx: unknown) => Promise<Response> | Response;
@@ -46,6 +47,12 @@ function isH3SwallowedErrorBody(body: string): boolean {
 
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
+    // public/*.html is swallowed by the SPA/Nitro 404 shell on Cloudflare.
+    // Serve the GSC token before TanStack routing so Google never sees app HTML.
+    if (isGscVerificationRequest(request)) {
+      return gscHtmlResponse(request.method);
+    }
+
     try {
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
