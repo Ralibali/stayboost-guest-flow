@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalLayout } from "@/components/legal/LegalLayout";
+import { canonicalUrl } from "@/lib/canonical";
 
-const CANONICAL = "https://stayboost-sverige.lovable.app/integritetspolicy";
+const CANONICAL = canonicalUrl("/integritetspolicy");
 
 export const Route = createFileRoute("/integritetspolicy")({
   component: PrivacyPolicy,
