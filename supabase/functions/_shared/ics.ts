@@ -1,6 +1,12 @@
 // StayBoost: iCal-parsning (RFC 5545-subset för Airbnb/Booking.com-flöden).
 // Ren TypeScript utan Deno-beroenden — delas av edge-funktionen ical-sync
 // och av enhetstesterna i src/lib/fas1.test.ts.
+//
+// DATE-only (VALUE=DATE or YYYYMMDD) is a civil night in Europe/Stockholm and
+// must never be shifted across a timezone or DST boundary. DATE-TIME values
+// convert to the Europe/Stockholm calendar date.
+
+export const ICS_TIMEZONE = "Europe/Stockholm";
 
 export interface IcsEvent {
   uid: string;
@@ -15,10 +21,52 @@ export function unfoldIcs(raw: string): string {
   return raw.replace(/\r\n[ \t]/g, "").replace(/\n[ \t]/g, "");
 }
 
-function toDate(value: string): string | null {
-  const m = value.match(/^(\d{4})(\d{2})(\d{2})/);
-  if (!m) return null;
-  return `${m[1]}-${m[2]}-${m[3]}`;
+function parseContentLine(line: string): { name: string; params: Record<string, string>; value: string } | null {
+  const colon = line.indexOf(":");
+  if (colon < 0) return null;
+  const left = line.slice(0, colon);
+  const value = line.slice(colon + 1);
+  const [name, ...paramParts] = left.split(";");
+  const params: Record<string, string> = {};
+  for (const part of paramParts) {
+    const eq = part.indexOf("=");
+    if (eq < 0) continue;
+    params[part.slice(0, eq).toUpperCase()] = part.slice(eq + 1);
+  }
+  return { name: name.toUpperCase(), params, value };
+}
+
+function utcToStockholmDate(isoUtc: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: ICS_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(isoUtc));
+  const year = parts.find((p) => p.type === "year")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  const day = parts.find((p) => p.type === "day")?.value;
+  if (!year || !month || !day) return isoUtc.slice(0, 10);
+  return `${year}-${month}-${day}`;
+}
+
+/** Civil DATE stays put. DATE-TIME in UTC becomes the Stockholm calendar date. */
+export function icsDateToIso(value: string, params: Record<string, string> = {}): string | null {
+  const trimmed = value.trim();
+  const match = trimmed.match(/^(\d{4})(\d{2})(\d{2})(?:T(\d{2})(\d{2})(\d{2})(Z)?)?/);
+  if (!match) return null;
+  const [, year, month, day, hour, minute, second, zulu] = match;
+  const dateOnly =
+    params.VALUE?.toUpperCase() === "DATE" || (!hour && /^\d{8}$/.test(trimmed));
+  if (dateOnly || !hour) {
+    return `${year}-${month}-${day}`;
+  }
+  const tzid = params.TZID ?? "";
+  if (zulu === "Z" && (!tzid || tzid.toUpperCase() === "UTC")) {
+    return utcToStockholmDate(`${year}-${month}-${day}T${hour}:${minute}:${second}Z`);
+  }
+  // TZID or floating time: the printed wall-clock date is the night.
+  return `${year}-${month}-${day}`;
 }
 
 export function parseIcs(raw: string): IcsEvent[] {
@@ -38,24 +86,23 @@ export function parseIcs(raw: string): IcsEvent[] {
       continue;
     }
     if (!cur) continue;
-    const m = line.match(/^([A-Za-z-]+)(?:;[^:]*)?:(.*)$/);
-    if (!m) continue;
-    const [, name, value] = m;
-    switch (name.toUpperCase()) {
+    const parsed = parseContentLine(line);
+    if (!parsed) continue;
+    switch (parsed.name) {
       case "UID":
-        cur.uid = value.trim();
+        cur.uid = parsed.value.trim();
         break;
       case "SUMMARY":
-        cur.summary = value.trim();
+        cur.summary = parsed.value.trim();
         break;
       case "STATUS":
-        cur.status = value.trim().toUpperCase();
+        cur.status = parsed.value.trim().toUpperCase();
         break;
       case "DTSTART":
-        cur.startDate = toDate(value) ?? undefined;
+        cur.startDate = icsDateToIso(parsed.value, parsed.params) ?? undefined;
         break;
       case "DTEND":
-        cur.endDate = toDate(value) ?? undefined;
+        cur.endDate = icsDateToIso(parsed.value, parsed.params) ?? undefined;
         break;
     }
   }

@@ -47,6 +47,11 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      const pathname = new URL(request.url).pathname;
+      if (request.method === "GET" && /\/calendar\/export\/[^/]+\.ics$/.test(pathname)) {
+        const { handleCalendarExportRequest } = await import("./lib/calendar-export.server");
+        return await handleCalendarExportRequest(request);
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

@@ -30,6 +30,17 @@ export function foldLine(line: string): string {
 
 const toIcsDate = (iso: string) => iso.replace(/-/g, "");
 
+function toIcsUtcStamp(iso: string): string {
+  const d = new Date(iso);
+  const y = d.getUTCFullYear().toString().padStart(4, "0");
+  const m = (d.getUTCMonth() + 1).toString().padStart(2, "0");
+  const day = d.getUTCDate().toString().padStart(2, "0");
+  const hh = d.getUTCHours().toString().padStart(2, "0");
+  const mm = d.getUTCMinutes().toString().padStart(2, "0");
+  const ss = d.getUTCSeconds().toString().padStart(2, "0");
+  return `${y}${m}${day}T${hh}${mm}${ss}Z`;
+}
+
 export function buildIcs(events: IcsOutEvent[], calendarName: string): string {
   const lines = [
     "BEGIN:VCALENDAR",
@@ -48,6 +59,45 @@ export function buildIcs(events: IcsOutEvent[], calendarName: string): string {
       "STATUS:CONFIRMED",
       "TRANSP:OPAQUE",
       "END:VEVENT"
+    );
+  }
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n") + "\r\n";
+}
+
+export type BusyIcsEvent = {
+  uid: string;
+  startDate: string;
+  endDate: string;
+};
+
+/** Shadow / tenant-native export: busy VEVENTs only. No guest or payment fields. */
+export function buildBusyIcs(
+  events: BusyIcsEvent[],
+  calendarName: string,
+  stamps?: { dtstamp?: string; lastModified?: string },
+): string {
+  const now = new Date().toISOString();
+  const dtstamp = toIcsUtcStamp(stamps?.dtstamp ?? now);
+  const lastModified = toIcsUtcStamp(stamps?.lastModified ?? stamps?.dtstamp ?? now);
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//StayBoost//Calendar 1.0//SV",
+    "CALSCALE:GREGORIAN",
+    foldLine(`X-WR-CALNAME:${icsEscape(calendarName)}`),
+  ];
+  for (const e of events) {
+    lines.push(
+      "BEGIN:VEVENT",
+      foldLine(`UID:${e.uid}`),
+      `DTSTART;VALUE=DATE:${toIcsDate(e.startDate)}`,
+      `DTEND;VALUE=DATE:${toIcsDate(e.endDate)}`,
+      `DTSTAMP:${dtstamp}`,
+      `LAST-MODIFIED:${lastModified}`,
+      "STATUS:CONFIRMED",
+      "SUMMARY:busy",
+      "END:VEVENT",
     );
   }
   lines.push("END:VCALENDAR");

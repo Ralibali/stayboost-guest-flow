@@ -9,6 +9,11 @@ verify_jwt = false
 [functions.ical-export]
 verify_jwt = false
 
+# Shadow ICS V1 export — hashed token in the path, never JWT.
+# Do not paste this URL into OTAs until owner gate (shadow mode).
+[functions.calendar-export]
+verify_jwt = false
+
 # Bokningsmotorn är publik — anläggningens slug är adressen,
 # känsliga operationer (överlapp, pris) sker server-side.
 [functions.booking-engine]
