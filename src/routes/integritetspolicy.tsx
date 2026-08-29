@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalLayout } from "@/components/legal/LegalLayout";
-import { canonicalUrl } from "@/lib/canonical";
+import { legalPageUrl } from "@/lib/site-url";
 
-const CANONICAL = canonicalUrl("/integritetspolicy");
+const CANONICAL = legalPageUrl("/integritetspolicy");
 
 export const Route = createFileRoute("/integritetspolicy")({
   component: PrivacyPolicy,

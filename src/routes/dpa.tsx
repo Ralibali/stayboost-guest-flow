@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalLayout } from "@/components/legal/LegalLayout";
-import { canonicalUrl } from "@/lib/canonical";
+import { legalPageUrl } from "@/lib/site-url";
 
-const CANONICAL = canonicalUrl("/dpa");
+const CANONICAL = legalPageUrl("/dpa");
 
 export const Route = createFileRoute("/dpa")({
   component: DPA,

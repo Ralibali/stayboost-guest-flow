@@ -157,7 +157,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
         },
         { property: "og:type", content: "website" },
-        { property: "og:url", content: "https://stayboost.se/" },
         { property: "og:site_name", content: "StayBoost" },
         { property: "og:locale", content: "sv_SE" },
         { property: "og:image", content: "https://stayboost.se/og-image.png" },
@@ -171,7 +170,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { name: "twitter:image", content: "https://stayboost.se/og-image.png" },
       ],
       links: [
-        { rel: "canonical", href: "https://stayboost.se/" },
         { rel: "stylesheet", href: appCss },
         { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
         { rel: "preconnect", href: "https://fonts.googleapis.com" },

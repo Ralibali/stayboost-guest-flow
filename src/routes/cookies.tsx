@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalLayout } from "@/components/legal/LegalLayout";
-import { canonicalUrl } from "@/lib/canonical";
+import { legalPageUrl } from "@/lib/site-url";
 
-const CANONICAL = canonicalUrl("/cookies");
+const CANONICAL = legalPageUrl("/cookies");
 
 export const Route = createFileRoute("/cookies")({
   component: Cookies,
