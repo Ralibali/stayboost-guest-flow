@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VillkorRouteImport } from './routes/villkor'
 import { Route as IntegritetspolicyRouteImport } from './routes/integritetspolicy'
+import { Route as Google810803ca6fbfceadDothtmlRouteImport } from './routes/google810803ca6fbfcead[.]html'
 import { Route as DpaRouteImport } from './routes/dpa'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as CookiesRouteImport } from './routes/cookies'
@@ -56,6 +57,12 @@ const IntegritetspolicyRoute = IntegritetspolicyRouteImport.update({
   path: '/integritetspolicy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Google810803ca6fbfceadDothtmlRoute =
+  Google810803ca6fbfceadDothtmlRouteImport.update({
+    id: '/google810803ca6fbfcead.html',
+    path: '/google810803ca6fbfcead.html',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const DpaRoute = DpaRouteImport.update({
   id: '/dpa',
   path: '/dpa',
@@ -233,6 +240,7 @@ export interface FileRoutesByFullPath {
   '/cookies': typeof CookiesRoute
   '/demo': typeof DemoRouteWithChildren
   '/dpa': typeof DpaRoute
+  '/google810803ca6fbfcead.html': typeof Google810803ca6fbfceadDothtmlRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
   '/app/bokningar': typeof AppBokningarRoute
@@ -269,6 +277,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cookies': typeof CookiesRoute
   '/dpa': typeof DpaRoute
+  '/google810803ca6fbfcead.html': typeof Google810803ca6fbfceadDothtmlRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
   '/app/bokningar': typeof AppBokningarRoute
@@ -308,6 +317,7 @@ export interface FileRoutesById {
   '/cookies': typeof CookiesRoute
   '/demo': typeof DemoRouteWithChildren
   '/dpa': typeof DpaRoute
+  '/google810803ca6fbfcead.html': typeof Google810803ca6fbfceadDothtmlRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
   '/app/bokningar': typeof AppBokningarRoute
@@ -348,6 +358,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/demo'
     | '/dpa'
+    | '/google810803ca6fbfcead.html'
     | '/integritetspolicy'
     | '/villkor'
     | '/app/bokningar'
@@ -384,6 +395,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cookies'
     | '/dpa'
+    | '/google810803ca6fbfcead.html'
     | '/integritetspolicy'
     | '/villkor'
     | '/app/bokningar'
@@ -422,6 +434,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/demo'
     | '/dpa'
+    | '/google810803ca6fbfcead.html'
     | '/integritetspolicy'
     | '/villkor'
     | '/app/bokningar'
@@ -461,6 +474,7 @@ export interface RootRouteChildren {
   CookiesRoute: typeof CookiesRoute
   DemoRoute: typeof DemoRouteWithChildren
   DpaRoute: typeof DpaRoute
+  Google810803ca6fbfceadDothtmlRoute: typeof Google810803ca6fbfceadDothtmlRoute
   IntegritetspolicyRoute: typeof IntegritetspolicyRoute
   VillkorRoute: typeof VillkorRoute
   BokaSlugRoute: typeof BokaSlugRoute
@@ -481,6 +495,13 @@ declare module '@tanstack/react-router' {
       path: '/integritetspolicy'
       fullPath: '/integritetspolicy'
       preLoaderRoute: typeof IntegritetspolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/google810803ca6fbfcead.html': {
+      id: '/google810803ca6fbfcead.html'
+      path: '/google810803ca6fbfcead.html'
+      fullPath: '/google810803ca6fbfcead.html'
+      preLoaderRoute: typeof Google810803ca6fbfceadDothtmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/dpa': {
@@ -800,6 +821,7 @@ const rootRouteChildren: RootRouteChildren = {
   CookiesRoute: CookiesRoute,
   DemoRoute: DemoRouteWithChildren,
   DpaRoute: DpaRoute,
+  Google810803ca6fbfceadDothtmlRoute: Google810803ca6fbfceadDothtmlRoute,
   IntegritetspolicyRoute: IntegritetspolicyRoute,
   VillkorRoute: VillkorRoute,
   BokaSlugRoute: BokaSlugRoute,

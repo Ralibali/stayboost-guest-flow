@@ -168,6 +168,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
         },
         { name: "twitter:image", content: "https://stayboost.se/og-image.png" },
+        {
+          name: "google-site-verification",
+          content: "qQp-5rS0NEPk0bognvzXuH7kaRD1etXS99sMYZKbq_Y",
+        },
       ],
       links: [
         { rel: "stylesheet", href: appCss },
@@ -207,6 +211,10 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="sv">
       <head>
         <HeadContent />
+        <meta
+          name="google-site-verification"
+          content="qQp-5rS0NEPk0bognvzXuH7kaRD1etXS99sMYZKbq_Y"
+        />
       </head>
       <body>
         {children}
