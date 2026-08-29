@@ -102,7 +102,7 @@ Deno.serve(async (req) => {
       utcheckning: formatSvDate(b.checkout_date),
       incheckningstid: p.checkin_time ?? "",
       utcheckningstid: p.checkout_time ?? "",
-      gästsida_länk: baseUrl ? `${baseUrl}/g/${b.guest_token}` : "",
+      gästsida_länk: `${baseUrl}/g/${b.guest_token}`,
       wifi_namn: p.wifi_name ?? "",
       wifi_lösenord: p.wifi_password ?? "",
       vägbeskrivning: p.directions ?? "",

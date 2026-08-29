@@ -10,7 +10,12 @@ export const Route = createFileRoute("/g/$token")({
   head: ({ params }) => {
     const url = canonicalUrl(`/g/${params.token}`);
     return {
-      meta: [{ property: "og:url", content: url }],
+      meta: [
+        { title: "Din vistelse — StayBoost" },
+        { name: "robots", content: "noindex, nofollow" },
+        { property: "og:url", content: url },
+        { property: "og:type", content: "website" },
+      ],
       links: [{ rel: "canonical", href: url }],
     };
   },

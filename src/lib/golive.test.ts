@@ -39,6 +39,7 @@ describe("kanonisk värd (gästlänkar / legal / Stripe)", () => {
       "src/routes/g/$token.tsx",
       "src/routes/__root.tsx",
       "src/lib/site-url.ts",
+      "src/lib/canonical.ts",
       "src/lib/subscribe.server.ts",
       "src/components/landing/LeadMagnet.tsx",
       "src/components/landing/BookFounder.tsx",
@@ -64,6 +65,7 @@ describe("kanonisk värd (gästlänkar / legal / Stripe)", () => {
     const guest = read("src/routes/g/$token.tsx");
     expect(guest).toContain("canonicalUrl");
     expect(guest).toContain("`/g/${params.token}`");
+    expect(guest).toContain("noindex");
     expect(guest).not.toMatch(/lovable\.app/);
   });
 });
