@@ -1,5 +1,8 @@
 project_id = "stayboost-guest-flow"
 
+[functions]
+import_map = "./functions/import_map.json"
+
 # Gästsidan är publik — guest_token i länken är nyckeln, ingen JWT krävs.
 [functions.guest-page]
 verify_jwt = false
@@ -7,6 +10,11 @@ verify_jwt = false
 # iCal-exportflödet är publikt — kanalerna pollar det utan JWT,
 # enhetens feed-token i länken är nyckeln.
 [functions.ical-export]
+verify_jwt = false
+
+# Shadow ICS V1 export — hashed token in the path, never JWT.
+# Do not paste this URL into OTAs until owner gate (shadow mode).
+[functions.calendar-export]
 verify_jwt = false
 
 # Bokningsmotorn är publik — anläggningens slug är adressen,

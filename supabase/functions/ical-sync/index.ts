@@ -1,5 +1,13 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { guestNameFrom, isBlockEvent, parseIcs } from "../_shared/ics.ts";
+import {
+  feedHealthAfterFailure,
+  feedHealthAfterSuccess,
+  redactFeedUrl,
+  sanitizeFeedError,
+  type ShadowChannel,
+} from "../_shared/ics-shadow.ts";
+import { persistShadowFeed } from "../_shared/ics-shadow-db.ts";
 
 // Synkar bokningar från iCal-källor. Auth sker med cron-hemlighet eller användar-JWT.
 
@@ -72,7 +80,7 @@ Deno.serve(async (req) => {
   let query = admin
     .from("ical_sources")
     .select(
-      "id, property_id, unit_id, name, url, paused, consecutive_failures, properties!inner(owner_id)",
+      "id, property_id, tenant_id, unit_id, name, url, channel_type, paused, consecutive_failures, http_etag, http_last_modified, properties!inner(owner_id)",
     )
     .eq("paused", false);
   if (ownerFilter) query = query.eq("properties.owner_id", ownerFilter);
@@ -89,18 +97,46 @@ Deno.serve(async (req) => {
     let conflicts = 0;
     try {
       if (!safeFeedUrl(source.url)) throw new Error("otillåten kalender-URL");
+      void redactFeedUrl(source.url);
 
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 15000);
       let response: Response;
+      const fetchHeaders: Record<string, string> = { "User-Agent": "StayBoost-iCal/1.0" };
+      if (source.http_etag) fetchHeaders["If-None-Match"] = source.http_etag;
+      if (source.http_last_modified) fetchHeaders["If-Modified-Since"] = source.http_last_modified;
       try {
         response = await fetch(source.url, {
           signal: controller.signal,
           redirect: "follow",
-          headers: { "User-Agent": "StayBoost-iCal/1.0" },
+          headers: fetchHeaders,
         });
       } finally {
         clearTimeout(timer);
+      }
+
+      const fetchedAt = new Date().toISOString();
+      const channel = (source.channel_type ?? "other") as ShadowChannel;
+      const tenantId = source.tenant_id ?? source.property_id;
+
+      if (response.status === 304) {
+        const health = feedHealthAfterSuccess(fetchedAt, source.http_etag, source.http_last_modified);
+        await admin
+          .from("ical_sources")
+          .update({
+            last_synced_at: fetchedAt,
+            last_attempt_at: fetchedAt,
+            last_success_at: fetchedAt,
+            last_fetch: health.last_fetch,
+            last_success: health.last_success,
+            last_error: null,
+            health: health.health,
+            consecutive_failures: 0,
+            last_status: "ok (304 not modified)",
+          })
+          .eq("id", source.id);
+        results.push({ source: source.name, ok: true, notModified: true, created: 0, updated: 0, cancelled: 0, conflicts: 0 });
+        continue;
       }
 
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -109,6 +145,20 @@ Deno.serve(async (req) => {
       if (declaredLength > 2_000_000) throw new Error("kalenderfilen är för stor");
       const rawCalendar = await response.text();
       if (rawCalendar.length > 2_000_000) throw new Error("kalenderfilen är för stor");
+
+      // Shadow occupancy: calendar_events only. Never cancels Sirvoy bookings.
+      // A missing shadow table must not abort the live booking import.
+      try {
+        await persistShadowFeed(admin, {
+          tenantId,
+          unitId: source.unit_id,
+          channel,
+          sourceId: source.id,
+          rawIcs: rawCalendar,
+        });
+      } catch {
+        /* shadow write is best-effort until owner gate */
+      }
 
       const events = parseIcs(rawCalendar).filter(
         (event) => !isBlockEvent(event) && event.status !== "CANCELLED",
@@ -172,41 +222,59 @@ Deno.serve(async (req) => {
         }
       }
 
-      for (const booking of existing ?? []) {
-        if (
-          booking.ical_uid &&
-          !feedUids.has(booking.ical_uid) &&
-          booking.status === "confirmed" &&
-          booking.checkin_date >= today
-        ) {
-          const { error } = await admin
-            .from("bookings")
-            .update({ status: "cancelled" })
-            .eq("id", booking.id);
-          if (!error) cancelled++;
+      // Do NOT cancel Sirvoy reservations from iCal disappearance.
+      if (channel !== "sirvoy") {
+        for (const booking of existing ?? []) {
+          if (
+            booking.ical_uid &&
+            !feedUids.has(booking.ical_uid) &&
+            booking.status === "confirmed" &&
+            booking.checkin_date >= today
+          ) {
+            const { error } = await admin
+              .from("bookings")
+              .update({ status: "cancelled" })
+              .eq("id", booking.id);
+            if (!error) cancelled++;
+          }
         }
       }
 
       const nowIso = new Date().toISOString();
+      const health = feedHealthAfterSuccess(
+        nowIso,
+        response.headers.get("etag"),
+        response.headers.get("last-modified"),
+      );
       await admin
         .from("ical_sources")
         .update({
           last_synced_at: nowIso,
           last_attempt_at: nowIso,
           last_success_at: nowIso,
+          last_fetch: health.last_fetch,
+          last_success: health.last_success,
+          last_error: null,
+          health: health.health,
+          http_etag: health.http_etag,
+          http_last_modified: health.http_last_modified,
           consecutive_failures: 0,
           last_status: `ok (${events.length} event, +${created} nya, ${updated} uppdaterade, ${cancelled} avbokade${conflicts > 0 ? `, ⚠ ${conflicts} konflikter hoppades över` : ""})`,
         })
         .eq("id", source.id);
       results.push({ source: source.name, ok: true, created, updated, cancelled, conflicts });
     } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
+      const message = sanitizeFeedError(error);
       const nowIso = new Date().toISOString();
+      const health = feedHealthAfterFailure(message, nowIso);
       await admin
         .from("ical_sources")
         .update({
           last_synced_at: nowIso,
           last_attempt_at: nowIso,
+          last_fetch: health.last_fetch,
+          last_error: health.last_error,
+          health: health.health,
           consecutive_failures: (source.consecutive_failures ?? 0) + 1,
           last_status: `fel: ${message}`,
         })

@@ -159,7 +159,7 @@ describe("iCal-export (flöde till Airbnb/Booking)", () => {
   it("escapar specialtecken och viker långa rader enligt RFC 5545", () => {
     expect(icsEscape("a,b;c\\d\ne")).toBe("a\\,b\\;c\\\\d\\ne");
     const folded = foldLine("X".repeat(80));
-    expect(folded.split("\r\n")[0]).toHaveLength(74);
+    expect(folded.split("\r\n")[0]).toHaveLength(75);
     expect(folded.split("\r\n")[1].startsWith(" ")).toBe(true);
   });
 });

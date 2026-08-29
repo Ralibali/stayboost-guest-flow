@@ -1,0 +1,5 @@
+{
+  "imports": {
+    "ical.js": "https://esm.sh/ical.js@2.2.1"
+  }
+}
