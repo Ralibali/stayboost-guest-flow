@@ -267,3 +267,9 @@ select.field {
     animation: none;
   }
 }
+
+/* Dölj Lovable-badgen i första byten (publicerad domän) */
+#lovable-badge,
+#lovable-badge * {
+  display: none !important;
+}
