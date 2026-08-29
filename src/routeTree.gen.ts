@@ -41,7 +41,9 @@ import { Route as AppMallarRouteImport } from './routes/app/mallar'
 import { Route as AppLoginRouteImport } from './routes/app/login'
 import { Route as AppKallorRouteImport } from './routes/app/kallor'
 import { Route as AppKalenderRouteImport } from './routes/app/kalender'
+import { Route as AppIntakterRouteImport } from './routes/app/intakter'
 import { Route as AppInstallningarRouteImport } from './routes/app/installningar'
+import { Route as AppIdagRouteImport } from './routes/app/idag'
 import { Route as AppBokningarRouteImport } from './routes/app/bokningar'
 
 const VillkorRoute = VillkorRouteImport.update({
@@ -204,9 +206,19 @@ const AppKalenderRoute = AppKalenderRouteImport.update({
   path: '/kalender',
   getParentRoute: () => AppRoute,
 } as any)
+const AppIntakterRoute = AppIntakterRouteImport.update({
+  id: '/intakter',
+  path: '/intakter',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInstallningarRoute = AppInstallningarRouteImport.update({
   id: '/installningar',
   path: '/installningar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppIdagRoute = AppIdagRouteImport.update({
+  id: '/idag',
+  path: '/idag',
   getParentRoute: () => AppRoute,
 } as any)
 const AppBokningarRoute = AppBokningarRouteImport.update({
@@ -224,7 +236,9 @@ export interface FileRoutesByFullPath {
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
   '/app/bokningar': typeof AppBokningarRoute
+  '/app/idag': typeof AppIdagRoute
   '/app/installningar': typeof AppInstallningarRoute
+  '/app/intakter': typeof AppIntakterRoute
   '/app/kalender': typeof AppKalenderRoute
   '/app/kallor': typeof AppKallorRoute
   '/app/login': typeof AppLoginRoute
@@ -258,7 +272,9 @@ export interface FileRoutesByTo {
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
   '/app/bokningar': typeof AppBokningarRoute
+  '/app/idag': typeof AppIdagRoute
   '/app/installningar': typeof AppInstallningarRoute
+  '/app/intakter': typeof AppIntakterRoute
   '/app/kalender': typeof AppKalenderRoute
   '/app/kallor': typeof AppKallorRoute
   '/app/login': typeof AppLoginRoute
@@ -295,7 +311,9 @@ export interface FileRoutesById {
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
   '/app/bokningar': typeof AppBokningarRoute
+  '/app/idag': typeof AppIdagRoute
   '/app/installningar': typeof AppInstallningarRoute
+  '/app/intakter': typeof AppIntakterRoute
   '/app/kalender': typeof AppKalenderRoute
   '/app/kallor': typeof AppKallorRoute
   '/app/login': typeof AppLoginRoute
@@ -333,7 +351,9 @@ export interface FileRouteTypes {
     | '/integritetspolicy'
     | '/villkor'
     | '/app/bokningar'
+    | '/app/idag'
     | '/app/installningar'
+    | '/app/intakter'
     | '/app/kalender'
     | '/app/kallor'
     | '/app/login'
@@ -367,7 +387,9 @@ export interface FileRouteTypes {
     | '/integritetspolicy'
     | '/villkor'
     | '/app/bokningar'
+    | '/app/idag'
     | '/app/installningar'
+    | '/app/intakter'
     | '/app/kalender'
     | '/app/kallor'
     | '/app/login'
@@ -403,7 +425,9 @@ export interface FileRouteTypes {
     | '/integritetspolicy'
     | '/villkor'
     | '/app/bokningar'
+    | '/app/idag'
     | '/app/installningar'
+    | '/app/intakter'
     | '/app/kalender'
     | '/app/kallor'
     | '/app/login'
@@ -669,11 +693,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppKalenderRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/intakter': {
+      id: '/app/intakter'
+      path: '/intakter'
+      fullPath: '/app/intakter'
+      preLoaderRoute: typeof AppIntakterRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/installningar': {
       id: '/app/installningar'
       path: '/installningar'
       fullPath: '/app/installningar'
       preLoaderRoute: typeof AppInstallningarRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/idag': {
+      id: '/app/idag'
+      path: '/idag'
+      fullPath: '/app/idag'
+      preLoaderRoute: typeof AppIdagRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/bokningar': {
@@ -688,7 +726,9 @@ declare module '@tanstack/react-router' {
 
 interface AppRouteChildren {
   AppBokningarRoute: typeof AppBokningarRoute
+  AppIdagRoute: typeof AppIdagRoute
   AppInstallningarRoute: typeof AppInstallningarRoute
+  AppIntakterRoute: typeof AppIntakterRoute
   AppKalenderRoute: typeof AppKalenderRoute
   AppKallorRoute: typeof AppKallorRoute
   AppLoginRoute: typeof AppLoginRoute
@@ -701,7 +741,9 @@ interface AppRouteChildren {
 
 const AppRouteChildren: AppRouteChildren = {
   AppBokningarRoute: AppBokningarRoute,
+  AppIdagRoute: AppIdagRoute,
   AppInstallningarRoute: AppInstallningarRoute,
+  AppIntakterRoute: AppIntakterRoute,
   AppKalenderRoute: AppKalenderRoute,
   AppKallorRoute: AppKallorRoute,
   AppLoginRoute: AppLoginRoute,
