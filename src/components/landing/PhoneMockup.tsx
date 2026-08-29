@@ -57,10 +57,7 @@ export function PhoneMockup() {
 
       {/* Phone frame */}
       <div className="relative" style={{ transform: reduced ? "none" : "rotate(4deg)" }}>
-        <div
-          className="relative mx-auto w-[300px] rounded-[46px] bg-[#0b0b0b] p-3 shadow-[0_30px_80px_-20px_rgba(20,36,28,0.35)]"
-          style={{ height: 620 }}
-        >
+        <div className="relative mx-auto h-[540px] w-[272px] rounded-[46px] bg-[#0b0b0b] p-3 shadow-[0_30px_80px_-20px_rgba(20,36,28,0.35)] sm:h-[620px] sm:w-[300px]">
           <div className="absolute left-1/2 top-3 z-10 h-6 w-28 -translate-x-1/2 rounded-full bg-[#0b0b0b]" />
           <div className="relative flex h-full flex-col overflow-hidden rounded-[36px] bg-[#EDE8DE]">
             {/* header */}

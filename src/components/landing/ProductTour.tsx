@@ -80,15 +80,17 @@ export function ProductTour() {
                 aria-selected={active}
                 tabIndex={active ? 0 : -1}
                 onClick={() => pick(t.key)}
-                className={`relative overflow-hidden rounded-xl px-5 py-3 text-left transition ${
+                className={`relative overflow-hidden rounded-xl px-2.5 py-2.5 text-left transition sm:px-5 sm:py-3 ${
                   active
                     ? "bg-[color:var(--forest)] text-white shadow-sm"
                     : "text-[color:var(--ink)]/70 hover:bg-[color:var(--bg)]"
                 }`}
               >
-                <div className="font-[Fraunces] text-base font-semibold md:text-lg">{t.label}</div>
+                <div className="font-[Fraunces] text-[0.95rem] font-semibold leading-tight sm:text-base md:text-lg">
+                  {t.label}
+                </div>
                 <div
-                  className={`text-[0.75rem] ${
+                  className={`mt-0.5 text-[0.68rem] leading-snug sm:text-[0.75rem] ${
                     active ? "text-white/70" : "text-[color:var(--ink)]/50"
                   }`}
                 >
@@ -99,7 +101,7 @@ export function ProductTour() {
                     key={tab}
                     aria-hidden
                     onAnimationEnd={() => setTab(nextTab)}
-                    className={`tour-progress absolute inset-x-4 bottom-1 h-0.5 rounded bg-[color:var(--brass)] ${
+                    className={`tour-progress absolute inset-x-2.5 bottom-1 h-0.5 rounded bg-[color:var(--brass)] sm:inset-x-4 ${
                       hovered ? "tour-progress-paused" : ""
                     }`}
                   />

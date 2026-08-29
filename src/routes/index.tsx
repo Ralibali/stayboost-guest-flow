@@ -123,10 +123,19 @@ function Header() {
 }
 
 /* ---------- FadeUp helper ---------- */
-function FadeUp({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
+function FadeUp({
+  children,
+  delay = 0,
+  className,
+}: {
+  children: ReactNode;
+  delay?: number;
+  className?: string;
+}) {
   const reduce = useReducedMotion();
   return (
     <motion.div
+      className={className}
       initial={reduce ? { opacity: 0 } : { opacity: 0, y: 24, filter: "blur(8px)" }}
       whileInView={reduce ? { opacity: 1 } : { opacity: 1, y: 0, filter: "blur(0px)" }}
       viewport={{ once: true, margin: "-80px" }}
@@ -159,7 +168,7 @@ function Hero() {
       </span>
 
       <div className="relative mx-auto grid max-w-[1120px] items-center gap-10 px-5 sm:gap-16 sm:px-6 md:grid-cols-[55fr_45fr]">
-        <div>
+        <div className="min-w-0">
           <FadeUp>
             <div className="mb-5 sm:mb-6">
               <HeroProofBadge />
@@ -206,7 +215,7 @@ function Hero() {
           </FadeUp>
         </div>
 
-        <FadeUp delay={0.15}>
+        <FadeUp delay={0.15} className="min-w-0">
           <div className="mx-auto max-w-[320px] rounded-[52px] p-1 ring-1 ring-white/25 [box-shadow:0_30px_80px_-20px_rgba(0,0,0,0.5)] sm:max-w-none">
             <PhoneMockup />
           </div>

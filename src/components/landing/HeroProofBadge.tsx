@@ -16,7 +16,7 @@ export function HeroProofBadge() {
         <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[color:var(--brass)] opacity-70" />
         <span className="relative inline-flex h-2 w-2 rounded-full bg-[color:var(--brass)]" />
       </span>
-      <span className="min-w-0 truncate tabular-nums">
+      <span className="min-w-0 tabular-nums sm:truncate">
         <span className="font-medium text-white">
           {formatSek(stats.paidAddonRevenueSek)} i tillval
         </span>{" "}

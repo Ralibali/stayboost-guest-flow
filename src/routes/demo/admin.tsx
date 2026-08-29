@@ -150,13 +150,13 @@ function AdminDashboard() {
         />
       </div>
 
-      <div className="mt-6 grid gap-5 lg:grid-cols-5 lg:items-start">
+      <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-5 lg:items-start">
         {/* Graf */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="card-surface p-6 lg:col-span-3"
+          className="card-surface min-w-0 p-6 lg:col-span-3"
         >
           <div className="flex items-center justify-between">
             <div>
@@ -274,7 +274,7 @@ function AdminDashboard() {
       </div>
 
       {/* Ankomster & avresor */}
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -318,7 +318,7 @@ function AdminDashboard() {
       </div>
 
       {/* Tillval + automationer */}
-      <div className="mt-5 grid gap-5 lg:grid-cols-2">
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-2">
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}

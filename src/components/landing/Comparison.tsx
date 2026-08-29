@@ -98,19 +98,19 @@ export function Comparison() {
         </div>
 
         <div className="card-surface mt-10 overflow-hidden !p-0">
-          <table className="w-full text-[13px] sm:text-[14px]">
+          <table className="w-full table-fixed text-[12px] sm:text-[14px]">
             <thead>
               <tr className="border-b border-[color:var(--line)]">
-                <th className="p-4 text-left font-sans font-bold">Funktion</th>
-                <th className="w-[72px] bg-[color:var(--forest)] p-4 text-center sm:w-[110px]">
-                  <span className="font-[Fraunces] text-[15px] font-semibold text-white sm:text-base">
+                <th className="p-2 text-left font-sans font-bold sm:p-4">Funktion</th>
+                <th className="w-[72px] bg-[color:var(--forest)] p-2 text-center sm:w-[110px] sm:p-4">
+                  <span className="font-[Fraunces] text-[12px] font-semibold leading-tight text-white sm:text-base">
                     StayBoost
                   </span>
                 </th>
-                <th className="w-[72px] p-4 text-center font-sans font-bold text-[color:var(--ink)]/55 sm:w-[110px]">
+                <th className="w-[62px] p-2 text-center font-sans text-[11px] font-bold leading-tight text-[color:var(--ink)]/55 sm:w-[110px] sm:p-4 sm:text-[14px]">
                   BookSpot
                 </th>
-                <th className="w-[72px] p-4 text-center font-sans font-bold text-[color:var(--ink)]/55 sm:w-[110px]">
+                <th className="w-[62px] p-2 text-center font-sans text-[11px] font-bold leading-tight text-[color:var(--ink)]/55 sm:w-[110px] sm:p-4 sm:text-[14px]">
                   Sirvoy
                 </th>
               </tr>
@@ -118,27 +118,31 @@ export function Comparison() {
             <tbody>
               {ROWS.map((r, i) => (
                 <tr key={r.label} className={i % 2 === 0 ? "bg-[color:var(--bg)]/40" : ""}>
-                  <td className="p-4 font-medium text-[color:var(--ink)]/85">{r.label}</td>
-                  <td className="bg-[color:var(--forest)]/[0.04] p-4 text-center">
+                  <td className="p-2 font-medium text-[color:var(--ink)]/85 sm:p-4">{r.label}</td>
+                  <td className="bg-[color:var(--forest)]/[0.04] p-2 text-center sm:p-4">
                     <CellIcon v={r.stayboost} />
                   </td>
-                  <td className="p-4 text-center">
+                  <td className="p-2 text-center sm:p-4">
                     <CellIcon v={r.bookspot} />
                   </td>
-                  <td className="p-4 text-center">
+                  <td className="p-2 text-center sm:p-4">
                     <CellIcon v={r.sirvoy} />
                   </td>
                 </tr>
               ))}
               <tr className="border-t-2 border-[color:var(--line)]">
-                <td className="p-4 font-bold">Pris</td>
-                <td className="bg-[color:var(--forest)]/[0.04] p-4 text-center">
-                  <span className="font-[Fraunces] text-lg font-semibold text-[color:var(--forest)]">
+                <td className="p-2 font-bold sm:p-4">Pris</td>
+                <td className="bg-[color:var(--forest)]/[0.04] p-2 text-center sm:p-4">
+                  <span className="font-[Fraunces] text-base font-semibold text-[color:var(--forest)] sm:text-lg">
                     449 kr/mån
                   </span>
                 </td>
-                <td className="p-4 text-center text-[color:var(--ink)]/55">fr. ~1 000 kr/mån*</td>
-                <td className="p-4 text-center text-[color:var(--ink)]/55">fr. ~150 kr/mån**</td>
+                <td className="p-2 text-center text-[color:var(--ink)]/55 sm:p-4">
+                  fr. ~1 000 kr/mån*
+                </td>
+                <td className="p-2 text-center text-[color:var(--ink)]/55 sm:p-4">
+                  fr. ~150 kr/mån**
+                </td>
               </tr>
             </tbody>
           </table>
