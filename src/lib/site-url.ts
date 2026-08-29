@@ -1,6 +1,10 @@
 /** Intended public host. Preview (*.lovable.app) is never a production URL. */
 export const CANONICAL_ORIGIN = "https://stayboost.se";
 
+/** First-byte hide for the hosted Lovable badge (Pro setting removes it on republish). */
+export const HIDE_LOVABLE_BADGE_CSS =
+  "#lovable-badge,#lovable-badge *,.lovable-badge{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important}";
+
 export function canonicalUrl(path = "/"): string {
   const normalized = path.startsWith("/") ? path : `/${path}`;
   if (normalized === "/") return `${CANONICAL_ORIGIN}/`;

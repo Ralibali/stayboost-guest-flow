@@ -9,7 +9,7 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, type ReactNode } from "react";
 
-import { CANONICAL_ORIGIN, canonicalUrl } from "../lib/site-url";
+import { CANONICAL_ORIGIN, HIDE_LOVABLE_BADGE_CSS, canonicalUrl } from "../lib/site-url";
 import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
@@ -210,6 +210,7 @@ function RootShell({ children }: { children: ReactNode }) {
     <html lang="sv">
       <head>
         <HeadContent />
+        <style id="stayboost-hide-lovable-badge">{HIDE_LOVABLE_BADGE_CSS}</style>
       </head>
       <body>
         {children}

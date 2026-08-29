@@ -36,7 +36,9 @@ describe("kanonisk värd (gästlänkar / legal / Stripe)", () => {
       "src/routes/villkor.tsx",
       "src/routes/integritetspolicy.tsx",
       "src/routes/dpa.tsx",
+      "src/routes/g/$token.tsx",
       "src/routes/__root.tsx",
+      "src/lib/site-url.ts",
       "src/lib/subscribe.server.ts",
       "src/components/landing/LeadMagnet.tsx",
       "src/components/landing/BookFounder.tsx",
@@ -53,6 +55,16 @@ describe("kanonisk värd (gästlänkar / legal / Stripe)", () => {
       if (file === "DEPLOY.md" || file === ".env.example") continue;
       expect(text, file).not.toMatch(/https:\/\/[a-z0-9.-]*lovable\.app/);
     }
+  });
+
+  it("gömmer Lovable-badgen i first-byte CSS och sätter gästcanonical till stayboost.se", () => {
+    expect(read("src/lib/site-url.ts")).toContain("HIDE_LOVABLE_BADGE_CSS");
+    expect(read("src/routes/__root.tsx")).toContain("HIDE_LOVABLE_BADGE_CSS");
+    expect(read("src/styles.css")).toContain("#lovable-badge");
+    const guest = read("src/routes/g/$token.tsx");
+    expect(guest).toContain("canonicalUrl");
+    expect(guest).toContain("`/g/${params.token}`");
+    expect(guest).not.toMatch(/lovable\.app/);
   });
 });
 

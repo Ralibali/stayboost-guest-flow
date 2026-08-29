@@ -1,10 +1,10 @@
 # StayBoost · Go-live-guide
 
-HQ-checklista för **en** anläggning. StayBoost är **inte live** förrän varje
-obligatorisk ruta nedan är ikryssad i den skarpa miljön. Preview-hosten
-`*.lovable.app` är **inte** produktion. `stayboost.se` är den
-avsedda kanoniska värden men DNS är ett **OWNER GATE** — den här filen deployar
-ingenting.
+HQ-checklista för **en** anläggning. StayBoost är **inte kommersiellt live**
+förrän varje obligatorisk ruta nedan är ikryssad i den skarpa miljön.
+Preview-hosten `*.lovable.app` är **inte** produktion. `stayboost.se` är den
+kanoniska värden. DNS kan redan peka (A → `185.158.133.1`) — det är **inte**
+cutover. Den här filen deployar ingenting och sätter inga Stripe-live-nycklar.
 
 Hoppa inte över steg. Ett hoppat steg = inte live-klar.
 
@@ -156,10 +156,11 @@ Signup i `/app/login` är **av** om inte `VITE_ALLOW_PUBLIC_SIGNUP=true`. Inlogg
 
 ## 9. Domän — OWNER GATE
 
-- [ ] `stayboost.se` (A → Lovable `185.158.133.1` + TXT `_lovable`) **eller** den skarpa bokningsdomänen
+- [x] `stayboost.se` DNS-live (A → Lovable `185.158.133.1`, HTTPS 200). **Inte** kommersiell go-live.
 - [ ] Preview `*.lovable.app` används inte i mejl, gästlänkar, Stripe eller legal canonicals
+- [ ] Lovable **Hide Lovable badge** på i Project settings → Publishing (Pro). Koden gömmer `#lovable-badge` som reserv.
 
-Koden defaultar till `https://stayboost.se`. DNS måste pekas av HQ. Den här PR:n köper ingen domän.
+Koden defaultar till `https://stayboost.se`. Republish krävs för att first-byte på den skarpa domänen ska sluta läcka preview-URL:er. Den här PR:n köper ingen domän.
 
 ## 10. Röktest före cutover
 
