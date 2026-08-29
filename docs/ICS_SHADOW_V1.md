@@ -3,6 +3,12 @@
 Candidate architecture on top of `ical_sources` / `ical-sync` / `ical-export`.
 Not live to OTAs. Do not merge as a go-live switch without owner gate.
 
+## Libraries (WP-SB-ICAL-LIBS-1)
+
+- **Parse:** kewisch `ical.js` 2.2.1 (MPL-2.0). DATE-only nights stay put; UTC DATE-TIME is converted to `Europe/Stockholm`. Do not add a hand-rolled RFC 5545 parser.
+- **Generate:** existing `ics-export.ts` (DATE-only). LAST-MODIFIED is UTC `Z`, STATUS may be `CANCELLED`, lines fold at 75 octets.
+- Rejected: `ical-generator`, `node-ical` `fromURL`, `@pipobscure/ical`, `ics-suite`, abandoned `ical`/`icalendar`.
+
 ## What this adds
 
 - `calendar_events` with `tenant_id` + `origin_channel`

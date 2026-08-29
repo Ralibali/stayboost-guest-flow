@@ -72,6 +72,21 @@ END:VCALENDAR`;
     expect(parsed[0].endDate).toBe("2026-10-27");
   });
 
+  it("UTC DATE-TIME just before midnight lands on the Stockholm civil date", () => {
+    // 24 Oct 2026 22:00Z = 25 Oct 00:00 CEST (UTC+2), still before the 03:00 fall-back.
+    const ics = `BEGIN:VCALENDAR
+BEGIN:VEVENT
+UID:midnight-utc@airbnb.com
+DTSTART:20261024T220000Z
+DTEND:20261026T100000Z
+SUMMARY:Reserved
+END:VEVENT
+END:VCALENDAR`;
+    const parsed = parseIcs(ics);
+    expect(parsed[0].startDate).toBe("2026-10-25");
+    expect(parsed[0].endDate).toBe("2026-10-26");
+  });
+
   it("UTC DATE-TIME converts to Europe/Stockholm calendar date", () => {
     // 28 Mar 2026 23:00Z = 29 Mar 00:00 CET (still UTC+1, before 02:00 jump).
     const ics = `BEGIN:VCALENDAR
@@ -175,6 +190,18 @@ describe("ICS generate (busy VEVENT only)", () => {
     expect(ics).not.toContain("Anna");
     expect(ics).not.toContain("Bokad");
     expect(icsEscape("busy")).toBe("busy");
+  });
+
+  it("emits STATUS:CANCELLED and folds at 75 octets", () => {
+    const ics = buildBusyIcs(
+      [{ uid: "cx@stayboost", startDate: "2026-08-10", endDate: "2026-08-12", status: "CANCELLED" }],
+      "x".repeat(80),
+      { dtstamp: "2026-08-01T00:00:00.000Z", lastModified: "2026-08-01T00:00:00.000Z" },
+    );
+    expect(ics).toContain("STATUS:CANCELLED");
+    expect(ics).toContain("LAST-MODIFIED:20260801T000000Z");
+    const nameLine = ics.split("\r\n").find((line) => line.startsWith("X-WR-CALNAME:"));
+    expect(nameLine && new TextEncoder().encode(nameLine).length).toBeLessThanOrEqual(75);
   });
 });
 
@@ -488,6 +515,18 @@ describe("shadow path guards (source)", () => {
     expect(sync).toContain("sanitizeFeedError");
     expect(sync).toContain("If-None-Match");
     expect(sync).not.toContain("results.push({ source: source.name, url:");
+  });
+
+  it("parses with kewisch ical.js and rejects forbidden ICS libraries", () => {
+    const parser = readFileSync(join(__dirname, "../../supabase/functions/_shared/ics.ts"), "utf8");
+    const pkg = readFileSync(join(__dirname, "../../package.json"), "utf8");
+    expect(parser).toContain('from "ical.js"');
+    expect(parser).not.toContain("value.match(/^(\\d{4})(\\d{2})(\\d{2})");
+    expect(pkg).toContain('"ical.js"');
+    expect(pkg).not.toContain("ical-generator");
+    expect(pkg).not.toContain("node-ical");
+    expect(pkg).not.toContain("@pipobscure/ical");
+    expect(pkg).not.toContain("ics-suite");
   });
 
   it("calendar-export is busy-only and looks up the hashed token", () => {

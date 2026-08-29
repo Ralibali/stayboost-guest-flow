@@ -7,6 +7,8 @@ export interface IcsOutEvent {
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD (exklusiv, som i iCal)
   summary: string;
+  status?: "CONFIRMED" | "CANCELLED";
+  lastModified?: string;
 }
 
 /** Escapar textvärden enligt RFC 5545 (kommatecken, semikolon, radbryt). */
@@ -18,12 +20,23 @@ export function icsEscape(text: string): string {
     .replace(/\r?\n/g, "\\n");
 }
 
-/** Vikter långa rader enligt RFC 5545 (max 75 tecken, fortsättningsrad med mellanslag). */
+/** RFC 5545 §3.1: fold at 75 octets, CRLF + WSP. Do not split UTF-8 codepoints. */
 export function foldLine(line: string): string {
-  if (line.length <= 75) return line;
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+  const bytes = encoder.encode(line);
+  if (bytes.length <= 75) return line;
   const parts: string[] = [];
-  for (let i = 0; i < line.length; i += 74) {
-    parts.push((i === 0 ? "" : " ") + line.slice(i, i + 74));
+  let offset = 0;
+  let budget = 75;
+  while (offset < bytes.length) {
+    let end = Math.min(offset + budget, bytes.length);
+    while (end > offset && (bytes[end] & 0xc0) === 0x80) end--;
+    if (end === offset) end = Math.min(offset + budget, bytes.length);
+    const chunk = decoder.decode(bytes.subarray(offset, end));
+    parts.push(offset === 0 ? chunk : ` ${chunk}`);
+    offset = end;
+    budget = 74;
   }
   return parts.join("\r\n");
 }
@@ -49,14 +62,19 @@ export function buildIcs(events: IcsOutEvent[], calendarName: string): string {
     "CALSCALE:GREGORIAN",
     foldLine(`X-WR-CALNAME:${icsEscape(calendarName)}`),
   ];
+  const nowStamp = toIcsUtcStamp(new Date().toISOString());
   for (const e of events) {
+    const status = e.status === "CANCELLED" ? "CANCELLED" : "CONFIRMED";
+    const lastModified = toIcsUtcStamp(e.lastModified ?? new Date().toISOString());
     lines.push(
       "BEGIN:VEVENT",
       foldLine(`UID:${e.uid}`),
       `DTSTART;VALUE=DATE:${toIcsDate(e.startDate)}`,
       `DTEND;VALUE=DATE:${toIcsDate(e.endDate)}`,
+      `DTSTAMP:${nowStamp}`,
+      `LAST-MODIFIED:${lastModified}`,
       foldLine(`SUMMARY:${icsEscape(e.summary)}`),
-      "STATUS:CONFIRMED",
+      `STATUS:${status}`,
       "TRANSP:OPAQUE",
       "END:VEVENT"
     );
@@ -69,6 +87,7 @@ export type BusyIcsEvent = {
   uid: string;
   startDate: string;
   endDate: string;
+  status?: "CONFIRMED" | "CANCELLED";
 };
 
 /** Shadow / tenant-native export: busy VEVENTs only. No guest or payment fields. */
@@ -95,7 +114,7 @@ export function buildBusyIcs(
       `DTEND;VALUE=DATE:${toIcsDate(e.endDate)}`,
       `DTSTAMP:${dtstamp}`,
       `LAST-MODIFIED:${lastModified}`,
-      "STATUS:CONFIRMED",
+      `STATUS:${e.status === "CANCELLED" ? "CANCELLED" : "CONFIRMED"}`,
       "SUMMARY:busy",
       "END:VEVENT",
     );
