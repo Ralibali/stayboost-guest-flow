@@ -91,6 +91,38 @@ describe("kanonisk värd (legal / OG)", () => {
   });
 });
 
+describe("public sitemap", () => {
+  const SITEMAP_ALLOWLIST = [
+    "https://stayboost.se/",
+    "https://stayboost.se/cookies",
+    "https://stayboost.se/villkor",
+    "https://stayboost.se/integritetspolicy",
+    "https://stayboost.se/dpa",
+  ] as const;
+
+  it("urlset is exactly the HQ live-200 allowlist", () => {
+    const xml = read("public/sitemap.xml");
+    expect(xml).not.toMatch(/lovable\.app/i);
+    expect(xml).not.toMatch(/\/app(?:\/|"|'|\s|<|$)/);
+    expect(xml).not.toMatch(/<!--/);
+
+    const locs = [...xml.matchAll(/<loc>\s*([^<]+)\s*<\/loc>/g)].map((match) => match[1].trim());
+    expect(locs).toHaveLength(SITEMAP_ALLOWLIST.length);
+    expect(new Set(locs)).toEqual(new Set(SITEMAP_ALLOWLIST));
+
+    for (const loc of locs) {
+      const url = new URL(loc);
+      expect(url.origin).toBe("https://stayboost.se");
+      expect(url.search).toBe("");
+      expect(url.hash).toBe("");
+      expect(url.pathname.startsWith("/app")).toBe(false);
+    }
+
+    expect(locs.filter((loc) => loc === "https://stayboost.se/")).toHaveLength(1);
+    expect(locs.filter((loc) => loc.endsWith("/") && loc !== "https://stayboost.se/")).toEqual([]);
+  });
+});
+
 describe("BLOCKED_BADGE", () => {
   it("legal/index-rutter injicerar inte lovable-badge — host-injektion", () => {
     const files = [
