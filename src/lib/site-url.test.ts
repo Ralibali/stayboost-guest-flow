@@ -92,7 +92,7 @@ describe("kanonisk värd (legal / OG)", () => {
 });
 
 describe("BLOCKED_BADGE", () => {
-  it("lovable-badge finns inte i källan — host-injektion, inte en CSS-gömning", () => {
+  it("legal/index-rutter injicerar inte lovable-badge — host-injektion", () => {
     const files = [
       "src/routes/__root.tsx",
       "src/routes/index.tsx",
@@ -101,7 +101,6 @@ describe("BLOCKED_BADGE", () => {
       "src/routes/cookies.tsx",
       "src/routes/dpa.tsx",
       "src/components/legal/LegalLayout.tsx",
-      "src/styles.css",
       "src/lib/site-url.ts",
     ];
     for (const file of files) {
@@ -110,5 +109,7 @@ describe("BLOCKED_BADGE", () => {
       expect(text, file).not.toContain("lovable.dev/projects/");
       expect(text, file).not.toMatch(/#lovable-badge/);
     }
+    // main landed a first-byte CSS hide in styles.css (Lovable). That is not
+    // this PR's legal-canonical fix; the badge markup is still host-injected.
   });
 });
