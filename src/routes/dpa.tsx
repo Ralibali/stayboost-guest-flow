@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalLayout } from "@/components/legal/LegalLayout";
-import { canonicalUrl } from "@/lib/canonical";
+import { canonicalUrl } from "@/lib/site-url";
 
 const CANONICAL = canonicalUrl("/dpa");
 

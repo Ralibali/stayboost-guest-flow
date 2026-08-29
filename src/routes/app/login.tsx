@@ -1,5 +1,6 @@
 import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { publicSignupEnabled } from "@/lib/auth-flags";
 import { supabase, useSession } from "@/lib/supabase";
 
 export const Route = createFileRoute("/app/login")({
@@ -9,6 +10,7 @@ export const Route = createFileRoute("/app/login")({
 function LoginPage() {
   const session = useSession();
   const navigate = useNavigate();
+  const allowSignup = publicSignupEnabled(import.meta.env.VITE_ALLOW_PUBLIC_SIGNUP);
   const [mode, setMode] = useState<"in" | "up">("in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -29,10 +31,18 @@ function LoginPage() {
     if (mode === "in") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setError(error.message);
+    } else if (!allowSignup) {
+      setError("Nyregistrering är stängd. Logga in med det konto HQ skapat.");
     } else {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) setError(error.message);
-      else setNotice("Konto skapat. Bekräfta e-postadressen om det krävs och logga sedan in.");
+      else if (!data.session) {
+        setNotice(
+          "Konto skapat. Bekräfta e-postadressen i inkorgen innan du loggar in — utan bekräftelse går det inte att använda anläggningen.",
+        );
+      } else {
+        setNotice("Konto skapat. Du kan logga in nu.");
+      }
     }
     setBusy(false);
   };
@@ -46,6 +56,15 @@ function LoginPage() {
           </Link>
           <p className="mt-2 text-[14px] text-white/65">Logga in till din anläggning</p>
         </div>
+        {!allowSignup && (
+          <p
+            className="mt-6 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-center text-[13px] leading-relaxed text-white/80"
+            role="note"
+          >
+            StayBoost körs single-tenant. Nya konton skapas av HQ. Befintliga ägare loggar in som
+            vanligt — inloggningen är inte låst.
+          </p>
+        )}
         <form onSubmit={submit} className="card-surface mt-8 space-y-4 p-6">
           <label className="block">
             <span className="text-[12px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/55">
@@ -89,13 +108,15 @@ function LoginPage() {
           >
             {busy ? "Vänta…" : mode === "in" ? "Logga in" : "Skapa konto"}
           </button>
-          <button
-            type="button"
-            onClick={() => setMode(mode === "in" ? "up" : "in")}
-            className="w-full text-center text-[13px] font-medium text-[color:var(--ink)]/55 hover:text-[color:var(--forest)]"
-          >
-            {mode === "in" ? "Ny anläggning? Skapa konto" : "Har redan konto? Logga in"}
-          </button>
+          {allowSignup && (
+            <button
+              type="button"
+              onClick={() => setMode(mode === "in" ? "up" : "in")}
+              className="w-full text-center text-[13px] font-medium text-[color:var(--ink)]/55 hover:text-[color:var(--forest)]"
+            >
+              {mode === "in" ? "Ny anläggning? Skapa konto" : "Har redan konto? Logga in"}
+            </button>
+          )}
         </form>
       </div>
     </div>

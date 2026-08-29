@@ -268,8 +268,12 @@ select.field {
   }
 }
 
-/* Dölj Lovable-badgen i första byten (publicerad domän) */
+/* Lovable injects #lovable-badge on hosted HTML. Hide it on stayboost.se. */
 #lovable-badge,
-#lovable-badge * {
+#lovable-badge *,
+.lovable-badge {
   display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }

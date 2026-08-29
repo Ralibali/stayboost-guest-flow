@@ -2,8 +2,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
+import { canonicalUrl } from "@/lib/site-url";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
-import { canonicalUrl } from "@/lib/canonical";
 
 export const Route = createFileRoute("/g/$token")({
   component: GuestPage,

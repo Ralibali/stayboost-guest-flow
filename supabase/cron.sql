@@ -1,6 +1,8 @@
--- StayBoost Fas 1-cron — kör MANUELLT i Supabase SQL Editor efter deploy
--- (ingår inte i migrationen eftersom den kräver cron_secret i Vault
---  och projektets URL). Byt <PROJEKT-REF> mot projektets referens.
+-- StayBoost Fas 1-cron — OBLIGATORISKT, kör MANUELLT i Supabase SQL Editor.
+-- Ingår inte i migrationerna (kräver cron_secret i Vault + projekt-URL).
+-- Utan detta: inga iCal-uppdateringar, inga gästpåminnelser, inga Swish-timeouts.
+-- Den här filen deployar inte cron. Verifiera med select * from cron.job;
+-- Byt <PROJEKT-REF> mot projektets referens. Se DEPLOY.md steg 5.
 --
 -- Förberedelse:
 --   1. Supabase Dashboard → Project Settings → Vault → skapa hemligheten

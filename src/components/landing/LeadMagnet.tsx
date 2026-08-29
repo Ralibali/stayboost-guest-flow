@@ -108,7 +108,6 @@ export function LeadMagnet() {
                 Vi mejlar PDF:en direkt och skickar sedan tre korta lektioner under veckan om hur du
                 får dem att sälja. Här är en direktlänk om du inte vill vänta:
               </p>
-              {/* TODO: ladda upp PDF till public/mallar/stayboost-12-sms.pdf */}
               <a
                 href="/mallar/stayboost-12-sms.pdf"
                 className="mt-3 inline-flex items-center gap-2 font-semibold text-[color:var(--brass)] underline underline-offset-2"
