@@ -22,7 +22,13 @@ const BRAND_NAME = "StayBoost";
 export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
-    meta: [{ property: "og:url", content: canonicalUrl("/") }],
+    meta: [
+      {
+        name: "google-site-verification",
+        content: "qQp-5rS0NEPk0bognvzXuH7kaRD1etXS99sMYZKbq_Y",
+      },
+      { property: "og:url", content: canonicalUrl("/") },
+    ],
     links: [{ rel: "canonical", href: canonicalUrl("/") }],
   }),
 });
