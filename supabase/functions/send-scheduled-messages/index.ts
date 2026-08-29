@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { formatSvDate, renderTemplate } from "../_shared/templates.ts";
+import { appBaseUrl } from "../_shared/app-url.ts";
 
 // Skickar förfallna meddelanden och frigör obetalda Swish-reservationer.
 // Körs på cron var 5:e minut med x-cron-secret.

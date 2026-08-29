@@ -8,6 +8,7 @@ import {
 } from "../_shared/rate-rules.ts";
 import { priceAddons, sumAddons } from "../_shared/addons.ts";
 import { createCheckoutSession } from "../_shared/stripe.ts";
+import { appBaseUrl } from "../_shared/app-url.ts";
 
 // Publik bokningsmotor. All prissättning, kapacitet och tillgänglighet
 // verifieras server-side. Databastriggern serialiserar samtidiga direktbokningar.
