@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalLayout } from "@/components/legal/LegalLayout";
+import { legalPageUrl } from "@/lib/site-url";
 
-const CANONICAL = "https://stayboost-sverige.lovable.app/dpa";
+const CANONICAL = legalPageUrl("/dpa");
 
 export const Route = createFileRoute("/dpa")({
   component: DPA,

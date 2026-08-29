@@ -15,11 +15,16 @@ import { DemoSms } from "@/components/landing/DemoSms";
 import { CaseStudy } from "@/components/landing/CaseStudy";
 import { BookFounder } from "@/components/landing/BookFounder";
 import { HeroProofBadge } from "@/components/landing/HeroProofBadge";
+import { canonicalUrl } from "@/lib/site-url";
 
 const BRAND_NAME = "StayBoost";
 
 export const Route = createFileRoute("/")({
   component: Index,
+  head: () => ({
+    meta: [{ property: "og:url", content: canonicalUrl("/") }],
+    links: [{ rel: "canonical", href: canonicalUrl("/") }],
+  }),
 });
 
 function Index() {
