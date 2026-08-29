@@ -47,9 +47,11 @@ describe("GSC HTML-file verification", () => {
     const server = read("src/server.ts");
     expect(server).toContain("isGscVerificationRequest");
     expect(server).toContain("gscHtmlResponse");
-    const interceptAt = server.indexOf("isGscVerificationRequest(request)");
-    const spaAt = server.indexOf("getServerEntry");
-    expect(interceptAt).toBeGreaterThan(-1);
+    const fetchAt = server.indexOf("async fetch(request");
+    const interceptAt = server.indexOf("isGscVerificationRequest(request)", fetchAt);
+    const spaAt = server.indexOf("await getServerEntry()", fetchAt);
+    expect(fetchAt).toBeGreaterThan(-1);
+    expect(interceptAt).toBeGreaterThan(fetchAt);
     expect(spaAt).toBeGreaterThan(interceptAt);
   });
 
