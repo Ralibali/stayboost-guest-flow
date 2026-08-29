@@ -21,7 +21,7 @@ import {
   ICAL_FEEDS,
 } from "@/lib/channels-data";
 
-export const Route = createFileRoute("/demo/kanaler")({
+export const Route = createFileRoute("/produkten/kanaler")({
   component: ChannelsView,
 });
 

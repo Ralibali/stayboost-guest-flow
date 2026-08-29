@@ -18,7 +18,7 @@ import {
 import { fmtKr } from "@/lib/demo-data";
 import { REPORT } from "@/lib/channels-data";
 
-export const Route = createFileRoute("/demo/rapporter")({
+export const Route = createFileRoute("/produkten/rapporter")({
   component: ReportsView,
 });
 

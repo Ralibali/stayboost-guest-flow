@@ -43,8 +43,8 @@ function AppLayout() {
           <code className="rounded bg-[color:var(--bg)] px-1.5 py-0.5">supabase/migrations</code>{" "}
           och publicera edge-funktionerna – sedan fungerar allt här.
         </p>
-        <Link to="/demo" className="btn-primary mt-8 inline-flex !rounded-xl !px-6 !py-3">
-          Under tiden: utforska demot →
+        <Link to="/produkten" className="btn-primary mt-8 inline-flex !rounded-xl !px-6 !py-3">
+          Under tiden: utforska produkten →
         </Link>
       </div>
     );

@@ -151,7 +151,7 @@ export function Comparison() {
         <div className="card-surface mt-6 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
           <div>
             <p className="text-[0.68rem] font-medium uppercase tracking-[0.14em] text-[color:var(--ink)]/45">
-              Konkret exempel — live från piloten
+              Konkret exempel — live från Bergs Slussar Glamping
             </p>
             <p className="mt-2 text-[0.95rem] leading-relaxed text-[color:var(--ink)]/80">
               <strong className="font-semibold text-[color:var(--ink)]">

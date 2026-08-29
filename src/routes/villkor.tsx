@@ -12,7 +12,7 @@ export const Route = createFileRoute("/villkor")({
       {
         name: "description",
         content:
-          "Villkoren för att använda StayBoost — abonnemang, provperiod, uppsägning, ansvar, immateriella rättigheter och tvistlösning enligt svensk rätt.",
+          "Villkoren för att använda StayBoost — abonnemang, betalning, uppsägning, ansvar, immateriella rättigheter och tvistlösning enligt svensk rätt.",
       },
       { property: "og:title", content: "Användarvillkor — StayBoost" },
       { property: "og:url", content: CANONICAL },
@@ -27,8 +27,8 @@ function Terms() {
     <LegalLayout title="Användarvillkor" updated="12 juli 2026">
       <p>
         Dessa villkor gäller när <strong>Aurora Media AB</strong> (”StayBoost”) tillhandahåller
-        tjänsten StayBoost till dig som kund. Genom att skapa konto, starta provperiod eller använda
-        tjänsten godkänner du villkoren.
+        tjänsten StayBoost till dig som kund. Genom att skapa konto eller använda tjänsten godkänner
+        du villkoren.
       </p>
 
       <h2>1. Tjänsten</h2>
@@ -45,10 +45,10 @@ function Terms() {
         tjänsten eller använda den för olagligt eller vilseledande innehåll.
       </p>
 
-      <h2>3. Provperiod</h2>
+      <h2>3. Abonnemang</h2>
       <p>
-        Ny kund får 14 dagars kostnadsfri provperiod. Provperioden övergår inte automatiskt till
-        betalt abonnemang — du väljer aktivt att fortsätta.
+        Tjänsten abonneras månadsvis till aktuellt listpris (f.n. 449 kr/mån exkl. moms).
+        Abonnemanget löper utan bindningstid och kan sägas upp när som helst enligt avsnitt 5.
       </p>
 
       <h2>4. Pris och betalning</h2>

@@ -10,7 +10,7 @@ import { LeadMagnet } from "@/components/landing/LeadMagnet";
 import { LiveDemo } from "@/components/landing/LiveDemo";
 import { Comparison } from "@/components/landing/Comparison";
 import { StickyMobileCTA } from "@/components/landing/StickyMobileCTA";
-import { EarlyAccessForm } from "@/components/landing/EarlyAccessForm";
+import { SignupCta } from "@/components/landing/SignupCta";
 import { DemoSms } from "@/components/landing/DemoSms";
 import { CaseStudy } from "@/components/landing/CaseStudy";
 import { BookFounder } from "@/components/landing/BookFounder";
@@ -72,11 +72,6 @@ function Header() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const scrollToHeroForm = (e: React.MouseEvent) => {
-    e.preventDefault();
-    document.getElementById("hero-form")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   return (
     <header
       className={`sticky top-0 z-50 backdrop-blur transition-colors ${
@@ -96,8 +91,8 @@ function Header() {
           <a href="#produkten" className="hover:text-[color:var(--brass)]">
             Produkten
           </a>
-          <Link to="/demo" className="font-semibold text-[color:var(--brass)]">
-            Testa demon
+          <Link to="/produkten" className="font-semibold text-[color:var(--brass)]">
+            Utforska
           </Link>
           <a href="#pris" className="hover:text-[color:var(--brass)]">
             Pris
@@ -109,14 +104,14 @@ function Header() {
             Logga in
           </Link>
         </nav>
-        <a
-          href="#hero-form"
-          onClick={scrollToHeroForm}
+        <Link
+          to="/app/login"
+          search={{ mode: "up" }}
           className="btn-primary shrink-0"
           style={{ padding: "9px 16px", fontSize: "0.85rem" }}
         >
-          Prova gratis
-        </a>
+          Kom igång
+        </Link>
       </div>
     </header>
   );
@@ -192,24 +187,23 @@ function Hero() {
           </FadeUp>
           <FadeUp delay={0.2}>
             <div className="mt-6 max-w-md sm:mt-8">
-              <EarlyAccessForm location="hero" variant="dark" buttonLabel="Få tidig tillgång" />
+              <SignupCta location="hero" variant="dark" buttonLabel="Kom igång" />
             </div>
             <p className="mt-3 text-[0.8rem] text-white/70 sm:mt-4 sm:text-[0.85rem]">
-              Inget kort. Igång på en kväll.{" "}
               <a
-                href="#demo-sms"
+                href="#prova-sms"
                 onClick={() => {
                   if (typeof window === "undefined") return;
                   const w = window as unknown as {
                     plausible?: (e: string, opts?: { props?: Record<string, string> }) => void;
                   };
-                  w.plausible?.("Hero Demo Link Clicked", {
-                    props: { target: "demo-sms", label: "testa gästflödet via SMS" },
+                  w.plausible?.("Hero Sms Link Clicked", {
+                    props: { target: "prova-sms", label: "känn på gästflödet via sms" },
                   });
                 }}
                 className="underline decoration-white/40 underline-offset-2 hover:text-white hover:decoration-white"
               >
-                eller testa gästflödet via sms
+                eller känn på gästflödet via sms
               </a>
             </p>
           </FadeUp>
@@ -232,9 +226,9 @@ function SocialProof() {
     <section className="border-y border-[color:var(--line)] bg-white/60">
       <div className="mx-auto max-w-[1120px] px-6 py-6">
         <p className="text-center text-sm text-[color:var(--ink)]/70">
-          I pilotdrift på{" "}
-          <strong className="font-semibold text-[color:var(--ink)]">Göta Kanal Glamping</strong> —
-          byggd av ägaren, testad på riktiga gäster.{" "}
+          I skarp drift på{" "}
+          <strong className="font-semibold text-[color:var(--ink)]">Bergs Slussar Glamping</strong>{" "}
+          — byggd av ägaren, beprövad på riktiga gäster.{" "}
           <a href="#case-study" className="text-[color:var(--brass)] underline underline-offset-2">
             Se siffrorna →
           </a>
@@ -471,7 +465,7 @@ function GuestHubMock() {
   return (
     <div className="mx-auto max-w-[260px] rounded-2xl border border-[color:var(--line)] bg-[color:var(--bg)] p-4">
       <div className="text-center">
-        <div className="font-[Fraunces] text-lg font-semibold">Sjöbrisretreatet</div>
+        <div className="font-[Fraunces] text-lg font-semibold">Bergs Slussar Glamping</div>
         <div className="text-xs text-[color:var(--ink)]/55">Anna · 12–14 juli</div>
       </div>
       <div className="mt-4 space-y-2 text-sm">
@@ -515,20 +509,29 @@ function Testimonial() {
         </FadeUp>
         <FadeUp delay={0.1}>
           <div className="mt-8 flex items-center justify-center gap-3">
-            {/* TODO: byt platshållar-avatar */}
-            <div className="h-12 w-12 rounded-full bg-[color:var(--line)]" aria-hidden />
+            <div
+              className="grid h-12 w-12 place-items-center rounded-full bg-[color:var(--forest)] font-[Fraunces] text-sm font-semibold text-white"
+              aria-hidden
+            >
+              BS
+            </div>
             <div className="text-left text-sm">
-              {/* TODO: byt platshållar-namn */}
-              <div className="font-semibold">Namn Efternamn</div>
-              <div className="text-[color:var(--ink)]/60">Ägare, [Anläggning]</div>
+              <div className="font-semibold">Bergs Slussar Glamping</div>
+              <div className="text-[color:var(--ink)]/60">
+                Glamping vid Göta kanal — kör StayBoost i skarp drift
+              </div>
             </div>
           </div>
         </FadeUp>
 
         <div className="mx-auto mt-16 max-w-md border-t border-[color:var(--line)] pt-8">
           <div className="flex items-center justify-center gap-3 text-sm text-[color:var(--ink)]/70">
-            {/* TODO: byt platshållar-porträtt */}
-            <div className="h-9 w-9 rounded-full bg-[color:var(--line)]" aria-hidden />
+            <div
+              className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[color:var(--brass)]/15 font-[Fraunces] text-[0.7rem] font-semibold text-[color:var(--brass)]"
+              aria-hidden
+            >
+              BS
+            </div>
             <span>
               Byggt av ägaren till <strong>Bergs Slussar Glamping</strong> — för att jag behövde det
               själv.
@@ -633,7 +636,7 @@ function Pricing() {
             </ul>
 
             <div className="mt-8">
-              <EarlyAccessForm location="pricing" buttonLabel="Få tidig tillgång" />
+              <SignupCta location="pricing" buttonLabel="Kom igång" />
             </div>
             <p className="mt-4 text-center text-xs text-[color:var(--ink)]/55">
               Betalar det inte för sig själv första månaden gör det inte sitt jobb.
@@ -660,15 +663,8 @@ function FinalCTA() {
         </FadeUp>
         <FadeUp delay={0.1}>
           <div className="mx-auto mt-8 max-w-md">
-            <EarlyAccessForm
-              location="final"
-              variant="dark"
-              buttonLabel="Starta min tidiga tillgång"
-            />
+            <SignupCta location="final" variant="dark" buttonLabel="Skapa konto — kom igång" />
           </div>
-          <p className="mt-4 text-sm text-white/60">
-            14 dagar gratis · Inget kort · Igång på en kväll
-          </p>
         </FadeUp>
       </div>
     </section>
@@ -739,7 +735,6 @@ function Footer() {
         </div>
         <div className="text-sm">
           <div className="mb-3 font-semibold text-white">Kontakt</div>
-          {/* TODO: byt platshållar-e-post */}
           <p>info@stayboost.se</p>
           <p className="mt-1">Linköping, Sverige</p>
         </div>

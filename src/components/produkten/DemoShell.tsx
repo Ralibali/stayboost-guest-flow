@@ -22,29 +22,29 @@ const DEMO_GROUPS = [
   {
     label: "Gäst",
     views: [
-      { to: "/demo/gast", label: "Gästhubb", icon: BedDouble },
-      { to: "/demo/boka", label: "Boka", icon: CalendarDays },
-      { to: "/demo/min-sida", label: "Min sida", icon: CircleUserRound },
-      { to: "/demo/incheckning", label: "Incheckning", icon: KeyRound },
+      { to: "/produkten/gast", label: "Gästhubb", icon: BedDouble },
+      { to: "/produkten/boka", label: "Boka", icon: CalendarDays },
+      { to: "/produkten/min-sida", label: "Min sida", icon: CircleUserRound },
+      { to: "/produkten/incheckning", label: "Incheckning", icon: KeyRound },
     ],
   },
   {
     label: "Team",
     views: [
-      { to: "/demo/frukost", label: "Frukost", icon: Croissant },
-      { to: "/demo/stad", label: "Städning", icon: ClipboardList },
-      { to: "/demo/dagsoversikt", label: "Dagsöversikt", icon: Sun },
-      { to: "/demo/personal", label: "Personal", icon: Users },
+      { to: "/produkten/frukost", label: "Frukost", icon: Croissant },
+      { to: "/produkten/stad", label: "Städning", icon: ClipboardList },
+      { to: "/produkten/dagsoversikt", label: "Dagsöversikt", icon: Sun },
+      { to: "/produkten/personal", label: "Personal", icon: Users },
     ],
   },
   {
     label: "Ägare",
     views: [
-      { to: "/demo/admin", label: "Admin", icon: LayoutDashboard },
-      { to: "/demo/bokningar", label: "Bokningar", icon: CalendarRange },
-      { to: "/demo/kanaler", label: "Kanaler", icon: Globe },
-      { to: "/demo/rapporter", label: "Rapporter", icon: ChartColumn },
-      { to: "/demo/gaster", label: "Gäster", icon: ContactRound },
+      { to: "/produkten/admin", label: "Admin", icon: LayoutDashboard },
+      { to: "/produkten/bokningar", label: "Bokningar", icon: CalendarRange },
+      { to: "/produkten/kanaler", label: "Kanaler", icon: Globe },
+      { to: "/produkten/rapporter", label: "Rapporter", icon: ChartColumn },
+      { to: "/produkten/gaster", label: "Gäster", icon: ContactRound },
     ],
   },
 ] as const;
@@ -62,10 +62,10 @@ export function DemoShell({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-[color:var(--bg)]">
       <header className="sticky top-0 z-50 border-b border-white/10 bg-[color:var(--forest)] text-white">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <Link to="/demo" className="flex items-center gap-2">
+          <Link to="/produkten" className="flex items-center gap-2">
             <span className="font-[Fraunces] text-xl font-semibold tracking-tight">StayBoost</span>
             <span className="hidden rounded-full bg-[color:var(--brass)] px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide sm:inline">
-              Demo
+              Produkten
             </span>
           </Link>
           <Link
@@ -122,8 +122,7 @@ export function DemoShell({ children }: { children: ReactNode }) {
 
       <footer className="border-t border-[color:var(--line)] py-6 text-center text-[13px] text-[color:var(--ink)]/55">
         <Sparkles className="mr-1.5 inline-block" size={13} />
-        Demoläge — allt du ser är testdata från fiktiva Bergs Slussar Glamping. Inget bokas eller
-        debiteras på riktigt.
+        Förhandsvisning — allt du ser är exempeldata. Inget bokas eller debiteras på riktigt.
       </footer>
     </div>
   );

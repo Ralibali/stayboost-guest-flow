@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { CLEANING, fmtTime, unitOf } from "@/lib/demo-data";
 
-export const Route = createFileRoute("/demo/stad")({
+export const Route = createFileRoute("/produkten/stad")({
   component: CleaningView,
 });
 

@@ -20,13 +20,13 @@ import {
 } from "lucide-react";
 import { PROPERTY } from "@/lib/demo-data";
 
-export const Route = createFileRoute("/demo/")({
+export const Route = createFileRoute("/produkten/")({
   component: DemoIndex,
 });
 
 const CARDS = [
   {
-    to: "/demo/gast",
+    to: "/produkten/gast",
     icon: BedDouble,
     role: "Gästens vy",
     title: "Gästhubben",
@@ -34,7 +34,7 @@ const CARDS = [
     tag: "Mobilanpassad webbapp",
   },
   {
-    to: "/demo/boka",
+    to: "/produkten/boka",
     icon: CalendarDays,
     role: "Gästens vy",
     title: "Bokningsmotorn",
@@ -42,7 +42,7 @@ const CARDS = [
     tag: "Ny: egen bokningsmotor",
   },
   {
-    to: "/demo/incheckning",
+    to: "/produkten/incheckning",
     icon: KeyRound,
     role: "Gästens vy",
     title: "Digital incheckning",
@@ -50,7 +50,7 @@ const CARDS = [
     tag: "Ingen reception behövs",
   },
   {
-    to: "/demo/min-sida",
+    to: "/produkten/min-sida",
     icon: CircleUserRound,
     role: "Gästens vy",
     title: "Min sida",
@@ -58,7 +58,7 @@ const CARDS = [
     tag: "Som BookSpots Min Sida",
   },
   {
-    to: "/demo/presentkort",
+    to: "/produkten/presentkort",
     icon: Gift,
     role: "Gästens vy",
     title: "Presentkort",
@@ -66,7 +66,7 @@ const CARDS = [
     tag: "BookSpot-favorit",
   },
   {
-    to: "/demo/frukost",
+    to: "/produkten/frukost",
     icon: Croissant,
     role: "Personalens vy",
     title: "Frukostvyn",
@@ -74,7 +74,7 @@ const CARDS = [
     tag: "Rollinloggning för personal",
   },
   {
-    to: "/demo/stad",
+    to: "/produkten/stad",
     icon: ClipboardList,
     role: "Personalens vy",
     title: "Städvyn",
@@ -82,7 +82,7 @@ const CARDS = [
     tag: "Rollinloggning för personal",
   },
   {
-    to: "/demo/dagsoversikt",
+    to: "/produkten/dagsoversikt",
     icon: Sun,
     role: "Personalens vy",
     title: "Dagsöversikt",
@@ -90,7 +90,7 @@ const CARDS = [
     tag: "Ersätter BookSpots Manifest",
   },
   {
-    to: "/demo/personal",
+    to: "/produkten/personal",
     icon: Users,
     role: "Personalens vy",
     title: "Personalresurser",
@@ -98,7 +98,7 @@ const CARDS = [
     tag: "Assigned staff à la BookSpot",
   },
   {
-    to: "/demo/admin",
+    to: "/produkten/admin",
     icon: LayoutDashboard,
     role: "Ägarens vy",
     title: "Ägaröversikt",
@@ -106,7 +106,7 @@ const CARDS = [
     tag: "Hjärtat i StayBoost",
   },
   {
-    to: "/demo/bokningar",
+    to: "/produkten/bokningar",
     icon: CalendarRange,
     role: "Ägarens vy",
     title: "Bokningskalender",
@@ -114,7 +114,7 @@ const CARDS = [
     tag: "Kanalhanterare inbyggd",
   },
   {
-    to: "/demo/kanaler",
+    to: "/produkten/kanaler",
     icon: Globe,
     role: "Ägarens vy",
     title: "Kanalhanterare",
@@ -122,7 +122,7 @@ const CARDS = [
     tag: "Sirvoy-ersättaren",
   },
   {
-    to: "/demo/rapporter",
+    to: "/produkten/rapporter",
     icon: ChartColumn,
     role: "Ägarens vy",
     title: "Rapporter",
@@ -130,7 +130,7 @@ const CARDS = [
     tag: "Backoffice à la BookSpot",
   },
   {
-    to: "/demo/gaster",
+    to: "/produkten/gaster",
     icon: ContactRound,
     role: "Ägarens vy",
     title: "Gästregister",
@@ -148,13 +148,13 @@ function DemoIndex() {
         transition={{ duration: 0.45 }}
         className="max-w-2xl"
       >
-        <p className="eyebrow">Interaktiv produktdemo</p>
+        <p className="eyebrow">Så funkar produkten</p>
         <h1 className="mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
-          Testa hela StayBoost — precis som gästen, personalen och ägaren ser det.
+          Utforska hela StayBoost — precis som gästen, personalen och ägaren ser det.
         </h1>
         <p className="mt-4 text-[color:var(--ink)]/70">
-          Demon är laddat med testdata från fiktiva {PROPERTY.name}. Klicka dig fritt mellan vyerna
-          — allt fungerar, men inget bokas på riktigt.
+          Vyerna är laddade med exempeldata. Klicka dig fritt mellan dem — allt fungerar, men inget
+          bokas på riktigt.
         </p>
       </motion.div>
 

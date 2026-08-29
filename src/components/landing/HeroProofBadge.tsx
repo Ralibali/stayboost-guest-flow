@@ -20,7 +20,7 @@ export function HeroProofBadge() {
         <span className="font-medium text-white">
           {formatSek(stats.paidAddonRevenueSek)} i tillval
         </span>{" "}
-        på {formatInt(stats.bookings2026)} bokningar — live från Göta Kanal Glamping
+        på {formatInt(stats.bookings2026)} bokningar — live från Bergs Slussar Glamping
       </span>
       <span aria-hidden className="shrink-0 transition-transform group-hover:translate-x-0.5">
         →

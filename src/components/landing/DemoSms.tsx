@@ -5,9 +5,9 @@ import { sendDemoSms } from "@/lib/sms.functions";
 
 const ERROR_MESSAGES: Record<string, string> = {
   invalid_number: "Ange ett giltigt svenskt mobilnummer (07x…).",
-  number_used: "Det numret har nått dagens gräns för test-sms.",
+  number_used: "Det numret har nått dagens gräns.",
   ip_limit: "Du har redan begärt flera sms i dag – försök igen i morgon.",
-  global_limit: "Vi har nått dagens demogräns. Prova igen i morgon.",
+  global_limit: "Vi har nått dagens gräns. Försök igen i morgon.",
   server_error: "Något gick fel — försök igen.",
 };
 
@@ -67,26 +67,26 @@ export function DemoSms() {
 
   return (
     <section
-      id="demo-sms"
+      id="prova-sms"
       className="border-t border-[color:var(--line)] bg-white/60 py-16 sm:py-14 sm:py-20 md:py-28"
     >
       <div className="mx-auto max-w-3xl px-5 sm:px-6 text-center">
-        <p className="eyebrow">Testa själv — inget konto</p>
+        <p className="eyebrow">Känn på det — inget konto krävs</p>
         <h2
           className="mt-3 tracking-tight"
           style={{ fontSize: "clamp(1.85rem, 5vw, 3rem)", lineHeight: 1.1 }}
         >
-          Skicka ett test-sms till dig själv.
+          Skicka ett gäst-sms till dig själv.
         </h2>
         <p className="mt-4 text-[color:var(--ink)]/75 sm:mt-5">
           Välj vilket meddelande i gästresan du vill känna på — vi skickar det till ditt nummer med
-          påhittad gästdata. Tar 30 sekunder.
+          exempeldata. Tar 30 sekunder.
         </p>
 
         {/* Scenario picker */}
         <div
           role="radiogroup"
-          aria-label="Välj test-sms"
+          aria-label="Välj sms"
           className="mx-auto mt-8 flex max-w-2xl flex-wrap justify-center gap-2 sm:gap-2.5"
         >
           {SCENARIOS.map((s) => {
@@ -126,11 +126,11 @@ export function DemoSms() {
           noValidate
           className="mx-auto mt-6 flex max-w-md flex-col gap-2 sm:flex-row"
         >
-          <label htmlFor="demo-sms-phone" className="sr-only">
+          <label htmlFor="prova-sms-phone" className="sr-only">
             Mobilnummer
           </label>
           <input
-            id="demo-sms-phone"
+            id="prova-sms-phone"
             type="tel"
             inputMode="tel"
             autoComplete="tel"
@@ -171,7 +171,7 @@ export function DemoSms() {
             {lastSent && (
               <p className="mt-1 text-sm text-[color:var(--ink)]/75">
                 {SCENARIOS.find((s) => s.key === lastSent)?.emoji}{" "}
-                {SCENARIOS.find((s) => s.key === lastSent)?.label} — vill du testa ett till? Välj
+                {SCENARIOS.find((s) => s.key === lastSent)?.label} — vill du skicka ett till? Välj
                 ett annat scenario ovan.
               </p>
             )}

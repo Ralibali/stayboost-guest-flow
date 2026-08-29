@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 
 // TODO: byt till din riktiga bokningslänk (Cal.com / Savvycal / SimplyBook).
 // Cal.com stödjer inbäddning direkt via iframe och postar bekräftelser via postMessage.
@@ -85,13 +86,14 @@ export function BookFounder() {
               </li>
             </ul>
             <p className="mt-6 text-[0.85rem] text-[color:var(--ink)]/55">
-              Föredrar du e-post?{" "}
-              <a
-                href="#hero-form"
+              Föredrar du att hoppa rakt in?{" "}
+              <Link
+                to="/app/login"
+                search={{ mode: "up" }}
                 className="underline decoration-[color:var(--ink)]/30 underline-offset-2 hover:text-[color:var(--ink)]"
               >
-                Få tidig tillgång istället
-              </a>
+                Skapa konto direkt istället
+              </Link>
             </p>
           </div>
 

@@ -23,10 +23,7 @@ import {
   rangesOverlap,
   type UnitPricing,
 } from "../../../supabase/functions/_shared/pricing";
-import {
-  minStayFromRules,
-  type RateRule,
-} from "../../../supabase/functions/_shared/rate-rules";
+import { minStayFromRules, type RateRule } from "../../../supabase/functions/_shared/rate-rules";
 
 export const Route = createFileRoute("/boka/$slug")({
   component: PublicBookingPage,
@@ -45,7 +42,10 @@ const C = {
 } as const;
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const FUNCTIONS_BASE = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "");
+const FUNCTIONS_BASE = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(
+  /\/$/,
+  "",
+);
 const isoToday = () => new Date().toISOString().slice(0, 10);
 const isoOf = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -95,8 +95,10 @@ const EXTRA = {
     errCapacity: (n: number) => `Boendet tar maximalt ${n} gäster.`,
     errRateLimit: "Det har gjorts många bokningsförsök på kort tid. Försök igen om en stund.",
     errClosed: "Boendet är stängt under en del av den valda perioden. Välj andra datum.",
-    errArrival: "Incheckning är inte möjlig på det valda datumet. Välj ett annat incheckningsdatum.",
-    errDeparture: "Utcheckning är inte möjlig på det valda datumet. Välj ett annat utcheckningsdatum.",
+    errArrival:
+      "Incheckning är inte möjlig på det valda datumet. Välj ett annat incheckningsdatum.",
+    errDeparture:
+      "Utcheckning är inte möjlig på det valda datumet. Välj ett annat utcheckningsdatum.",
     nights: (n: number) => `${n} ${n === 1 ? "natt" : "nätter"}`,
     taxesIncluded: "Pris enligt boendets aktuella prisregler.",
     editDates: "Ändra datum",
@@ -144,7 +146,8 @@ const EXTRA = {
     errTerms: "Accept the booking terms to continue.",
     errSwishPhone: "A mobile number is required when choosing Swish.",
     errCapacity: (n: number) => `This accommodation allows a maximum of ${n} guests.`,
-    errRateLimit: "There have been many booking attempts in a short time. Please try again shortly.",
+    errRateLimit:
+      "There have been many booking attempts in a short time. Please try again shortly.",
     errClosed: "The accommodation is closed during part of your selected stay. Choose other dates.",
     errArrival: "Check-in is not available on that date. Choose another arrival date.",
     errDeparture: "Check-out is not available on that date. Choose another departure date.",
@@ -195,7 +198,8 @@ const EXTRA = {
     errTerms: "Akzeptieren Sie die Buchungsbedingungen, um fortzufahren.",
     errSwishPhone: "Für Swish ist eine Mobilnummer erforderlich.",
     errCapacity: (n: number) => `Die Unterkunft erlaubt maximal ${n} Gäste.`,
-    errRateLimit: "Es gab viele Buchungsversuche in kurzer Zeit. Bitte versuchen Sie es später erneut.",
+    errRateLimit:
+      "Es gab viele Buchungsversuche in kurzer Zeit. Bitte versuchen Sie es später erneut.",
     errClosed: "Die Unterkunft ist während eines Teils des gewählten Zeitraums geschlossen.",
     errArrival: "An diesem Datum ist kein Check-in möglich. Wählen Sie ein anderes Datum.",
     errDeparture: "An diesem Datum ist kein Check-out möglich. Wählen Sie ein anderes Datum.",
@@ -377,7 +381,8 @@ function PublicBookingPage() {
         ...(data.property.swishNumber ? (["swish"] as const) : []),
       ] as ("stripe" | "swish")[])
     : [];
-  const payMethod = payChoice && payMethods.includes(payChoice) ? payChoice : (payMethods[0] ?? null);
+  const payMethod =
+    payChoice && payMethods.includes(payChoice) ? payChoice : (payMethods[0] ?? null);
 
   const nameValid = name.trim().length >= 2;
   const emailValid = EMAIL.test(email.trim());
@@ -410,7 +415,7 @@ function PublicBookingPage() {
     if (departureBlocked(unit, iso)) return;
     if (!rangeFree(unit, checkin, iso)) return;
     const nights: string[] = [];
-    for (let current = checkin; current < iso; ) {
+    for (let current = checkin; current < iso;) {
       nights.push(current);
       const date = new Date(`${current}T00:00:00Z`);
       date.setUTCDate(date.getUTCDate() + 1);
@@ -518,10 +523,18 @@ function PublicBookingPage() {
 
   if (loadError) {
     return (
-      <div className="grid min-h-screen place-items-center px-6 text-center" style={{ background: C.page, color: C.ink }}>
-        <div className="max-w-md rounded-[32px] border bg-white p-10" style={{ borderColor: C.line }}>
+      <div
+        className="grid min-h-screen place-items-center px-6 text-center"
+        style={{ background: C.page, color: C.ink }}
+      >
+        <div
+          className="max-w-md rounded-[32px] border bg-white p-10"
+          style={{ borderColor: C.line }}
+        >
           <p className="font-[Fraunces] text-3xl">{t.notFoundTitle}</p>
-          <p className="mt-3 text-[15px] leading-relaxed" style={{ color: C.muted }}>{t.notFoundBody}</p>
+          <p className="mt-3 text-[15px] leading-relaxed" style={{ color: C.muted }}>
+            {t.notFoundBody}
+          </p>
         </div>
       </div>
     );
@@ -539,26 +552,50 @@ function PublicBookingPage() {
 
   if (done) {
     return (
-      <div className="min-h-screen px-5 py-10 sm:py-16" style={{ background: C.page, color: C.ink }}>
-        <div className="mx-auto max-w-2xl overflow-hidden rounded-[34px] border bg-white shadow-[0_24px_80px_rgba(23,35,29,0.08)]" style={{ borderColor: C.line }}>
+      <div
+        className="min-h-screen px-5 py-10 sm:py-16"
+        style={{ background: C.page, color: C.ink }}
+      >
+        <div
+          className="mx-auto max-w-2xl overflow-hidden rounded-[34px] border bg-white shadow-[0_24px_80px_rgba(23,35,29,0.08)]"
+          style={{ borderColor: C.line }}
+        >
           <div className="p-7 sm:p-10">
-            <span className="grid h-14 w-14 place-items-center rounded-full text-white" style={{ background: C.forest }}>
+            <span
+              className="grid h-14 w-14 place-items-center rounded-full text-white"
+              style={{ background: C.forest }}
+            >
               <Check size={24} />
             </span>
-            <p className="mt-8 text-[11px] font-bold uppercase tracking-[0.2em]" style={{ color: C.brass }}>{t.bookDirect}</p>
-            <h1 className="mt-2 font-[Fraunces] text-4xl font-semibold sm:text-5xl">{t.thankYou}</h1>
+            <p
+              className="mt-8 text-[11px] font-bold uppercase tracking-[0.2em]"
+              style={{ color: C.brass }}
+            >
+              {t.bookDirect}
+            </p>
+            <h1 className="mt-2 font-[Fraunces] text-4xl font-semibold sm:text-5xl">
+              {t.thankYou}
+            </h1>
             <p className="mt-4 text-[15px] leading-relaxed" style={{ color: C.muted }}>
               {unit?.name} · {dateLong(checkin!)} – {dateLong(checkout!)} · {fmtKr(done.total)}
-              <br />{t.confirmationOnWay}
+              <br />
+              {t.confirmationOnWay}
             </p>
 
             {done.swishNumber ? (
-              <div className="mt-8 rounded-[24px] border p-5 sm:p-6" style={{ borderColor: C.line, background: C.page }}>
+              <div
+                className="mt-8 rounded-[24px] border p-5 sm:p-6"
+                style={{ borderColor: C.line, background: C.page }}
+              >
                 <div className="flex items-start gap-3">
-                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white"><CreditCard size={18} /></div>
+                  <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white">
+                    <CreditCard size={18} />
+                  </div>
                   <div>
                     <h2 className="font-sans text-[15px] font-bold">{t.payWithSwish}</h2>
-                    <p className="mt-1 text-[13px]" style={{ color: C.muted }}>{t.swishInstructions(fmtKr(done.total))}</p>
+                    <p className="mt-1 text-[13px]" style={{ color: C.muted }}>
+                      {t.swishInstructions(fmtKr(done.total))}
+                    </p>
                   </div>
                 </div>
                 <div className="mt-5 divide-y" style={{ borderColor: C.line }}>
@@ -576,10 +613,19 @@ function PublicBookingPage() {
                       className="flex w-full items-center justify-between gap-4 py-3.5 text-left"
                     >
                       <span>
-                        <span className="block text-[11px] font-semibold uppercase tracking-[0.12em]" style={{ color: C.muted }}>{row.label}</span>
+                        <span
+                          className="block text-[11px] font-semibold uppercase tracking-[0.12em]"
+                          style={{ color: C.muted }}
+                        >
+                          {row.label}
+                        </span>
                         <span className="mt-0.5 block font-mono text-[16px]">{row.value}</span>
                       </span>
-                      {copied === row.key ? <Check size={17} /> : <Copy size={17} style={{ color: C.muted }} />}
+                      {copied === row.key ? (
+                        <Check size={17} />
+                      ) : (
+                        <Copy size={17} style={{ color: C.muted }} />
+                      )}
                     </button>
                   ))}
                 </div>
@@ -598,7 +644,11 @@ function PublicBookingPage() {
               {copied === "link" ? <Check size={17} /> : <Copy size={17} />}
               {copied === "link" ? t.linkCopied : t.copyGuestLink}
             </button>
-            <a href={guestUrl!} className="mt-4 block text-center text-[13px] font-semibold underline underline-offset-4" style={{ color: C.muted }}>
+            <a
+              href={guestUrl!}
+              className="mt-4 block text-center text-[13px] font-semibold underline underline-offset-4"
+              style={{ color: C.muted }}
+            >
               {t.openGuestPage}
             </a>
           </div>
@@ -612,12 +662,20 @@ function PublicBookingPage() {
       <header className="border-b bg-white/85 backdrop-blur-xl" style={{ borderColor: C.line }}>
         <div className="mx-auto flex max-w-7xl items-center gap-4 px-5 py-4 sm:px-8">
           <div className="min-w-0 flex-1">
-            <p className="truncate font-[Fraunces] text-xl font-semibold sm:text-2xl">{data.property.name}</p>
-            <p className="hidden text-[11px] font-semibold uppercase tracking-[0.16em] sm:block" style={{ color: C.muted }}>
+            <p className="truncate font-[Fraunces] text-xl font-semibold sm:text-2xl">
+              {data.property.name}
+            </p>
+            <p
+              className="hidden text-[11px] font-semibold uppercase tracking-[0.16em] sm:block"
+              style={{ color: C.muted }}
+            >
               {x.secureDirect}
             </p>
           </div>
-          <div className="flex items-center rounded-full border bg-white p-1" style={{ borderColor: C.line }}>
+          <div
+            className="flex items-center rounded-full border bg-white p-1"
+            style={{ borderColor: C.line }}
+          >
             {LANGS.map((language) => (
               <button
                 key={language.id}
@@ -636,27 +694,58 @@ function PublicBookingPage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-5 py-7 sm:px-8 sm:py-10">
-        <div className="mb-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] font-semibold" style={{ color: C.muted }}>
-          <span className="inline-flex items-center gap-1.5"><ShieldCheck size={15} style={{ color: C.forest }} /> {x.securePayment}</span>
-          <span className="inline-flex items-center gap-1.5"><Sparkles size={15} style={{ color: C.forest }} /> {x.directHost}</span>
-          <span className="inline-flex items-center gap-1.5"><Check size={15} style={{ color: C.forest }} /> {x.instantConfirmation}</span>
+        <div
+          className="mb-7 flex flex-wrap items-center gap-x-6 gap-y-2 text-[12px] font-semibold"
+          style={{ color: C.muted }}
+        >
+          <span className="inline-flex items-center gap-1.5">
+            <ShieldCheck size={15} style={{ color: C.forest }} /> {x.securePayment}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Sparkles size={15} style={{ color: C.forest }} /> {x.directHost}
+          </span>
+          <span className="inline-flex items-center gap-1.5">
+            <Check size={15} style={{ color: C.forest }} /> {x.instantConfirmation}
+          </span>
         </div>
 
         <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_390px] xl:gap-10">
           <div className="space-y-7">
-            <section className="overflow-hidden rounded-[30px] border bg-white" style={{ borderColor: C.line }}>
+            <section
+              className="overflow-hidden rounded-[30px] border bg-white"
+              style={{ borderColor: C.line }}
+            >
               <div className="p-6 sm:p-8">
-                <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: C.brass }}>{t.bookDirect}</p>
-                <h1 className="mt-2 max-w-2xl font-[Fraunces] text-4xl font-semibold leading-[1.05] sm:text-5xl">{x.secureDirect}</h1>
-                <p className="mt-3 max-w-xl text-[15px] leading-relaxed" style={{ color: C.muted }}>{x.secureDirectBody}</p>
-                <div className="mt-6 flex flex-wrap gap-2 text-[12px] font-semibold" style={{ color: C.muted }}>
-                  <span className="rounded-full px-3 py-1.5" style={{ background: C.page }}>{t.checkinFrom(data.property.checkinTime)}</span>
-                  <span className="rounded-full px-3 py-1.5" style={{ background: C.page }}>{t.checkoutAt(data.property.checkoutTime)}</span>
+                <p
+                  className="text-[11px] font-bold uppercase tracking-[0.18em]"
+                  style={{ color: C.brass }}
+                >
+                  {t.bookDirect}
+                </p>
+                <h1 className="mt-2 max-w-2xl font-[Fraunces] text-4xl font-semibold leading-[1.05] sm:text-5xl">
+                  {x.secureDirect}
+                </h1>
+                <p className="mt-3 max-w-xl text-[15px] leading-relaxed" style={{ color: C.muted }}>
+                  {x.secureDirectBody}
+                </p>
+                <div
+                  className="mt-6 flex flex-wrap gap-2 text-[12px] font-semibold"
+                  style={{ color: C.muted }}
+                >
+                  <span className="rounded-full px-3 py-1.5" style={{ background: C.page }}>
+                    {t.checkinFrom(data.property.checkinTime)}
+                  </span>
+                  <span className="rounded-full px-3 py-1.5" style={{ background: C.page }}>
+                    {t.checkoutAt(data.property.checkoutTime)}
+                  </span>
                 </div>
               </div>
             </section>
 
-            <section className="rounded-[30px] border bg-white p-5 sm:p-7" style={{ borderColor: C.line }}>
+            <section
+              className="rounded-[30px] border bg-white p-5 sm:p-7"
+              style={{ borderColor: C.line }}
+            >
               <SectionHeading step="01" title={x.chooseStay} description={x.chooseStayBody} />
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 {data.units.map((candidate) => (
@@ -673,9 +762,15 @@ function PublicBookingPage() {
             </section>
 
             {unit ? (
-              <section className="rounded-[30px] border bg-white p-5 sm:p-7" style={{ borderColor: C.line }}>
+              <section
+                className="rounded-[30px] border bg-white p-5 sm:p-7"
+                style={{ borderColor: C.line }}
+              >
                 <SectionHeading step="02" title={x.availability} description={x.dateHint} />
-                <div className="mt-6 rounded-[24px] border p-3 sm:p-5" style={{ borderColor: C.line, background: C.paper }}>
+                <div
+                  className="mt-6 rounded-[24px] border p-3 sm:p-5"
+                  style={{ borderColor: C.line, background: C.paper }}
+                >
                   <div className="flex items-center justify-between px-1">
                     <button
                       onClick={() => setMonthOffset((offset) => Math.max(0, offset - 1))}
@@ -687,7 +782,11 @@ function PublicBookingPage() {
                       <ChevronLeft size={18} />
                     </button>
                     <span className="text-[13px] font-bold capitalize">
-                      {new Date(new Date().getFullYear(), new Date().getMonth() + monthOffset, 1).toLocaleDateString(locale, { month: "long", year: "numeric" })}
+                      {new Date(
+                        new Date().getFullYear(),
+                        new Date().getMonth() + monthOffset,
+                        1,
+                      ).toLocaleDateString(locale, { month: "long", year: "numeric" })}
                     </span>
                     <button
                       onClick={() => setMonthOffset((offset) => Math.min(11, offset + 1))}
@@ -708,22 +807,37 @@ function PublicBookingPage() {
                     weekdays={t.weekdays}
                     locale={locale}
                   />
-                  <div className="mt-3 flex flex-wrap justify-between gap-2 px-1 text-[11px] font-medium" style={{ color: C.muted }}>
+                  <div
+                    className="mt-3 flex flex-wrap justify-between gap-2 px-1 text-[11px] font-medium"
+                    style={{ color: C.muted }}
+                  >
                     <span>{t.minStay(unit.minStay)}</span>
                     <span>{t.weekendUplift(unit.weekendPct)}</span>
                   </div>
                 </div>
 
                 {checkin ? (
-                  <div className="mt-4 grid gap-3 rounded-[22px] p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-center" style={{ background: C.forestSoft }}>
+                  <div
+                    className="mt-4 grid gap-3 rounded-[22px] p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-center"
+                    style={{ background: C.forestSoft }}
+                  >
                     <DateSummary label={x.checkin} value={dateLong(checkin)} />
                     <DateSummary label={x.checkout} value={checkout ? dateLong(checkout) : "—"} />
-                    <button onClick={resetDates} className="text-left text-[12px] font-bold underline underline-offset-4 sm:text-right" style={{ color: C.forest }}>{x.editDates}</button>
+                    <button
+                      onClick={resetDates}
+                      className="text-left text-[12px] font-bold underline underline-offset-4 sm:text-right"
+                      style={{ color: C.forest }}
+                    >
+                      {x.editDates}
+                    </button>
                   </div>
                 ) : null}
 
                 {quote && !minStayOk ? (
-                  <p className="mt-4 rounded-2xl px-4 py-3 text-[13px] font-medium" style={{ background: "#FFF4E8", color: "#915628" }}>
+                  <p
+                    className="mt-4 rounded-2xl px-4 py-3 text-[13px] font-medium"
+                    style={{ background: "#FFF4E8", color: "#915628" }}
+                  >
                     {t.minStayWarning(unit.name, requiredMinStay)}
                   </p>
                 ) : null}
@@ -731,7 +845,10 @@ function PublicBookingPage() {
             ) : null}
 
             {unit && data.addons.length > 0 ? (
-              <section className="rounded-[30px] border bg-white p-5 sm:p-7" style={{ borderColor: C.line }}>
+              <section
+                className="rounded-[30px] border bg-white p-5 sm:p-7"
+                style={{ borderColor: C.line }}
+              >
                 <SectionHeading step="03" title={t.addonsTitle} description="" />
                 <div className="mt-5 divide-y" style={{ borderColor: C.line }}>
                   {data.addons.map((addon) => {
@@ -739,39 +856,75 @@ function PublicBookingPage() {
                     return (
                       <div key={addon.id} className="flex gap-4 py-4 first:pt-0 last:pb-0">
                         {addon.imageUrl ? (
-                          <img src={addon.imageUrl} alt="" className="h-20 w-20 shrink-0 rounded-2xl object-cover" />
+                          <img
+                            src={addon.imageUrl}
+                            alt=""
+                            className="h-20 w-20 shrink-0 rounded-2xl object-cover"
+                          />
                         ) : (
-                          <div className="grid h-20 w-20 shrink-0 place-items-center rounded-2xl" style={{ background: C.page, color: C.muted }}><Sparkles size={20} /></div>
+                          <div
+                            className="grid h-20 w-20 shrink-0 place-items-center rounded-2xl"
+                            style={{ background: C.page, color: C.muted }}
+                          >
+                            <Sparkles size={20} />
+                          </div>
                         )}
                         <div className="min-w-0 flex-1">
                           <div className="flex items-start justify-between gap-4">
                             <div>
                               <p className="text-[14px] font-bold">{addon.name}</p>
-                              {addon.description ? <p className="mt-1 line-clamp-2 text-[12px] leading-relaxed" style={{ color: C.muted }}>{addon.description}</p> : null}
+                              {addon.description ? (
+                                <p
+                                  className="mt-1 line-clamp-2 text-[12px] leading-relaxed"
+                                  style={{ color: C.muted }}
+                                >
+                                  {addon.description}
+                                </p>
+                              ) : null}
                             </div>
-                            <p className="shrink-0 text-[13px] font-bold">{fmtKr(addon.price)}{addon.priceType === "per_night" ? t.perNight : ""}</p>
+                            <p className="shrink-0 text-[13px] font-bold">
+                              {fmtKr(addon.price)}
+                              {addon.priceType === "per_night" ? t.perNight : ""}
+                            </p>
                           </div>
                           <div className="mt-3 flex items-center justify-end gap-2">
                             {qty === 0 ? (
                               <button
-                                onClick={() => setAddonQty((current) => ({ ...current, [addon.id]: 1 }))}
+                                onClick={() =>
+                                  setAddonQty((current) => ({ ...current, [addon.id]: 1 }))
+                                }
                                 className="rounded-full border px-4 py-2 text-[12px] font-bold"
                                 style={{ borderColor: C.forest, color: C.forest }}
                               >
                                 {t.add}
                               </button>
                             ) : (
-                              <div className="flex items-center gap-2 rounded-full border bg-white p-1" style={{ borderColor: C.line }}>
+                              <div
+                                className="flex items-center gap-2 rounded-full border bg-white p-1"
+                                style={{ borderColor: C.line }}
+                              >
                                 <button
-                                  onClick={() => setAddonQty((current) => ({ ...current, [addon.id]: Math.max(0, qty - 1) }))}
+                                  onClick={() =>
+                                    setAddonQty((current) => ({
+                                      ...current,
+                                      [addon.id]: Math.max(0, qty - 1),
+                                    }))
+                                  }
                                   className="grid h-8 w-8 place-items-center rounded-full"
                                   aria-label={t.decrease}
                                 >
                                   <Minus size={14} />
                                 </button>
-                                <span className="min-w-5 text-center text-[13px] font-bold">{qty}</span>
+                                <span className="min-w-5 text-center text-[13px] font-bold">
+                                  {qty}
+                                </span>
                                 <button
-                                  onClick={() => setAddonQty((current) => ({ ...current, [addon.id]: Math.min(20, qty + 1) }))}
+                                  onClick={() =>
+                                    setAddonQty((current) => ({
+                                      ...current,
+                                      [addon.id]: Math.min(20, qty + 1),
+                                    }))
+                                  }
                                   className="grid h-8 w-8 place-items-center rounded-full"
                                   aria-label={t.increase}
                                 >
@@ -789,7 +942,10 @@ function PublicBookingPage() {
             ) : null}
 
             {quote && unit ? (
-              <section className="rounded-[30px] border bg-white p-5 sm:p-7 lg:hidden" style={{ borderColor: C.line }}>
+              <section
+                className="rounded-[30px] border bg-white p-5 sm:p-7 lg:hidden"
+                style={{ borderColor: C.line }}
+              >
                 <CheckoutForm
                   unit={unit}
                   quote={quote}
@@ -823,7 +979,10 @@ function PublicBookingPage() {
           </div>
 
           <aside className="hidden lg:block">
-            <div className="sticky top-7 rounded-[30px] border bg-white p-6 shadow-[0_24px_70px_rgba(23,35,29,0.07)]" style={{ borderColor: C.line }}>
+            <div
+              className="sticky top-7 rounded-[30px] border bg-white p-6 shadow-[0_24px_70px_rgba(23,35,29,0.07)]"
+              style={{ borderColor: C.line }}
+            >
               {unit && quote && checkin && checkout ? (
                 <CheckoutForm
                   unit={unit}
@@ -870,20 +1029,39 @@ function PublicBookingPage() {
         />
 
         <p className="mt-12 text-center text-[11px] font-medium" style={{ color: C.muted }}>
-          <Link to="/" className="hover:underline">{t.poweredBy}</Link>
+          <Link to="/" className="hover:underline">
+            {t.poweredBy}
+          </Link>
         </p>
       </main>
     </div>
   );
 }
 
-function SectionHeading({ step, title, description }: { step: string; title: string; description: string }) {
+function SectionHeading({
+  step,
+  title,
+  description,
+}: {
+  step: string;
+  title: string;
+  description: string;
+}) {
   return (
     <div className="flex gap-4">
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white" style={{ background: C.forest }}>{step}</span>
+      <span
+        className="grid h-8 w-8 shrink-0 place-items-center rounded-full text-[11px] font-bold text-white"
+        style={{ background: C.forest }}
+      >
+        {step}
+      </span>
       <div>
         <h2 className="font-[Fraunces] text-2xl font-semibold">{title}</h2>
-        {description ? <p className="mt-1 text-[13px] leading-relaxed" style={{ color: C.muted }}>{description}</p> : null}
+        {description ? (
+          <p className="mt-1 text-[13px] leading-relaxed" style={{ color: C.muted }}>
+            {description}
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -908,33 +1086,68 @@ function UnitCard({
     <button
       onClick={onSelect}
       className="group overflow-hidden rounded-[24px] border text-left transition hover:-translate-y-0.5 hover:shadow-[0_14px_35px_rgba(23,35,29,0.08)]"
-      style={{ borderColor: selected ? C.forest : C.line, background: selected ? C.forestSoft : "white" }}
+      style={{
+        borderColor: selected ? C.forest : C.line,
+        background: selected ? C.forestSoft : "white",
+      }}
     >
       <div className="relative aspect-[16/9] overflow-hidden" style={{ background: C.page }}>
         {unit.imageUrl ? (
-          <img src={unit.imageUrl} alt={unit.name} className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]" />
+          <img
+            src={unit.imageUrl}
+            alt={unit.name}
+            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
+          />
         ) : (
-          <div className="grid h-full place-items-center" style={{ color: C.muted }}><BedDouble size={28} /></div>
+          <div className="grid h-full place-items-center" style={{ color: C.muted }}>
+            <BedDouble size={28} />
+          </div>
         )}
         {selected ? (
-          <span className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold text-white" style={{ background: C.forest }}><Check size={12} /> {labels.selected}</span>
+          <span
+            className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold text-white"
+            style={{ background: C.forest }}
+          >
+            <Check size={12} /> {labels.selected}
+          </span>
         ) : null}
       </div>
       <div className="p-4">
         <div className="flex items-start justify-between gap-3">
           <h3 className="font-sans text-[15px] font-bold">{unit.name}</h3>
-          <span className="shrink-0 text-[12px] font-bold">{labels.from} {fromPrice.toLocaleString(locale)} kr</span>
+          <span className="shrink-0 text-[12px] font-bold">
+            {labels.from} {fromPrice.toLocaleString(locale)} kr
+          </span>
         </div>
-        {unit.description ? <p className="mt-2 line-clamp-2 text-[12px] leading-relaxed" style={{ color: C.muted }}>{unit.description}</p> : null}
-        <div className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold" style={{ color: C.muted }}>
-          <span className="inline-flex items-center gap-1"><Users size={13} /> {labels.sleeps(unit.maxGuests)}</span>
-          {unit.bedDescription ? <span className="inline-flex items-center gap-1"><BedDouble size={13} /> {unit.bedDescription}</span> : null}
+        {unit.description ? (
+          <p className="mt-2 line-clamp-2 text-[12px] leading-relaxed" style={{ color: C.muted }}>
+            {unit.description}
+          </p>
+        ) : null}
+        <div
+          className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold"
+          style={{ color: C.muted }}
+        >
+          <span className="inline-flex items-center gap-1">
+            <Users size={13} /> {labels.sleeps(unit.maxGuests)}
+          </span>
+          {unit.bedDescription ? (
+            <span className="inline-flex items-center gap-1">
+              <BedDouble size={13} /> {unit.bedDescription}
+            </span>
+          ) : null}
           {unit.sizeSqm ? <span>{labels.size(unit.sizeSqm)}</span> : null}
         </div>
         {unit.amenities?.length ? (
           <div className="mt-3 flex flex-wrap gap-1.5">
             {unit.amenities.slice(0, 4).map((amenity) => (
-              <span key={amenity} className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold" style={{ color: C.muted }}>{amenity}</span>
+              <span
+                key={amenity}
+                className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold"
+                style={{ color: C.muted }}
+              >
+                {amenity}
+              </span>
             ))}
           </div>
         ) : null}
@@ -954,18 +1167,31 @@ function EmptyCheckout({
 }) {
   return (
     <div>
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: C.brass }}>{x.bookSummary}</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: C.brass }}>
+        {x.bookSummary}
+      </p>
       <h2 className="mt-2 font-[Fraunces] text-3xl font-semibold">{x.chooseDatesPrice}</h2>
       {unit ? (
         <div className="mt-6 rounded-[22px] p-4" style={{ background: C.page }}>
           <p className="text-[13px] font-bold">{unit.name}</p>
-          <p className="mt-1 text-[12px]" style={{ color: C.muted }}>{x.from} {fmtKr(unit.basePrice)} · {x.sleeps(unit.maxGuests)}</p>
+          <p className="mt-1 text-[12px]" style={{ color: C.muted }}>
+            {x.from} {fmtKr(unit.basePrice)} · {x.sleeps(unit.maxGuests)}
+          </p>
         </div>
       ) : null}
-      <div className="mt-6 space-y-3 border-t pt-5 text-[12px] font-semibold" style={{ borderColor: C.line, color: C.muted }}>
-        <p className="flex items-center gap-2"><ShieldCheck size={15} style={{ color: C.forest }} /> {x.securePayment}</p>
-        <p className="flex items-center gap-2"><Sparkles size={15} style={{ color: C.forest }} /> {x.directHost}</p>
-        <p className="flex items-center gap-2"><Check size={15} style={{ color: C.forest }} /> {x.instantConfirmation}</p>
+      <div
+        className="mt-6 space-y-3 border-t pt-5 text-[12px] font-semibold"
+        style={{ borderColor: C.line, color: C.muted }}
+      >
+        <p className="flex items-center gap-2">
+          <ShieldCheck size={15} style={{ color: C.forest }} /> {x.securePayment}
+        </p>
+        <p className="flex items-center gap-2">
+          <Sparkles size={15} style={{ color: C.forest }} /> {x.directHost}
+        </p>
+        <p className="flex items-center gap-2">
+          <Check size={15} style={{ color: C.forest }} /> {x.instantConfirmation}
+        </p>
       </div>
     </div>
   );
@@ -1027,38 +1253,67 @@ function CheckoutForm({
   onSubmit: () => void;
 }) {
   const fmtKr = (value: number) => `${Math.round(value).toLocaleString(locale)} kr`;
-  const date = (value: string) => new Date(`${value}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" });
+  const date = (value: string) =>
+    new Date(`${value}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" });
 
   return (
     <div>
-      <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: C.brass }}>{x.bookSummary}</p>
+      <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: C.brass }}>
+        {x.bookSummary}
+      </p>
       <div className="mt-3 flex items-start justify-between gap-4">
         <div>
           <h2 className="font-[Fraunces] text-2xl font-semibold">{unit.name}</h2>
-          <p className="mt-1 text-[12px]" style={{ color: C.muted }}>{date(checkin)} – {date(checkout)} · {x.nights(quote.nights)}</p>
+          <p className="mt-1 text-[12px]" style={{ color: C.muted }}>
+            {date(checkin)} – {date(checkout)} · {x.nights(quote.nights)}
+          </p>
         </div>
         <p className="font-[Fraunces] text-2xl font-semibold">{fmtKr(grandTotal)}</p>
       </div>
 
       <div className="mt-5 space-y-2 border-y py-4 text-[12px]" style={{ borderColor: C.line }}>
-        <PriceRow label={`${x.nights(quote.nights)} · ${unit.name}`} value={fmtKr(quote.subtotal)} />
-        {quote.cleaningFee > 0 ? <PriceRow label={t.cleaning} value={fmtKr(quote.cleaningFee)} /> : null}
-        {addons.map((addon) => <PriceRow key={addon.id} label={`${addon.name} ×${addon.qty}`} value={fmtKr(addon.lineTotal)} />)}
+        <PriceRow
+          label={`${x.nights(quote.nights)} · ${unit.name}`}
+          value={fmtKr(quote.subtotal)}
+        />
+        {quote.cleaningFee > 0 ? (
+          <PriceRow label={t.cleaning} value={fmtKr(quote.cleaningFee)} />
+        ) : null}
+        {addons.map((addon) => (
+          <PriceRow
+            key={addon.id}
+            label={`${addon.name} ×${addon.qty}`}
+            value={fmtKr(addon.lineTotal)}
+          />
+        ))}
         <div className="flex items-baseline justify-between gap-4 pt-2 font-bold">
-          <span>{t.total}</span><span className="text-[15px]">{fmtKr(grandTotal)}</span>
+          <span>{t.total}</span>
+          <span className="text-[15px]">{fmtKr(grandTotal)}</span>
         </div>
-        <p className="pt-1 text-[10px]" style={{ color: C.muted }}>{x.taxesIncluded}</p>
+        <p className="pt-1 text-[10px]" style={{ color: C.muted }}>
+          {x.taxesIncluded}
+        </p>
       </div>
 
       <div className="mt-6">
         <h3 className="font-sans text-[13px] font-bold">{x.details}</h3>
-        <p className="mt-1 text-[11px] leading-relaxed" style={{ color: C.muted }}>{x.detailsBody}</p>
+        <p className="mt-1 text-[11px] leading-relaxed" style={{ color: C.muted }}>
+          {x.detailsBody}
+        </p>
         <div className="mt-4 space-y-2.5">
           <Input value={name} onChange={onName} label={x.fullName} autoComplete="name" />
-          <Input value={email} onChange={onEmail} label={x.email} type="email" autoComplete="email" />
+          <Input
+            value={email}
+            onChange={onEmail}
+            label={x.email}
+            type="email"
+            autoComplete="email"
+          />
           <Input value={phone} onChange={onPhone} label={x.phone} type="tel" autoComplete="tel" />
           <label className="block">
-            <span className="mb-1.5 block text-[11px] font-bold" style={{ color: C.muted }}>{x.guests}</span>
+            <span className="mb-1.5 block text-[11px] font-bold" style={{ color: C.muted }}>
+              {x.guests}
+            </span>
             <select
               value={guests}
               onChange={(event) => onGuests(Number(event.target.value))}
@@ -1066,7 +1321,9 @@ function CheckoutForm({
               style={{ borderColor: C.line }}
             >
               {Array.from({ length: unit.maxGuests }, (_, index) => index + 1).map((count) => (
-                <option key={count} value={count}>{t.guests(count)}</option>
+                <option key={count} value={count}>
+                  {t.guests(count)}
+                </option>
               ))}
             </select>
           </label>
@@ -1086,15 +1343,29 @@ function CheckoutForm({
                   type="button"
                   onClick={() => onPay(method)}
                   className="flex w-full items-center gap-3 rounded-2xl border p-3 text-left transition"
-                  style={{ borderColor: selected ? C.forest : C.line, background: selected ? C.forestSoft : "white" }}
+                  style={{
+                    borderColor: selected ? C.forest : C.line,
+                    background: selected ? C.forestSoft : "white",
+                  }}
                 >
-                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-white"><CreditCard size={16} /></span>
-                  <span className="flex-1">
-                    <span className="block text-[12px] font-bold">{card ? x.payCard : x.paySwish}</span>
-                    <span className="block text-[10px]" style={{ color: C.muted }}>{card ? x.payCardHint : x.paySwishHint}</span>
+                  <span className="grid h-9 w-9 place-items-center rounded-xl bg-white">
+                    <CreditCard size={16} />
                   </span>
-                  <span className="grid h-5 w-5 place-items-center rounded-full border" style={{ borderColor: selected ? C.forest : C.line }}>
-                    {selected ? <span className="h-2.5 w-2.5 rounded-full" style={{ background: C.forest }} /> : null}
+                  <span className="flex-1">
+                    <span className="block text-[12px] font-bold">
+                      {card ? x.payCard : x.paySwish}
+                    </span>
+                    <span className="block text-[10px]" style={{ color: C.muted }}>
+                      {card ? x.payCardHint : x.paySwishHint}
+                    </span>
+                  </span>
+                  <span
+                    className="grid h-5 w-5 place-items-center rounded-full border"
+                    style={{ borderColor: selected ? C.forest : C.line }}
+                  >
+                    {selected ? (
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ background: C.forest }} />
+                    ) : null}
                   </span>
                 </button>
               );
@@ -1103,7 +1374,10 @@ function CheckoutForm({
         </div>
       ) : null}
 
-      <label className="mt-5 flex cursor-pointer items-start gap-3 text-[11px] leading-relaxed" style={{ color: C.muted }}>
+      <label
+        className="mt-5 flex cursor-pointer items-start gap-3 text-[11px] leading-relaxed"
+        style={{ color: C.muted }}
+      >
         <input
           type="checkbox"
           checked={termsAccepted}
@@ -1111,7 +1385,25 @@ function CheckoutForm({
           className="mt-0.5 h-4 w-4 shrink-0 accent-[#173D2E]"
         />
         <span>
-          {x.termsStart} <Link to="/villkor" target="_blank" className="font-bold underline underline-offset-2" style={{ color: C.ink }}>{x.terms}</Link> {x.and} <Link to="/integritetspolicy" target="_blank" className="font-bold underline underline-offset-2" style={{ color: C.ink }}>{x.privacy}</Link>.
+          {x.termsStart}{" "}
+          <Link
+            to="/villkor"
+            target="_blank"
+            className="font-bold underline underline-offset-2"
+            style={{ color: C.ink }}
+          >
+            {x.terms}
+          </Link>{" "}
+          {x.and}{" "}
+          <Link
+            to="/integritetspolicy"
+            target="_blank"
+            className="font-bold underline underline-offset-2"
+            style={{ color: C.ink }}
+          >
+            {x.privacy}
+          </Link>
+          .
         </span>
       </label>
 
@@ -1136,10 +1428,18 @@ function CheckoutForm({
         style={{ background: C.forest }}
       >
         {sending ? <Loader2 size={16} className="animate-spin" /> : <LockKeyhole size={15} />}
-        {sending ? t.booking : payMethod === "stripe" ? t.payWithCard(fmtKr(grandTotal)) : t.bookFor(fmtKr(grandTotal))}
+        {sending
+          ? t.booking
+          : payMethod === "stripe"
+            ? t.payWithCard(fmtKr(grandTotal))
+            : t.bookFor(fmtKr(grandTotal))}
       </button>
       <p className="mt-3 text-center text-[10px] leading-relaxed" style={{ color: C.muted }}>
-        {payMethod === "stripe" ? t.stripeFineprint : payMethod === "swish" ? t.swishFineprint : t.noPaymentFineprint}
+        {payMethod === "stripe"
+          ? t.stripeFineprint
+          : payMethod === "swish"
+            ? t.swishFineprint
+            : t.noPaymentFineprint}
       </p>
     </div>
   );
@@ -1160,7 +1460,9 @@ function Input({
 }) {
   return (
     <label className="block">
-      <span className="mb-1.5 block text-[11px] font-bold" style={{ color: C.muted }}>{label}</span>
+      <span className="mb-1.5 block text-[11px] font-bold" style={{ color: C.muted }}>
+        {label}
+      </span>
       <input
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -1174,13 +1476,20 @@ function Input({
 }
 
 function PriceRow({ label, value }: { label: string; value: string }) {
-  return <div className="flex justify-between gap-4"><span style={{ color: C.muted }}>{label}</span><span className="font-semibold">{value}</span></div>;
+  return (
+    <div className="flex justify-between gap-4">
+      <span style={{ color: C.muted }}>{label}</span>
+      <span className="font-semibold">{value}</span>
+    </div>
+  );
 }
 
 function DateSummary({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <p className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: C.muted }}>{label}</p>
+      <p className="text-[10px] font-bold uppercase tracking-[0.14em]" style={{ color: C.muted }}>
+        {label}
+      </p>
       <p className="mt-0.5 text-[13px] font-bold capitalize">{value}</p>
     </div>
   );
@@ -1214,13 +1523,20 @@ function MonthCalendar({
   const today = isoToday();
   const cells: (string | null)[] = [
     ...Array.from({ length: leadBlanks }, () => null),
-    ...Array.from({ length: daysInMonth }, (_, index) => isoOf(new Date(Date.UTC(year, month, index + 1)))),
+    ...Array.from({ length: daysInMonth }, (_, index) =>
+      isoOf(new Date(Date.UTC(year, month, index + 1))),
+    ),
   ];
 
   return (
     <div className="mt-5">
-      <div className="grid grid-cols-7 gap-1 text-center text-[9px] font-bold uppercase tracking-[0.1em]" style={{ color: C.muted }}>
-        {weekdays.map((day) => <div key={day}>{day}</div>)}
+      <div
+        className="grid grid-cols-7 gap-1 text-center text-[9px] font-bold uppercase tracking-[0.1em]"
+        style={{ color: C.muted }}
+      >
+        {weekdays.map((day) => (
+          <div key={day}>{day}</div>
+        ))}
       </div>
       <div className="mt-2 grid grid-cols-7 gap-1">
         {cells.map((iso, index) => {
@@ -1239,7 +1555,7 @@ function MonthCalendar({
               disabled = true;
             } else {
               const nights: string[] = [];
-              for (let current = checkin; current < iso; ) {
+              for (let current = checkin; current < iso;) {
                 nights.push(current);
                 const date = new Date(`${current}T00:00:00Z`);
                 date.setUTCDate(date.getUTCDate() + 1);
@@ -1266,8 +1582,19 @@ function MonthCalendar({
               }}
               title={booked ? "Bokat" : closed ? "Stängt" : undefined}
             >
-              <span className="text-[12px] font-bold" style={{ textDecoration: booked ? "line-through" : undefined }}>{Number(iso.slice(8))}</span>
-              <span className="mt-0.5 text-[8px] font-semibold" style={{ color: isStart || isEnd ? "rgba(255,255,255,.76)" : disabled ? "#C3C2BC" : C.muted }}>
+              <span
+                className="text-[12px] font-bold"
+                style={{ textDecoration: booked ? "line-through" : undefined }}
+              >
+                {Number(iso.slice(8))}
+              </span>
+              <span
+                className="mt-0.5 text-[8px] font-semibold"
+                style={{
+                  color:
+                    isStart || isEnd ? "rgba(255,255,255,.76)" : disabled ? "#C3C2BC" : C.muted,
+                }}
+              >
                 {price ? price.toLocaleString(locale) : ""}
               </span>
             </button>

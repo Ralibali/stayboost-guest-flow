@@ -34,7 +34,7 @@ export interface StayBoostStats {
 }
 
 /**
- * Verifierade siffror från Göta Kanal Glamping 2026 hittills.
+ * Verifierade siffror från Bergs Slussar Glamping 2026 hittills.
  * Används om API:t är nere eller strukturen är trasig — vi visar aldrig
  * nollor bara för att nätverket felar.
  */

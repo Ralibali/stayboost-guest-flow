@@ -145,7 +145,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         {
           name: "description",
           content:
-            "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system. Prova gratis i 14 dagar.",
+            "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system. 449 kr/mån, igång på en kväll.",
         },
         {
           property: "og:title",

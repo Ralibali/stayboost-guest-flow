@@ -16,7 +16,7 @@ import {
 import { fmtKr } from "@/lib/demo-data";
 import { CRM_GUESTS, type CrmGuest } from "@/lib/channels-data";
 
-export const Route = createFileRoute("/demo/gaster")({
+export const Route = createFileRoute("/produkten/gaster")({
   component: GuestsView,
 });
 

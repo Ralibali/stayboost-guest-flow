@@ -10,7 +10,7 @@ type Msg = {
 const SCRIPT: Msg[] = [
   {
     side: "in",
-    text: "Hej Anna! Välkommen till Sjöbrisretreatet i morgon 🌲 Incheckning från kl 15. Portkod: 4482.",
+    text: "Hej Anna! Välkommen till Bergs Slussar Glamping i morgon 🌲 Incheckning från kl 15. Portkod: 4482.",
   },
   {
     side: "in",
@@ -64,10 +64,10 @@ export function PhoneMockup() {
             <div className="flex items-center justify-center border-b border-[color:var(--line)] bg-[color:var(--bg)] px-4 pb-2 pt-8">
               <div className="text-center">
                 <div className="mx-auto mb-1 h-10 w-10 rounded-full bg-[color:var(--forest)] text-center text-sm font-semibold leading-10 text-white">
-                  Sj
+                  BS
                 </div>
                 <div className="text-[13px] font-semibold text-[color:var(--ink)]">
-                  Sjöbrisretreatet
+                  Bergs Slussar Glamping
                 </div>
                 <div className="text-[10px] text-[color:var(--ink)]/60">Sms</div>
               </div>

@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 import { AlertTriangle, Check, ChefHat, Clock3, Croissant, Truck } from "lucide-react";
 import { BREAKFAST, fmtDateLong, unitOf } from "@/lib/demo-data";
 
-export const Route = createFileRoute("/demo/frukost")({
+export const Route = createFileRoute("/produkten/frukost")({
   component: BreakfastView,
 });
 

@@ -4,70 +4,70 @@ const CARDS = [
   {
     icon: "🗓️",
     title: "Bokningsmotorn",
-    path: "/demo/boka",
+    path: "/produkten/boka",
     view: "boka",
     body: "Komplett bokningsflöde: kalender med priser, tillval och betalning — utan provision.",
   },
   {
     icon: "👤",
     title: "Gästhubben",
-    path: "/demo/gast",
+    path: "/produkten/gast",
     view: "gast",
     body: "Det gästen ser: tillval, betalning och all info om vistelsen.",
   },
   {
     icon: "🔑",
     title: "Incheckningen",
-    path: "/demo/incheckning",
+    path: "/produkten/incheckning",
     view: "incheckning",
     body: "Det gästen gör vid ankomst: tre steg till portkoden.",
   },
   {
     icon: "🙋",
     title: "Min sida",
-    path: "/demo/min-sida",
+    path: "/produkten/min-sida",
     view: "min-sida",
     body: "Gästen bokar om själv, köper tillval i efterhand och avbokar — utan att ringa dig.",
   },
   {
     icon: "🥐",
     title: "Frukostvyn",
-    path: "/demo/frukost",
+    path: "/produkten/frukost",
     view: "frukost",
     body: "Det frukostansvarig ser: portioner, allergier i rött, leveranser.",
   },
   {
     icon: "🧺",
     title: "Städvyn",
-    path: "/demo/stad",
+    path: "/produkten/stad",
     view: "stad",
     body: "Det städteamet ser: exakta checklistor, status i realtid.",
   },
   {
     icon: "📈",
     title: "Ägaröversikten",
-    path: "/demo/admin",
+    path: "/produkten/admin",
     view: "admin",
     body: "Det du ser: merförsäljning i realtid, orderflöde och tillvalshantering.",
   },
   {
     icon: "🛎️",
     title: "Bokningskalendern",
-    path: "/demo/bokningar",
+    path: "/produkten/bokningar",
     view: "bokningar",
     body: "Beläggning per enhet och alla bokningar — synkat mot Sirvoy och Booking.com.",
   },
   {
     icon: "☀️",
     title: "Dagsöversikt",
-    path: "/demo/dagsoversikt",
+    path: "/produkten/dagsoversikt",
     view: "dagsoversikt",
     body: "Teamets dagvy: ankomster, avresor, kapacitet och förberedelser.",
   },
   {
     icon: "🎁",
     title: "Presentkort",
-    path: "/demo/presentkort",
+    path: "/produkten/presentkort",
     view: "presentkort",
     body: "Sälj presentkort online — mottagaren löser in direkt i bokningen.",
   },
@@ -87,12 +87,12 @@ export function LiveDemo() {
 
   return (
     <section
-      id="demo-live"
+      id="utforska"
       className="border-t border-[color:var(--line)] bg-white/50 py-16 sm:py-14 sm:py-20 md:py-32"
     >
       <div className="mx-auto max-w-[1120px] px-5 sm:px-6">
         <div className="max-w-2xl">
-          <p className="eyebrow">Ingen inspelad demo</p>
+          <p className="eyebrow">Utforska själv</p>
           <h2
             className="mt-3 tracking-tight"
             style={{ fontSize: "clamp(1.75rem, 6vw, 3rem)", lineHeight: 1.1 }}
@@ -100,8 +100,8 @@ export function LiveDemo() {
             Klicka runt i det riktiga systemet.
           </h2>
           <p className="mt-4 text-[0.975rem] leading-relaxed text-[color:var(--ink)]/75 sm:mt-5 sm:text-base">
-            Det här är inte skärmdumpar. Det är samma system som driver vår egen anläggning vid Göta
-            kanal — öppnat för dig med påhittad gästdata. Ingen inloggning, inget konto.
+            Det här är inte skärmdumpar. Det är samma system som driver Bergs Slussar Glamping vid
+            Göta kanal — öppnat för dig med exempeldata. Ingen inloggning, inget konto.
           </p>
         </div>
 
@@ -111,7 +111,7 @@ export function LiveDemo() {
               key={c.view}
               to={c.path}
               onClick={() => trackOpen(c.view, c.title)}
-              aria-label={`Öppna demo: ${c.title}`}
+              aria-label={`Utforska: ${c.title}`}
               className="card-surface group relative flex min-w-0 flex-col gap-3.5 p-5 transition-all duration-300 hover:-translate-y-0.5 hover:border-[color:var(--brass)] hover:shadow-[0_12px_40px_-16px_color-mix(in_oklab,var(--brass)_45%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--brass)] focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--bg,white)] sm:gap-4 sm:p-6"
             >
               <div
@@ -132,7 +132,7 @@ export function LiveDemo() {
                 </p>
               </div>
               <span className="mt-auto inline-flex items-center gap-1.5 pt-1 text-sm font-semibold text-[color:var(--brass)] sm:text-[0.95rem]">
-                Öppna demon
+                Utforska
                 <span
                   aria-hidden
                   className="transition-transform duration-300 group-hover:translate-x-1"
@@ -145,9 +145,9 @@ export function LiveDemo() {
 
           {/* Samlande kort */}
           <Link
-            to="/demo"
-            onClick={() => trackOpen("oversikt", "Hela demon")}
-            aria-label="Öppna hela demon"
+            to="/produkten"
+            onClick={() => trackOpen("oversikt", "Hela systemet")}
+            aria-label="Utforska hela systemet"
             className="group relative flex min-w-0 flex-col gap-3.5 rounded-[20px] border border-[color:var(--forest)]/25 bg-[color:var(--forest)] p-5 text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_40px_-16px_rgba(20,36,28,0.5)] sm:col-span-2 sm:gap-4 sm:p-6 lg:col-span-3"
           >
             <div
@@ -161,7 +161,7 @@ export function LiveDemo() {
                 className="truncate font-medium tracking-tight text-white"
                 style={{ fontSize: "clamp(1.05rem, 2.4vw, 1.2rem)" }}
               >
-                Hela demon
+                Hela systemet
               </h3>
               <p className="mt-1.5 text-[0.925rem] leading-relaxed text-white/75 sm:mt-2 sm:text-[0.95rem]">
                 Börja från översikten och hoppa fritt mellan gäst, personal och ägare.
@@ -180,7 +180,7 @@ export function LiveDemo() {
         </div>
 
         <p className="mt-8 text-[0.8125rem] leading-relaxed text-[color:var(--ink)]/55 sm:text-sm">
-          Demon kör med låtsasdata. I skarp drift synkar allt mot dina riktiga bokningar.
+          Vyerna kör med exempeldata. I din egen anläggning synkar allt mot dina riktiga bokningar.
         </p>
       </div>
     </section>

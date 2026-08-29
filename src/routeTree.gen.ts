@@ -12,10 +12,10 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/app'
 import { Route as CookiesRouteImport } from './routes/cookies'
-import { Route as DemoRouteImport } from './routes/demo'
 import { Route as DpaRouteImport } from './routes/dpa'
 import { Route as Google810803ca6fbfceadDothtmlRouteImport } from './routes/google810803ca6fbfcead[.]html'
 import { Route as IntegritetspolicyRouteImport } from './routes/integritetspolicy'
+import { Route as ProduktenRouteImport } from './routes/produkten'
 import { Route as VillkorRouteImport } from './routes/villkor'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppBokningarRouteImport } from './routes/app/bokningar'
@@ -30,22 +30,22 @@ import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
 import { Route as AppPrisreglerRouteImport } from './routes/app/prisregler'
 import { Route as AppTillvalRouteImport } from './routes/app/tillval'
 import { Route as BokaSlugRouteImport } from './routes/boka/$slug'
-import { Route as DemoIndexRouteImport } from './routes/demo/index'
-import { Route as DemoAdminRouteImport } from './routes/demo/admin'
-import { Route as DemoBokaRouteImport } from './routes/demo/boka'
-import { Route as DemoBokningarRouteImport } from './routes/demo/bokningar'
-import { Route as DemoDagsoversiktRouteImport } from './routes/demo/dagsoversikt'
-import { Route as DemoFrukostRouteImport } from './routes/demo/frukost'
-import { Route as DemoGastRouteImport } from './routes/demo/gast'
-import { Route as DemoGasterRouteImport } from './routes/demo/gaster'
-import { Route as DemoIncheckningRouteImport } from './routes/demo/incheckning'
-import { Route as DemoKanalerRouteImport } from './routes/demo/kanaler'
-import { Route as DemoMinSidaRouteImport } from './routes/demo/min-sida'
-import { Route as DemoPersonalRouteImport } from './routes/demo/personal'
-import { Route as DemoPresentkortRouteImport } from './routes/demo/presentkort'
-import { Route as DemoRapporterRouteImport } from './routes/demo/rapporter'
-import { Route as DemoStadRouteImport } from './routes/demo/stad'
 import { Route as GTokenRouteImport } from './routes/g/$token'
+import { Route as ProduktenIndexRouteImport } from './routes/produkten/index'
+import { Route as ProduktenAdminRouteImport } from './routes/produkten/admin'
+import { Route as ProduktenBokaRouteImport } from './routes/produkten/boka'
+import { Route as ProduktenBokningarRouteImport } from './routes/produkten/bokningar'
+import { Route as ProduktenDagsoversiktRouteImport } from './routes/produkten/dagsoversikt'
+import { Route as ProduktenFrukostRouteImport } from './routes/produkten/frukost'
+import { Route as ProduktenGastRouteImport } from './routes/produkten/gast'
+import { Route as ProduktenGasterRouteImport } from './routes/produkten/gaster'
+import { Route as ProduktenIncheckningRouteImport } from './routes/produkten/incheckning'
+import { Route as ProduktenKanalerRouteImport } from './routes/produkten/kanaler'
+import { Route as ProduktenMinSidaRouteImport } from './routes/produkten/min-sida'
+import { Route as ProduktenPersonalRouteImport } from './routes/produkten/personal'
+import { Route as ProduktenPresentkortRouteImport } from './routes/produkten/presentkort'
+import { Route as ProduktenRapporterRouteImport } from './routes/produkten/rapporter'
+import { Route as ProduktenStadRouteImport } from './routes/produkten/stad'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -62,11 +62,6 @@ const CookiesRoute = CookiesRouteImport.update({
   path: '/cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoRoute = DemoRouteImport.update({
-  id: '/demo',
-  path: '/demo',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const DpaRoute = DpaRouteImport.update({
   id: '/dpa',
   path: '/dpa',
@@ -81,6 +76,11 @@ const Google810803ca6fbfceadDothtmlRoute =
 const IntegritetspolicyRoute = IntegritetspolicyRouteImport.update({
   id: '/integritetspolicy',
   path: '/integritetspolicy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProduktenRoute = ProduktenRouteImport.update({
+  id: '/produkten',
+  path: '/produkten',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VillkorRoute = VillkorRouteImport.update({
@@ -153,95 +153,95 @@ const BokaSlugRoute = BokaSlugRouteImport.update({
   path: '/boka/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DemoIndexRoute = DemoIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoAdminRoute = DemoAdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoBokaRoute = DemoBokaRouteImport.update({
-  id: '/boka',
-  path: '/boka',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoBokningarRoute = DemoBokningarRouteImport.update({
-  id: '/bokningar',
-  path: '/bokningar',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoDagsoversiktRoute = DemoDagsoversiktRouteImport.update({
-  id: '/dagsoversikt',
-  path: '/dagsoversikt',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoFrukostRoute = DemoFrukostRouteImport.update({
-  id: '/frukost',
-  path: '/frukost',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoGastRoute = DemoGastRouteImport.update({
-  id: '/gast',
-  path: '/gast',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoGasterRoute = DemoGasterRouteImport.update({
-  id: '/gaster',
-  path: '/gaster',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoIncheckningRoute = DemoIncheckningRouteImport.update({
-  id: '/incheckning',
-  path: '/incheckning',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoKanalerRoute = DemoKanalerRouteImport.update({
-  id: '/kanaler',
-  path: '/kanaler',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoMinSidaRoute = DemoMinSidaRouteImport.update({
-  id: '/min-sida',
-  path: '/min-sida',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoPersonalRoute = DemoPersonalRouteImport.update({
-  id: '/personal',
-  path: '/personal',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoPresentkortRoute = DemoPresentkortRouteImport.update({
-  id: '/presentkort',
-  path: '/presentkort',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoRapporterRoute = DemoRapporterRouteImport.update({
-  id: '/rapporter',
-  path: '/rapporter',
-  getParentRoute: () => DemoRoute,
-} as any)
-const DemoStadRoute = DemoStadRouteImport.update({
-  id: '/stad',
-  path: '/stad',
-  getParentRoute: () => DemoRoute,
-} as any)
 const GTokenRoute = GTokenRouteImport.update({
   id: '/g/$token',
   path: '/g/$token',
   getParentRoute: () => rootRouteImport,
+} as any)
+const ProduktenIndexRoute = ProduktenIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProduktenRoute,
+} as any)
+const ProduktenAdminRoute = ProduktenAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => ProduktenRoute,
+} as any)
+const ProduktenBokaRoute = ProduktenBokaRouteImport.update({
+  id: '/boka',
+  path: '/boka',
+  getParentRoute: () => ProduktenRoute,
+} as any)
+const ProduktenBokningarRoute = ProduktenBokningarRouteImport.update({
+  id: '/bokningar',
+  path: '/bokningar',
+  getParentRoute: () => ProduktenRoute,
+} as any)
+const ProduktenDagsoversiktRoute = ProduktenDagsoversiktRouteImport.update({
+  id: '/dagsoversikt',
+  path: '/dagsoversikt',
+  getParentRoute: () => ProduktenRoute,
+} as any)
+const ProduktenFrukostRoute = ProduktenFrukostRouteImport.update({
+  id: '/frukost',
+  path: '/frukost',
+  getParentRoute: () => ProduktenRoute,
+} as any)
+const ProduktenGastRoute = ProduktenGastRouteImport.update({
+  id: '/gast',
+  path: '/gast',
+  getParentRoute: () => ProduktenRoute,
+} as any)
+const ProduktenGasterRoute = ProduktenGasterRouteImport.update({
+  id: '/gaster',
+  path: '/gaster',
+  getParentRoute: () => ProduktenRoute,
+} as any)
+const ProduktenIncheckningRoute = ProduktenIncheckningRouteImport.update({
+  id: '/incheckning',
+  path: '/incheckning',
+  getParentRoute: () => ProduktenRoute,
+} as any)
+const ProduktenKanalerRoute = ProduktenKanalerRouteImport.update({
+  id: '/kanaler',
+  path: '/kanaler',
+  getParentRoute: () => ProduktenRoute,
+} as any)
+const ProduktenMinSidaRoute = ProduktenMinSidaRouteImport.update({
+  id: '/min-sida',
+  path: '/min-sida',
+  getParentRoute: () => ProduktenRoute,
+} as any)
+const ProduktenPersonalRoute = ProduktenPersonalRouteImport.update({
+  id: '/personal',
+  path: '/personal',
+  getParentRoute: () => ProduktenRoute,
+} as any)
+const ProduktenPresentkortRoute = ProduktenPresentkortRouteImport.update({
+  id: '/presentkort',
+  path: '/presentkort',
+  getParentRoute: () => ProduktenRoute,
+} as any)
+const ProduktenRapporterRoute = ProduktenRapporterRouteImport.update({
+  id: '/rapporter',
+  path: '/rapporter',
+  getParentRoute: () => ProduktenRoute,
+} as any)
+const ProduktenStadRoute = ProduktenStadRouteImport.update({
+  id: '/stad',
+  path: '/stad',
+  getParentRoute: () => ProduktenRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/cookies': typeof CookiesRoute
-  '/demo': typeof DemoRouteWithChildren
   '/dpa': typeof DpaRoute
   '/google810803ca6fbfcead.html': typeof Google810803ca6fbfceadDothtmlRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
+  '/produkten': typeof ProduktenRouteWithChildren
   '/villkor': typeof VillkorRoute
   '/app/bokningar': typeof AppBokningarRoute
   '/app/idag': typeof AppIdagRoute
@@ -255,23 +255,23 @@ export interface FileRoutesByFullPath {
   '/app/prisregler': typeof AppPrisreglerRoute
   '/app/tillval': typeof AppTillvalRoute
   '/boka/$slug': typeof BokaSlugRoute
-  '/demo/admin': typeof DemoAdminRoute
-  '/demo/boka': typeof DemoBokaRoute
-  '/demo/bokningar': typeof DemoBokningarRoute
-  '/demo/dagsoversikt': typeof DemoDagsoversiktRoute
-  '/demo/frukost': typeof DemoFrukostRoute
-  '/demo/gast': typeof DemoGastRoute
-  '/demo/gaster': typeof DemoGasterRoute
-  '/demo/incheckning': typeof DemoIncheckningRoute
-  '/demo/kanaler': typeof DemoKanalerRoute
-  '/demo/min-sida': typeof DemoMinSidaRoute
-  '/demo/personal': typeof DemoPersonalRoute
-  '/demo/presentkort': typeof DemoPresentkortRoute
-  '/demo/rapporter': typeof DemoRapporterRoute
-  '/demo/stad': typeof DemoStadRoute
   '/g/$token': typeof GTokenRoute
+  '/produkten/admin': typeof ProduktenAdminRoute
+  '/produkten/boka': typeof ProduktenBokaRoute
+  '/produkten/bokningar': typeof ProduktenBokningarRoute
+  '/produkten/dagsoversikt': typeof ProduktenDagsoversiktRoute
+  '/produkten/frukost': typeof ProduktenFrukostRoute
+  '/produkten/gast': typeof ProduktenGastRoute
+  '/produkten/gaster': typeof ProduktenGasterRoute
+  '/produkten/incheckning': typeof ProduktenIncheckningRoute
+  '/produkten/kanaler': typeof ProduktenKanalerRoute
+  '/produkten/min-sida': typeof ProduktenMinSidaRoute
+  '/produkten/personal': typeof ProduktenPersonalRoute
+  '/produkten/presentkort': typeof ProduktenPresentkortRoute
+  '/produkten/rapporter': typeof ProduktenRapporterRoute
+  '/produkten/stad': typeof ProduktenStadRoute
   '/app/': typeof AppIndexRoute
-  '/demo/': typeof DemoIndexRoute
+  '/produkten/': typeof ProduktenIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -292,33 +292,33 @@ export interface FileRoutesByTo {
   '/app/prisregler': typeof AppPrisreglerRoute
   '/app/tillval': typeof AppTillvalRoute
   '/boka/$slug': typeof BokaSlugRoute
-  '/demo/admin': typeof DemoAdminRoute
-  '/demo/boka': typeof DemoBokaRoute
-  '/demo/bokningar': typeof DemoBokningarRoute
-  '/demo/dagsoversikt': typeof DemoDagsoversiktRoute
-  '/demo/frukost': typeof DemoFrukostRoute
-  '/demo/gast': typeof DemoGastRoute
-  '/demo/gaster': typeof DemoGasterRoute
-  '/demo/incheckning': typeof DemoIncheckningRoute
-  '/demo/kanaler': typeof DemoKanalerRoute
-  '/demo/min-sida': typeof DemoMinSidaRoute
-  '/demo/personal': typeof DemoPersonalRoute
-  '/demo/presentkort': typeof DemoPresentkortRoute
-  '/demo/rapporter': typeof DemoRapporterRoute
-  '/demo/stad': typeof DemoStadRoute
   '/g/$token': typeof GTokenRoute
+  '/produkten/admin': typeof ProduktenAdminRoute
+  '/produkten/boka': typeof ProduktenBokaRoute
+  '/produkten/bokningar': typeof ProduktenBokningarRoute
+  '/produkten/dagsoversikt': typeof ProduktenDagsoversiktRoute
+  '/produkten/frukost': typeof ProduktenFrukostRoute
+  '/produkten/gast': typeof ProduktenGastRoute
+  '/produkten/gaster': typeof ProduktenGasterRoute
+  '/produkten/incheckning': typeof ProduktenIncheckningRoute
+  '/produkten/kanaler': typeof ProduktenKanalerRoute
+  '/produkten/min-sida': typeof ProduktenMinSidaRoute
+  '/produkten/personal': typeof ProduktenPersonalRoute
+  '/produkten/presentkort': typeof ProduktenPresentkortRoute
+  '/produkten/rapporter': typeof ProduktenRapporterRoute
+  '/produkten/stad': typeof ProduktenStadRoute
   '/app': typeof AppIndexRoute
-  '/demo': typeof DemoIndexRoute
+  '/produkten': typeof ProduktenIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/app': typeof AppRouteWithChildren
   '/cookies': typeof CookiesRoute
-  '/demo': typeof DemoRouteWithChildren
   '/dpa': typeof DpaRoute
   '/google810803ca6fbfcead.html': typeof Google810803ca6fbfceadDothtmlRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
+  '/produkten': typeof ProduktenRouteWithChildren
   '/villkor': typeof VillkorRoute
   '/app/bokningar': typeof AppBokningarRoute
   '/app/idag': typeof AppIdagRoute
@@ -332,23 +332,23 @@ export interface FileRoutesById {
   '/app/prisregler': typeof AppPrisreglerRoute
   '/app/tillval': typeof AppTillvalRoute
   '/boka/$slug': typeof BokaSlugRoute
-  '/demo/admin': typeof DemoAdminRoute
-  '/demo/boka': typeof DemoBokaRoute
-  '/demo/bokningar': typeof DemoBokningarRoute
-  '/demo/dagsoversikt': typeof DemoDagsoversiktRoute
-  '/demo/frukost': typeof DemoFrukostRoute
-  '/demo/gast': typeof DemoGastRoute
-  '/demo/gaster': typeof DemoGasterRoute
-  '/demo/incheckning': typeof DemoIncheckningRoute
-  '/demo/kanaler': typeof DemoKanalerRoute
-  '/demo/min-sida': typeof DemoMinSidaRoute
-  '/demo/personal': typeof DemoPersonalRoute
-  '/demo/presentkort': typeof DemoPresentkortRoute
-  '/demo/rapporter': typeof DemoRapporterRoute
-  '/demo/stad': typeof DemoStadRoute
   '/g/$token': typeof GTokenRoute
+  '/produkten/admin': typeof ProduktenAdminRoute
+  '/produkten/boka': typeof ProduktenBokaRoute
+  '/produkten/bokningar': typeof ProduktenBokningarRoute
+  '/produkten/dagsoversikt': typeof ProduktenDagsoversiktRoute
+  '/produkten/frukost': typeof ProduktenFrukostRoute
+  '/produkten/gast': typeof ProduktenGastRoute
+  '/produkten/gaster': typeof ProduktenGasterRoute
+  '/produkten/incheckning': typeof ProduktenIncheckningRoute
+  '/produkten/kanaler': typeof ProduktenKanalerRoute
+  '/produkten/min-sida': typeof ProduktenMinSidaRoute
+  '/produkten/personal': typeof ProduktenPersonalRoute
+  '/produkten/presentkort': typeof ProduktenPresentkortRoute
+  '/produkten/rapporter': typeof ProduktenRapporterRoute
+  '/produkten/stad': typeof ProduktenStadRoute
   '/app/': typeof AppIndexRoute
-  '/demo/': typeof DemoIndexRoute
+  '/produkten/': typeof ProduktenIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -356,10 +356,10 @@ export interface FileRouteTypes {
     | '/'
     | '/app'
     | '/cookies'
-    | '/demo'
     | '/dpa'
     | '/google810803ca6fbfcead.html'
     | '/integritetspolicy'
+    | '/produkten'
     | '/villkor'
     | '/app/bokningar'
     | '/app/idag'
@@ -373,23 +373,23 @@ export interface FileRouteTypes {
     | '/app/prisregler'
     | '/app/tillval'
     | '/boka/$slug'
-    | '/demo/admin'
-    | '/demo/boka'
-    | '/demo/bokningar'
-    | '/demo/dagsoversikt'
-    | '/demo/frukost'
-    | '/demo/gast'
-    | '/demo/gaster'
-    | '/demo/incheckning'
-    | '/demo/kanaler'
-    | '/demo/min-sida'
-    | '/demo/personal'
-    | '/demo/presentkort'
-    | '/demo/rapporter'
-    | '/demo/stad'
     | '/g/$token'
+    | '/produkten/admin'
+    | '/produkten/boka'
+    | '/produkten/bokningar'
+    | '/produkten/dagsoversikt'
+    | '/produkten/frukost'
+    | '/produkten/gast'
+    | '/produkten/gaster'
+    | '/produkten/incheckning'
+    | '/produkten/kanaler'
+    | '/produkten/min-sida'
+    | '/produkten/personal'
+    | '/produkten/presentkort'
+    | '/produkten/rapporter'
+    | '/produkten/stad'
     | '/app/'
-    | '/demo/'
+    | '/produkten/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -410,32 +410,32 @@ export interface FileRouteTypes {
     | '/app/prisregler'
     | '/app/tillval'
     | '/boka/$slug'
-    | '/demo/admin'
-    | '/demo/boka'
-    | '/demo/bokningar'
-    | '/demo/dagsoversikt'
-    | '/demo/frukost'
-    | '/demo/gast'
-    | '/demo/gaster'
-    | '/demo/incheckning'
-    | '/demo/kanaler'
-    | '/demo/min-sida'
-    | '/demo/personal'
-    | '/demo/presentkort'
-    | '/demo/rapporter'
-    | '/demo/stad'
     | '/g/$token'
+    | '/produkten/admin'
+    | '/produkten/boka'
+    | '/produkten/bokningar'
+    | '/produkten/dagsoversikt'
+    | '/produkten/frukost'
+    | '/produkten/gast'
+    | '/produkten/gaster'
+    | '/produkten/incheckning'
+    | '/produkten/kanaler'
+    | '/produkten/min-sida'
+    | '/produkten/personal'
+    | '/produkten/presentkort'
+    | '/produkten/rapporter'
+    | '/produkten/stad'
     | '/app'
-    | '/demo'
+    | '/produkten'
   id:
     | '__root__'
     | '/'
     | '/app'
     | '/cookies'
-    | '/demo'
     | '/dpa'
     | '/google810803ca6fbfcead.html'
     | '/integritetspolicy'
+    | '/produkten'
     | '/villkor'
     | '/app/bokningar'
     | '/app/idag'
@@ -449,33 +449,33 @@ export interface FileRouteTypes {
     | '/app/prisregler'
     | '/app/tillval'
     | '/boka/$slug'
-    | '/demo/admin'
-    | '/demo/boka'
-    | '/demo/bokningar'
-    | '/demo/dagsoversikt'
-    | '/demo/frukost'
-    | '/demo/gast'
-    | '/demo/gaster'
-    | '/demo/incheckning'
-    | '/demo/kanaler'
-    | '/demo/min-sida'
-    | '/demo/personal'
-    | '/demo/presentkort'
-    | '/demo/rapporter'
-    | '/demo/stad'
     | '/g/$token'
+    | '/produkten/admin'
+    | '/produkten/boka'
+    | '/produkten/bokningar'
+    | '/produkten/dagsoversikt'
+    | '/produkten/frukost'
+    | '/produkten/gast'
+    | '/produkten/gaster'
+    | '/produkten/incheckning'
+    | '/produkten/kanaler'
+    | '/produkten/min-sida'
+    | '/produkten/personal'
+    | '/produkten/presentkort'
+    | '/produkten/rapporter'
+    | '/produkten/stad'
     | '/app/'
-    | '/demo/'
+    | '/produkten/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   CookiesRoute: typeof CookiesRoute
-  DemoRoute: typeof DemoRouteWithChildren
   DpaRoute: typeof DpaRoute
   Google810803ca6fbfceadDothtmlRoute: typeof Google810803ca6fbfceadDothtmlRoute
   IntegritetspolicyRoute: typeof IntegritetspolicyRoute
+  ProduktenRoute: typeof ProduktenRouteWithChildren
   VillkorRoute: typeof VillkorRoute
   BokaSlugRoute: typeof BokaSlugRoute
   GTokenRoute: typeof GTokenRoute
@@ -504,13 +504,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo': {
-      id: '/demo'
-      path: '/demo'
-      fullPath: '/demo'
-      preLoaderRoute: typeof DemoRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/dpa': {
       id: '/dpa'
       path: '/dpa'
@@ -530,6 +523,13 @@ declare module '@tanstack/react-router' {
       path: '/integritetspolicy'
       fullPath: '/integritetspolicy'
       preLoaderRoute: typeof IntegritetspolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/produkten': {
+      id: '/produkten'
+      path: '/produkten'
+      fullPath: '/produkten'
+      preLoaderRoute: typeof ProduktenRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/villkor': {
@@ -630,117 +630,117 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BokaSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/demo/': {
-      id: '/demo/'
-      path: '/'
-      fullPath: '/demo/'
-      preLoaderRoute: typeof DemoIndexRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/admin': {
-      id: '/demo/admin'
-      path: '/admin'
-      fullPath: '/demo/admin'
-      preLoaderRoute: typeof DemoAdminRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/boka': {
-      id: '/demo/boka'
-      path: '/boka'
-      fullPath: '/demo/boka'
-      preLoaderRoute: typeof DemoBokaRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/bokningar': {
-      id: '/demo/bokningar'
-      path: '/bokningar'
-      fullPath: '/demo/bokningar'
-      preLoaderRoute: typeof DemoBokningarRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/dagsoversikt': {
-      id: '/demo/dagsoversikt'
-      path: '/dagsoversikt'
-      fullPath: '/demo/dagsoversikt'
-      preLoaderRoute: typeof DemoDagsoversiktRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/frukost': {
-      id: '/demo/frukost'
-      path: '/frukost'
-      fullPath: '/demo/frukost'
-      preLoaderRoute: typeof DemoFrukostRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/gast': {
-      id: '/demo/gast'
-      path: '/gast'
-      fullPath: '/demo/gast'
-      preLoaderRoute: typeof DemoGastRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/gaster': {
-      id: '/demo/gaster'
-      path: '/gaster'
-      fullPath: '/demo/gaster'
-      preLoaderRoute: typeof DemoGasterRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/incheckning': {
-      id: '/demo/incheckning'
-      path: '/incheckning'
-      fullPath: '/demo/incheckning'
-      preLoaderRoute: typeof DemoIncheckningRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/kanaler': {
-      id: '/demo/kanaler'
-      path: '/kanaler'
-      fullPath: '/demo/kanaler'
-      preLoaderRoute: typeof DemoKanalerRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/min-sida': {
-      id: '/demo/min-sida'
-      path: '/min-sida'
-      fullPath: '/demo/min-sida'
-      preLoaderRoute: typeof DemoMinSidaRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/personal': {
-      id: '/demo/personal'
-      path: '/personal'
-      fullPath: '/demo/personal'
-      preLoaderRoute: typeof DemoPersonalRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/presentkort': {
-      id: '/demo/presentkort'
-      path: '/presentkort'
-      fullPath: '/demo/presentkort'
-      preLoaderRoute: typeof DemoPresentkortRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/rapporter': {
-      id: '/demo/rapporter'
-      path: '/rapporter'
-      fullPath: '/demo/rapporter'
-      preLoaderRoute: typeof DemoRapporterRouteImport
-      parentRoute: typeof DemoRoute
-    }
-    '/demo/stad': {
-      id: '/demo/stad'
-      path: '/stad'
-      fullPath: '/demo/stad'
-      preLoaderRoute: typeof DemoStadRouteImport
-      parentRoute: typeof DemoRoute
-    }
     '/g/$token': {
       id: '/g/$token'
       path: '/g/$token'
       fullPath: '/g/$token'
       preLoaderRoute: typeof GTokenRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/produkten/': {
+      id: '/produkten/'
+      path: '/'
+      fullPath: '/produkten/'
+      preLoaderRoute: typeof ProduktenIndexRouteImport
+      parentRoute: typeof ProduktenRoute
+    }
+    '/produkten/admin': {
+      id: '/produkten/admin'
+      path: '/admin'
+      fullPath: '/produkten/admin'
+      preLoaderRoute: typeof ProduktenAdminRouteImport
+      parentRoute: typeof ProduktenRoute
+    }
+    '/produkten/boka': {
+      id: '/produkten/boka'
+      path: '/boka'
+      fullPath: '/produkten/boka'
+      preLoaderRoute: typeof ProduktenBokaRouteImport
+      parentRoute: typeof ProduktenRoute
+    }
+    '/produkten/bokningar': {
+      id: '/produkten/bokningar'
+      path: '/bokningar'
+      fullPath: '/produkten/bokningar'
+      preLoaderRoute: typeof ProduktenBokningarRouteImport
+      parentRoute: typeof ProduktenRoute
+    }
+    '/produkten/dagsoversikt': {
+      id: '/produkten/dagsoversikt'
+      path: '/dagsoversikt'
+      fullPath: '/produkten/dagsoversikt'
+      preLoaderRoute: typeof ProduktenDagsoversiktRouteImport
+      parentRoute: typeof ProduktenRoute
+    }
+    '/produkten/frukost': {
+      id: '/produkten/frukost'
+      path: '/frukost'
+      fullPath: '/produkten/frukost'
+      preLoaderRoute: typeof ProduktenFrukostRouteImport
+      parentRoute: typeof ProduktenRoute
+    }
+    '/produkten/gast': {
+      id: '/produkten/gast'
+      path: '/gast'
+      fullPath: '/produkten/gast'
+      preLoaderRoute: typeof ProduktenGastRouteImport
+      parentRoute: typeof ProduktenRoute
+    }
+    '/produkten/gaster': {
+      id: '/produkten/gaster'
+      path: '/gaster'
+      fullPath: '/produkten/gaster'
+      preLoaderRoute: typeof ProduktenGasterRouteImport
+      parentRoute: typeof ProduktenRoute
+    }
+    '/produkten/incheckning': {
+      id: '/produkten/incheckning'
+      path: '/incheckning'
+      fullPath: '/produkten/incheckning'
+      preLoaderRoute: typeof ProduktenIncheckningRouteImport
+      parentRoute: typeof ProduktenRoute
+    }
+    '/produkten/kanaler': {
+      id: '/produkten/kanaler'
+      path: '/kanaler'
+      fullPath: '/produkten/kanaler'
+      preLoaderRoute: typeof ProduktenKanalerRouteImport
+      parentRoute: typeof ProduktenRoute
+    }
+    '/produkten/min-sida': {
+      id: '/produkten/min-sida'
+      path: '/min-sida'
+      fullPath: '/produkten/min-sida'
+      preLoaderRoute: typeof ProduktenMinSidaRouteImport
+      parentRoute: typeof ProduktenRoute
+    }
+    '/produkten/personal': {
+      id: '/produkten/personal'
+      path: '/personal'
+      fullPath: '/produkten/personal'
+      preLoaderRoute: typeof ProduktenPersonalRouteImport
+      parentRoute: typeof ProduktenRoute
+    }
+    '/produkten/presentkort': {
+      id: '/produkten/presentkort'
+      path: '/presentkort'
+      fullPath: '/produkten/presentkort'
+      preLoaderRoute: typeof ProduktenPresentkortRouteImport
+      parentRoute: typeof ProduktenRoute
+    }
+    '/produkten/rapporter': {
+      id: '/produkten/rapporter'
+      path: '/rapporter'
+      fullPath: '/produkten/rapporter'
+      preLoaderRoute: typeof ProduktenRapporterRouteImport
+      parentRoute: typeof ProduktenRoute
+    }
+    '/produkten/stad': {
+      id: '/produkten/stad'
+      path: '/stad'
+      fullPath: '/produkten/stad'
+      preLoaderRoute: typeof ProduktenStadRouteImport
+      parentRoute: typeof ProduktenRoute
     }
   }
 }
@@ -777,52 +777,54 @@ const AppRouteChildren: AppRouteChildren = {
 
 const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 
-interface DemoRouteChildren {
-  DemoAdminRoute: typeof DemoAdminRoute
-  DemoBokaRoute: typeof DemoBokaRoute
-  DemoBokningarRoute: typeof DemoBokningarRoute
-  DemoDagsoversiktRoute: typeof DemoDagsoversiktRoute
-  DemoFrukostRoute: typeof DemoFrukostRoute
-  DemoGastRoute: typeof DemoGastRoute
-  DemoGasterRoute: typeof DemoGasterRoute
-  DemoIncheckningRoute: typeof DemoIncheckningRoute
-  DemoKanalerRoute: typeof DemoKanalerRoute
-  DemoMinSidaRoute: typeof DemoMinSidaRoute
-  DemoPersonalRoute: typeof DemoPersonalRoute
-  DemoPresentkortRoute: typeof DemoPresentkortRoute
-  DemoRapporterRoute: typeof DemoRapporterRoute
-  DemoStadRoute: typeof DemoStadRoute
-  DemoIndexRoute: typeof DemoIndexRoute
+interface ProduktenRouteChildren {
+  ProduktenAdminRoute: typeof ProduktenAdminRoute
+  ProduktenBokaRoute: typeof ProduktenBokaRoute
+  ProduktenBokningarRoute: typeof ProduktenBokningarRoute
+  ProduktenDagsoversiktRoute: typeof ProduktenDagsoversiktRoute
+  ProduktenFrukostRoute: typeof ProduktenFrukostRoute
+  ProduktenGastRoute: typeof ProduktenGastRoute
+  ProduktenGasterRoute: typeof ProduktenGasterRoute
+  ProduktenIncheckningRoute: typeof ProduktenIncheckningRoute
+  ProduktenKanalerRoute: typeof ProduktenKanalerRoute
+  ProduktenMinSidaRoute: typeof ProduktenMinSidaRoute
+  ProduktenPersonalRoute: typeof ProduktenPersonalRoute
+  ProduktenPresentkortRoute: typeof ProduktenPresentkortRoute
+  ProduktenRapporterRoute: typeof ProduktenRapporterRoute
+  ProduktenStadRoute: typeof ProduktenStadRoute
+  ProduktenIndexRoute: typeof ProduktenIndexRoute
 }
 
-const DemoRouteChildren: DemoRouteChildren = {
-  DemoAdminRoute: DemoAdminRoute,
-  DemoBokaRoute: DemoBokaRoute,
-  DemoBokningarRoute: DemoBokningarRoute,
-  DemoDagsoversiktRoute: DemoDagsoversiktRoute,
-  DemoFrukostRoute: DemoFrukostRoute,
-  DemoGastRoute: DemoGastRoute,
-  DemoGasterRoute: DemoGasterRoute,
-  DemoIncheckningRoute: DemoIncheckningRoute,
-  DemoKanalerRoute: DemoKanalerRoute,
-  DemoMinSidaRoute: DemoMinSidaRoute,
-  DemoPersonalRoute: DemoPersonalRoute,
-  DemoPresentkortRoute: DemoPresentkortRoute,
-  DemoRapporterRoute: DemoRapporterRoute,
-  DemoStadRoute: DemoStadRoute,
-  DemoIndexRoute: DemoIndexRoute,
+const ProduktenRouteChildren: ProduktenRouteChildren = {
+  ProduktenAdminRoute: ProduktenAdminRoute,
+  ProduktenBokaRoute: ProduktenBokaRoute,
+  ProduktenBokningarRoute: ProduktenBokningarRoute,
+  ProduktenDagsoversiktRoute: ProduktenDagsoversiktRoute,
+  ProduktenFrukostRoute: ProduktenFrukostRoute,
+  ProduktenGastRoute: ProduktenGastRoute,
+  ProduktenGasterRoute: ProduktenGasterRoute,
+  ProduktenIncheckningRoute: ProduktenIncheckningRoute,
+  ProduktenKanalerRoute: ProduktenKanalerRoute,
+  ProduktenMinSidaRoute: ProduktenMinSidaRoute,
+  ProduktenPersonalRoute: ProduktenPersonalRoute,
+  ProduktenPresentkortRoute: ProduktenPresentkortRoute,
+  ProduktenRapporterRoute: ProduktenRapporterRoute,
+  ProduktenStadRoute: ProduktenStadRoute,
+  ProduktenIndexRoute: ProduktenIndexRoute,
 }
 
-const DemoRouteWithChildren = DemoRoute._addFileChildren(DemoRouteChildren)
+const ProduktenRouteWithChildren = ProduktenRoute._addFileChildren(
+  ProduktenRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   CookiesRoute: CookiesRoute,
-  DemoRoute: DemoRouteWithChildren,
   DpaRoute: DpaRoute,
   Google810803ca6fbfceadDothtmlRoute: Google810803ca6fbfceadDothtmlRoute,
   IntegritetspolicyRoute: IntegritetspolicyRoute,
+  ProduktenRoute: ProduktenRouteWithChildren,
   VillkorRoute: VillkorRoute,
   BokaSlugRoute: BokaSlugRoute,
   GTokenRoute: GTokenRoute,

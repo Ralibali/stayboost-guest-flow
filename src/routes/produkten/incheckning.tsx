@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { GUESTS, PROPERTY, fmtDate, unitOf } from "@/lib/demo-data";
 
-export const Route = createFileRoute("/demo/incheckning")({
+export const Route = createFileRoute("/produkten/incheckning")({
   component: CheckIn,
 });
 
@@ -240,7 +240,7 @@ function CheckIn() {
               </p>
             </div>
 
-            <Link to="/demo/gast" className="btn-primary mt-6 w-full !rounded-2xl">
+            <Link to="/produkten/gast" className="btn-primary mt-6 w-full !rounded-2xl">
               Öppna gästhubben <ArrowRight size={17} />
             </Link>
             <p className="mt-3 text-[12px] text-[color:var(--ink)]/50">

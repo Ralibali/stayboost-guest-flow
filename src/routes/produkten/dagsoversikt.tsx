@@ -16,7 +16,7 @@ import { ADDONS, CLEANING, GUESTS, PROPERTY, fmtDateLong, unitOf } from "@/lib/d
 import { RESOURCES, addDays, resourceBooked, startOfDay } from "@/lib/booking-data";
 import { getAssignee } from "@/lib/staff-data";
 
-export const Route = createFileRoute("/demo/dagsoversikt")({
+export const Route = createFileRoute("/produkten/dagsoversikt")({
   component: Dagsoversikt,
 });
 

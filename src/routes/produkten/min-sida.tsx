@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { fmtDate, fmtDateLong, fmtKr, getAddonById, getAddons, unitOf } from "@/lib/demo-data";
 import { addDays, startOfDay } from "@/lib/booking-data";
-import { MonthGrid } from "@/components/demo/MonthGrid";
+import { MonthGrid } from "@/components/produkten/MonthGrid";
 import {
   addAddonToBooking,
   cancel,
@@ -30,7 +30,7 @@ import {
   type MyBooking,
 } from "@/lib/selfservice";
 
-export const Route = createFileRoute("/demo/min-sida")({
+export const Route = createFileRoute("/produkten/min-sida")({
   component: MinSida,
 });
 
@@ -91,15 +91,15 @@ function MinSida() {
             {error && (
               <p className="mt-2 text-[13px] text-red-600">
                 Hittade ingen bokning — prova{" "}
-                <button onClick={() => setRef("SB-DEMO")} className="font-mono font-bold underline">
-                  SB-DEMO
+                <button onClick={() => setRef("SB-2481")} className="font-mono font-bold underline">
+                  SB-2481
                 </button>{" "}
                 eller bokningsnumret du fick i bokningsflödet.
               </p>
             )}
             <p className="mt-4 rounded-xl bg-[color:var(--bg)] px-4 py-3 text-[13px] text-[color:var(--ink)]/60">
               💡 Tips: boka en vistelse i{" "}
-              <Link to="/demo/boka" className="font-semibold underline">
+              <Link to="/produkten/boka" className="font-semibold underline">
                 bokningsflödet
               </Link>{" "}
               — ditt nya bokningsnummer fungerar här direkt.

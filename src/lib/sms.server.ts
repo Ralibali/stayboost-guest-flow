@@ -76,7 +76,7 @@ export async function send46elks(to: string, text: string): Promise<boolean> {
   return true;
 }
 
-// Fem påhittade scenarier för testutskick.
+// Fem exempelscenarier för utskicken.
 export const DEMO_SCENARIOS = {
   valkomst: {
     label: "Välkomst",
@@ -85,7 +85,7 @@ export const DEMO_SCENARIOS = {
     text:
       "Hej Anna! Vi ser fram emot er vistelse på Sjöbrisretreatet 12–14 juli. " +
       "Incheckning från kl 15, portkod skickas på ankomstdagen. " +
-      "Vill ni förbeställa något? Se tillval: https://demo.stayboost.se/g/anna",
+      "Vill ni förbeställa något? Se tillval: https://stayboost.se/g/anna",
   },
   portkod: {
     label: "Portkod",
@@ -93,7 +93,7 @@ export const DEMO_SCENARIOS = {
     hint: "Ankomstdagen kl 12",
     text:
       "God dag Anna! Er portkod är 4482. Wifi: Sjöbrisretreatet_2G / välkommen2026. " +
-      "Självincheckning: https://demo.stayboost.se/i/anna. Trevlig vistelse!",
+      "Självincheckning: https://stayboost.se/i/anna. Trevlig vistelse!",
   },
   frukost: {
     label: "Frukostkorg",
@@ -101,7 +101,7 @@ export const DEMO_SCENARIOS = {
     hint: "Kväll 1 kl 18",
     text:
       "Hej Anna! Vill ni ha en lokal frukostkorg levererad till dörren i morgon kl 08? " +
-      "249 kr för två. Boka: https://demo.stayboost.se/t/frukost-anna",
+      "249 kr för två. Boka: https://stayboost.se/t/frukost-anna",
   },
   "sen-utcheckning": {
     label: "Sen utcheckning",
@@ -109,7 +109,7 @@ export const DEMO_SCENARIOS = {
     hint: "Dagen innan avresa",
     text:
       "Hej Anna! Vill ni förlänga vistelsen till kl 15 i stället för 11? " +
-      "150 kr, betala direkt: https://demo.stayboost.se/t/sen-utcheckning-anna",
+      "150 kr, betala direkt: https://stayboost.se/t/sen-utcheckning-anna",
   },
   omdome: {
     label: "Omdöme",
@@ -117,7 +117,7 @@ export const DEMO_SCENARIOS = {
     hint: "Dagen efter avresa",
     text:
       "Tack för besöket Anna! Om ni hade det bra skulle vi vara tacksamma för ett " +
-      "omdöme på Google: https://demo.stayboost.se/r/anna. Välkomna tillbaka!",
+      "omdöme på Google: https://stayboost.se/r/anna. Välkomna tillbaka!",
   },
 } as const;
 

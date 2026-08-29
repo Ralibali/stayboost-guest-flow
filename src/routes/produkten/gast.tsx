@@ -30,7 +30,7 @@ import {
   type AddonCategory,
 } from "@/lib/demo-data";
 
-export const Route = createFileRoute("/demo/gast")({
+export const Route = createFileRoute("/produkten/gast")({
   component: GuestHub,
 });
 
@@ -114,7 +114,7 @@ function GuestHub() {
             Incheckning från {PROPERTY.checkInTime} i dag
           </div>
           <Link
-            to="/demo/incheckning"
+            to="/produkten/incheckning"
             className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[13px] font-semibold text-[color:var(--ink)] transition hover:bg-white/90"
           >
             <LogIn size={14} />
@@ -377,7 +377,7 @@ function GuestHub() {
                 </button>
               </div>
               <p className="mt-3 text-center text-[12px] text-[color:var(--ink)]/50">
-                Demo — ingen riktig betalning sker
+                Exempel — ingen riktig betalning sker
               </p>
             </motion.div>
           </>

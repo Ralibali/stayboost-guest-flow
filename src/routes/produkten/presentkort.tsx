@@ -17,7 +17,7 @@ import {
 import { PROPERTY, fmtKr } from "@/lib/demo-data";
 import { GIFT_CARD_PRESETS, addSessionGiftCard } from "@/lib/upsell-data";
 
-export const Route = createFileRoute("/demo/presentkort")({
+export const Route = createFileRoute("/produkten/presentkort")({
   component: GiftCardFlow,
 });
 
@@ -152,7 +152,7 @@ function GiftCardFlow() {
             )}
           </button>
           <p className="mt-3 text-center text-[12px] text-[color:var(--ink)]/50">
-            Demo — ingen riktig betalning sker
+            Exempel — ingen riktig betalning sker
           </p>
         </div>
 
@@ -180,7 +180,10 @@ function GiftCardFlow() {
                   är på väg till {email}. Mottagaren löser in den direkt i bokningsflödet.
                 </p>
                 <div className="mt-6 flex flex-col gap-3">
-                  <Link to="/demo/boka" className="btn-primary !rounded-2xl !py-3.5 text-[15px]">
+                  <Link
+                    to="/produkten/boka"
+                    className="btn-primary !rounded-2xl !py-3.5 text-[15px]"
+                  >
                     Testa inlösen i bokningen <ArrowRight size={16} />
                   </Link>
                   <button

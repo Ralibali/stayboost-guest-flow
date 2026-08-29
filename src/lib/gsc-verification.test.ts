@@ -39,7 +39,9 @@ describe("GSC HTML-file verification", () => {
     expect(isGscVerificationRequest(req)).toBe(true);
     expect(isGscVerificationRequest(new Request("https://stayboost.se/"))).toBe(false);
     expect(
-      isGscVerificationRequest(new Request(`https://stayboost.se${GSC_HTML_PATH}`, { method: "POST" })),
+      isGscVerificationRequest(
+        new Request(`https://stayboost.se${GSC_HTML_PATH}`, { method: "POST" }),
+      ),
     ).toBe(false);
   });
 

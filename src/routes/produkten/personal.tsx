@@ -20,7 +20,7 @@ import {
   type StaffMember,
 } from "@/lib/staff-data";
 
-export const Route = createFileRoute("/demo/personal")({
+export const Route = createFileRoute("/produkten/personal")({
   component: StaffView,
 });
 

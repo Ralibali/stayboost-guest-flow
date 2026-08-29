@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { EarlyAccessForm } from "@/components/landing/EarlyAccessForm";
+import { SignupCta } from "@/components/landing/SignupCta";
 
 function useCountUp(target: number, duration = 600) {
   const [value, setValue] = useState(target);
@@ -124,11 +124,7 @@ export function RevenueCalculator() {
         </motion.div>
 
         <div className="mx-auto mt-8 max-w-md">
-          <EarlyAccessForm
-            location="calculator"
-            variant="dark"
-            buttonLabel="Börja räkna hem det →"
-          />
+          <SignupCta location="calculator" variant="dark" buttonLabel="Börja räkna hem det →" />
         </div>
       </div>
 

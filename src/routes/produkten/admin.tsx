@@ -49,7 +49,7 @@ import {
 } from "@/lib/demo-data";
 import { GIFT_CARDS, getSessionGiftCards } from "@/lib/upsell-data";
 
-export const Route = createFileRoute("/demo/admin")({
+export const Route = createFileRoute("/produkten/admin")({
   component: AdminDashboard,
 });
 
@@ -104,7 +104,7 @@ function AdminDashboard() {
           </div>
           <div className="flex flex-wrap items-center gap-2.5">
             <Link
-              to="/demo/bokningar"
+              to="/produkten/bokningar"
               className="flex items-center gap-2 rounded-full bg-[color:var(--forest)] px-4 py-2 text-[13px] font-semibold text-white transition hover:brightness-110"
             >
               <CalendarRange size={15} />

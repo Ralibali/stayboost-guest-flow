@@ -1,16 +1,26 @@
-import { Link, createFileRoute, useNavigate } from "@tanstack/react-router";
+import { Link, createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase, useSession } from "@/lib/supabase";
 
+type LoginSearch = {
+  mode?: "up";
+  email?: string;
+};
+
 export const Route = createFileRoute("/app/login")({
   component: LoginPage,
+  validateSearch: (search: Record<string, unknown>): LoginSearch => ({
+    mode: search.mode === "up" ? "up" : undefined,
+    email: typeof search.email === "string" ? search.email.slice(0, 255) : undefined,
+  }),
 });
 
 function LoginPage() {
   const session = useSession();
   const navigate = useNavigate();
-  const [mode, setMode] = useState<"in" | "up">("in");
-  const [email, setEmail] = useState("");
+  const search = useSearch({ from: "/app/login" });
+  const [mode, setMode] = useState<"in" | "up">(search.mode === "up" ? "up" : "in");
+  const [email, setEmail] = useState(search.email ?? "");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,7 +54,9 @@ function LoginPage() {
           <Link to="/" className="font-[Fraunces] text-3xl font-semibold text-white">
             StayBoost
           </Link>
-          <p className="mt-2 text-[14px] text-white/65">Logga in till din anläggning</p>
+          <p className="mt-2 text-[14px] text-white/65">
+            {mode === "in" ? "Logga in till din anläggning" : "Skapa konto — igång på en kväll"}
+          </p>
         </div>
         <form onSubmit={submit} className="card-surface mt-8 space-y-4 p-6">
           <label className="block">

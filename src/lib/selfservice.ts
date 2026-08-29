@@ -33,7 +33,7 @@ export type MyBooking = {
 
 /** Inbyggd demobokning (Anna) — modul-nivå så ändringar lever kvar i sessionen. */
 const demoBooking: MyBooking = {
-  ref: "SB-DEMO",
+  ref: "SB-2481",
   guestName: "Anna Lindqvist",
   email: "anna@example.se",
   unitId: "sjobris",

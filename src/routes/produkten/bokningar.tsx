@@ -28,7 +28,7 @@ import {
   type Booking,
 } from "@/lib/booking-data";
 
-export const Route = createFileRoute("/demo/bokningar")({
+export const Route = createFileRoute("/produkten/bokningar")({
   component: BookingAdmin,
 });
 
@@ -259,7 +259,7 @@ function BookingAdmin() {
                 <span className="h-3 w-3 rounded bg-[#5b7fa6]" /> Booking.com / Sirvoy
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="h-3 w-3 rounded bg-[color:var(--brass)]" /> Ny i detta demo
+                <span className="h-3 w-3 rounded bg-[color:var(--brass)]" /> Nyligen bokad
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="h-3 w-3 rounded bg-[color:var(--bg)] ring-1 ring-[color:var(--line)]" />{" "}

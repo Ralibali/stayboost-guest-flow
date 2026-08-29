@@ -47,9 +47,9 @@ import {
   startOfDay,
 } from "@/lib/booking-data";
 import { BUNDLES, REBOOKING_GUARANTEE, REDEEMABLE, type Bundle } from "@/lib/upsell-data";
-import { MonthGrid } from "@/components/demo/MonthGrid";
+import { MonthGrid } from "@/components/produkten/MonthGrid";
 
-export const Route = createFileRoute("/demo/boka")({
+export const Route = createFileRoute("/produkten/boka")({
   component: BookingFlow,
 });
 
@@ -796,7 +796,7 @@ function BookingFlow() {
                   <span className="flex items-center gap-1">
                     <Gift size={13} /> Presentkort
                   </span>
-                  <span>Demo</span>
+                  <span>Exempel</span>
                 </p>
               </StepShell>
             )}
@@ -889,13 +889,13 @@ function BookingFlow() {
 
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                   <Link
-                    to="/demo/gast"
+                    to="/produkten/gast"
                     className="btn-primary flex-1 !rounded-2xl !py-3.5 text-[15px]"
                   >
                     Öppna din gästsida <ArrowRight size={16} />
                   </Link>
                   <Link
-                    to="/demo/bokningar"
+                    to="/produkten/bokningar"
                     className="btn-ghost flex-1 !rounded-2xl !py-3.5 text-[15px]"
                   >
                     Se i ägarkalendern

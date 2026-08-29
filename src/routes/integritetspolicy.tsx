@@ -47,7 +47,7 @@ function PrivacyPolicy() {
       <ul>
         <li>
           <strong>Kontaktuppgifter</strong> (namn, e-post, telefon, företag) — när du fyller i
-          formulär, bokar demo eller startar en provperiod.
+          formulär eller skapar konto.
         </li>
         <li>
           <strong>Kunduppgifter</strong> (fakturaadress, betalinformation via vår betalpartner) —
@@ -101,7 +101,8 @@ function PrivacyPolicy() {
         <li>Bokföringsunderlag: 7 år (bokföringslagen).</li>
         <li>Loggar / säkerhetsdata: som regel högst 12 månader.</li>
         <li>
-          Formulär för sms-demo: telefonnummer sparas endast för frekvensbegränsning i 24 timmar.
+          Sms-formuläret på webbplatsen: telefonnummer sparas endast för frekvensbegränsning i 24
+          timmar.
         </li>
       </ul>
 
