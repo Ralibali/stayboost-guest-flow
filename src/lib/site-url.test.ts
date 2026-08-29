@@ -91,6 +91,28 @@ describe("kanonisk värd (legal / OG)", () => {
   });
 });
 
+describe("public sitemap", () => {
+  it("urlset is homepage plus the four legal locs on stayboost.se only", () => {
+    const xml = read("public/sitemap.xml");
+    expect(xml).not.toMatch(/lovable\.app/i);
+    expect(xml).not.toMatch(/<!--/);
+
+    const locs = [...xml.matchAll(/<loc>\s*([^<]+)\s*<\/loc>/g)].map((match) => match[1].trim());
+    const expected = [canonicalUrl("/"), ...LEGAL_PATHS.map((path) => legalPageUrl(path))];
+    expect(locs).toEqual(expected);
+
+    for (const loc of locs) {
+      const url = new URL(loc);
+      expect(url.origin).toBe("https://stayboost.se");
+      expect(url.search).toBe("");
+      expect(url.hash).toBe("");
+    }
+
+    expect(locs.filter((loc) => loc === "https://stayboost.se/")).toHaveLength(1);
+    expect(locs.filter((loc) => loc.endsWith("/") && loc !== "https://stayboost.se/")).toEqual([]);
+  });
+});
+
 describe("BLOCKED_BADGE", () => {
   it("legal/index-rutter injicerar inte lovable-badge — host-injektion", () => {
     const files = [
