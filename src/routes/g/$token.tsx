@@ -3,9 +3,22 @@ import { motion } from "framer-motion";
 import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { supabase, supabaseConfigured } from "@/lib/supabase";
+import { canonicalUrl } from "@/lib/canonical";
 
 export const Route = createFileRoute("/g/$token")({
   component: GuestPage,
+  head: ({ params }) => {
+    const url = canonicalUrl(`/g/${params.token}`);
+    return {
+      meta: [
+        { title: "Din vistelse — StayBoost" },
+        { name: "robots", content: "noindex, nofollow" },
+        { property: "og:url", content: url },
+        { property: "og:type", content: "website" },
+      ],
+      links: [{ rel: "canonical", href: url }],
+    };
+  },
 });
 
 const C = { bg: "#FAFAF8", ink: "#1B1B19", muted: "#777772", line: "#E2E2DC" } as const;

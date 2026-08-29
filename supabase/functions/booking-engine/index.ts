@@ -340,7 +340,7 @@ Deno.serve(async (req) => {
 
     if (paymentMethod === "stripe") {
       try {
-        const appBase = Deno.env.get("PUBLIC_APP_URL") ?? req.headers.get("origin") ?? "";
+        const appBase = appBaseUrl(Deno.env.get("PUBLIC_APP_URL"), req.headers.get("origin"));
         const session = await createCheckoutSession({
           secretKey: stripeKey,
           amountSek: grandTotal,
