@@ -66,8 +66,8 @@ export function OpsAlertPanel({ propertyId }: { propertyId: string }) {
   const cron = useMemo(() => jobs.find((job) => job.job_name === "ops-cron") ?? null, [jobs]);
   const cronFailedAfterSuccess = Boolean(
     cron?.last_failed_at &&
-      (!cron.last_succeeded_at ||
-        new Date(cron.last_failed_at).getTime() > new Date(cron.last_succeeded_at).getTime()),
+    (!cron.last_succeeded_at ||
+      new Date(cron.last_failed_at).getTime() > new Date(cron.last_succeeded_at).getTime()),
   );
   const cronStale =
     available &&
@@ -116,7 +116,9 @@ export function OpsAlertPanel({ propertyId }: { propertyId: string }) {
           <div className="flex items-start gap-3 px-5 py-4">
             <AlertTriangle size={16} className="mt-0.5 shrink-0 text-red-700" />
             <div>
-              <p className="text-[12px] font-bold text-red-950">Bakgrundsautomatiken är inte frisk</p>
+              <p className="text-[12px] font-bold text-red-950">
+                Bakgrundsautomatiken är inte frisk
+              </p>
               <p className="mt-1 text-[11px] leading-relaxed text-red-900/70">
                 {cronFailedAfterSuccess
                   ? `Senaste cron-körningen misslyckades: ${cron?.last_error ?? "okänt fel"}`
