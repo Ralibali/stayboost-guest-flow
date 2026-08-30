@@ -124,6 +124,32 @@ export type ScheduledMessage = {
   template?: { trigger_type: string } | null;
 };
 
+export type OperationalAlert = {
+  id: string;
+  property_id: string;
+  fingerprint: string;
+  code: string;
+  severity: "warning" | "critical";
+  title: string;
+  detail: string;
+  entity_type: string | null;
+  entity_id: string | null;
+  metadata: Record<string, unknown>;
+  first_seen_at: string;
+  last_seen_at: string;
+  resolved_at: string | null;
+};
+
+export type OpsJobState = {
+  job_name: string;
+  last_started_at: string | null;
+  last_succeeded_at: string | null;
+  last_failed_at: string | null;
+  last_error: string | null;
+  last_summary: Record<string, unknown>;
+  updated_at: string;
+};
+
 export type IcalChannelType = "sirvoy" | "booking" | "airbnb" | "other";
 
 export type IcalSource = {

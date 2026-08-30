@@ -2,8 +2,8 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { formatSvDate, renderTemplate } from "../_shared/templates.ts";
 import { appBaseUrl } from "../_shared/app-url.ts";
 
-// Skickar förfallna meddelanden och frigör obetalda Swish-reservationer.
-// Körs på cron var 5:e minut med x-cron-secret.
+// Skickar förfallna meddelanden. Betalningsreservationer ägs av BP-3:s
+// payment lifecycle och frigörs separat av ops-cron.
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -29,17 +29,6 @@ Deno.serve(async (req) => {
   );
   const baseUrl = appBaseUrl(Deno.env.get("GUEST_PAGE_BASE_URL"));
   const now = new Date().toISOString();
-
-  const { data: expired, error: expiryError } = await admin
-    .from("bookings")
-    .update({ status: "cancelled" })
-    .eq("status", "confirmed")
-    .eq("payment_status", "pending")
-    .eq("payment_method", "swish")
-    .not("payment_expires_at", "is", null)
-    .lt("payment_expires_at", now)
-    .select("id");
-  if (expiryError) return json({ error: expiryError.message }, 500);
 
   const { data: due, error } = await admin
     .from("scheduled_messages")
@@ -71,8 +60,9 @@ Deno.serve(async (req) => {
       continue;
     }
 
-    // Skicka aldrig välkomst- eller ankomstmeddelanden innan betalningen är klar.
-    if (b.payment_status === "pending") {
+    // Skicka endast när betalningsläget faktiskt tillåter gästkommunikation.
+    // none = extern/manuell bokning utan StayBoost-betalning, paid = betalad direktbokning.
+    if (!["none", "paid"].includes(String(b.payment_status ?? "none"))) {
       waitingPayment++;
       continue;
     }
@@ -164,7 +154,6 @@ Deno.serve(async (req) => {
   }
 
   return json({
-    expiredSwishBookings: expired?.length ?? 0,
     due: due?.length ?? 0,
     sent,
     failed,
