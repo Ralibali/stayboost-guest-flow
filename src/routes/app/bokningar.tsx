@@ -592,9 +592,7 @@ function BookingCard({
             <SourceBadge source={b.source} />
             {b.payment_status === "pending" && <Badge tone="amber">Betalning väntar</Badge>}
             {b.payment_status === "paid" && <Badge tone="green">Betald</Badge>}
-            {b.payment_status === "refund_pending" && (
-              <Badge tone="red">Återbetalning krävs</Badge>
-            )}
+            {b.payment_status === "refund_pending" && <Badge tone="red">Återbetalning krävs</Badge>}
             {b.payment_status === "refunded" && <Badge tone="green">Återbetald</Badge>}
             {conflicting && <Badge tone="red">Krock</Badge>}
             {needsContact && <Badge tone="amber">Kontakt saknas</Badge>}
@@ -687,14 +685,15 @@ function BookingCard({
 
               {b.payment_status === "pending" && b.payment_method === "stripe" && (
                 <p className="rounded-xl border border-sky-100 bg-sky-50 px-3.5 py-2.5 text-[11px] text-sky-800">
-                  Stripe-betalningar kan inte markeras betalda manuellt. Status uppdateras endast av en
-                  verifierad Stripe-webhook.
+                  Stripe-betalningar kan inte markeras betalda manuellt. Status uppdateras endast av
+                  en verifierad Stripe-webhook.
                 </p>
               )}
 
               {b.payment_status === "refund_pending" && b.payment_method === "swish" && (
                 <p className="rounded-xl border border-red-100 bg-red-50 px-3.5 py-2.5 text-[11px] text-red-800">
-                  Återbetalning väntar. Swisha tillbaka beloppet först och bekräfta därefter i systemet.
+                  Återbetalning väntar. Swisha tillbaka beloppet först och bekräfta därefter i
+                  systemet.
                 </p>
               )}
 
@@ -715,7 +714,11 @@ function BookingCard({
                         key={message.id}
                         className="flex items-center gap-2.5 rounded-xl border border-black/[0.055] bg-white px-3 py-2.5 text-[11px]"
                       >
-                        {message.channel === "email" ? <Mail size={13} /> : <Smartphone size={13} />}
+                        {message.channel === "email" ? (
+                          <Mail size={13} />
+                        ) : (
+                          <Smartphone size={13} />
+                        )}
                         <span className="font-bold">
                           {message.template
                             ? (TRIGGER_LABELS[
