@@ -125,7 +125,7 @@ describe("BP-2 iCal disappearance reconciliation", () => {
   });
 
   it("imports external overlaps instead of silently dropping their source truth", () => {
-    expect(sync).toContain("konflikter måste importeras, inte döljas");
+    expect(sync).toContain("Externa krockar måste importeras, inte döljas");
     expect(sync).toContain("conflicts++");
     expect(sync).toContain('source: "ical"');
     expect(sync).not.toContain("konflikten — den ska synas,\n          // inte försvinna tyst");
