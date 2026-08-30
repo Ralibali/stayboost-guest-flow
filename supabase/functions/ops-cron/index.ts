@@ -13,6 +13,7 @@ const corsHeaders = {
 };
 
 const MINUTE = 60_000;
+const CRON_LEASE_SECONDS = 6 * 60; // Längre än 5-minutersschemat: nästa tick får aldrig överlappa en seg körning.
 const ICAL_RUN_EVERY_MS = 12 * MINUTE; // 5-min cron => faktisk körning ungefär var 15:e minut.
 const ICAL_WARNING_MS = 20 * MINUTE;
 const ICAL_CRITICAL_MS = 35 * MINUTE;
@@ -20,6 +21,16 @@ const OVERDUE_HOLD_GRACE_MS = 2 * MINUTE;
 const STRIPE_REFUND_STUCK_MS = 10 * MINUTE;
 const WEBHOOK_STUCK_MS = 5 * MINUTE;
 const FAILED_MESSAGE_LOOKBACK_MS = 24 * 60 * MINUTE;
+const OPS_ALERT_CODES = [
+  "ical_critical",
+  "ical_stale",
+  "payment_hold_overdue",
+  "stripe_refund_stuck",
+  "swish_refund_required",
+  "stripe_webhook_failed",
+  "message_delivery_failed",
+  "background_job_unhealthy",
+] as const;
 
 type Admin = ReturnType<typeof createClient>;
 type Json = Record<string, unknown>;
@@ -35,7 +46,7 @@ type JobResult = {
 type AlertIssue = {
   property_id: string;
   fingerprint: string;
-  code: string;
+  code: (typeof OPS_ALERT_CODES)[number];
   severity: "warning" | "critical";
   title: string;
   detail: string;
@@ -185,9 +196,7 @@ async function scanHealth(admin: Admin) {
         .or("processed_at.is.null,last_error.not.is.null"),
       admin
         .from("scheduled_messages")
-        .select(
-          "id, send_at, error, booking:bookings(property_id, guest_name)",
-        )
+        .select("id, send_at, error, booking:bookings(property_id, guest_name)")
         .eq("status", "failed")
         .gte("send_at", failedSince)
         .order("send_at", { ascending: false })
@@ -367,9 +376,12 @@ async function scanHealth(admin: Admin) {
     if (error) throw error;
   }
 
+  // Auto-resolve endast larm som den här scannern själv äger. Framtida/manuala
+  // producenter i samma tabell får aldrig få sina larm släckta av BP-4.
   const { data: openAlerts, error: openError } = await admin
     .from("operational_alerts")
     .select("id, property_id, fingerprint")
+    .in("code", [...OPS_ALERT_CODES])
     .is("resolved_at", null);
   if (openError) throw openError;
 
@@ -415,7 +427,7 @@ Deno.serve(async (req) => {
 
   const { data: claimed, error: claimError } = await admin.rpc("ops_claim_cron_run", {
     p_run_id: runId,
-    p_ttl_seconds: 240,
+    p_ttl_seconds: CRON_LEASE_SECONDS,
   });
   if (claimError) return json({ error: claimError.message }, 500);
   if (!claimed) return json({ ok: true, skipped: "already_running" }, 202);
