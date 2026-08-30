@@ -95,12 +95,18 @@ export type Booking = {
   status: "confirmed" | "cancelled";
   guest_token: string;
   notes: string | null;
-  payment_status: "none" | "pending" | "paid" | "refunded";
+  payment_status: "none" | "pending" | "paid" | "refund_pending" | "refunded" | "expired";
   payment_amount: number | null;
   payment_ref: string | null;
   payment_method: "none" | "swish" | "stripe";
   payment_expires_at: string | null;
+  payment_paid_at: string | null;
+  payment_refund_requested_at: string | null;
+  payment_refunded_at: string | null;
+  payment_expired_at: string | null;
   stripe_session_id: string | null;
+  stripe_payment_intent_id: string | null;
+  stripe_refund_id: string | null;
   addons_total: number;
   guests: number | null;
   created_at: string;
@@ -178,7 +184,12 @@ export function classifyIcalHealth(
 /* ---------- Prisregler (datumstyrda) ---------- */
 
 export type RateRuleKind =
-  "price_override" | "price_multiplier" | "min_stay" | "closed" | "no_arrival" | "no_departure";
+  | "price_override"
+  | "price_multiplier"
+  | "min_stay"
+  | "closed"
+  | "no_arrival"
+  | "no_departure";
 
 export type RateRule = {
   id: string;

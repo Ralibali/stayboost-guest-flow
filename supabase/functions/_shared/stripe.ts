@@ -13,6 +13,7 @@ export interface CheckoutParams {
   cancelUrl: string;
   customerEmail?: string | null;
   expiresAtUnix?: number | null;
+  idempotencyKey?: string | null;
 }
 
 /** Bygg form-encoded body för POST /v1/checkout/sessions. */
@@ -34,9 +35,9 @@ export function checkoutBody(p: CheckoutParams): string {
   params.set("metadata[booking_id]", p.bookingId);
   if (p.customerEmail) params.set("customer_email", p.customerEmail);
 
-  // Stripe tillåter 30 minuter som kortaste Checkout-reservation. Det gör att
-  // en övergiven betalning inte blockerar boendet resten av dagen.
-  const expiresAt = p.expiresAtUnix ?? Math.floor(Date.now() / 1000) + 30 * 60;
+  // Stripe tillåter 30 minuter som kortaste Checkout-reservation. Booking-engine
+  // sparar samma expiry i vår DB så inventory inte är beroende av en enda webhook.
+  const expiresAt = p.expiresAtUnix ?? Math.floor(Date.now() / 1000) + 31 * 60;
   params.set("expires_at", String(Math.floor(expiresAt)));
   return params.toString();
 }
@@ -48,12 +49,15 @@ export interface CheckoutSession {
 
 /** Skapa en Checkout Session hos Stripe. Kastar vid fel. */
 export async function createCheckoutSession(p: CheckoutParams): Promise<CheckoutSession> {
+  const headers: Record<string, string> = {
+    Authorization: `Bearer ${p.secretKey}`,
+    "Content-Type": "application/x-www-form-urlencoded",
+  };
+  if (p.idempotencyKey) headers["Idempotency-Key"] = p.idempotencyKey;
+
   const response = await fetch("https://api.stripe.com/v1/checkout/sessions", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${p.secretKey}`,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
+    headers,
     body: checkoutBody(p),
   });
   const data = await response.json();
@@ -62,6 +66,51 @@ export async function createCheckoutSession(p: CheckoutParams): Promise<Checkout
   }
   if (!data.id || !data.url) throw new Error("Stripe-svar saknade id/url");
   return { id: data.id, url: data.url };
+}
+
+/** Stäng en Checkout Session som skapats men inte säkert kunde bindas till bokningen. */
+export async function expireCheckoutSession(secretKey: string, sessionId: string): Promise<void> {
+  const response = await fetch(
+    `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}/expire`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${secretKey}` },
+    },
+  );
+  if (response.ok) return;
+  const data = await response.json().catch(() => null);
+  throw new Error(data?.error?.message ?? `Stripe svarade ${response.status}`);
+}
+
+export interface StripeRefund {
+  id: string;
+  status: string | null;
+}
+
+/** Full refund med stabil idempotency key så nätverks-/DB-retries inte kan dubbla utbetalningen. */
+export async function createFullRefund(params: {
+  secretKey: string;
+  paymentIntentId: string;
+  idempotencyKey: string;
+  metadata?: Record<string, string>;
+}): Promise<StripeRefund> {
+  const body = new URLSearchParams({ payment_intent: params.paymentIntentId });
+  for (const [key, value] of Object.entries(params.metadata ?? {})) {
+    body.set(`metadata[${key}]`, value);
+  }
+  const response = await fetch("https://api.stripe.com/v1/refunds", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${params.secretKey}`,
+      "Content-Type": "application/x-www-form-urlencoded",
+      "Idempotency-Key": params.idempotencyKey,
+    },
+    body: body.toString(),
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data?.error?.message ?? `Stripe svarade ${response.status}`);
+  if (!data.id) throw new Error("Stripe-svar saknade refund-id");
+  return { id: data.id, status: data.status ?? null };
 }
 
 function bytesToHex(bytes: Uint8Array): string {

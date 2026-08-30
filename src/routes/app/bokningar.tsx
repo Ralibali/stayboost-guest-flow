@@ -44,6 +44,30 @@ const svDate = (iso: string) =>
   new Date(iso + "T12:00:00").toLocaleDateString("sv-SE", { day: "numeric", month: "short" });
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("sv-SE")} kr`;
 
+type PaymentAction =
+  | "cancel_booking"
+  | "mark_swish_paid"
+  | "request_swish_refund"
+  | "confirm_swish_refunded";
+
+async function invokePaymentAction(bookingId: string, action: PaymentAction) {
+  if (!supabase) return { error: "Supabase är inte konfigurerat." };
+  const { data, error } = await supabase.functions.invoke("payment-action", {
+    body: { bookingId, action },
+  });
+  const payload = data as { error?: string } | null;
+  return { error: payload?.error ?? error?.message ?? null };
+}
+
+async function invokeStripeRefund(bookingId: string) {
+  if (!supabase) return { error: "Supabase är inte konfigurerat." };
+  const { data, error } = await supabase.functions.invoke("stripe-refund", {
+    body: { bookingId },
+  });
+  const payload = data as { detail?: string; error?: string } | null;
+  return { error: payload?.detail ?? payload?.error ?? error?.message ?? null };
+}
+
 function overlaps(a: Booking, b: Booking) {
   return Boolean(
     a.unit_id &&
@@ -133,6 +157,7 @@ function BookingsPage() {
         (b) =>
           conflictIds.has(b.id) ||
           b.payment_status === "pending" ||
+          b.payment_status === "refund_pending" ||
           !b.guest_email ||
           !b.guest_phone,
       ),
@@ -156,18 +181,14 @@ function BookingsPage() {
   };
 
   const cancel = async (booking: Booking) => {
-    if (!supabase) return;
     if (
       !window.confirm(
         `Avboka ${booking.guest_name ?? "bokningen"} ${svDate(booking.checkin_date)}–${svDate(booking.checkout_date)}?`,
       )
     )
       return;
-    const { error } = await supabase
-      .from("bookings")
-      .update({ status: "cancelled" })
-      .eq("id", booking.id);
-    if (error) setPageError(error.message);
+    const result = await invokePaymentAction(booking.id, "cancel_booking");
+    if (result.error) setPageError(result.error);
     else load();
   };
 
@@ -299,7 +320,9 @@ function BookingsPage() {
               <option value="none">Ingen betalning</option>
               <option value="pending">Väntar</option>
               <option value="paid">Betald</option>
+              <option value="refund_pending">Återbetalning krävs</option>
               <option value="refunded">Återbetald</option>
+              <option value="expired">Utgången</option>
             </select>
           </div>
         </div>
@@ -527,6 +550,20 @@ function BookingCard({
     onChanged();
   };
 
+  const runPaymentAction = async (action: PaymentAction) => {
+    onError(null);
+    const result = await invokePaymentAction(b.id, action);
+    if (result.error) onError(result.error);
+    else onChanged();
+  };
+
+  const refundStripe = async () => {
+    onError(null);
+    const result = await invokeStripeRefund(b.id);
+    if (result.error) onError(`Återbetalningen misslyckades: ${result.error}`);
+    else onChanged();
+  };
+
   const needsContact = !b.guest_email || !b.guest_phone;
 
   return (
@@ -555,6 +592,8 @@ function BookingCard({
             <SourceBadge source={b.source} />
             {b.payment_status === "pending" && <Badge tone="amber">Betalning väntar</Badge>}
             {b.payment_status === "paid" && <Badge tone="green">Betald</Badge>}
+            {b.payment_status === "refund_pending" && <Badge tone="red">Återbetalning krävs</Badge>}
+            {b.payment_status === "refunded" && <Badge tone="green">Återbetald</Badge>}
             {conflicting && <Badge tone="red">Krock</Badge>}
             {needsContact && <Badge tone="amber">Kontakt saknas</Badge>}
           </div>
@@ -640,7 +679,21 @@ function BookingCard({
                     hour: "2-digit",
                     minute: "2-digit",
                   })}{" "}
-                  om den inte markeras betald.
+                  om betalningen inte bekräftas.
+                </p>
+              )}
+
+              {b.payment_status === "pending" && b.payment_method === "stripe" && (
+                <p className="rounded-xl border border-sky-100 bg-sky-50 px-3.5 py-2.5 text-[11px] text-sky-800">
+                  Stripe-betalningar kan inte markeras betalda manuellt. Status uppdateras endast av
+                  en verifierad Stripe-webhook.
+                </p>
+              )}
+
+              {b.payment_status === "refund_pending" && b.payment_method === "swish" && (
+                <p className="rounded-xl border border-red-100 bg-red-50 px-3.5 py-2.5 text-[11px] text-red-800">
+                  Återbetalning väntar. Swisha tillbaka beloppet först och bekräfta därefter i
+                  systemet.
                 </p>
               )}
 
@@ -700,65 +753,82 @@ function BookingCard({
               </div>
 
               <div className="flex flex-wrap gap-2 border-t border-black/[0.055] pt-4">
-                {b.payment_status === "pending" && (
+                {b.payment_status === "pending" && b.payment_method === "swish" && (
                   <button
-                    onClick={async () => {
-                      if (!supabase) return;
-                      const { error } = await supabase
-                        .from("bookings")
-                        .update({ payment_status: "paid", payment_expires_at: null })
-                        .eq("id", b.id);
-                      if (error) onError(error.message);
-                      else onChanged();
-                    }}
+                    onClick={() => runPaymentAction("mark_swish_paid")}
                     className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3.5 py-2 text-[11px] font-bold text-white hover:bg-emerald-800"
                   >
-                    <CreditCard size={13} /> Markera betald
+                    <CreditCard size={13} /> Markera Swish betald
                     {b.payment_amount ? ` · ${fmtKr(b.payment_amount)}` : ""}
                   </button>
                 )}
-                {b.payment_status === "paid" && (
+
+                {b.payment_status === "paid" && b.payment_method === "stripe" && (
                   <button
                     onClick={async () => {
-                      if (!supabase) return;
                       const amount = b.payment_amount
                         ? ` ${b.payment_amount.toLocaleString("sv-SE")} kr`
                         : "";
-                      const isStripe = b.payment_method === "stripe";
                       if (
                         !window.confirm(
-                          isStripe
-                            ? `Återbetala${amount} till ${b.guest_name ?? "gästen"}? Pengarna skickas tillbaka automatiskt via Stripe.`
-                            : `Markera${amount} som återbetald till ${b.guest_name ?? "gästen"}? Kom ihåg att swisha tillbaka pengarna.`,
+                          `Återbetala${amount} till ${b.guest_name ?? "gästen"}? Pengarna skickas tillbaka automatiskt via Stripe.`,
                         )
                       )
                         return;
-                      if (isStripe) {
-                        const { data, error } = await supabase.functions.invoke("stripe-refund", {
-                          body: { bookingId: b.id },
-                        });
-                        if (error || (data as { error?: string } | null)?.error) {
-                          onError(
-                            `Återbetalningen misslyckades: ${(data as { detail?: string; error?: string } | null)?.detail ?? (data as { error?: string } | null)?.error ?? error?.message}`,
-                          );
-                          return;
-                        }
-                        onChanged();
-                        return;
-                      }
-                      const { error } = await supabase
-                        .from("bookings")
-                        .update({ payment_status: "refunded" })
-                        .eq("id", b.id);
-                      if (error) onError(error.message);
-                      else onChanged();
+                      await refundStripe();
                     }}
                     className="inline-flex items-center gap-1.5 rounded-xl border border-black/[0.09] bg-white px-3.5 py-2 text-[11px] font-bold text-[color:var(--ink)]/65 hover:border-black/20"
                   >
-                    <RotateCcw size={13} />{" "}
-                    {b.payment_method === "stripe" ? "Återbetala via Stripe" : "Markera återbetald"}
+                    <RotateCcw size={13} /> Återbetala via Stripe
                   </button>
                 )}
+
+                {b.payment_status === "paid" && b.payment_method === "swish" && (
+                  <button
+                    onClick={async () => {
+                      const amount = b.payment_amount
+                        ? ` ${b.payment_amount.toLocaleString("sv-SE")} kr`
+                        : "";
+                      if (
+                        !window.confirm(
+                          `Starta återbetalning${amount} till ${b.guest_name ?? "gästen"}? Status blir ”återbetalning krävs” tills du faktiskt har swishat tillbaka och bekräftat det.`,
+                        )
+                      )
+                        return;
+                      await runPaymentAction("request_swish_refund");
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-xl border border-black/[0.09] bg-white px-3.5 py-2 text-[11px] font-bold text-[color:var(--ink)]/65 hover:border-black/20"
+                  >
+                    <RotateCcw size={13} /> Starta Swish-återbetalning
+                  </button>
+                )}
+
+                {b.payment_status === "refund_pending" && b.payment_method === "stripe" && (
+                  <button
+                    onClick={refundStripe}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-red-700 px-3.5 py-2 text-[11px] font-bold text-white hover:bg-red-800"
+                  >
+                    <RotateCcw size={13} /> Slutför Stripe-återbetalning
+                  </button>
+                )}
+
+                {b.payment_status === "refund_pending" && b.payment_method === "swish" && (
+                  <button
+                    onClick={async () => {
+                      if (
+                        !window.confirm(
+                          `Bekräfta endast om du redan har swishat tillbaka pengarna till ${b.guest_name ?? "gästen"}.`,
+                        )
+                      )
+                        return;
+                      await runPaymentAction("confirm_swish_refunded");
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-red-700 px-3.5 py-2 text-[11px] font-bold text-white hover:bg-red-800"
+                  >
+                    <Check size={13} /> Jag har swishat tillbaka
+                  </button>
+                )}
+
                 <button
                   onClick={onCopy}
                   className="inline-flex items-center gap-1.5 rounded-xl border border-black/[0.09] bg-white px-3.5 py-2 text-[11px] font-bold text-[color:var(--ink)]/65 hover:border-black/20"
