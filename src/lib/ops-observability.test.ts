@@ -19,6 +19,7 @@ describe("BP-4 cron + observability", () => {
   it("uses one lease-locked cron orchestrator instead of overlapping workers", () => {
     expect(migration).toContain("ops_claim_cron_run");
     expect(migration).toContain("lock_expires_at");
+    expect(migration).toContain("p_ttl_seconds integer default 360");
     expect(cron).toContain("const CRON_LEASE_SECONDS = 6 * 60");
     expect(cron).toContain('admin.rpc("ops_claim_cron_run"');
     expect(cron).toContain("p_ttl_seconds: CRON_LEASE_SECONDS");
@@ -75,6 +76,17 @@ describe("BP-4 cron + observability", () => {
   it("only auto-resolves alerts owned by the BP-4 health scanner", () => {
     expect(cron).toContain("const OPS_ALERT_CODES = [");
     expect(cron).toContain('.in("code", [...OPS_ALERT_CODES])');
+  });
+
+  it("does not expose cross-tenant heartbeat summaries, errors or lease data to clients", () => {
+    expect(migration).toContain(
+      "grant select (job_name, last_started_at, last_succeeded_at, last_failed_at, updated_at)",
+    );
+    expect(migration).not.toContain("grant select on table public.ops_job_state to authenticated");
+    expect(alertPanel).toContain(
+      '.select("job_name,last_started_at,last_succeeded_at,last_failed_at,updated_at")',
+    );
+    expect(alertPanel).not.toContain("cron?.last_error");
   });
 
   it("surfaces scheduler health and actionable alerts across the operator app", () => {
