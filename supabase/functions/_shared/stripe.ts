@@ -37,7 +37,7 @@ export function checkoutBody(p: CheckoutParams): string {
 
   // Stripe tillåter 30 minuter som kortaste Checkout-reservation. Booking-engine
   // sparar samma expiry i vår DB så inventory inte är beroende av en enda webhook.
-  const expiresAt = p.expiresAtUnix ?? Math.floor(Date.now() / 1000) + 30 * 60;
+  const expiresAt = p.expiresAtUnix ?? Math.floor(Date.now() / 1000) + 31 * 60;
   params.set("expires_at", String(Math.floor(expiresAt)));
   return params.toString();
 }

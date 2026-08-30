@@ -20,7 +20,9 @@ const corsHeaders = {
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const STRIPE_HOLD_SECONDS = 30 * 60;
+// Stripe requires Checkout expiry to be at least 30 minutes from session creation.
+// Use 31 minutes so DB work before the API call cannot push us below that minimum.
+const STRIPE_HOLD_SECONDS = 31 * 60;
 
 async function sha256(value: string) {
   const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
