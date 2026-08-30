@@ -1,5 +1,6 @@
 import { Link, Outlet, createFileRoute, useLocation, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { OpsAlertPanel } from "@/components/OpsAlertPanel";
 import { AppShell } from "@/components/app/AppShell";
 import { supabase, supabaseConfigured, useProperty, useSession } from "@/lib/supabase";
 
@@ -71,6 +72,7 @@ function AppLayout() {
       propertyName={property?.name ?? null}
       propertySlug={property?.slug ?? null}
     >
+      {property ? <OpsAlertPanel propertyId={property.id} /> : null}
       <Outlet />
     </AppShell>
   );
