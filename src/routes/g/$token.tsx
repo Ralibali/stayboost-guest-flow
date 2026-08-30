@@ -41,6 +41,7 @@ type GuestData = {
     swish_number: string | null;
   };
   payment: {
+    method: "none" | "swish" | "stripe";
     status: string;
     amount: number | null;
     ref: string | null;
@@ -88,7 +89,13 @@ function GuestPage() {
   }, [token, polls]);
 
   useEffect(() => {
-    if (!justPaid || data?.payment?.status !== "pending" || polls >= 6) return;
+    if (
+      !justPaid ||
+      data?.payment?.method !== "stripe" ||
+      data.payment.status !== "pending" ||
+      polls >= 6
+    )
+      return;
     const timer = setTimeout(() => setPolls((p) => p + 1), 8000);
     return () => clearTimeout(timer);
   }, [justPaid, data, polls]);
@@ -187,7 +194,7 @@ function GuestPage() {
           </div>
         )}
 
-        {justPaid && data.payment?.status === "pending" && (
+        {justPaid && data.payment?.method === "stripe" && data.payment.status === "pending" && (
           <div className="mt-8 border px-5 py-4" style={{ borderColor: C.line }}>
             <p className="text-[14px] font-semibold">Din betalning behandlas</p>
             <p className="text-[13px]" style={{ color: C.muted }}>
@@ -196,43 +203,46 @@ function GuestPage() {
           </div>
         )}
 
-        {data.payment?.status === "pending" && data.payment.amount && p.swish_number && (
-          <div className="mt-8 border px-5 py-4" style={{ borderColor: C.ink }}>
-            <p className={eyebrow} style={{ color: C.muted }}>
-              Betala med Swish
-            </p>
-            <p className="mt-2 text-[14px] leading-relaxed" style={{ color: C.muted }}>
-              Swisha{" "}
-              <strong style={{ color: C.ink }}>
-                {data.payment.amount.toLocaleString("sv-SE")} kr
-              </strong>{" "}
-              till{" "}
-              <span className="font-mono font-semibold" style={{ color: C.ink }}>
-                {p.swish_number}
-              </span>
-              {data.payment.ref && (
-                <>
-                  {" "}
-                  och märk betalningen med{" "}
-                  <span className="font-mono font-semibold" style={{ color: C.ink }}>
-                    {data.payment.ref}
-                  </span>
-                </>
-              )}
-              .
-              {expires && (
-                <>
-                  {" "}
-                  Datumen reserveras till{" "}
-                  <strong style={{ color: C.ink }}>
-                    {expires.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}
-                  </strong>
-                  .
-                </>
-              )}
-            </p>
-          </div>
-        )}
+        {data.payment?.method === "swish" &&
+          data.payment.status === "pending" &&
+          data.payment.amount &&
+          p.swish_number && (
+            <div className="mt-8 border px-5 py-4" style={{ borderColor: C.ink }}>
+              <p className={eyebrow} style={{ color: C.muted }}>
+                Betala med Swish
+              </p>
+              <p className="mt-2 text-[14px] leading-relaxed" style={{ color: C.muted }}>
+                Swisha{" "}
+                <strong style={{ color: C.ink }}>
+                  {data.payment.amount.toLocaleString("sv-SE")} kr
+                </strong>{" "}
+                till{" "}
+                <span className="font-mono font-semibold" style={{ color: C.ink }}>
+                  {p.swish_number}
+                </span>
+                {data.payment.ref && (
+                  <>
+                    {" "}
+                    och märk betalningen med{" "}
+                    <span className="font-mono font-semibold" style={{ color: C.ink }}>
+                      {data.payment.ref}
+                    </span>
+                  </>
+                )}
+                .
+                {expires && (
+                  <>
+                    {" "}
+                    Datumen reserveras till{" "}
+                    <strong style={{ color: C.ink }}>
+                      {expires.toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })}
+                    </strong>
+                    .
+                  </>
+                )}
+              </p>
+            </div>
+          )}
 
         {data.unit?.checkin_instructions && (
           <Section title={`Hitta till ${data.unit.name}`}>{data.unit.checkin_instructions}</Section>
