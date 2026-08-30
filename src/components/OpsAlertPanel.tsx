@@ -5,6 +5,11 @@ import { supabase, type OperationalAlert, type OpsJobState } from "@/lib/supabas
 
 const CRON_STALE_MS = 12 * 60 * 1000;
 
+type ClientJobState = Pick<
+  OpsJobState,
+  "job_name" | "last_started_at" | "last_succeeded_at" | "last_failed_at" | "updated_at"
+>;
+
 function formatTime(value: string | null) {
   if (!value) return "aldrig";
   return new Date(value).toLocaleString("sv-SE", {
@@ -26,7 +31,7 @@ function alertTarget(code: string): "/app/kallor" | "/app/bokningar" | "/app/mal
 
 export function OpsAlertPanel({ propertyId }: { propertyId: string }) {
   const [alerts, setAlerts] = useState<OperationalAlert[]>([]);
-  const [jobs, setJobs] = useState<OpsJobState[]>([]);
+  const [jobs, setJobs] = useState<ClientJobState[]>([]);
   const [available, setAvailable] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +46,10 @@ export function OpsAlertPanel({ propertyId }: { propertyId: string }) {
         .order("severity")
         .order("last_seen_at", { ascending: false })
         .limit(20),
-      supabase.from("ops_job_state").select("*").order("job_name"),
+      supabase
+        .from("ops_job_state")
+        .select("job_name,last_started_at,last_succeeded_at,last_failed_at,updated_at")
+        .order("job_name"),
     ]);
 
     // Rolling deploy-säkert: UI:t får inte gå sönder om frontend hinner före migrationen.
@@ -52,7 +60,7 @@ export function OpsAlertPanel({ propertyId }: { propertyId: string }) {
     }
 
     setAlerts((alertsResult.data as OperationalAlert[]) ?? []);
-    setJobs((jobsResult.data as OpsJobState[]) ?? []);
+    setJobs((jobsResult.data as ClientJobState[]) ?? []);
     setAvailable(true);
     setLoading(false);
   }, [propertyId]);
@@ -121,7 +129,7 @@ export function OpsAlertPanel({ propertyId }: { propertyId: string }) {
               </p>
               <p className="mt-1 text-[11px] leading-relaxed text-red-900/70">
                 {cronFailedAfterSuccess
-                  ? `Senaste cron-körningen misslyckades: ${cron?.last_error ?? "okänt fel"}`
+                  ? "Senaste cron-körningen misslyckades. Kontrollera det ägarspecifika driftlarmet nedan eller Edge Function-loggarna."
                   : `Ingen lyckad cron-körning inom 12 minuter. Senast OK: ${formatTime(cron?.last_succeeded_at ?? null)}.`}
               </p>
             </div>
