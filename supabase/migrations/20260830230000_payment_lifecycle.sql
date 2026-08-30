@@ -40,7 +40,9 @@ alter table public.stripe_webhook_events enable row level security;
 revoke all on table public.stripe_webhook_events from anon, authenticated;
 
 -- ============================================================
--- Browserklienten får ändra bokningsdetaljer/status men aldrig betalningssanning.
+-- Browserklienten får ändra vanliga bokningsdetaljer men aldrig betalningssanning.
+-- En pending payment-hold får inte heller avbokas direkt från browsern: den måste
+-- gå genom payment-action så Stripe/Swish-state och inventory ändras tillsammans.
 -- Edge Functions använder service_role och passerar därför denna spärr.
 -- ============================================================
 create or replace function public.protect_payment_lifecycle_from_clients()
@@ -78,7 +80,8 @@ begin
      or new.payment_refunded_at is distinct from old.payment_refunded_at
      or new.payment_expired_at is distinct from old.payment_expired_at
      or new.stripe_payment_intent_id is distinct from old.stripe_payment_intent_id
-     or new.stripe_refund_id is distinct from old.stripe_refund_id then
+     or new.stripe_refund_id is distinct from old.stripe_refund_id
+     or (old.payment_status = 'pending' and new.status is distinct from old.status) then
     raise exception 'payment_lifecycle_server_only' using errcode = '42501';
   end if;
 
