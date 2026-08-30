@@ -25,16 +25,13 @@ const errors = report.flatMap((file) =>
 );
 
 const unexpected = errors.filter(
-  (error) =>
-    !allowedBaseline.has(`${error.path}|${error.ruleId}|${error.line}|${error.column}`),
+  (error) => !allowedBaseline.has(`${error.path}|${error.ruleId}|${error.line}|${error.column}`),
 );
 
 if (unexpected.length > 0) {
   console.error("Unexpected ESLint errors:");
   for (const error of unexpected) {
-    console.error(
-      `- ${error.path}:${error.line}:${error.column} ${error.ruleId} ${error.message}`,
-    );
+    console.error(`- ${error.path}:${error.line}:${error.column} ${error.ruleId} ${error.message}`);
   }
   process.exit(1);
 }
