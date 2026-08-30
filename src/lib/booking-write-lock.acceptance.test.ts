@@ -49,9 +49,7 @@ describe("BP-1 canonical booking write lock", () => {
 
   it("keeps managed inventory strict while preserving external source truth", () => {
     expect(migration).toContain("new.source in ('manual', 'direct')");
-    expect(migration).not.toContain(
-      "new.source not in ('manual', 'direct')",
-    );
+    expect(migration).not.toContain("new.source not in ('manual', 'direct')");
     expect(migration).toContain("External writes deliberately remain representable");
   });
 
