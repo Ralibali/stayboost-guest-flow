@@ -32,7 +32,7 @@ Deno.serve(async (req) => {
   const { data, error } = await admin
     .from("bookings")
     .select(
-      "guest_name, checkin_date, checkout_date, status, payment_status, payment_amount, payment_ref, payment_expires_at, unit:units(name, door_code, checkin_instructions), property:properties(name, checkin_time, checkout_time, directions, wifi_name, wifi_password, house_rules, contact_phone, swish_number)",
+      "guest_name, checkin_date, checkout_date, status, payment_method, payment_status, payment_amount, payment_ref, payment_expires_at, unit:units(name, door_code, checkin_instructions), property:properties(name, checkin_time, checkout_time, directions, wifi_name, wifi_password, house_rules, contact_phone, swish_number)",
     )
     .eq("guest_token", token)
     .maybeSingle();
@@ -48,6 +48,7 @@ Deno.serve(async (req) => {
     property: data.property,
     payment: data.payment_status
       ? {
+          method: data.payment_method,
           status: data.payment_status,
           amount: data.payment_amount,
           ref: data.payment_ref,
