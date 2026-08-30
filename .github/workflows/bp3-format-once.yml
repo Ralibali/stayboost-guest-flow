@@ -1,0 +1,33 @@
+name: BP3 format once
+
+on:
+  push:
+    branches:
+      - chatgpt/bp3-payment-lifecycle
+
+permissions:
+  contents: write
+
+jobs:
+  format:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: chatgpt/bp3-payment-lifecycle
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bunx prettier --write src/routes/app/bokningar.tsx src/lib/supabase.ts
+      - name: Commit formatting
+        run: |
+          if git diff --quiet; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add src/routes/app/bokningar.tsx src/lib/supabase.ts
+          git commit -m "style(bp3): apply repository formatter"
+          git push origin HEAD:chatgpt/bp3-payment-lifecycle
