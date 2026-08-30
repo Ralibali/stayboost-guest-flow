@@ -2,7 +2,9 @@
 -- Additiv migration. Inga priser, bokningsregler eller channel-manager-gränser ändras.
 
 -- ============================================================
--- Global job heartbeat/lock state. Innehåller ingen gäst- eller kunddata.
+-- Global job heartbeat/lock state.
+-- Klienten får endast läsa ofarliga tidsstämplar. last_error, last_summary och
+-- lease-fält kan innehålla interna/integrationsspecifika detaljer och är service-role-only.
 -- ============================================================
 create table if not exists public.ops_job_state (
   job_name text primary key,
@@ -18,7 +20,8 @@ create table if not exists public.ops_job_state (
 
 alter table public.ops_job_state enable row level security;
 revoke all on table public.ops_job_state from anon, authenticated;
-grant select on table public.ops_job_state to authenticated;
+grant select (job_name, last_started_at, last_succeeded_at, last_failed_at, updated_at)
+  on table public.ops_job_state to authenticated;
 
 drop policy if exists "Authenticated read scheduler health" on public.ops_job_state;
 create policy "Authenticated read scheduler health"
@@ -28,10 +31,11 @@ create policy "Authenticated read scheduler health"
   using (true);
 
 -- Atomärt lease-lås så dubbla pg_cron/HTTP-anrop inte kör samma globala
--- orchestration samtidigt. Ett kraschat jobb självläker när leasen löper ut.
+-- orchestration samtidigt. Defaultleasen är längre än 5-minutersschemat;
+-- ett kraschat jobb självläker när leasen löper ut.
 create or replace function public.ops_claim_cron_run(
   p_run_id uuid,
-  p_ttl_seconds integer default 240
+  p_ttl_seconds integer default 360
 )
 returns boolean
 language plpgsql
@@ -40,7 +44,7 @@ set search_path = public
 as $$
 declare
   affected integer;
-  ttl integer := greatest(60, least(coalesce(p_ttl_seconds, 240), 600));
+  ttl integer := greatest(60, least(coalesce(p_ttl_seconds, 360), 600));
 begin
   insert into public.ops_job_state (job_name)
   values ('ops-cron')
