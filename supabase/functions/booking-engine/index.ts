@@ -7,7 +7,7 @@ import {
   type RateRule,
 } from "../_shared/rate-rules.ts";
 import { priceAddons, sumAddons } from "../_shared/addons.ts";
-import { createCheckoutSession } from "../_shared/stripe.ts";
+import { createCheckoutSession, expireCheckoutSession } from "../_shared/stripe.ts";
 import { appBaseUrl } from "../_shared/app-url.ts";
 
 // Publik bokningsmotor. All prissättning, kapacitet och tillgänglighet
@@ -20,6 +20,7 @@ const corsHeaders = {
 
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const STRIPE_HOLD_SECONDS = 30 * 60;
 
 async function sha256(value: string) {
   const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
@@ -176,7 +177,10 @@ Deno.serve(async (req) => {
       .gte("created_at", windowStart);
     if ((count ?? 0) >= 12) return json({ error: "rate_limited" }, 429);
     await admin.from("booking_attempts").insert({ ip_hash: ipHash });
-    await admin.from("booking_attempts").delete().lt("created_at", new Date(Date.now() - 86400000).toISOString());
+    await admin
+      .from("booking_attempts")
+      .delete()
+      .lt("created_at", new Date(Date.now() - 86400000).toISOString());
 
     const { slug, unitId, checkin, checkout } = body ?? {};
     const guestName = String(body?.guest_name ?? "").trim();
@@ -190,8 +194,10 @@ Deno.serve(async (req) => {
     const today = new Date().toISOString().slice(0, 10);
     if (checkin < today) return json({ error: "past_checkin" }, 400);
     if (nightsBetween(checkin, checkout).length > 30) return json({ error: "too_long" }, 400);
-    if (guestName.length < 2 || guestName.length > 120) return json({ error: "name_required" }, 400);
-    if (!EMAIL.test(guestEmail) || guestEmail.length > 254) return json({ error: "email_required" }, 400);
+    if (guestName.length < 2 || guestName.length > 120)
+      return json({ error: "name_required" }, 400);
+    if (!EMAIL.test(guestEmail) || guestEmail.length > 254)
+      return json({ error: "email_required" }, 400);
     if (guestPhoneRaw && !normalizedPhone) return json({ error: "invalid_phone" }, 400);
     if (body?.termsAccepted !== true) return json({ error: "terms_required" }, 400);
 
@@ -237,10 +243,7 @@ Deno.serve(async (req) => {
 
     const availabilityIssue = checkAvailabilityRules(rules, unit.id, stayNights, checkout);
     if (availabilityIssue) {
-      return json(
-        { error: availabilityIssue.kind, date: availabilityIssue.date },
-        409,
-      );
+      return json({ error: availabilityIssue.kind, date: availabilityIssue.date }, 409);
     }
 
     // Förkontroll för ett vänligt svar. Databastriggern gör samma kontroll atomärt.
@@ -251,7 +254,11 @@ Deno.serve(async (req) => {
       .eq("status", "confirmed")
       .lt("checkin_date", checkout)
       .gt("checkout_date", checkin);
-    if ((clashes ?? []).some((c) => rangesOverlap(checkin, checkout, c.checkin_date, c.checkout_date))) {
+    if (
+      (clashes ?? []).some((c) =>
+        rangesOverlap(checkin, checkout, c.checkin_date, c.checkout_date),
+      )
+    ) {
       return json({ error: "unavailable" }, 409);
     }
 
@@ -285,10 +292,14 @@ Deno.serve(async (req) => {
 
     const paymentRef = `SB-${crypto.randomUUID().replace(/-/g, "").slice(0, 6).toUpperCase()}`;
     const takesPayment = paymentMethod !== "none";
+    const stripeExpiresAtUnix =
+      paymentMethod === "stripe" ? Math.floor(Date.now() / 1000) + STRIPE_HOLD_SECONDS : null;
     const paymentExpiresAt =
       paymentMethod === "swish"
         ? new Date(Date.now() + property.swish_hold_minutes * 60_000).toISOString()
-        : null;
+        : stripeExpiresAtUnix
+          ? new Date(stripeExpiresAtUnix * 1000).toISOString()
+          : null;
 
     const addonsNote = pricedAddons.length
       ? ` · Tillval: ${pricedAddons.map((p) => `${p.addon.name}×${p.quantity}`).join(", ")}`
@@ -340,6 +351,7 @@ Deno.serve(async (req) => {
     }
 
     if (paymentMethod === "stripe") {
+      let createdSessionId: string | null = null;
       try {
         const appBase = appBaseUrl(Deno.env.get("PUBLIC_APP_URL"), req.headers.get("origin"));
         const session = await createCheckoutSession({
@@ -351,8 +363,19 @@ Deno.serve(async (req) => {
           successUrl: `${appBase}/g/${booking.guest_token}?paid=1`,
           cancelUrl: `${appBase}/boka/${slug}`,
           customerEmail: guestEmail,
+          expiresAtUnix: stripeExpiresAtUnix,
+          idempotencyKey: `stayboost-checkout-${booking.id}`,
         });
-        await admin.from("bookings").update({ stripe_session_id: session.id }).eq("id", booking.id);
+        createdSessionId = session.id;
+
+        const { error: bindError } = await admin
+          .from("bookings")
+          .update({ stripe_session_id: session.id })
+          .eq("id", booking.id)
+          .eq("payment_method", "stripe")
+          .eq("payment_status", "pending");
+        if (bindError) throw new Error(`kunde inte binda Stripe-session: ${bindError.message}`);
+
         return json({
           ok: true,
           bookingId: booking.id,
@@ -365,10 +388,23 @@ Deno.serve(async (req) => {
           })),
           grandTotal,
           paymentMethod: "stripe",
+          paymentExpiresAt,
           checkoutUrl: session.url,
         });
       } catch (e) {
-        await admin.from("bookings").delete().eq("id", booking.id);
+        // Om Stripe redan hunnit skapa en session måste den stängas innan vi tar bort
+        // bokningen. Misslyckas stängningen behåller vi reservationen till dess DB-expiry
+        // så en orphaned Checkout URL aldrig kan sälja samma datum parallellt.
+        if (createdSessionId) {
+          try {
+            await expireCheckoutSession(stripeKey, createdSessionId);
+            await admin.from("bookings").delete().eq("id", booking.id).eq("payment_status", "pending");
+          } catch {
+            return json({ error: "stripe_binding_failed", detail: String(e) }, 502);
+          }
+        } else {
+          await admin.from("bookings").delete().eq("id", booking.id).eq("payment_status", "pending");
+        }
         return json({ error: "stripe_failed", detail: String(e) }, 502);
       }
     }
