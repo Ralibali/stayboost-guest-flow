@@ -35,8 +35,15 @@ verify_jwt = true
 [functions.payment-action]
 verify_jwt = true
 
+# Cron-anrop saknar användar-JWT och måste nå funktionskoden så att
+# x-cron-secret kan verifieras där. ical-sync behåller dessutom egen
+# användar-JWT-validering för manuella synkar från operator-UI:t.
 [functions.ical-sync]
-verify_jwt = true
+verify_jwt = false
 
 [functions.send-scheduled-messages]
-verify_jwt = true
+verify_jwt = false
+
+# Endast server-till-server via x-cron-secret.
+[functions.ops-cron]
+verify_jwt = false
