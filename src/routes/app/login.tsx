@@ -88,7 +88,9 @@ function LoginPage() {
             StayBoost
           </Link>
           <p className="mt-2 text-[14px] text-white/65">
-            {mode === "in" ? "Logga in till din anläggning" : "Skapa konto — första steget tar en minut"}
+            {mode === "in"
+              ? "Logga in till din anläggning"
+              : "Skapa konto — första steget tar en minut"}
           </p>
         </div>
         <form onSubmit={submit} className="card-surface mt-8 space-y-4 p-6">
