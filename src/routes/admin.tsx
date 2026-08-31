@@ -183,10 +183,7 @@ function PlatformAdminPage() {
         title="Logga in först"
         body="Plattformsadmin använder samma säkra StayBoost-inloggning, men har en separat serverstyrd behörighet."
       >
-        <Link
-          to="/app/login"
-          className="btn-primary mt-6 inline-flex !rounded-xl !px-5 !py-3"
-        >
+        <Link to="/app/login" className="btn-primary mt-6 inline-flex !rounded-xl !px-5 !py-3">
           Till inloggningen <ArrowRight size={14} />
         </Link>
       </AdminMessage>
@@ -447,9 +444,7 @@ function RiskList({ customers }: { customers: Customer[] }) {
       <div className="mt-3 grid gap-2 md:grid-cols-2">
         {customers.map((customer) => (
           <div key={customer.id} className="rounded-2xl bg-white/70 p-4">
-            <p className="text-[12px] font-bold text-red-950">
-              {customer.email ?? "Okänt konto"}
-            </p>
+            <p className="text-[12px] font-bold text-red-950">{customer.email ?? "Okänt konto"}</p>
             <p className="mt-1 text-[10px] text-red-900/60">
               {statusLabel(customer.subscription?.status)} · kontrollera betalningen i Stripe.
             </p>
