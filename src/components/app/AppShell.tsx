@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import type { ReactNode } from "react";
 import { BillingPanel } from "@/components/app/BillingPanel";
+import { PlatformOwnerPanel } from "@/components/app/PlatformOwnerPanel";
 
 const NAV = [
   { to: "/app", label: "Översikt", icon: LayoutDashboard, group: "Drift" },
@@ -156,6 +157,7 @@ export function AppShell({
         </header>
 
         <main className="mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-10">
+          {pathname.startsWith("/app/installningar") ? <PlatformOwnerPanel /> : null}
           {children}
         </main>
       </div>
