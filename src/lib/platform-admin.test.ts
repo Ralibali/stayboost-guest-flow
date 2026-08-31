@@ -6,7 +6,8 @@ const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta
 const migration = read("supabase/migrations/20260831143500_platform_owner_admin.sql");
 const endpoint = read("supabase/functions/platform-admin/index.ts");
 const config = read("supabase/config.toml");
-const route = read("src/routes/admin.tsx");
+const panel = read("src/components/app/PlatformOwnerPanel.tsx");
+const shell = read("src/components/app/AppShell.tsx");
 
 describe("StayBoost platform owner admin", () => {
   it("uses a server-managed allowlist that clients cannot read or mutate", () => {
@@ -35,6 +36,9 @@ describe("StayBoost platform owner admin", () => {
     expect(endpoint).toContain("arrSek");
     expect(endpoint).toContain("canceling");
     expect(endpoint).toContain("paymentProblems");
+    expect(panel).toContain("Aktiva abonnemang");
+    expect(panel).toContain("ARR run-rate");
+    expect(panel).toContain("Aktiverade");
   });
 
   it("does not expose guest booking records to the platform dashboard", () => {
@@ -42,15 +46,16 @@ describe("StayBoost platform owner admin", () => {
     expect(endpoint).not.toContain("guest_name");
     expect(endpoint).not.toContain("guest_email");
     expect(endpoint).not.toContain("guest_phone");
-    expect(route).toContain("ingen gäst-PII");
+    expect(panel).toContain("Ingen");
+    expect(panel).toContain("gäst-PII");
   });
 
-  it("keeps owner admin separate from the customer operator interface", () => {
-    expect(route).toContain('createFileRoute("/admin")');
-    expect(route).toContain("Plattformadmin");
-    expect(route).toContain('to="/app"');
-    expect(route).toContain("Aktiva abonnemang");
-    expect(route).toContain("MRR");
-    expect(route).toContain("ARR run-rate");
+  it("keeps owner admin invisible to ordinary customer accounts", () => {
+    expect(panel).toContain('supabase.functions.invoke("platform-admin"');
+    expect(panel).toContain("Vanliga kundkonton får 403");
+    expect(panel).toContain("if (error || !data?.ok)");
+    expect(panel).toContain("if (loading || !overview) return null");
+    expect(shell).toContain('pathname.startsWith("/app/installningar")');
+    expect(shell).toContain("<PlatformOwnerPanel />");
   });
 });
