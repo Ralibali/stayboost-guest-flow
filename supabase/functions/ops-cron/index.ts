@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isCronAuthorized } from "../_shared/cron-auth.ts";
 
 // StayBoost BP-4: en enda cron-ingång för återkommande bakgrundsjobb.
 // - x-cron-secret verifieras i funktionen (gateway JWT är avstängd i config.toml)
@@ -66,10 +67,9 @@ function one<T = any>(value: T | T[] | null | undefined): T | null {
 
 async function setJobStarted(admin: Admin, job: string) {
   const now = new Date().toISOString();
-  const { error } = await admin.from("ops_job_state").upsert(
-    { job_name: job, last_started_at: now, updated_at: now },
-    { onConflict: "job_name" },
-  );
+  const { error } = await admin
+    .from("ops_job_state")
+    .upsert({ job_name: job, last_started_at: now, updated_at: now }, { onConflict: "job_name" });
   if (error) throw error;
 }
 
@@ -279,7 +279,10 @@ async function scanHealth(admin: Admin) {
           detail: "Återbetalningen har varit pending i över 10 minuter och behöver kontrolleras.",
           entity_type: "booking",
           entity_id: booking.id,
-          metadata: { amount: booking.payment_amount ?? null, paymentRef: booking.payment_ref ?? null },
+          metadata: {
+            amount: booking.payment_amount ?? null,
+            paymentRef: booking.payment_ref ?? null,
+          },
         });
       } else if (booking.payment_method === "swish") {
         issues.push({
@@ -291,7 +294,10 @@ async function scanHealth(admin: Admin) {
           detail: "Swisha tillbaka beloppet och bekräfta därefter återbetalningen i StayBoost.",
           entity_type: "booking",
           entity_id: booking.id,
-          metadata: { amount: booking.payment_amount ?? null, paymentRef: booking.payment_ref ?? null },
+          metadata: {
+            amount: booking.payment_amount ?? null,
+            paymentRef: booking.payment_ref ?? null,
+          },
         });
       }
     }
@@ -416,13 +422,13 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
 
   const secret = req.headers.get("x-cron-secret") ?? "";
-  const expected = Deno.env.get("CRON_SECRET") ?? "";
-  if (!expected || secret !== expected) return json({ error: "unauthorized" }, 401);
-
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
+  if (!(await isCronAuthorized(admin, secret))) {
+    return json({ error: "unauthorized" }, 401);
+  }
   const runId = crypto.randomUUID();
 
   const { data: claimed, error: claimError } = await admin.rpc("ops_claim_cron_run", {

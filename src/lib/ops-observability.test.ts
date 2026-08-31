@@ -9,6 +9,7 @@ const read = (path: string) => readFileSync(join(root, path), "utf8");
 
 const migration = read("supabase/migrations/20260830240000_ops_observability.sql");
 const cron = read("supabase/functions/ops-cron/index.ts");
+const cronAuth = read("supabase/functions/_shared/cron-auth.ts");
 const config = read("supabase/config.toml");
 const registerCron = read("supabase/cron/register-production-jobs.sql");
 const messages = read("supabase/functions/send-scheduled-messages/index.ts");
@@ -43,7 +44,9 @@ describe("BP-4 cron + observability", () => {
     expect(config).toContain("[functions.payment-action]\nverify_jwt = true");
     expect(config).toContain("[functions.stripe-refund]\nverify_jwt = true");
     expect(cron).toContain('req.headers.get("x-cron-secret")');
-    expect(cron).toContain('Deno.env.get("CRON_SECRET")');
+    expect(cron).toContain("await isCronAuthorized(");
+    expect(cronAuth).toContain('Deno.env.get("CRON_SECRET")');
+    expect(cronAuth).toContain('admin.rpc("verify_ops_cron_secret"');
   });
 
   it("registers production scheduling via pg_cron + pg_net + Vault without committed secrets", () => {
