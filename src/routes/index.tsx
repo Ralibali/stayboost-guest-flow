@@ -163,57 +163,52 @@ function Hero() {
       </span>
 
       <div className="relative mx-auto grid max-w-[1120px] items-center gap-10 px-5 sm:gap-16 sm:px-6 md:grid-cols-[55fr_45fr]">
+        {/* Hero-innehållet renderas synligt direkt (utan FadeUp) så att sidan aldrig
+            visas som en tom svart yta innan klient-JS hunnit ladda och hydrera. */}
         <div className="min-w-0">
-          <FadeUp>
-            <div className="mb-5 sm:mb-6">
-              <HeroProofBadge />
-            </div>
-          </FadeUp>
-          <FadeUp delay={0.05}>
-            <h1 className="text-white" style={{ fontSize: "clamp(2rem, 8vw, 5rem)" }}>
-              Dina gäster vill köpa mer.{" "}
-              <em className="not-italic">
-                <span className="italic text-[color:var(--brass)]">Låt dem.</span>
-              </em>
-            </h1>
-          </FadeUp>
-          <FadeUp delay={0.15}>
-            <p className="mt-5 max-w-xl text-[0.95rem] leading-relaxed text-white/85 sm:mt-6 sm:text-base">
-              {BRAND_NAME} lägger sig ovanpå bokningarna du redan har — egen provisionsfri
-              bokningsmotor, automatiserad merförsäljning, gäst-sms, digital incheckning och
-              arbetsvyer för frukost och städning. Ett lager driftautomation för små boenden. Utan
-              app. Igång på en kväll.
-            </p>
-          </FadeUp>
-          <FadeUp delay={0.2}>
-            <div className="mt-6 max-w-md sm:mt-8">
-              <SignupCta location="hero" variant="dark" buttonLabel="Kom igång" />
-            </div>
-            <p className="mt-3 text-[0.8rem] text-white/70 sm:mt-4 sm:text-[0.85rem]">
-              <a
-                href="#prova-sms"
-                onClick={() => {
-                  if (typeof window === "undefined") return;
-                  const w = window as unknown as {
-                    plausible?: (e: string, opts?: { props?: Record<string, string> }) => void;
-                  };
-                  w.plausible?.("Hero Sms Link Clicked", {
-                    props: { target: "prova-sms", label: "känn på gästflödet via sms" },
-                  });
-                }}
-                className="underline decoration-white/40 underline-offset-2 hover:text-white hover:decoration-white"
-              >
-                eller känn på gästflödet via sms
-              </a>
-            </p>
-          </FadeUp>
+          <div className="mb-5 sm:mb-6">
+            <HeroProofBadge />
+          </div>
+          <h1 className="text-white" style={{ fontSize: "clamp(2rem, 8vw, 5rem)" }}>
+            Dina gäster vill köpa mer.{" "}
+            <em className="not-italic">
+              <span className="italic text-[color:var(--brass)]">Låt dem.</span>
+            </span>
+          </em>
+          </h1>
+          <p className="mt-5 max-w-xl text-[0.95rem] leading-relaxed text-white/85 sm:mt-6 sm:text-base">
+            {BRAND_NAME} lägger sig ovanpå bokningarna du redan har — egen provisionsfri
+            bokningsmotor, automatiserad merförsäljning, gäst-sms, digital incheckning och
+            arbetsvyer för frukost och städning. Ett lager driftautomation för små boenden. Utan
+            app. Igång på en kväll.
+          </p>
+          <div className="mt-6 max-w-md sm:mt-8">
+            <SignupCta location="hero" variant="dark" buttonLabel="Kom igång" />
+          </div>
+          <p className="mt-3 text-[0.8rem] text-white/70 sm:mt-4 sm:text-[0.85rem]">
+            <a
+              href="#prova-sms"
+              onClick={() => {
+                if (typeof window === "undefined") return;
+                const w = window as unknown as {
+                  plausible?: (e: string, opts?: { props?: Record<string, string> }) => void;
+                };
+                w.plausible?.("Hero Sms Link Clicked", {
+                  props: { target: "prova-sms", label: "känn på gästflödet via sms" },
+                });
+              }}
+              className="underline decoration-white/40 underline-offset-2 hover:text-white hover:decoration-white"
+            >
+              eller känn på gästflödet via sms
+            </a>
+          </p>
         </div>
 
-        <FadeUp delay={0.15} className="min-w-0">
+        <div className="min-w-0">
           <div className="mx-auto max-w-[320px] rounded-[52px] p-1 ring-1 ring-white/25 [box-shadow:0_30px_80px_-20px_rgba(0,0,0,0.5)] sm:max-w-none">
             <PhoneMockup />
           </div>
-        </FadeUp>
+        </div>
       </div>
     </section>
   );
