@@ -169,8 +169,8 @@ export function PlatformOwnerPanel() {
               StayBoost · ägarvy
             </h2>
             <p className="mt-1 max-w-2xl text-[11px] leading-relaxed text-white/55 sm:text-[12px]">
-              Kundaktivering, abonnemang, återkommande intäkt och drift på en skärm. Ingen
-              gäst-PII visas här.
+              Kundaktivering, abonnemang, återkommande intäkt och drift på en skärm. Ingen gäst-PII
+              visas här.
             </p>
           </div>
           <button
@@ -219,11 +219,7 @@ export function PlatformOwnerPanel() {
         </div>
 
         <div
-          className={`mt-4 rounded-2xl border px-4 py-3 ${
-            healthOk
-              ? "border-emerald-200 bg-emerald-50/70"
-              : "border-amber-200 bg-amber-50/80"
-          }`}
+          className={`mt-4 rounded-2xl border px-4 py-3 ${healthOk ? "border-emerald-200 bg-emerald-50/70" : "border-amber-200 bg-amber-50/80"}`}
         >
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-2.5">
@@ -237,8 +233,7 @@ export function PlatformOwnerPanel() {
                   {healthOk ? "Plattformen är frisk" : "Något behöver följas upp"}
                 </p>
                 <p className="mt-0.5 text-[10px] text-[color:var(--ink)]/50">
-                  {overview.health.openAlerts} driftlarm · {overview.health.criticalAlerts} kritiska ·{" "}
-                  {overview.health.stripeUnverified} ej liveverifierade abonnemang
+                  {`${overview.health.openAlerts} driftlarm · ${overview.health.criticalAlerts} kritiska · ${overview.health.stripeUnverified} ej liveverifierade abonnemang`}
                 </p>
               </div>
             </div>
