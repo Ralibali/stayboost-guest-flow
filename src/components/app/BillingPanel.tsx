@@ -18,7 +18,14 @@ type BillingStatus = {
   };
 };
 
-const portalStatuses = new Set(["trialing", "active", "past_due", "unpaid", "paused", "incomplete"]);
+const portalStatuses = new Set([
+  "trialing",
+  "active",
+  "past_due",
+  "unpaid",
+  "paused",
+  "incomplete",
+]);
 
 function statusLabel(status: string | null | undefined) {
   switch (status) {
@@ -94,7 +101,9 @@ export function BillingPanel({ mobile = false }: { mobile?: boolean }) {
       <div className="mx-3 mb-3 rounded-xl border border-black/[0.06] bg-[#f5f6f3] px-3 py-2.5 text-[11px]">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="font-bold text-[#173c2b]">StayBoost · {planLabel(subscription?.planInterval)}</p>
+            <p className="font-bold text-[#173c2b]">
+              StayBoost · {planLabel(subscription?.planInterval)}
+            </p>
             <p className="truncate text-[color:var(--ink)]/50">SMS ingår · {label}</p>
           </div>
           {state?.enabled && usePortal ? (
@@ -151,7 +160,9 @@ export function BillingPanel({ mobile = false }: { mobile?: boolean }) {
       <div className="flex items-start gap-2.5">
         <CreditCard size={15} className="mt-0.5 shrink-0 text-white/55" />
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] font-bold">Abonnemang · {planLabel(subscription?.planInterval)}</p>
+          <p className="text-[11px] font-bold">
+            Abonnemang · {planLabel(subscription?.planInterval)}
+          </p>
           <p className="mt-0.5 text-[10px] leading-relaxed text-white/45">
             SMS ingår utan separat kostnad. Priser exkl. moms.
           </p>
