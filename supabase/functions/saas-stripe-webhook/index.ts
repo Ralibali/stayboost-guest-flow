@@ -1,5 +1,9 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { retrieveSaasSubscription } from "../_shared/saas-stripe.ts";
+import {
+  isAllowedSaasSubscriptionPrice,
+  retrieveSaasSubscription,
+  type SaasStripeSubscription,
+} from "../_shared/saas-stripe.ts";
 import { verifyStripeSignature } from "../_shared/stripe.ts";
 
 type StripeEvent = {
@@ -94,6 +98,10 @@ Deno.serve(async (req) => {
         await releaseClaim();
         return json({ error: "owner_binding_mismatch" }, 422);
       }
+      if (!isAllowedSaasSubscriptionPrice(subscription)) {
+        await releaseClaim();
+        return json({ error: "invalid_subscription_price" }, 422);
+      }
       const priceId = subscription.items?.data?.[0]?.price?.id ?? null;
       const { error } = await admin.from("account_subscriptions").upsert(
         {
@@ -130,6 +138,10 @@ Deno.serve(async (req) => {
       if (!subscriptionId || !customerId) {
         await releaseClaim();
         return json({ error: "missing_subscription_binding" }, 422);
+      }
+      if (!isAllowedSaasSubscriptionPrice(object as unknown as SaasStripeSubscription)) {
+        await releaseClaim();
+        return json({ error: "invalid_subscription_price" }, 422);
       }
       const items = object.items as
         | { data?: Array<{ price?: { id?: string } }> }
