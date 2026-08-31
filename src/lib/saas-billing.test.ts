@@ -41,6 +41,14 @@ describe("StayBoost SaaS billing foundation", () => {
     expect(webhook).toContain('claimError?.code === "23505"');
   });
 
+  it("rejects unrelated Stripe subscriptions even on the same Stripe account", () => {
+    expect(webhook).toContain('object.mode !== "subscription" || metadata.product !== "stayboost"');
+    expect(webhook).toContain('subscription.metadata?.product !== "stayboost"');
+    expect(webhook).toContain("subscription.metadata?.owner_id !== ownerId");
+    expect(webhook).toContain('if (metadata.product !== "stayboost")');
+    expect(webhook).toContain("ownerId !== clientReferenceId");
+  });
+
   it("keeps the commercial SMS policy visible in billing UI", () => {
     expect(panel).toContain("449 kr/mån");
     expect(panel).toContain("SMS ingår utan separat kostnad");
