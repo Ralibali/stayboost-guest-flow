@@ -24,7 +24,7 @@ export const Route = createFileRoute("/villkor")({
 
 function Terms() {
   return (
-    <LegalLayout title="Användarvillkor" updated="12 juli 2026">
+    <LegalLayout title="Användarvillkor" updated="31 augusti 2026">
       <p>
         Dessa villkor gäller när <strong>Aurora Media AB</strong> (”StayBoost”) tillhandahåller
         tjänsten StayBoost till dig som kund. Genom att skapa konto eller använda tjänsten godkänner
@@ -55,10 +55,7 @@ function Terms() {
       <ul>
         <li>Priser anges exklusive moms i SEK och löper månadsvis om inget annat avtalats.</li>
         <li>Betalning sker i förskott via kort eller faktura (14 dagars netto).</li>
-        <li>
-          Sms ingår upp till en generös månadsgräns; överskjutande sms debiteras till självkostnad
-          utan påslag.
-        </li>
+        <li>Sms ingår i abonnemangsavgiften och debiteras inte separat.</li>
         <li>
           Vid utebliven betalning har vi rätt att pausa tjänsten efter påminnelse. Dröjsmålsränta
           enligt räntelagen (referensränta + 8 %).
