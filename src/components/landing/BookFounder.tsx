@@ -6,7 +6,9 @@ import { Link } from "@tanstack/react-router";
 const BOOKING_URL =
   (typeof import.meta !== "undefined" &&
     (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_PUBLIC_BOOKING_URL) ||
-  "https://cal.com/stayboost/20min";
+  "";
+
+const CONTACT_EMAIL = "info@auroramedia.se";
 
 type PlausibleWin = {
   plausible?: (e: string, opts?: { props?: Record<string, string> }) => void;
@@ -124,7 +126,7 @@ export function BookFounder() {
                   Boka en till tid
                 </button>
               </div>
-            ) : (
+            ) : BOOKING_URL ? (
               <div
                 className="overflow-hidden rounded-2xl border border-[color:var(--line)] bg-white shadow-[0_20px_60px_-30px_rgba(0,0,0,0.25)]"
                 style={{ height: "min(680px, 78vh)" }}
@@ -137,10 +139,27 @@ export function BookFounder() {
                   allow="camera; microphone; fullscreen; clipboard-read; clipboard-write"
                 />
               </div>
+            ) : (
+              <div className="rounded-2xl border border-[color:var(--line)] bg-white p-6 sm:p-8">
+                <h3 className="font-[Fraunces] text-2xl tracking-tight">Hör av dig direkt</h3>
+                <p className="mt-3 text-[color:var(--ink)]/75">
+                  Skriv en rad om din anläggning så återkommer jag med två tider som passar dig.
+                  Svar samma dag på vardagar.
+                </p>
+                <a
+                  href={`mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("Boka 20 min – StayBoost")}`}
+                  className="mt-6 inline-flex items-center justify-center rounded-[2px] bg-[color:var(--forest)] px-6 py-3.5 text-sm font-semibold text-[color:var(--bg)] hover:opacity-90"
+                >
+                  Mejla {CONTACT_EMAIL}
+                </a>
+                <p className="mt-4 text-[0.85rem] text-[color:var(--ink)]/55">
+                  Föredrar du att testa på egen hand? Skapa konto ovan — det tar en minut.
+                </p>
+              </div>
             )}
             <p className="mt-3 text-[0.8rem] text-[color:var(--ink)]/55">
-              Bokningen laddas i en säker ram. Inga cookies delas med tredje part förrän du väljer
-              en tid.
+              Ingen kalenderintegration än — bokning sker via mejl så inga cookies från tredje part
+              laddas.
             </p>
           </div>
         </div>
