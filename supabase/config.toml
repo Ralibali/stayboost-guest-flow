@@ -43,6 +43,11 @@ verify_jwt = true
 [functions.saas-stripe-webhook]
 verify_jwt = false
 
+# Plattformägarens admin kräver både giltig användar-JWT och server-side
+# medlemskap i platform_admins. Kundkonton får aldrig åtkomst här.
+[functions.platform-admin]
+verify_jwt = true
+
 # Cron-anrop saknar användar-JWT och måste nå funktionskoden så att
 # x-cron-secret kan verifieras där. ical-sync behåller dessutom egen
 # användar-JWT-validering för manuella synkar från operator-UI:t.
