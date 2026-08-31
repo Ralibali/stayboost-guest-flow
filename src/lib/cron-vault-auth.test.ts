@@ -18,7 +18,9 @@ describe("production cron Vault auth", () => {
     expect(migration).toContain("ops_runtime_auth");
     expect(migration).toContain("secret_sha256");
     expect(migration).toContain("enable row level security");
-    expect(migration).toContain("revoke all on table public.ops_runtime_auth from public, anon, authenticated");
+    expect(migration).toContain(
+      "revoke all on table public.ops_runtime_auth from public, anon, authenticated",
+    );
     expect(migration).not.toMatch(/[A-Za-z0-9_-]{40,}/);
   });
 
