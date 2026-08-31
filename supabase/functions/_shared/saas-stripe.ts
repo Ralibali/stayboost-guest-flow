@@ -86,6 +86,31 @@ export function amountForInterval(interval: BillingInterval) {
   return interval === "year" ? STAYBOOST_ANNUAL_ORE : STAYBOOST_MONTHLY_ORE;
 }
 
+export function subscriptionStripeDetails(subscription: SaasStripeSubscription) {
+  const price = subscription.items?.data?.[0]?.price;
+  return {
+    priceId: price?.id ?? null,
+    planInterval:
+      price?.recurring?.interval === "year"
+        ? ("year" as const)
+        : price?.recurring?.interval === "month"
+          ? ("month" as const)
+          : null,
+    unitAmount: price?.unit_amount ?? null,
+    currency: price?.currency ?? null,
+    customerId: stringId(subscription.customer),
+  };
+}
+
+export function isAllowedSaasSubscriptionPrice(subscription: SaasStripeSubscription) {
+  const details = subscriptionStripeDetails(subscription);
+  if (details.currency !== STAYBOOST_CURRENCY) return false;
+  return (
+    (details.planInterval === "month" && details.unitAmount === STAYBOOST_MONTHLY_ORE) ||
+    (details.planInterval === "year" && details.unitAmount === STAYBOOST_ANNUAL_ORE)
+  );
+}
+
 export async function createSaasCustomer(params: {
   secretKey: string;
   email: string;
@@ -239,7 +264,8 @@ export async function listOwnerSaasSubscriptions(params: {
     .filter(
       (subscription) =>
         subscription.metadata?.product === "stayboost" &&
-        subscription.metadata?.owner_id === params.ownerId,
+        subscription.metadata?.owner_id === params.ownerId &&
+        isAllowedSaasSubscriptionPrice(subscription),
     )
     .sort((a, b) => Number(b.created ?? 0) - Number(a.created ?? 0));
 }
@@ -325,20 +351,4 @@ export async function retrieveSaasSubscription(
     path: `/v1/subscriptions/${encodeURIComponent(subscriptionId)}`,
     method: "GET",
   });
-}
-
-export function subscriptionStripeDetails(subscription: SaasStripeSubscription) {
-  const price = subscription.items?.data?.[0]?.price;
-  return {
-    priceId: price?.id ?? null,
-    planInterval:
-      price?.recurring?.interval === "year"
-        ? ("year" as const)
-        : price?.recurring?.interval === "month"
-          ? ("month" as const)
-          : null,
-    unitAmount: price?.unit_amount ?? null,
-    currency: price?.currency ?? STAYBOOST_CURRENCY,
-    customerId: stringId(subscription.customer),
-  };
 }
