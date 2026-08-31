@@ -24,7 +24,7 @@ const ITEMS = [
   },
   {
     q: "Vad kostar sms:en?",
-    a: "Sms ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per sms — inga påslag, inga överraskningar.",
+    a: "Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms.",
   },
   {
     q: "Funkar det för min personal?",
