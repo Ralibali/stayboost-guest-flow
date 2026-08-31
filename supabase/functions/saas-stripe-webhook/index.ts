@@ -73,19 +73,24 @@ Deno.serve(async (req) => {
         : {};
 
     if (event.type === "checkout.session.completed") {
-      if (metadata.product !== "stayboost" && object.mode !== "subscription") {
+      // This endpoint must never ingest unrelated Stripe subscriptions from the same account.
+      if (object.mode !== "subscription" || metadata.product !== "stayboost") {
         return json({ ok: true, ignored: true });
       }
-      const ownerId = metadata.owner_id ?? (object.client_reference_id as string | undefined);
+      const ownerId = metadata.owner_id;
+      const clientReferenceId =
+        typeof object.client_reference_id === "string" ? object.client_reference_id : null;
       const subscriptionId = stringId(object.subscription);
-      if (!ownerId || !subscriptionId) {
+      if (!ownerId || !clientReferenceId || ownerId !== clientReferenceId || !subscriptionId) {
         await releaseClaim();
         return json({ error: "missing_subscription_binding" }, 422);
       }
 
       const subscription = await retrieveSaasSubscription(stripeKey, subscriptionId);
-      const subscriptionOwner = subscription.metadata?.owner_id ?? ownerId;
-      if (subscriptionOwner !== ownerId) {
+      if (
+        subscription.metadata?.product !== "stayboost" ||
+        subscription.metadata?.owner_id !== ownerId
+      ) {
         await releaseClaim();
         return json({ error: "owner_binding_mismatch" }, 422);
       }
@@ -112,7 +117,7 @@ Deno.serve(async (req) => {
       event.type === "customer.subscription.updated" ||
       event.type === "customer.subscription.deleted"
     ) {
-      if (metadata.product && metadata.product !== "stayboost") {
+      if (metadata.product !== "stayboost") {
         return json({ ok: true, ignored: true });
       }
       const ownerId = metadata.owner_id;
@@ -120,14 +125,20 @@ Deno.serve(async (req) => {
         await releaseClaim();
         return json({ error: "missing_owner_metadata" }, 422);
       }
+      const subscriptionId = stringId(object.id);
+      const customerId = stringId(object.customer);
+      if (!subscriptionId || !customerId) {
+        await releaseClaim();
+        return json({ error: "missing_subscription_binding" }, 422);
+      }
       const items = object.items as
         | { data?: Array<{ price?: { id?: string } }> }
         | undefined;
       const { error } = await admin.from("account_subscriptions").upsert(
         {
           owner_id: ownerId,
-          stripe_customer_id: stringId(object.customer),
-          stripe_subscription_id: stringId(object.id),
+          stripe_customer_id: customerId,
+          stripe_subscription_id: subscriptionId,
           stripe_price_id: items?.data?.[0]?.price?.id ?? null,
           status:
             event.type === "customer.subscription.deleted"
