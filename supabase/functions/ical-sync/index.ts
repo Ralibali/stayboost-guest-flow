@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isCronAuthorized } from "../_shared/cron-auth.ts";
 import { guestNameFrom, isBlockEvent, parseIcs } from "../_shared/ics.ts";
 import {
   classifyDisappearancePolicy,
@@ -100,8 +101,7 @@ Deno.serve(async (req) => {
 
   let ownerFilter: string | null = null;
   const cronSecret = req.headers.get("x-cron-secret");
-  const expected = Deno.env.get("CRON_SECRET");
-  if (!expected || cronSecret !== expected) {
+  if (!(await isCronAuthorized(admin, cronSecret))) {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) return json({ error: "unauthorized" }, 401);
     const userClient = createClient(
@@ -321,8 +321,7 @@ Deno.serve(async (req) => {
           last_attempt_at: nowIso,
           last_success_at: nowIso,
           http_etag: response.headers.get("etag") ?? source.http_etag,
-          http_last_modified:
-            response.headers.get("last-modified") ?? source.http_last_modified,
+          http_last_modified: response.headers.get("last-modified") ?? source.http_last_modified,
           consecutive_failures: 0,
           last_status: `ok (${activeEvents.length} aktiva event, +${created} nya, ${updated} uppdaterade, ${cancelled} avbokade${protectedMissing > 0 ? `, ⚠ ${protectedMissing} försvinnanden skyddade (${disappearancePolicy})` : ""}${conflicts > 0 ? `, ⚠ ${conflicts} konflikter importerade` : ""})`,
         })

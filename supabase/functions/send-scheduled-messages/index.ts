@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { isCronAuthorized } from "../_shared/cron-auth.ts";
 import { formatSvDate, renderTemplate } from "../_shared/templates.ts";
 import { appBaseUrl } from "../_shared/app-url.ts";
 
@@ -20,13 +21,13 @@ Deno.serve(async (req) => {
     });
 
   const secret = req.headers.get("x-cron-secret");
-  const expected = Deno.env.get("CRON_SECRET");
-  if (!expected || secret !== expected) return json({ error: "unauthorized" }, 401);
-
   const admin = createClient(
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
+  if (!(await isCronAuthorized(admin, secret))) {
+    return json({ error: "unauthorized" }, 401);
+  }
   const baseUrl = appBaseUrl(Deno.env.get("GUEST_PAGE_BASE_URL"));
   const now = new Date().toISOString();
 
