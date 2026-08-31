@@ -91,7 +91,13 @@ export function BillingPanel({ mobile = false }: { mobile?: boolean }) {
             onClick={() => run(active ? "portal" : "checkout")}
             className="shrink-0 rounded-lg bg-[#173c2b] px-3 py-2 font-semibold text-white disabled:opacity-50"
           >
-            {busy ? <Loader2 size={13} className="animate-spin" /> : active ? "Hantera" : "Aktivera"}
+            {busy ? (
+              <Loader2 size={13} className="animate-spin" />
+            ) : active ? (
+              "Hantera"
+            ) : (
+              "Aktivera"
+            )}
           </button>
         ) : (
           <span className="shrink-0 rounded-full bg-black/[0.05] px-2.5 py-1 font-semibold text-[color:var(--ink)]/45">
@@ -108,7 +114,9 @@ export function BillingPanel({ mobile = false }: { mobile?: boolean }) {
         <CreditCard size={15} className="mt-0.5 shrink-0 text-white/55" />
         <div className="min-w-0 flex-1">
           <p className="text-[11px] font-bold">Abonnemang · 449 kr/mån</p>
-          <p className="mt-0.5 text-[10px] leading-relaxed text-white/45">SMS ingår utan separat kostnad.</p>
+          <p className="mt-0.5 text-[10px] leading-relaxed text-white/45">
+            SMS ingår utan separat kostnad.
+          </p>
           <p className="mt-2 text-[10px] font-semibold text-white/70">{label}</p>
           {subscription?.cancelAtPeriodEnd && subscription.currentPeriodEnd ? (
             <p className="mt-1 text-[9px] leading-relaxed text-amber-200/80">
