@@ -41,7 +41,10 @@ function OnboardingPage() {
     if (trackedStart.current) return;
     trackedStart.current = true;
     trackProductEvent("Onboarding Started");
-    if (typeof window !== "undefined" && !window.sessionStorage.getItem("stayboost_activation_started_at")) {
+    if (
+      typeof window !== "undefined" &&
+      !window.sessionStorage.getItem("stayboost_activation_started_at")
+    ) {
       window.sessionStorage.setItem("stayboost_activation_started_at", String(Date.now()));
     }
   }, []);
@@ -110,12 +113,12 @@ function OnboardingPage() {
       : null;
     const optionalDetailsAdded = Boolean(
       form.wifi_name.trim() ||
-        form.wifi_password.trim() ||
-        form.directions.trim() ||
-        form.house_rules.trim() ||
-        form.contact_phone.trim() ||
-        form.review_url.trim() ||
-        rows.some((row) => row.door_code || row.description),
+      form.wifi_password.trim() ||
+      form.directions.trim() ||
+      form.house_rules.trim() ||
+      form.contact_phone.trim() ||
+      form.review_url.trim() ||
+      rows.some((row) => row.door_code || row.description),
     );
 
     trackProductEvent("Property Setup Completed", {
@@ -139,10 +142,14 @@ function OnboardingPage() {
   return (
     <div className="mx-auto max-w-2xl">
       <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.15em] text-[#2d684c]">
-        <span className="grid h-6 w-6 place-items-center rounded-full bg-[#173c2b] text-white">1</span>
+        <span className="grid h-6 w-6 place-items-center rounded-full bg-[#173c2b] text-white">
+          1
+        </span>
         Steg 1 av 2 · Grunden
       </div>
-      <h1 className="mt-3 font-[Fraunces] text-3xl font-semibold">Skapa din anläggning på en minut</h1>
+      <h1 className="mt-3 font-[Fraunces] text-3xl font-semibold">
+        Skapa din anläggning på en minut
+      </h1>
       <p className="mt-2 max-w-xl text-[14px] leading-relaxed text-[color:var(--ink)]/60">
         Vi behöver bara namn och ditt första boende för att börja. Därefter kopplar du Sirvoy,
         Booking.com eller en annan kalender så StayBoost får riktiga bokningar att arbeta med.
@@ -193,7 +200,10 @@ function OnboardingPage() {
 
           <div className="space-y-3">
             {units.map((unit, index) => (
-              <div key={index} className="rounded-2xl border border-[color:var(--line)] bg-[#fafbf8] p-4">
+              <div
+                key={index}
+                className="rounded-2xl border border-[color:var(--line)] bg-[#fafbf8] p-4"
+              >
                 <div className="flex items-start gap-2.5">
                   <div className="grid min-w-0 flex-1 gap-3 sm:grid-cols-[1fr_130px]">
                     <Field label={index === 0 ? "Första boendet *" : `Boende ${index + 1}`}>
@@ -353,8 +363,7 @@ function OnboardingPage() {
         {busy ? "Skapar…" : "Fortsätt till kalenderkoppling →"}
       </button>
       <p className="mt-2 text-center text-[10px] text-[color:var(--ink)]/38">
-        Nästa steg är att koppla dina befintliga bokningar. Inget raderas eller flyttas från
-        Sirvoy.
+        Nästa steg är att koppla dina befintliga bokningar. Inget raderas eller flyttas från Sirvoy.
       </p>
     </div>
   );
@@ -363,9 +372,7 @@ function OnboardingPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/50">
-        {label}
-      </span>
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/50">{label}</span>
       <span className="mt-1.5 block">{children}</span>
     </label>
   );
