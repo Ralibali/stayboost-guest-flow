@@ -14,6 +14,7 @@ import {
   Users,
   WalletCards,
 } from "lucide-react";
+import type { ReactNode } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase, supabaseConfigured, useSession } from "@/lib/supabase";
 
@@ -64,6 +65,7 @@ type AdminOverview = {
 };
 
 const fmtKr = (value: number) => `${Math.round(value).toLocaleString("sv-SE")} kr`;
+
 const fmtDate = (value: string | null) =>
   value
     ? new Date(value).toLocaleDateString("sv-SE", {
@@ -72,6 +74,7 @@ const fmtDate = (value: string | null) =>
         year: "numeric",
       })
     : "—";
+
 const fmtDateTime = (value: string | null) =>
   value
     ? new Date(value).toLocaleString("sv-SE", {
@@ -105,12 +108,11 @@ function statusLabel(status: string | undefined) {
 
 function statusClass(status: string | undefined) {
   if (status === "active") return "bg-emerald-50 text-emerald-800";
-  if (status === "trialing") return "bg-blue-50 text-blue-800";
+  if (status === "trialing") return "bg-amber-50 text-amber-800";
   if (["past_due", "unpaid", "incomplete"].includes(status ?? "")) {
     return "bg-red-50 text-red-800";
   }
-  if (status === "canceled") return "bg-black/[0.05] text-[color:var(--ink)]/55";
-  return "bg-amber-50 text-amber-800";
+  return "bg-black/[0.05] text-[color:var(--ink)]/55";
 }
 
 function PlatformAdminPage() {
@@ -125,9 +127,11 @@ function PlatformAdminPage() {
     if (!supabase || !session) return;
     setLoading(true);
     setError(null);
+
     const { data, error: invokeError } = await supabase.functions.invoke("platform-admin", {
       body: { action: "overview" },
     });
+
     if (invokeError || !data?.ok) {
       setOverview(null);
       setForbidden(Boolean(invokeError));
@@ -179,7 +183,10 @@ function PlatformAdminPage() {
         title="Logga in först"
         body="Plattformsadmin använder samma säkra StayBoost-inloggning, men har en separat serverstyrd behörighet."
       >
-        <Link to="/app/login" className="btn-primary mt-6 inline-flex !rounded-xl !px-5 !py-3">
+        <Link
+          to="/app/login"
+          className="btn-primary mt-6 inline-flex !rounded-xl !px-5 !py-3"
+        >
           Till inloggningen <ArrowRight size={14} />
         </Link>
       </AdminMessage>
@@ -279,7 +286,11 @@ function PlatformAdminPage() {
 
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-6">
           <Metric icon={Users} label="Konton" value={String(overview.metrics.users)} />
-          <Metric icon={Building2} label="Anläggningar" value={String(overview.metrics.properties)} />
+          <Metric
+            icon={Building2}
+            label="Anläggningar"
+            value={String(overview.metrics.properties)}
+          />
           <Metric
             icon={CreditCard}
             label="Aktiva abonnemang"
@@ -297,9 +308,7 @@ function PlatformAdminPage() {
 
         <section
           className={`rounded-[22px] border px-5 py-4 ${
-            healthOk
-              ? "border-emerald-200 bg-emerald-50/70"
-              : "border-amber-200 bg-amber-50/80"
+            healthOk ? "border-emerald-200 bg-emerald-50/70" : "border-amber-200 bg-amber-50/80"
           }`}
         >
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
@@ -334,7 +343,9 @@ function PlatformAdminPage() {
               <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[color:var(--ink)]/35">
                 Kunder
               </p>
-              <h2 className="mt-1 font-[Fraunces] text-[22px] font-semibold">Alla StayBoost-konton</h2>
+              <h2 className="mt-1 font-[Fraunces] text-[22px] font-semibold">
+                Alla StayBoost-konton
+              </h2>
             </div>
             <p className="text-[10px] text-[color:var(--ink)]/40">
               Ägarkonton och abonnemangsstatus · ingen gäst-PII
@@ -352,90 +363,100 @@ function PlatformAdminPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full min-w-[900px] text-left">
-                <thead className="bg-[#f7f8f5] text-[9px] font-bold uppercase tracking-[0.13em] text-[color:var(--ink)]/35">
-                  <tr>
-                    <th className="px-5 py-3 sm:px-6">Kund</th>
-                    <th className="px-4 py-3">Anläggning</th>
-                    <th className="px-4 py-3">Plan</th>
-                    <th className="px-4 py-3">Status</th>
-                    <th className="px-4 py-3">Period</th>
-                    <th className="px-5 py-3 text-right sm:px-6">Skapad</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-black/[0.055]">
-                  {overview.customers.map((customer) => (
-                    <tr key={customer.id} className="hover:bg-[#fafbf8]">
-                      <td className="px-5 py-4 sm:px-6">
-                        <p className="text-[12px] font-bold">{customer.email ?? "E-post saknas"}</p>
-                        <p className="mt-0.5 text-[10px] text-[color:var(--ink)]/35">
-                          Senast inne {fmtDateTime(customer.lastSignInAt)}
-                        </p>
-                      </td>
-                      <td className="px-4 py-4">
-                        <p className="text-[12px] font-semibold">
-                          {customer.properties[0]?.name ?? "Inte onboardad"}
-                        </p>
-                        {customer.properties.length > 1 ? (
-                          <p className="mt-0.5 text-[10px] text-[color:var(--ink)]/35">
-                            +{customer.properties.length - 1} till
-                          </p>
-                        ) : null}
-                      </td>
-                      <td className="px-4 py-4 text-[12px] font-semibold">
-                        {customer.subscription?.planInterval === "year"
-                          ? "4 490 kr/år"
-                          : customer.subscription?.planInterval === "month"
-                            ? "449 kr/mån"
-                            : "—"}
-                      </td>
-                      <td className="px-4 py-4">
-                        <span
-                          className={`inline-flex rounded-full px-2.5 py-1 text-[9px] font-bold ${statusClass(customer.subscription?.status)}`}
-                        >
-                          {statusLabel(customer.subscription?.status)}
-                        </span>
-                        {customer.subscription?.cancelAtPeriodEnd ? (
-                          <p className="mt-1 text-[9px] font-semibold text-amber-700">Avslutas</p>
-                        ) : null}
-                      </td>
-                      <td className="px-4 py-4 text-[11px] text-[color:var(--ink)]/55">
-                        {fmtDate(customer.subscription?.currentPeriodEnd ?? null)}
-                      </td>
-                      <td className="px-5 py-4 text-right text-[11px] text-[color:var(--ink)]/45 sm:px-6">
-                        {fmtDate(customer.createdAt)}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <CustomerTable customers={overview.customers} />
           )}
         </section>
 
-        {riskyCustomers.length ? (
-          <section className="rounded-[24px] border border-red-200 bg-red-50/70 p-5 sm:p-6">
-            <div className="flex items-center gap-2">
-              <AlertTriangle size={16} className="text-red-700" />
-              <h2 className="text-[13px] font-bold text-red-950">Betalningar att följa upp</h2>
-            </div>
-            <div className="mt-3 grid gap-2 md:grid-cols-2">
-              {riskyCustomers.map((customer) => (
-                <div key={customer.id} className="rounded-2xl bg-white/70 p-4">
-                  <p className="text-[12px] font-bold text-red-950">
-                    {customer.email ?? "Okänt konto"}
-                  </p>
-                  <p className="mt-1 text-[10px] text-red-900/60">
-                    {statusLabel(customer.subscription?.status)} · kontrollera betalningen i Stripe.
-                  </p>
-                </div>
-              ))}
-            </div>
-          </section>
-        ) : null}
+        {riskyCustomers.length > 0 ? <RiskList customers={riskyCustomers} /> : null}
       </main>
     </div>
+  );
+}
+
+function CustomerTable({ customers }: { customers: Customer[] }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full min-w-[900px] text-left">
+        <thead className="bg-[#f7f8f5] text-[9px] font-bold uppercase tracking-[0.13em] text-[color:var(--ink)]/35">
+          <tr>
+            <th className="px-5 py-3 sm:px-6">Kund</th>
+            <th className="px-4 py-3">Anläggning</th>
+            <th className="px-4 py-3">Plan</th>
+            <th className="px-4 py-3">Status</th>
+            <th className="px-4 py-3">Period</th>
+            <th className="px-5 py-3 text-right sm:px-6">Skapad</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-black/[0.055]">
+          {customers.map((customer) => (
+            <tr key={customer.id} className="hover:bg-[#fafbf8]">
+              <td className="px-5 py-4 sm:px-6">
+                <p className="text-[12px] font-bold">{customer.email ?? "E-post saknas"}</p>
+                <p className="mt-0.5 text-[10px] text-[color:var(--ink)]/35">
+                  Senast inne {fmtDateTime(customer.lastSignInAt)}
+                </p>
+              </td>
+              <td className="px-4 py-4">
+                <p className="text-[12px] font-semibold">
+                  {customer.properties[0]?.name ?? "Inte onboardad"}
+                </p>
+                {customer.properties.length > 1 ? (
+                  <p className="mt-0.5 text-[10px] text-[color:var(--ink)]/35">
+                    +{customer.properties.length - 1} till
+                  </p>
+                ) : null}
+              </td>
+              <td className="px-4 py-4 text-[12px] font-semibold">
+                {customer.subscription?.planInterval === "year"
+                  ? "4 490 kr/år"
+                  : customer.subscription?.planInterval === "month"
+                    ? "449 kr/mån"
+                    : "—"}
+              </td>
+              <td className="px-4 py-4">
+                <span
+                  className={`inline-flex rounded-full px-2.5 py-1 text-[9px] font-bold ${statusClass(customer.subscription?.status)}`}
+                >
+                  {statusLabel(customer.subscription?.status)}
+                </span>
+                {customer.subscription?.cancelAtPeriodEnd ? (
+                  <p className="mt-1 text-[9px] font-semibold text-amber-700">Avslutas</p>
+                ) : null}
+              </td>
+              <td className="px-4 py-4 text-[11px] text-[color:var(--ink)]/55">
+                {fmtDate(customer.subscription?.currentPeriodEnd ?? null)}
+              </td>
+              <td className="px-5 py-4 text-right text-[11px] text-[color:var(--ink)]/45 sm:px-6">
+                {fmtDate(customer.createdAt)}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function RiskList({ customers }: { customers: Customer[] }) {
+  return (
+    <section className="rounded-[24px] border border-red-200 bg-red-50/70 p-5 sm:p-6">
+      <div className="flex items-center gap-2">
+        <AlertTriangle size={16} className="text-red-700" />
+        <h2 className="text-[13px] font-bold text-red-950">Betalningar att följa upp</h2>
+      </div>
+      <div className="mt-3 grid gap-2 md:grid-cols-2">
+        {customers.map((customer) => (
+          <div key={customer.id} className="rounded-2xl bg-white/70 p-4">
+            <p className="text-[12px] font-bold text-red-950">
+              {customer.email ?? "Okänt konto"}
+            </p>
+            <p className="mt-1 text-[10px] text-red-900/60">
+              {statusLabel(customer.subscription?.status)} · kontrollera betalningen i Stripe.
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
@@ -473,7 +494,7 @@ function AdminMessage({
 }: {
   title: string;
   body: string;
-  children?: React.ReactNode;
+  children?: ReactNode;
 }) {
   return (
     <div className="grid min-h-screen place-items-center bg-[#10251b] px-5">
