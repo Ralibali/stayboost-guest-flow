@@ -47,9 +47,6 @@ verify_jwt = false
 [functions.send-scheduled-messages]
 verify_jwt = false
 
-[functions.billing-sync]
-verify_jwt = false
-
 # Endast server-till-server via x-cron-secret.
 [functions.ops-cron]
 verify_jwt = false
