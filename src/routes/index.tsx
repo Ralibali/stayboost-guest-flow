@@ -173,8 +173,7 @@ function Hero() {
             Dina gäster vill köpa mer.{" "}
             <em className="not-italic">
               <span className="italic text-[color:var(--brass)]">Låt dem.</span>
-            </span>
-          </em>
+            </em>
           </h1>
           <p className="mt-5 max-w-xl text-[0.95rem] leading-relaxed text-white/85 sm:mt-6 sm:text-base">
             {BRAND_NAME} lägger sig ovanpå bokningarna du redan har — egen provisionsfri
