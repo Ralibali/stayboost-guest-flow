@@ -35,6 +35,14 @@ verify_jwt = true
 [functions.payment-action]
 verify_jwt = true
 
+# StayBoost-abonnemang: kundens actions kräver inloggning. Den separata
+# Stripe-webhooken verifieras med SAAS_STRIPE_WEBHOOK_SECRET i funktionskoden.
+[functions.saas-billing]
+verify_jwt = true
+
+[functions.saas-stripe-webhook]
+verify_jwt = false
+
 # Cron-anrop saknar användar-JWT och måste nå funktionskoden så att
 # x-cron-secret kan verifieras där. ical-sync behåller dessutom egen
 # användar-JWT-validering för manuella synkar från operator-UI:t.
