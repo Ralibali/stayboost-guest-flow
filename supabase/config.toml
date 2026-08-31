@@ -35,7 +35,7 @@ verify_jwt = true
 [functions.payment-action]
 verify_jwt = true
 
-[functions.billing-action]
+[functions.saas-billing]
 verify_jwt = true
 
 # Cron-anrop saknar användar-JWT och måste nå funktionskoden så att
