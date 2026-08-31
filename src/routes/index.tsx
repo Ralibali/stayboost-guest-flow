@@ -148,7 +148,6 @@ function Hero() {
       id="hero-form"
       className="relative overflow-hidden bg-[color:var(--forest)] pb-16 pt-12 sm:pb-24 sm:pt-16 md:pb-32 md:pt-24"
     >
-      {/* TODO: byt till riktigt kvällsfoto från anläggningen */}
       <div
         className="absolute inset-0 bg-cover bg-center opacity-70 md:opacity-100"
         style={{ backgroundImage: "url('/hero-glamping.jpg')" }}
@@ -182,7 +181,7 @@ function Hero() {
               {BRAND_NAME} lägger sig ovanpå bokningarna du redan har — egen provisionsfri
               bokningsmotor, automatiserad merförsäljning, gäst-sms, digital incheckning och
               arbetsvyer för frukost och städning. Ett lager driftautomation för små boenden. Utan
-              app. Igång på en kväll.
+              app. Kom igång steg för steg.
             </p>
           </FadeUp>
           <FadeUp delay={0.2}>
@@ -305,17 +304,17 @@ function HowItWorks() {
     {
       n: 1,
       title: "Koppla dina bokningar",
-      body: "Fungerar med Sirvoy, Booking.com och manuell inmatning. Fem minuter, klart.",
+      body: "Koppla Sirvoy eller Booking.com-kalendern, eller lägg in bokningar manuellt. StayBoost visar källan och håller bokningarna samlade i operatorvyn.",
     },
     {
       n: 2,
       title: "Välj dina meddelanden",
-      body: "Beprövade mallar för före, under och efter vistelsen. Redigera fritt eller kör som de är.",
+      body: "Färdiga mallar för före, under och efter vistelsen. Redigera fritt eller använd dem som start för dina egna flöden.",
     },
     {
       n: 3,
       title: "Se tillvalen ticka in",
-      body: "Gästen bokar med ett tryck i sms:et, betalar direkt. Du får en notis och pengarna.",
+      body: "Gästen kan beställa tillval i sitt gästflöde och betala digitalt när du använder betalningsfunktionen. Du ser ordern i StayBoost.",
     },
   ];
   return (
@@ -327,7 +326,7 @@ function HowItWorks() {
         <div className="max-w-2xl">
           <p className="eyebrow">Tre steg</p>
           <h2 className="mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
-            Igång på en kväll. På riktigt.
+            Från bokning till automatiserad gästresa.
           </h2>
         </div>
 
@@ -360,20 +359,20 @@ function Features() {
   const blocks = [
     {
       title: "Rätt ord, rätt sekund — utan att du lyfter ett finger.",
-      body: "Välkomstinfo två dagar före ankomst, portkod på incheckningsdagen, tips på middagsställen kväll ett, omdömesfråga dagen efter utcheckning. Allt tajmat mot bokningen, automatiskt.",
-      fact: "Sparar i snitt 5 timmar per vecka.",
+      body: "Välkomstinfo före ankomst, portkod på incheckningsdagen, lokala tips under vistelsen och omdömesfråga efter utcheckning. Meddelandena tajmas mot bokningen och skickas automatiskt.",
+      fact: "Schemalägg information automatiskt mot bokningen.",
       mock: <TimelineMock />,
     },
     {
       title: "Din meny av extraintäkter.",
-      body: "Frukostkorg, bastutid, guidade turer, massage, hyrutrustning — även från lokala partners som du tar provision på. StayBoost erbjuder rätt tillval vid rätt tidpunkt, gästen betalar med ett tryck.",
-      fact: "15–25 % av gästerna tackar ja.",
+      body: "Frukostkorg, bastutid, guidade turer, massage och hyrutrustning kan presenteras som tillval i gästflödet. Gästen beställer där du redan kommunicerar med dem.",
+      fact: "Se faktisk tillvalskonvertering i case-studyn ovan.",
       mock: <AddonsMock />,
     },
     {
       title: "Allt gästen behöver. En länk.",
-      body: "Portkod, wifi, husregler, lokala tips och dina tillval — samlat på en mobilanpassad sida gästen når via sms-länken. Ingen nedladdning, ingen inloggning.",
-      fact: "Färre frågor. Nöjdare gäster.",
+      body: "Portkod, wifi, husregler, lokala tips och dina tillval — samlat på en mobilanpassad sida gästen når via sms-länken. Ingen nedladdning, ingen gästinloggning.",
+      fact: "Portkod, wifi, regler och tillval samlat i samma gästlänk.",
       mock: <GuestHubMock />,
     },
   ];
@@ -503,8 +502,8 @@ function Testimonial() {
             className="font-[Fraunces] italic text-[color:var(--ink)]"
             style={{ fontSize: "clamp(1.5rem, 3vw, 2.25rem)", lineHeight: 1.3 }}
           >
-            "Det betalar sig självt — varje månad. Första säsongen med StayBoost sålde vi tillval
-            för mer än hela årskostnaden, första veckan."
+            StayBoost körs i den egna glampingdriften. Resultaten ovan hämtas från samma system som
+            hanterar bokningar, gästmeddelanden, incheckningar och betalda tillval.
           </p>
         </FadeUp>
         <FadeUp delay={0.1}>
@@ -639,7 +638,7 @@ function Pricing() {
               <SignupCta location="pricing" buttonLabel="Kom igång" />
             </div>
             <p className="mt-4 text-center text-xs text-[color:var(--ink)]/55">
-              Betalar det inte för sig själv första månaden gör det inte sitt jobb.
+              SMS ingår i abonnemanget utan separat kostnad per skickat SMS.
             </p>
           </div>
         </FadeUp>
