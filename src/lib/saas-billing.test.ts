@@ -27,7 +27,9 @@ describe("StayBoost SaaS billing activation", () => {
     expect(stripe).toContain("STAYBOOST_MONTHLY_ORE = 44_900");
     expect(stripe).toContain("STAYBOOST_ANNUAL_ORE = 449_000");
     expect(stripe).toContain('body.set("mode", "subscription")');
-    expect(stripe).toContain('body.set("line_items[0][price_data][recurring][interval]", params.interval)');
+    expect(stripe).toContain(
+      'body.set("line_items[0][price_data][recurring][interval]", params.interval)',
+    );
     expect(stripe).toContain('body.set("line_items[0][price_data][tax_behavior]", "exclusive")');
     expect(stripe).toContain('body.set("percentage", "25")');
     expect(stripe).toContain('body.set("tax_type", "vat")');
@@ -39,7 +41,7 @@ describe("StayBoost SaaS billing activation", () => {
     expect(endpoint).toContain("userClient.auth.getUser()");
     expect(endpoint).toContain("listOwnerSaasSubscriptions");
     expect(endpoint).toContain("persistSubscription");
-    expect(endpoint).toContain('enabled: Boolean(stripeKey)');
+    expect(endpoint).toContain("enabled: Boolean(stripeKey)");
     expect(env).toContain("Status synkas från Stripe när billingvyn används");
   });
 
@@ -67,6 +69,8 @@ describe("StayBoost SaaS billing activation", () => {
     expect(webhook).toContain('from("saas_billing_events").insert');
     expect(webhook).toContain('claimError?.code === "23505"');
     expect(webhook).toContain('object.mode !== "subscription" || metadata.product !== "stayboost"');
+    expect(webhook).toContain("isAllowedSaasSubscriptionPrice");
+    expect(webhook).toContain('error: "invalid_subscription_price"');
   });
 
   it("keeps SMS included and never models it as a metered billing item", () => {
