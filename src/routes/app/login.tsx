@@ -1,5 +1,6 @@
 import { Link, createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { trackProductEvent } from "@/lib/product-analytics";
 import { supabase, useSession } from "@/lib/supabase";
 
 type LoginSearch = {
@@ -36,14 +37,46 @@ function LoginPage() {
     setBusy(true);
     setError(null);
     setNotice(null);
+
     if (mode === "in") {
       const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) setError(error.message);
-    } else {
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) setError(error.message);
-      else setNotice("Konto skapat. Bekräfta e-postadressen om det krävs och logga sedan in.");
+      else trackProductEvent("Account Signed In");
+      setBusy(false);
+      return;
     }
+
+    trackProductEvent("Account Signup Started");
+    const emailRedirectTo =
+      typeof window !== "undefined" ? `${window.location.origin}/app` : undefined;
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: emailRedirectTo ? { emailRedirectTo } : undefined,
+    });
+
+    if (error) {
+      setError(error.message);
+      trackProductEvent("Account Signup Failed", { reason: error.code ?? "unknown" });
+      setBusy(false);
+      return;
+    }
+
+    trackProductEvent("Account Created", {
+      confirmation_required: !data.session,
+    });
+    if (typeof window !== "undefined") {
+      window.sessionStorage.setItem("stayboost_activation_started_at", String(Date.now()));
+    }
+
+    if (data.session) {
+      navigate({ to: "/app/onboarding" });
+      return;
+    }
+
+    setNotice(
+      "Kontot är skapat. Öppna bekräftelselänken i mejlet så skickas du direkt tillbaka till StayBoost och kan lägga in din anläggning.",
+    );
     setBusy(false);
   };
 
@@ -55,7 +88,7 @@ function LoginPage() {
             StayBoost
           </Link>
           <p className="mt-2 text-[14px] text-white/65">
-            {mode === "in" ? "Logga in till din anläggning" : "Skapa konto — igång på en kväll"}
+            {mode === "in" ? "Logga in till din anläggning" : "Skapa konto — första steget tar en minut"}
           </p>
         </div>
         <form onSubmit={submit} className="card-surface mt-8 space-y-4 p-6">
@@ -90,7 +123,7 @@ function LoginPage() {
             <p className="rounded-xl bg-red-50 px-3.5 py-2.5 text-[13px] text-red-700">{error}</p>
           )}
           {notice && (
-            <p className="rounded-xl bg-emerald-50 px-3.5 py-2.5 text-[13px] text-emerald-800">
+            <p className="rounded-xl bg-emerald-50 px-3.5 py-2.5 text-[13px] leading-relaxed text-emerald-800">
               {notice}
             </p>
           )}
@@ -101,6 +134,12 @@ function LoginPage() {
           >
             {busy ? "Vänta…" : mode === "in" ? "Logga in" : "Skapa konto"}
           </button>
+          {mode === "up" ? (
+            <p className="text-center text-[11px] leading-relaxed text-[color:var(--ink)]/45">
+              Därefter: anläggning + första boendet → koppla din kalender. Ingen betalning krävs i
+              det här steget.
+            </p>
+          ) : null}
           <button
             type="button"
             onClick={() => setMode(mode === "in" ? "up" : "in")}
