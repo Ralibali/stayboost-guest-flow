@@ -6,7 +6,9 @@ import { Link } from "@tanstack/react-router";
 const BOOKING_URL =
   (typeof import.meta !== "undefined" &&
     (import.meta as unknown as { env?: Record<string, string> }).env?.VITE_PUBLIC_BOOKING_URL) ||
-  "https://cal.com/stayboost/20min";
+  "";
+
+const CONTACT_EMAIL = "info@auroramedia.se";
 
 type PlausibleWin = {
   plausible?: (e: string, opts?: { props?: Record<string, string> }) => void;
