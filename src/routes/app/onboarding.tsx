@@ -372,7 +372,9 @@ function OnboardingPage() {
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <label className="block">
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/50">{label}</span>
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/50">
+        {label}
+      </span>
       <span className="mt-1.5 block">{children}</span>
     </label>
   );
