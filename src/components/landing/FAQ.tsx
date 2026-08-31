@@ -4,19 +4,19 @@ import { motion, AnimatePresence } from "framer-motion";
 const ITEMS = [
   {
     q: "Fungerar det med Sirvoy och Booking.com?",
-    a: "Ja. StayBoost hämtar dina bokningar automatiskt. Har du ett annat system kan du lägga in bokningar manuellt på under en minut.",
+    a: "Ja. StayBoost kan synka bokningar från Sirvoy och Booking.com-kalendrar. Du kan också lägga in bokningar manuellt och ser tydligt vilken källa de kommer från.",
   },
   {
     q: "Behöver mina gäster ladda ner en app?",
-    a: "Nej. Allt sker via vanliga sms och en webblänk som öppnas direkt i mobilen. Inget konto, ingen inloggning.",
+    a: "Nej. Gästflödet sker via vanliga sms och en webblänk som öppnas direkt i mobilen. Gästen behöver inget StayBoost-konto.",
   },
   {
     q: "Hur lång tid tar det att komma igång?",
-    a: "En kväll. Koppla bokningarna, välj bland färdiga mallar, klart. De flesta skickar sitt första automatiska meddelande samma dag.",
+    a: "Du börjar med att skapa anläggningen och boendena, kopplar sedan dina bokningskällor och väljer vilka gästmeddelanden som ska skickas automatiskt.",
   },
   {
     q: "Vad händer om en gäst svarar på ett sms?",
-    a: 'Du får svaret direkt i din inkorg i StayBoost och kan svara därifrån — eller låta automatiken hantera vanliga svar som "JA" på ett tillval.',
+    a: 'Du får svaret i StayBoost och kan följa konversationen där — samtidigt som automatiska flöden kan hantera definierade svar som "JA" på ett tillval.',
   },
   {
     q: "Kan jag skriva mina egna meddelanden?",
@@ -28,15 +28,15 @@ const ITEMS = [
   },
   {
     q: "Funkar det för min personal?",
-    a: "Ja — det är halva poängen. Frukost- och städvyerna har egna enkla inloggningar, funkar i mobilen och finns på flera språk. Personalen ser exakt vad som ska göras: antal portioner, allergier, handdukar per tält.",
+    a: "Ja. Frukost- och städvyerna är gjorda för mobil användning och visar det personalen behöver för dagens arbete, till exempel antal portioner, allergier och uppgifter per boende.",
   },
   {
     q: "Kan gäster hyra saker själva, som SUP eller bastu?",
-    a: "Ja. Skapa ett tillval med kodlås: gästen betalar i mobilen och får koden direkt. Perfekt för SUP, bastu, cyklar och annat som inte kräver att du är på plats.",
+    a: "Ja. Du kan skapa tillval som gästen beställer i sitt gästflöde. För tillval med kod kan åtkomsten lämnas digitalt efter genomförd beställning eller betalning.",
   },
   {
     q: "Vi använder inte Sirvoy — funkar det ändå?",
-    a: "Ja. Booking.com och manuell inmatning stöds, och fler kopplingar är på väg. Säg till vilken du behöver.",
+    a: "Ja. Booking.com-kalender och manuell inmatning stöds också. I StayBoost visas bokningens källa så att du kan hålla isär flödena.",
   },
 ];
 
