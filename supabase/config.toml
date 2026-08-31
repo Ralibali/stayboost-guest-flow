@@ -28,11 +28,14 @@ verify_jwt = false
 [functions.chat-message]
 verify_jwt = false
 
-# Återbetalning och manuella Swish-övergångar kräver inloggad ägare.
+# Återbetalning, manuella Swish-övergångar och SaaS-billing kräver inloggad ägare.
 [functions.stripe-refund]
 verify_jwt = true
 
 [functions.payment-action]
+verify_jwt = true
+
+[functions.billing-action]
 verify_jwt = true
 
 # Cron-anrop saknar användar-JWT och måste nå funktionskoden så att
@@ -42,6 +45,9 @@ verify_jwt = true
 verify_jwt = false
 
 [functions.send-scheduled-messages]
+verify_jwt = false
+
+[functions.billing-sync]
 verify_jwt = false
 
 # Endast server-till-server via x-cron-secret.
