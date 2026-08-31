@@ -7,7 +7,7 @@ const analytics = read("src/lib/product-analytics.ts");
 const login = read("src/routes/app/login.tsx");
 const onboarding = read("src/routes/app/onboarding.tsx");
 
- describe("StayBoost activation funnel", () => {
+describe("StayBoost activation funnel", () => {
   it("keeps analytics free from direct customer and guest PII", () => {
     expect(analytics).toContain("Never pass email, guest data, free text");
     expect(analytics).not.toContain("guest_email");
@@ -16,7 +16,7 @@ const onboarding = read("src/routes/app/onboarding.tsx");
 
   it("hands confirmed signups back to the product instead of a dead end", () => {
     expect(login).toContain("emailRedirectTo");
-    expect(login).toContain('`${window.location.origin}/app`');
+    expect(login).toContain("`${window.location.origin}/app`");
     expect(login).toContain('trackProductEvent("Account Created"');
     expect(login).toContain('navigate({ to: "/app/onboarding" })');
     expect(login).toContain("Ingen betalning krävs i");
