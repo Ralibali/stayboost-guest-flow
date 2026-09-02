@@ -18,26 +18,27 @@ export const COMMERCIALLY_LIVE = false;
 
 export const CONTACT_EMAIL = "info@stayboost.se";
 export const SALES_PATH = "/tidiga-kunder";
+/** Existing product tour with example data. `/demo` is 404 — do not invent it. */
+export const PRODUCT_DEMO_PATH = "/produkten";
 export const SIGNUP_PATH = "/app/login";
 export const SIGNUP_SEARCH = { mode: "up" as const };
 
 export const SALES_CANONICAL = `${CANONICAL_ORIGIN}${SALES_PATH}`;
 
 export const CORE_DOES = [
-  "Gäst-sms och gästhubb — en länk i mobilen, ingen app.",
+  "Pilot på en anläggning: bokningsmotor, gästhubb, digital incheckning, frukost- och städvy.",
+  "Gäst-sms och e-post — en länk i mobilen, ingen app.",
   "Tillval som gästen betalar i sitt eget flöde (Stripe eller Swish hos anläggningen).",
-  "Digital incheckning, frukostvy och städvy.",
-  "Egen bokningsmotor plus iCal mot Booking.com och Airbnb. Booking.com läser ofta bara var 2–4:e timme.",
-  "Sirvoy-parallelläge: webhook för nya bokningar och iCal så samma nätter inte säljs två gånger.",
+  "PMS-vyer för den anläggningen: bokningar, kalender, personal.",
   "Skarp drift på Bergs Slussar Glamping — en anläggning, inte en färdig plattform för många.",
 ] as const;
 
 export const CORE_DOES_NOT = [
-  "Isolerad multi-tenant. Vi påstår inte att flera kunders data är avskild som i en färdig SaaS.",
-  "Ersätta Sirvoy som channel manager mot Booking.com och Airbnb.",
-  "Importera Sirvoy-historik automatiskt. Framtida nätter måste in via iCal — eller sitta kvar i Sirvoy.",
-  "Självbetjäning med Stripe live för StayBoost-abonnemanget. Ingen kortbetalning för 449 kr här.",
-  "Klart att slå av Sirvoy. SAFE_TO_CANCEL_SIRVOY = NEJ.",
+  "Isolerad multi-tenant. Isolation är obevisad. Vi säljer den inte.",
+  "Kanalhantering. Sirvoy är kvar som channel manager mot Booking.com och Airbnb. SAFE_TO_CANCEL_SIRVOY = NEJ.",
+  "SaaS-intäkt. Ingen Stripe-checkout för StayBoost-abonnemanget. Ingen kortbetalning för 449 kr här.",
+  "AI-operatör. Finns inte i CORE.",
+  "Importera Sirvoy-historik automatiskt. Framtida nätter via iCal — eller sitta kvar i Sirvoy.",
 ] as const;
 
 export const SALES_FAQ: ReadonlyArray<{ q: string; a: string }> = [

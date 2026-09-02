@@ -16,22 +16,21 @@ stayboost.se publiceras från Lovable-projektet _stayboost-sverige_. Den här br
 | Pris                                   | **449 kr/mån** — samma som startsidan, ändra inte |
 | PR 9                                   | rör inte, merga inte                              |
 
-## Vad CORE gör idag
+## Vad CORE gör idag (pilot på en anläggning)
 
-- Gäst-sms och gästhubb — en länk i mobilen, ingen app.
-- Tillval som gästen betalar i sitt eget flöde (Stripe eller Swish hos anläggningen).
-- Digital incheckning, frukostvy och städvy.
-- Egen bokningsmotor plus iCal mot Booking.com och Airbnb. Booking.com läser ofta bara var 2–4:e timme.
-- Sirvoy-parallelläge: webhook för nya bokningar och iCal så samma nätter inte säljs två gånger.
-- Skarp drift på Bergs Slussar Glamping — en anläggning, inte en färdig plattform för många.
+- Bokningsmotor, gästhubb, digital incheckning, frukost- och städvy.
+- Gäst-sms och e-post.
+- Tillval som gästen betalar i sitt eget flöde.
+- PMS-vyer för den anläggningen.
+- Skarp drift på Bergs Slussar Glamping — en anläggning.
 
 ## Vad CORE inte gör
 
-- Isolerad multi-tenant. Vi påstår inte att flera kunders data är avskild som i en färdig SaaS.
-- Ersätta Sirvoy som channel manager mot Booking.com och Airbnb.
-- Importera Sirvoy-historik automatiskt.
-- Självbetjäning med Stripe live för StayBoost-abonnemanget.
-- Klart att slå av Sirvoy.
+- Isolerad multi-tenant. Isolation är obevisad.
+- Kanalhantering. Sirvoy är kvar. SAFE_TO_CANCEL_SIRVOY = NEJ.
+- SaaS-intäkt. Ingen Stripe-checkout för abonnemanget.
+- AI-operatör.
+- Automatisk Sirvoy-historikimport.
 
 ## Invändningar
 
@@ -39,6 +38,7 @@ Se `SALES_FAQ` i `src/lib/sales-readiness.ts` (isolering, Sirvoy, go-live, data,
 
 ## Demo-CTA
 
+Produktdemo (exempeldata): `/produkten` — `/demo` är 404, hitta inte på den.  
 Befintlig signup: `/app/login?mode=up`  
 Kontakt: `info@stayboost.se`  
 Ingen Stripe-checkout för 449-abonnemanget.

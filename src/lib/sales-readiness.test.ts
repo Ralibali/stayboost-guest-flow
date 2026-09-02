@@ -13,6 +13,7 @@ import {
   SALES_CANONICAL,
   SALES_FAQ,
   SALES_PATH,
+  PRODUCT_DEMO_PATH,
   SIGNUP_PATH,
   SIGNUP_SEARCH,
   STRIPE_SAAS_CHECKOUT_LIVE,
@@ -60,6 +61,9 @@ describe("Founding-10 sales-readiness (PREPARE)", () => {
     ];
     for (const phrase of forbidden) expect(corpus).not.toContain(phrase);
     expect(CORE_DOES_NOT.some((line) => /isol/i.test(line))).toBe(true);
+    expect(CORE_DOES_NOT.join("\n").toLowerCase()).toMatch(/kanalhantering/);
+    expect(CORE_DOES_NOT.join("\n").toLowerCase()).toMatch(/saas-intäkt|saas-intakt/);
+    expect(CORE_DOES_NOT.join("\n").toLowerCase()).toMatch(/ai-operatör|ai-operator/);
     expect(SALES_FAQ[0]?.q.toLowerCase()).toMatch(/isoler/);
     expect(SALES_FAQ[0]?.a.toLowerCase()).toMatch(/nej/);
   });
@@ -71,19 +75,23 @@ describe("Founding-10 sales-readiness (PREPARE)", () => {
     expect(SALES_FAQ.find((item) => /sirvoy/i.test(item.q))?.a.toLowerCase()).toMatch(/^nej/);
   });
 
-  it("routes demo CTA to existing signup or contact, not Stripe live", () => {
+  it("routes demo CTA to existing /produkten or signup, not a fake /demo or Stripe live", () => {
+    expect(PRODUCT_DEMO_PATH).toBe("/produkten");
     expect(SIGNUP_PATH).toBe("/app/login");
     expect(SIGNUP_SEARCH).toEqual({ mode: "up" });
     expect(CONTACT_EMAIL).toBe("info@stayboost.se");
 
     const cta = read("src/components/landing/DemoCta.tsx");
     const signup = read("src/components/landing/SignupCta.tsx");
+    expect(cta).toContain('to="/produkten"');
     expect(cta).toContain("SignupCta");
     expect(cta).toContain("mailto:");
     expect(cta).toContain("CONTACT_EMAIL");
+    expect(cta).toContain("ingen /demo-sida");
     expect(cta.toLowerCase()).not.toMatch(/checkout\.stripe|sk_live|stripe\.com\/c\//);
     expect(signup).toContain('to: "/app/login"');
     expect(signup).toContain('mode: "up"');
+    expect(read("src/routes/tidiga-kunder.tsx")).not.toContain('createFileRoute("/demo")');
   });
 
   it("uses stayboost.se only — no lovable.app or lovable badge", () => {

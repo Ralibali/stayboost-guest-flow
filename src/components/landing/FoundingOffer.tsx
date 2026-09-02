@@ -34,8 +34,8 @@ export function FoundingOffer({ variant }: { variant: Variant }) {
           <div className="card-surface p-6 sm:p-8">
             <p className="text-sm font-semibold text-[color:var(--ink)]">Vill du se flödet?</p>
             <p className="mt-2 text-sm text-[color:var(--ink)]/70">
-              Skapa konto i den befintliga signupen, eller mejla. Ingen Stripe-checkout för
-              abonnemanget.
+              Produktdemon ligger på /produkten (exempeldata). Eller skapa konto / mejla. Ingen
+              Stripe-checkout för abonnemanget. Ingen /demo-sida.
             </p>
             <div className="mt-5">
               <DemoCta location="founding-teaser" />
