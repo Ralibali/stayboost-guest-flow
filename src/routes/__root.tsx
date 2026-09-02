@@ -91,7 +91,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const faqItems = [
       [
         "Fungerar det med Sirvoy och Booking.com?",
-        "Nej. StayBoost är inte channel manager. Sirvoy är kvar. Vi hämtar inte Booking.com automatiskt. Booking.com pollar ofta bara var 2–4:e timme. SAFE_TO_CANCEL_SIRVOY = NEJ.",
+        "Sirvoy är channel manager. StayBoost körs parallellt — gästflöde efter bokning. iCal är bara datum. StayBoost hämtar inte Booking.com automatiskt.",
       ],
       [
         "Behöver mina gäster ladda ner en app?",
@@ -99,7 +99,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
       [
         "Hur lång tid tar det att komma igång?",
-        "Nej, inte en kväll som cutover. Sirvoy sitter kvar. Första kunderna kör parallellt med det de redan har.",
+        'Titta på /produkten — det är exempeldata. Ingen cutover. Sirvoy är kvar. "En kväll" är inte ett driftpåstående.',
       ],
       [
         "Vad händer om en gäst svarar på ett sms?",
@@ -111,7 +111,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
       [
         "Vad kostar sms:en?",
-        "Kod och en sms-pilot finns. Cron för utskick är inte bevisat i drift. Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms.",
+        "Sms finns i produkten. På Bergs visade den publika statsidan antal förankomst-sms. Vi påstår inte att produktions-cron är bevisad. Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms.",
       ],
       [
         "Funkar det för min personal?",
@@ -123,7 +123,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
       [
         "Vi använder inte Sirvoy — funkar det ändå?",
-        "Nej. Kanalhantering är inte redo. Booking.com utan Sirvoy är inte ett säljargument. Sirvoy är kvar. SAFE_TO_CANCEL_SIRVOY = NEJ.",
+        "CORE är dogfoodad bredvid Sirvoy. Andra setupar är ett samtal, inte ett påstående. Vi säljer inte Booking.com utan Sirvoy.",
       ],
     ];
 

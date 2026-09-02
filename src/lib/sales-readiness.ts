@@ -20,25 +20,28 @@ export const CONTACT_EMAIL = "info@stayboost.se";
 export const SALES_PATH = "/tidiga-kunder";
 /** Existing product tour with example data. `/demo` is 404 — do not invent it. */
 export const PRODUCT_DEMO_PATH = "/produkten";
+/** Booking engine demo only — example data, nothing charged. Not Bergs live /boka. */
+export const PRODUCT_BOOKING_DEMO_PATH = "/produkten/boka";
 export const SIGNUP_PATH = "/app/login";
 export const SIGNUP_SEARCH = { mode: "up" as const };
 
 export const SALES_CANONICAL = `${CANONICAL_ORIGIN}${SALES_PATH}`;
 
 export const CORE_DOES = [
-  "Gästflöde i pilot: förankomst, sms och gästhubb — en länk, ingen app.",
+  "Gästflöde efter bokning: förankomst, sms, tillval och incheckning — inte bokningsknappen.",
   "Tillval (upsell) som gästen betalar i sitt eget flöde (Stripe eller Swish hos anläggningen).",
-  "Digital incheckning, frukostvy och städvy — driftvyer, inte bokningsknappen.",
-  "Kod och en sms-pilot finns. Cron för utskick är inte bevisat i drift.",
+  "Digital incheckning, frukostvy och städvy.",
+  "Sms finns i produkten. På Bergs visade den publika statsidan antal förankomst-sms. Vi påstår inte att produktions-cron är bevisad.",
+  "Bokningsmotorn syns bara som produktdemo på /produkten/boka — exempeldata, inget debiteras.",
 ] as const;
 
 export const CORE_DOES_NOT = [
-  "Bergs bokningsknapp. /boka hos Bergs är Sirvoy-iframe. StayBoost ersätter den inte.",
+  "Bergs live-knapp. goglampingsweden.se/boka är Sirvoy-iframe (0 Booking.com). StayBoost ersätter den inte.",
   "Isolerad multi-tenant. Isolation är obevisad. Vi säljer den inte.",
-  "Kanalhantering. Sirvoy är kvar som channel manager mot Booking.com och Airbnb. SAFE_TO_CANCEL_SIRVOY = NEJ.",
+  "Kanalhantering. Sirvoy är kvar som channel manager. SAFE_TO_CANCEL_SIRVOY = NEJ.",
   "SaaS-intäkt. Ingen Stripe-checkout för StayBoost-abonnemanget. Ingen kortbetalning för 449 kr här.",
   "AI-operatör. Finns inte i CORE.",
-  "Importera Sirvoy-historik automatiskt. Framtida nätter via iCal — eller sitta kvar i Sirvoy.",
+  "Importera Sirvoy-historik automatiskt. iCal är bara datum — eller sitta kvar i Sirvoy.",
 ] as const;
 
 export const SALES_FAQ: ReadonlyArray<{ q: string; a: string }> = [
@@ -48,7 +51,7 @@ export const SALES_FAQ: ReadonlyArray<{ q: string; a: string }> = [
   },
   {
     q: "Kan vi säga upp Sirvoy när vi börjar?",
-    a: "Nej. Sirvoy är kvar tills sista utcheckningen. StayBoost tar emot nya Sirvoy-event och kan läsa iCal för att blockera nätter. Historiken kommer inte in av sig själv. Slå inte av Sirvoys kanaler.",
+    a: "Nej. Sirvoy är kvar tills sista utcheckningen. StayBoost körs parallellt — gästflöde efter bokning. iCal är bara datum. Historiken kommer inte in av sig själv. Slå inte av Sirvoys kanaler.",
   },
   {
     q: "Är StayBoost live — kan vi gå över på en kväll?",
@@ -60,6 +63,6 @@ export const SALES_FAQ: ReadonlyArray<{ q: string; a: string }> = [
   },
   {
     q: "Vad kostar sms:en?",
-    a: "Kod och en sms-pilot finns. Cron för utskick är inte bevisat i drift. Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms. Priset är 449 kr/mån.",
+    a: "Sms finns i produkten. På Bergs visade den publika statsidan antal förankomst-sms. Vi påstår inte att produktions-cron är bevisad. Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms. Priset är 449 kr/mån.",
   },
 ];

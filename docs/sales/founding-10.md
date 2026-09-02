@@ -16,21 +16,22 @@ stayboost.se publiceras från Lovable-projektet _stayboost-sverige_. Den här br
 | Pris                                   | **449 kr/mån** — samma som startsidan, ändra inte |
 | PR 9                                   | rör inte, merga inte                              |
 
-## Vad CORE gör idag (gästflöde / guest-ops)
+## Vad CORE gör idag (gästflöde efter bokning)
 
-- Förankomst, sms och gästhubb. Inte Bergs bokningsknapp.
+- Förankomst, sms, tillval och incheckning. Inte Bergs bokningsknapp.
 - Tillval (upsell) i gästens eget flöde.
-- Digital incheckning, frukostvy och städvy — driftvyer.
-- Kod och en sms-pilot finns. Cron för utskick är inte bevisat i drift.
+- Digital incheckning, frukostvy och städvy.
+- Sms finns i produkten. På Bergs visade den publika statsidan antal förankomst-sms. Produktions-cron är inte bevisad.
+- Bokningsmotorn syns bara som produktdemo på `/produkten/boka` — exempeldata, inget debiteras.
 
 ## Vad CORE inte gör
 
-- Bergs bokningsknapp. /boka hos Bergs är Sirvoy-iframe.
+- Bergs live-knapp. `goglampingsweden.se/boka` är Sirvoy-iframe (0 Booking.com).
 - Isolerad multi-tenant. Isolation är obevisad.
 - Kanalhantering. Sirvoy är kvar. SAFE_TO_CANCEL_SIRVOY = NEJ.
 - SaaS-intäkt. Ingen Stripe-checkout för abonnemanget.
 - AI-operatör.
-- Automatisk Sirvoy-historikimport.
+- Automatisk Sirvoy-historikimport. iCal är bara datum.
 
 ## Invändningar
 
@@ -38,7 +39,8 @@ Se `SALES_FAQ` i `src/lib/sales-readiness.ts` (isolering, Sirvoy, go-live, data,
 
 ## Demo-CTA
 
-Produktdemo (exempeldata): `/produkten` — `/demo` är 404, hitta inte på den.  
+Produktdemo (exempeldata): `/produkten` — bokningsmotor bara på `/produkten/boka`.  
+`/demo` är 404, hitta inte på den.  
 Öppen signup är inte säljvägen (isolation obevisad).  
 Kontakt: `info@stayboost.se`  
 Ingen Stripe-checkout för 449-abonnemanget.

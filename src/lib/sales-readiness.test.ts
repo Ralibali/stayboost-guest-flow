@@ -14,6 +14,7 @@ import {
   SALES_FAQ,
   SALES_PATH,
   PRODUCT_DEMO_PATH,
+  PRODUCT_BOOKING_DEMO_PATH,
   SIGNUP_PATH,
   SIGNUP_SEARCH,
   STRIPE_SAAS_CHECKOUT_LIVE,
@@ -77,17 +78,21 @@ describe("Founding-10 sales-readiness (PREPARE)", () => {
   });
 
   it("does not sell Bergs booking or skarp drift as StayBoost booking", () => {
-    const does = CORE_DOES.join("\n").toLowerCase();
-    expect(does).not.toContain("skarp drift");
-    expect(does).not.toContain("bokningsmotor");
-    expect(does).toMatch(/förankomst|gästflöde/);
+    const does = CORE_DOES.join("\n");
+    expect(does.toLowerCase()).not.toContain("skarp drift");
+    expect(does).toMatch(/förankomst|gästflöde efter bokning/);
+    const bookingLines = CORE_DOES.filter((line) => /bokningsmotor/i.test(line));
+    expect(bookingLines).toHaveLength(1);
+    expect(bookingLines[0]).toContain("/produkten/boka");
+    expect(bookingLines[0]).not.toMatch(/Bergs|skarp drift/i);
+    expect(PRODUCT_BOOKING_DEMO_PATH).toBe("/produkten/boka");
+    expect(CORE_DOES_NOT.join("\n")).toMatch(/goglampingsweden\.se\/boka/);
     expect(CORE_DOES_NOT.join("\n")).toMatch(/Sirvoy-iframe/);
-    expect(CORE_DOES_NOT.join("\n")).toMatch(/Bergs bokningsknapp/);
 
     const offer = read("src/components/landing/FoundingOffer.tsx");
     expect(offer).not.toContain("CORE körs i skarp drift på Bergs");
-    expect(offer).toContain("Bokningsknappen där är");
-    expect(offer).toContain("Sirvoy");
+    expect(offer).toContain("goglampingsweden.se/boka");
+    expect(offer).toContain("Sirvoy-iframe");
   });
 
   it("routes demo CTA to /produkten only — no open signup sell path", () => {
@@ -115,19 +120,23 @@ describe("Founding-10 sales-readiness (PREPARE)", () => {
       expect(source).not.toContain("hämtar dina bokningar automatiskt");
       expect(source).not.toContain("En kväll. Koppla bokningarna");
       expect(source).not.toContain("Booking.com och manuell inmatning stöds");
-      expect(source).toContain("Nej. StayBoost är inte channel manager");
-      expect(source).toContain("Nej, inte en kväll som cutover");
-      expect(source).toContain("Booking.com utan Sirvoy är inte ett säljargument");
+      expect(source).toContain("Sirvoy är channel manager");
+      expect(source).toContain("iCal är bara datum");
+      expect(source).toContain("StayBoost hämtar inte Booking.com automatiskt");
+      expect(source).toContain("Titta på /produkten — det är exempeldata");
+      expect(source).toContain("CORE är dogfoodad bredvid Sirvoy");
+      expect(source).toContain("Vi säljer inte Booking.com utan Sirvoy");
     }
   });
 
-  it("SMS may mention code/pilot and must not claim cron is proven", () => {
+  it("SMS may mention product + Bergs stats and must not claim cron is proven", () => {
     const sms = SALES_FAQ.find((item) => /sms/i.test(item.q));
-    expect(sms?.a).toContain("Kod och en sms-pilot finns");
-    expect(sms?.a).toContain("Cron för utskick är inte bevisat i drift");
-    expect(sms?.a).not.toMatch(/cron är (på|igång|bevisat|deployad)/i);
+    expect(sms?.a).toContain("Sms finns i produkten");
+    expect(sms?.a).toContain("publika statsidan antal förankomst-sms");
+    expect(sms?.a).toContain("Vi påstår inte att produktions-cron är bevisad");
+    expect(sms?.a).not.toMatch(/cron är (på|igång|bevisat|deployad)|nattliga utskick/i);
     const faq = read("src/components/landing/FAQ.tsx");
-    expect(faq).toContain("Cron för utskick är inte bevisat i drift");
+    expect(faq).toContain("Vi påstår inte att produktions-cron är bevisad");
   });
 
   it("uses stayboost.se only — no lovable.app or lovable badge", () => {

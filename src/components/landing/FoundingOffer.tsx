@@ -18,9 +18,10 @@ export function FoundingOffer({ variant }: { variant: Variant }) {
               Tidiga kunder. Utan isolation-snack.
             </h2>
             <p className="mt-5 max-w-xl text-[color:var(--ink)]/75">
-              Beviset på Bergs är gästflödet — förankomst, sms och tillval. Bokningsknappen där är
-              Sirvoy, inte StayBoost. Isolation är obevisad. Sirvoy stängs inte av. Priset är samma
-              som ovan: {PRICE_LABEL}.
+              Beviset på Bergs är gästflödet efter bokning — förankomst, sms, tillval och
+              incheckning. Live-knappen på goglampingsweden.se/boka är Sirvoy-iframe (inte
+              Booking.com). Isolation är obevisad. Sirvoy stängs inte av. Priset är samma som ovan:{" "}
+              {PRICE_LABEL}.
             </p>
             <p className="mt-4">
               <Link
@@ -54,9 +55,9 @@ export function FoundingOffer({ variant }: { variant: Variant }) {
           CORE som det faktiskt är.
         </h1>
         <p className="mt-5 max-w-2xl text-[color:var(--ink)]/80">
-          Beviset på Bergs är gästflödet — förankomst, sms och tillval. Bokningsknappen där är
-          Sirvoy-iframe, inte StayBoost. Isolation är obevisad. Sirvoy är kvar. {PRICE_LABEL} —
-          samma siffra som på startsidan.
+          Beviset på Bergs är gästflödet efter bokning — förankomst, sms, tillval och incheckning.
+          Live-knappen på goglampingsweden.se/boka är Sirvoy-iframe (inte Booking.com). Isolation är
+          obevisad. Sirvoy är kvar. {PRICE_LABEL} — samma siffra som på startsidan.
         </p>
 
         <div className="mt-12 grid gap-10 md:grid-cols-2">

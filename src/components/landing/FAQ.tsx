@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const ITEMS = [
   {
     q: "Fungerar det med Sirvoy och Booking.com?",
-    a: "Nej. StayBoost är inte channel manager. Sirvoy är kvar. Vi hämtar inte Booking.com automatiskt. Booking.com pollar ofta bara var 2–4:e timme. SAFE_TO_CANCEL_SIRVOY = NEJ.",
+    a: "Sirvoy är channel manager. StayBoost körs parallellt — gästflöde efter bokning. iCal är bara datum. StayBoost hämtar inte Booking.com automatiskt.",
   },
   {
     q: "Behöver mina gäster ladda ner en app?",
@@ -12,7 +12,7 @@ const ITEMS = [
   },
   {
     q: "Hur lång tid tar det att komma igång?",
-    a: "Nej, inte en kväll som cutover. Sirvoy sitter kvar. Första kunderna kör parallellt med det de redan har.",
+    a: 'Titta på /produkten — det är exempeldata. Ingen cutover. Sirvoy är kvar. "En kväll" är inte ett driftpåstående.',
   },
   {
     q: "Vad händer om en gäst svarar på ett sms?",
@@ -24,7 +24,7 @@ const ITEMS = [
   },
   {
     q: "Vad kostar sms:en?",
-    a: "Kod och en sms-pilot finns. Cron för utskick är inte bevisat i drift. Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms.",
+    a: "Sms finns i produkten. På Bergs visade den publika statsidan antal förankomst-sms. Vi påstår inte att produktions-cron är bevisad. Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms.",
   },
   {
     q: "Funkar det för min personal?",
@@ -36,11 +36,11 @@ const ITEMS = [
   },
   {
     q: "Vi använder inte Sirvoy — funkar det ändå?",
-    a: "Nej. Kanalhantering är inte redo. Booking.com utan Sirvoy är inte ett säljargument. Sirvoy är kvar. SAFE_TO_CANCEL_SIRVOY = NEJ.",
+    a: "CORE är dogfoodad bredvid Sirvoy. Andra setupar är ett samtal, inte ett påstående. Vi säljer inte Booking.com utan Sirvoy.",
   },
   {
     q: "Kan vi säga upp Sirvoy när vi börjar med StayBoost?",
-    a: "Nej. Sirvoy är kvar tills sista utcheckningen. StayBoost kör parallellt — webhook för nya bokningar och iCal för att blockera nätter. Historiken importeras inte automatiskt. Slå inte av Sirvoys kanaler.",
+    a: "Nej. Sirvoy är kvar tills sista utcheckningen. StayBoost körs parallellt — gästflöde efter bokning. iCal är bara datum. Slå inte av Sirvoys kanaler.",
   },
   {
     q: "Är min anläggning isolerad från andra kunders data?",
