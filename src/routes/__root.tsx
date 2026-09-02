@@ -91,7 +91,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const faqItems = [
       [
         "Fungerar det med Sirvoy och Booking.com?",
-        "Ja. StayBoost hämtar dina bokningar automatiskt. Har du ett annat system kan du lägga in bokningar manuellt på under en minut.",
+        "Nej. StayBoost är inte channel manager. Sirvoy är kvar. Vi hämtar inte Booking.com automatiskt. Booking.com pollar ofta bara var 2–4:e timme. SAFE_TO_CANCEL_SIRVOY = NEJ.",
       ],
       [
         "Behöver mina gäster ladda ner en app?",
@@ -99,7 +99,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
       [
         "Hur lång tid tar det att komma igång?",
-        "En kväll. Koppla bokningarna, välj bland färdiga mallar, klart. De flesta skickar sitt första automatiska meddelande samma dag.",
+        "Nej, inte en kväll som cutover. Sirvoy sitter kvar. Första kunderna kör parallellt med det de redan har.",
       ],
       [
         "Vad händer om en gäst svarar på ett sms?",
@@ -111,7 +111,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
       [
         "Vad kostar sms:en?",
-        "Sms ingår upp till en generös månadsgräns som räcker för de allra flesta små anläggningar. Går du över betalar du bara självkostnadspris per sms — inga påslag, inga överraskningar.",
+        "Kod och en sms-pilot finns. Cron för utskick är inte bevisat i drift. Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms.",
       ],
       [
         "Funkar det för min personal?",
@@ -123,7 +123,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
       [
         "Vi använder inte Sirvoy — funkar det ändå?",
-        "Ja. Booking.com och manuell inmatning stöds, och fler kopplingar är på väg. Säg till vilken du behöver.",
+        "Nej. Kanalhantering är inte redo. Booking.com utan Sirvoy är inte ett säljargument. Sirvoy är kvar. SAFE_TO_CANCEL_SIRVOY = NEJ.",
       ],
     ];
 

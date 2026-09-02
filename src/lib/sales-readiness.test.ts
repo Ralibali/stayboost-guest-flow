@@ -30,6 +30,7 @@ const SALES_FILES = [
   "src/components/landing/FoundingOffer.tsx",
   "src/components/landing/SalesFaq.tsx",
   "src/components/landing/DemoCta.tsx",
+  "src/components/landing/FAQ.tsx",
   "src/routes/tidiga-kunder.tsx",
 ] as const;
 
@@ -75,23 +76,58 @@ describe("Founding-10 sales-readiness (PREPARE)", () => {
     expect(SALES_FAQ.find((item) => /sirvoy/i.test(item.q))?.a.toLowerCase()).toMatch(/^nej/);
   });
 
-  it("routes demo CTA to existing /produkten or signup, not a fake /demo or Stripe live", () => {
+  it("does not sell Bergs booking or skarp drift as StayBoost booking", () => {
+    const does = CORE_DOES.join("\n").toLowerCase();
+    expect(does).not.toContain("skarp drift");
+    expect(does).not.toContain("bokningsmotor");
+    expect(does).toMatch(/förankomst|gästflöde/);
+    expect(CORE_DOES_NOT.join("\n")).toMatch(/Sirvoy-iframe/);
+    expect(CORE_DOES_NOT.join("\n")).toMatch(/Bergs bokningsknapp/);
+
+    const offer = read("src/components/landing/FoundingOffer.tsx");
+    expect(offer).not.toContain("CORE körs i skarp drift på Bergs");
+    expect(offer).toContain("Bokningsknappen där är");
+    expect(offer).toContain("Sirvoy");
+  });
+
+  it("routes demo CTA to /produkten only — no open signup sell path", () => {
     expect(PRODUCT_DEMO_PATH).toBe("/produkten");
     expect(SIGNUP_PATH).toBe("/app/login");
     expect(SIGNUP_SEARCH).toEqual({ mode: "up" });
     expect(CONTACT_EMAIL).toBe("info@stayboost.se");
 
     const cta = read("src/components/landing/DemoCta.tsx");
-    const signup = read("src/components/landing/SignupCta.tsx");
     expect(cta).toContain('to="/produkten"');
-    expect(cta).toContain("SignupCta");
+    expect(cta).toContain("Öppna produktdemon");
+    expect(cta).not.toContain("SignupCta");
+    expect(cta).not.toContain("Skapa konto");
     expect(cta).toContain("mailto:");
-    expect(cta).toContain("CONTACT_EMAIL");
     expect(cta).toContain("ingen /demo-sida");
     expect(cta.toLowerCase()).not.toMatch(/checkout\.stripe|sk_live|stripe\.com\/c\//);
-    expect(signup).toContain('to: "/app/login"');
-    expect(signup).toContain('mode: "up"');
     expect(read("src/routes/tidiga-kunder.tsx")).not.toContain('createFileRoute("/demo")');
+    expect(read("src/routes/tidiga-kunder.tsx")).not.toContain("skapa konto");
+  });
+
+  it("homepage FAQ matches tidiga-kunder: no auto-Booking.com, no en kväll, no Booking.com without Sirvoy", () => {
+    const faq = read("src/components/landing/FAQ.tsx");
+    const root = read("src/routes/__root.tsx");
+    for (const source of [faq, root]) {
+      expect(source).not.toContain("hämtar dina bokningar automatiskt");
+      expect(source).not.toContain("En kväll. Koppla bokningarna");
+      expect(source).not.toContain("Booking.com och manuell inmatning stöds");
+      expect(source).toContain("Nej. StayBoost är inte channel manager");
+      expect(source).toContain("Nej, inte en kväll som cutover");
+      expect(source).toContain("Booking.com utan Sirvoy är inte ett säljargument");
+    }
+  });
+
+  it("SMS may mention code/pilot and must not claim cron is proven", () => {
+    const sms = SALES_FAQ.find((item) => /sms/i.test(item.q));
+    expect(sms?.a).toContain("Kod och en sms-pilot finns");
+    expect(sms?.a).toContain("Cron för utskick är inte bevisat i drift");
+    expect(sms?.a).not.toMatch(/cron är (på|igång|bevisat|deployad)/i);
+    const faq = read("src/components/landing/FAQ.tsx");
+    expect(faq).toContain("Cron för utskick är inte bevisat i drift");
   });
 
   it("uses stayboost.se only — no lovable.app or lovable badge", () => {
@@ -114,7 +150,7 @@ describe("Founding-10 sales-readiness (PREPARE)", () => {
   it("keeps SMS included language and CORE lists non-empty", () => {
     const sms = SALES_FAQ.find((item) => /sms/i.test(item.q));
     expect(sms?.a).toContain("Sms ingår i StayBoost-abonnemanget och debiteras inte separat");
-    expect(CORE_DOES.length).toBeGreaterThanOrEqual(5);
+    expect(CORE_DOES.length).toBeGreaterThanOrEqual(4);
     expect(CORE_DOES_NOT.length).toBeGreaterThanOrEqual(4);
   });
 

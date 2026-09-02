@@ -26,14 +26,14 @@ export const SIGNUP_SEARCH = { mode: "up" as const };
 export const SALES_CANONICAL = `${CANONICAL_ORIGIN}${SALES_PATH}`;
 
 export const CORE_DOES = [
-  "Pilot på en anläggning: bokningsmotor, gästhubb, digital incheckning, frukost- och städvy.",
-  "Gäst-sms och e-post — en länk i mobilen, ingen app.",
-  "Tillval som gästen betalar i sitt eget flöde (Stripe eller Swish hos anläggningen).",
-  "PMS-vyer för den anläggningen: bokningar, kalender, personal.",
-  "Skarp drift på Bergs Slussar Glamping — en anläggning, inte en färdig plattform för många.",
+  "Gästflöde i pilot: förankomst, sms och gästhubb — en länk, ingen app.",
+  "Tillval (upsell) som gästen betalar i sitt eget flöde (Stripe eller Swish hos anläggningen).",
+  "Digital incheckning, frukostvy och städvy — driftvyer, inte bokningsknappen.",
+  "Kod och en sms-pilot finns. Cron för utskick är inte bevisat i drift.",
 ] as const;
 
 export const CORE_DOES_NOT = [
+  "Bergs bokningsknapp. /boka hos Bergs är Sirvoy-iframe. StayBoost ersätter den inte.",
   "Isolerad multi-tenant. Isolation är obevisad. Vi säljer den inte.",
   "Kanalhantering. Sirvoy är kvar som channel manager mot Booking.com och Airbnb. SAFE_TO_CANCEL_SIRVOY = NEJ.",
   "SaaS-intäkt. Ingen Stripe-checkout för StayBoost-abonnemanget. Ingen kortbetalning för 449 kr här.",
@@ -44,7 +44,7 @@ export const CORE_DOES_NOT = [
 export const SALES_FAQ: ReadonlyArray<{ q: string; a: string }> = [
   {
     q: "Är min anläggning isolerad från andras?",
-    a: "Nej, inte som produktpåstående. CORE körs i skarp drift på en anläggning. I koden finns ägarfält (owner_id), men det är inte samma sak som färdig tenant-isolering. Vi säljer inte isolation.",
+    a: "Nej. Isolation är obevisad. Vi säljer den inte. I koden finns ägarfält (owner_id) — det är inte färdig tenant-isolering.",
   },
   {
     q: "Kan vi säga upp Sirvoy när vi börjar?",
@@ -60,6 +60,6 @@ export const SALES_FAQ: ReadonlyArray<{ q: string; a: string }> = [
   },
   {
     q: "Vad kostar sms:en?",
-    a: "Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms. Priset är 449 kr/mån.",
+    a: "Kod och en sms-pilot finns. Cron för utskick är inte bevisat i drift. Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms. Priset är 449 kr/mån.",
   },
 ];

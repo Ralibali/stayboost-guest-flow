@@ -18,9 +18,9 @@ export function FoundingOffer({ variant }: { variant: Variant }) {
               Tidiga kunder. Utan isolation-snack.
             </h2>
             <p className="mt-5 max-w-xl text-[color:var(--ink)]/75">
-              CORE körs i skarp drift på Bergs Slussar Glamping. Det är inte en färdig plattform för
-              många anläggningar sida vid sida. Sirvoy stängs inte av. Priset är samma som ovan:{" "}
-              {PRICE_LABEL}.
+              Beviset på Bergs är gästflödet — förankomst, sms och tillval. Bokningsknappen där är
+              Sirvoy, inte StayBoost. Isolation är obevisad. Sirvoy stängs inte av. Priset är samma
+              som ovan: {PRICE_LABEL}.
             </p>
             <p className="mt-4">
               <Link
@@ -34,8 +34,8 @@ export function FoundingOffer({ variant }: { variant: Variant }) {
           <div className="card-surface p-6 sm:p-8">
             <p className="text-sm font-semibold text-[color:var(--ink)]">Vill du se flödet?</p>
             <p className="mt-2 text-sm text-[color:var(--ink)]/70">
-              Produktdemon ligger på /produkten (exempeldata). Eller skapa konto / mejla. Ingen
-              Stripe-checkout för abonnemanget. Ingen /demo-sida.
+              Produktdemon ligger på /produkten (exempeldata). Öppen signup är inte säljvägen. Ingen
+              /demo-sida.
             </p>
             <div className="mt-5">
               <DemoCta location="founding-teaser" />
@@ -54,9 +54,9 @@ export function FoundingOffer({ variant }: { variant: Variant }) {
           CORE som det faktiskt är.
         </h1>
         <p className="mt-5 max-w-2xl text-[color:var(--ink)]/80">
-          StayBoost CORE körs i skarp drift på Bergs Slussar Glamping. Det är byggt för den
-          anläggningen. Vi säljer inte multi-tenant-isolering. Sirvoy är kvar. {PRICE_LABEL} — samma
-          siffra som på startsidan.
+          Beviset på Bergs är gästflödet — förankomst, sms och tillval. Bokningsknappen där är
+          Sirvoy-iframe, inte StayBoost. Isolation är obevisad. Sirvoy är kvar. {PRICE_LABEL} —
+          samma siffra som på startsidan.
         </p>
 
         <div className="mt-12 grid gap-10 md:grid-cols-2">

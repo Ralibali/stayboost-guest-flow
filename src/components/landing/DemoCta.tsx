@@ -1,28 +1,24 @@
 import { Link } from "@tanstack/react-router";
-import { SignupCta } from "@/components/landing/SignupCta";
 import { CONTACT_EMAIL, PRICE_LABEL, PRODUCT_DEMO_PATH } from "@/lib/sales-readiness";
 
 type Variant = "light" | "dark";
 
 /**
- * Demo / early-customer CTA. Prospect demo is existing `/produkten` (example data).
- * `/demo` is 404 — do not invent it. Signup stays `/app/login`. No Stripe live checkout.
+ * Prospect CTA. Only existing `/produkten` (example data) or mailto.
+ * Open signup in an unisolated project is not a sell path. `/demo` is 404.
  */
-export function DemoCta({ location, variant = "light" }: { location: string; variant?: Variant }) {
+export function DemoCta({ variant = "light" }: { location?: string; variant?: Variant }) {
   const dark = variant === "dark";
   const mailto = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent("StayBoost — tidig kund")}`;
 
   return (
     <div>
-      <Link to="/produkten" className="btn-primary mb-3 w-full sm:w-auto">
+      <Link to="/produkten" className="btn-primary w-full sm:w-auto">
         Öppna produktdemon
       </Link>
-      <p className={`mb-4 text-xs ${dark ? "text-white/55" : "text-[color:var(--ink)]/50"}`}>
-        Exempeldata på {PRODUCT_DEMO_PATH}. Det finns ingen /demo-sida.
-      </p>
-      <SignupCta location={location} variant={variant} buttonLabel="Skapa konto" />
       <p className={`mt-3 text-sm ${dark ? "text-white/75" : "text-[color:var(--ink)]/70"}`}>
-        Eller skriv till{" "}
+        Exempeldata på {PRODUCT_DEMO_PATH}. Det finns ingen /demo-sida. Öppen signup är inte
+        säljvägen — isolation är obevisad. Skriv till{" "}
         <a
           href={mailto}
           className={
@@ -33,8 +29,7 @@ export function DemoCta({ location, variant = "light" }: { location: string; var
         >
           {CONTACT_EMAIL}
         </a>
-        . Ingen kortbetalning för {PRICE_LABEL} här — det finns ingen Stripe-checkout för
-        abonnemanget.
+        . Ingen kortbetalning för {PRICE_LABEL} här.
       </p>
     </div>
   );

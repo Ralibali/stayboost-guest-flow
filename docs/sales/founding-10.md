@@ -16,16 +16,16 @@ stayboost.se publiceras från Lovable-projektet _stayboost-sverige_. Den här br
 | Pris                                   | **449 kr/mån** — samma som startsidan, ändra inte |
 | PR 9                                   | rör inte, merga inte                              |
 
-## Vad CORE gör idag (pilot på en anläggning)
+## Vad CORE gör idag (gästflöde / guest-ops)
 
-- Bokningsmotor, gästhubb, digital incheckning, frukost- och städvy.
-- Gäst-sms och e-post.
-- Tillval som gästen betalar i sitt eget flöde.
-- PMS-vyer för den anläggningen.
-- Skarp drift på Bergs Slussar Glamping — en anläggning.
+- Förankomst, sms och gästhubb. Inte Bergs bokningsknapp.
+- Tillval (upsell) i gästens eget flöde.
+- Digital incheckning, frukostvy och städvy — driftvyer.
+- Kod och en sms-pilot finns. Cron för utskick är inte bevisat i drift.
 
 ## Vad CORE inte gör
 
+- Bergs bokningsknapp. /boka hos Bergs är Sirvoy-iframe.
 - Isolerad multi-tenant. Isolation är obevisad.
 - Kanalhantering. Sirvoy är kvar. SAFE_TO_CANCEL_SIRVOY = NEJ.
 - SaaS-intäkt. Ingen Stripe-checkout för abonnemanget.
@@ -39,6 +39,6 @@ Se `SALES_FAQ` i `src/lib/sales-readiness.ts` (isolering, Sirvoy, go-live, data,
 ## Demo-CTA
 
 Produktdemo (exempeldata): `/produkten` — `/demo` är 404, hitta inte på den.  
-Befintlig signup: `/app/login?mode=up`  
+Öppen signup är inte säljvägen (isolation obevisad).  
 Kontakt: `info@stayboost.se`  
 Ingen Stripe-checkout för 449-abonnemanget.

@@ -59,8 +59,8 @@ function EarlyCustomers() {
             Se flödet. Köp inte isolation.
           </h2>
           <p className="mt-4 text-white/75">
-            Titta på /produkten (exempeldata), skapa konto, eller mejla. {PRICE_LABEL}. Sirvoy är
-            kvar. Isolation är obevisad.
+            Titta på /produkten (exempeldata) eller mejla. {PRICE_LABEL}. Sirvoy är kvar. Isolation
+            är obevisad. Öppen signup är inte säljvägen.
           </p>
           <div className="mt-8">
             <DemoCta location="founding-page" variant="dark" />

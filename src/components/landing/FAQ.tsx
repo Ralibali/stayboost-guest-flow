@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const ITEMS = [
   {
     q: "Fungerar det med Sirvoy och Booking.com?",
-    a: "Ja. StayBoost hämtar dina bokningar automatiskt. Har du ett annat system kan du lägga in bokningar manuellt på under en minut.",
+    a: "Nej. StayBoost är inte channel manager. Sirvoy är kvar. Vi hämtar inte Booking.com automatiskt. Booking.com pollar ofta bara var 2–4:e timme. SAFE_TO_CANCEL_SIRVOY = NEJ.",
   },
   {
     q: "Behöver mina gäster ladda ner en app?",
@@ -12,7 +12,7 @@ const ITEMS = [
   },
   {
     q: "Hur lång tid tar det att komma igång?",
-    a: "En kväll. Koppla bokningarna, välj bland färdiga mallar, klart. De flesta skickar sitt första automatiska meddelande samma dag.",
+    a: "Nej, inte en kväll som cutover. Sirvoy sitter kvar. Första kunderna kör parallellt med det de redan har.",
   },
   {
     q: "Vad händer om en gäst svarar på ett sms?",
@@ -24,7 +24,7 @@ const ITEMS = [
   },
   {
     q: "Vad kostar sms:en?",
-    a: "Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms.",
+    a: "Kod och en sms-pilot finns. Cron för utskick är inte bevisat i drift. Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms.",
   },
   {
     q: "Funkar det för min personal?",
@@ -36,7 +36,7 @@ const ITEMS = [
   },
   {
     q: "Vi använder inte Sirvoy — funkar det ändå?",
-    a: "Ja. Booking.com och manuell inmatning stöds, och fler kopplingar är på väg. Säg till vilken du behöver.",
+    a: "Nej. Kanalhantering är inte redo. Booking.com utan Sirvoy är inte ett säljargument. Sirvoy är kvar. SAFE_TO_CANCEL_SIRVOY = NEJ.",
   },
   {
     q: "Kan vi säga upp Sirvoy när vi börjar med StayBoost?",
@@ -44,7 +44,7 @@ const ITEMS = [
   },
   {
     q: "Är min anläggning isolerad från andra kunders data?",
-    a: "Vi påstår inte färdig tenant-isolering. CORE körs i skarp drift på en anläggning. Läs den ärliga genomgången under Tidiga kunder.",
+    a: "Nej. Isolation är obevisad. Läs Tidiga kunder.",
   },
 ];
 
