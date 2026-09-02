@@ -89,6 +89,17 @@ describe("kanonisk värd (legal / OG)", () => {
     expect(index).toContain('rel: "canonical"');
     expect(index).not.toMatch(/lovable\.app/);
   });
+
+  it("tidiga-kunder har self-canonical på stayboost.se, inte lovable.app", () => {
+    const source = read("src/routes/tidiga-kunder.tsx");
+    expect(source).toContain("canonicalUrl(SALES_PATH)");
+    expect(source).toContain('property: "og:url"');
+    expect(source).toContain('rel: "canonical"');
+    expect(source).not.toMatch(/lovable\.app/);
+    expect(source).not.toContain("lovable-badge");
+    expect(canonicalUrl("/tidiga-kunder")).toBe("https://stayboost.se/tidiga-kunder");
+    expect(canonicalUrl("/tidiga-kunder")).not.toMatch(/lovable\.app/);
+  });
 });
 
 describe("public sitemap", () => {
@@ -134,6 +145,9 @@ describe("BLOCKED_BADGE", () => {
       "src/routes/dpa.tsx",
       "src/components/legal/LegalLayout.tsx",
       "src/lib/site-url.ts",
+      "src/routes/tidiga-kunder.tsx",
+      "src/components/landing/FoundingOffer.tsx",
+      "src/components/landing/DemoCta.tsx",
     ];
     for (const file of files) {
       const text = read(file);

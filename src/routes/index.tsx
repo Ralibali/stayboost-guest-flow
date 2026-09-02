@@ -15,6 +15,7 @@ import { DemoSms } from "@/components/landing/DemoSms";
 import { CaseStudy } from "@/components/landing/CaseStudy";
 import { BookFounder } from "@/components/landing/BookFounder";
 import { HeroProofBadge } from "@/components/landing/HeroProofBadge";
+import { FoundingOffer } from "@/components/landing/FoundingOffer";
 import { canonicalUrl } from "@/lib/site-url";
 
 const BRAND_NAME = "StayBoost";
@@ -51,6 +52,7 @@ function Index() {
       <LeadMagnet />
       <RevenueCalculator />
       <Comparison />
+      <FoundingOffer variant="teaser" />
       <Testimonial />
       <Pricing />
       <FAQ />
@@ -100,6 +102,9 @@ function Header() {
           <a href="#faq" className="hover:text-[color:var(--brass)]">
             FAQ
           </a>
+          <Link to="/tidiga-kunder" className="hover:text-[color:var(--brass)]">
+            Tidiga kunder
+          </Link>
           <Link to="/app/login" className="hover:text-[color:var(--brass)]">
             Logga in
           </Link>
@@ -704,6 +709,11 @@ function Footer() {
               <a href="#faq" className="hover:text-white">
                 FAQ
               </a>
+            </li>
+            <li>
+              <Link to="/tidiga-kunder" className="hover:text-white">
+                Tidiga kunder
+              </Link>
             </li>
             <li>
               <a href="/integritetspolicy" className="hover:text-white">

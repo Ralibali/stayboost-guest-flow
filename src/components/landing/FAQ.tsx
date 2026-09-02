@@ -38,6 +38,14 @@ const ITEMS = [
     q: "Vi använder inte Sirvoy — funkar det ändå?",
     a: "Ja. Booking.com och manuell inmatning stöds, och fler kopplingar är på väg. Säg till vilken du behöver.",
   },
+  {
+    q: "Kan vi säga upp Sirvoy när vi börjar med StayBoost?",
+    a: "Nej. Sirvoy är kvar tills sista utcheckningen. StayBoost kör parallellt — webhook för nya bokningar och iCal för att blockera nätter. Historiken importeras inte automatiskt. Slå inte av Sirvoys kanaler.",
+  },
+  {
+    q: "Är min anläggning isolerad från andra kunders data?",
+    a: "Vi påstår inte färdig tenant-isolering. CORE körs i skarp drift på en anläggning. Läs den ärliga genomgången under Tidiga kunder.",
+  },
 ];
 
 export function FAQ() {
