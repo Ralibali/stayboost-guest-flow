@@ -35,30 +35,39 @@ export interface StayBoostStats {
 
 /**
  * Verifierade siffror från Bergs Slussar Glamping 2026 hittills.
- * Används om API:t är nere eller strukturen är trasig — vi visar aldrig
- * nollor bara för att nätverket felar.
+ * Källa: bokningsexport 2026-09-03 (166 boenderader, 78 tillvalsrader,
+ * 78 genomförda betalningar). Används om API:t är nere eller strukturen är
+ * trasig — vi visar aldrig nollor bara för att nätverket felar.
  */
 export const FALLBACK_STATS: StayBoostStats = {
-  bookings2026: 120,
-  uniqueGuests: 117,
-  guestNights: 147,
-  bookingValueSek: 252632,
-  paidAddonOrders: 20,
-  paidAddonRevenueSek: 8318,
-  avgPaidAddonSek: 416,
-  prearrivalMessages: { sent: 51, total: 120 },
+  bookings2026: 152,
+  uniqueGuests: 149,
+  guestNights: 194,
+  bookingValueSek: 299452,
+  paidAddonOrders: 47,
+  paidAddonRevenueSek: 27953,
+  avgPaidAddonSek: 595,
+  prearrivalMessages: { sent: 51, total: 152 },
   digitalCheckIns: 62,
-  breakfastDeliveries: { done: 17, total: 17 },
+  breakfastDeliveries: { done: 25, total: 25 },
   sms: { sent: 34, total: 40 },
   traffic: { pageViews: 12214, sessions: 8144, clickEvents: 8514 },
   addonDistribution: [
-    { slug: "breakfast", name: "Frukost", orders: 11, units: 29, revenue: 6041 },
-    { slug: "late_checkout", name: "Sen utcheckning (12:00)", orders: 3, units: 3, revenue: 1200 },
-    { slug: "sup_rental", name: "SUP-uthyrning", orders: 4, units: 5, revenue: 500 },
-    { slug: "early_checkin", name: "Tidig incheckning (12:00)", orders: 1, units: 1, revenue: 399 },
-    { slug: "fika_bag", name: "Fikapåse", orders: 1, units: 2, revenue: 178 },
+    {
+      slug: "breakfast",
+      name: "Frukost från Boställets Vedugnsbageri",
+      orders: 25,
+      units: 69,
+      revenue: 12022,
+    },
+    { slug: "child_bed", name: "Barn 4–12 år", orders: 19, units: 27, revenue: 8883 },
+    { slug: "cancel_protection", name: "Avbokningsskydd", orders: 10, units: 10, revenue: 3491 },
+    { slug: "late_checkout", name: "Sen utcheckning", orders: 7, units: 7, revenue: 2400 },
+    { slug: "fika_bag", name: "Fikapåse", orders: 8, units: 14, revenue: 1157 },
+    { slug: "child_free", name: "Barn 0–3 år (gratis)", orders: 8, units: 11, revenue: 0 },
+    { slug: "early_checkin", name: "Tidig incheckning", orders: 1, units: 1, revenue: 0 },
   ],
-  updatedAt: "2026-07-01T00:00:00.000Z",
+  updatedAt: "2026-09-03T09:49:00.000Z",
 };
 
 // ---------- Validation ----------
