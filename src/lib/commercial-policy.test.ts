@@ -6,8 +6,13 @@ const read = (path: string) => readFileSync(new URL(`../../${path}`, import.meta
 const customerFacing = [
   "src/components/landing/FAQ.tsx",
   "src/components/landing/SignupCta.tsx",
+  "src/components/landing/DemoCta.tsx",
+  "src/components/landing/FoundingOffer.tsx",
+  "src/components/landing/SalesFaq.tsx",
   "src/routes/index.tsx",
+  "src/routes/tidiga-kunder.tsx",
   "src/routes/villkor.tsx",
+  "src/lib/sales-readiness.ts",
 ];
 
 describe("StayBoost commercial policy", () => {

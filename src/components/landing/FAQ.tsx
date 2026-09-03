@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const ITEMS = [
   {
     q: "Fungerar det med Sirvoy och Booking.com?",
-    a: "Ja. StayBoost hämtar dina bokningar automatiskt. Har du ett annat system kan du lägga in bokningar manuellt på under en minut.",
+    a: "Sirvoy är channel manager. StayBoost körs parallellt — gästflöde efter bokning. iCal är bara datum. StayBoost hämtar inte Booking.com automatiskt.",
   },
   {
     q: "Behöver mina gäster ladda ner en app?",
@@ -12,7 +12,7 @@ const ITEMS = [
   },
   {
     q: "Hur lång tid tar det att komma igång?",
-    a: "En kväll. Koppla bokningarna, välj bland färdiga mallar, klart. De flesta skickar sitt första automatiska meddelande samma dag.",
+    a: 'Titta på /produkten — det är exempeldata. Ingen cutover. Sirvoy är kvar. "En kväll" är inte ett driftpåstående.',
   },
   {
     q: "Vad händer om en gäst svarar på ett sms?",
@@ -24,7 +24,7 @@ const ITEMS = [
   },
   {
     q: "Vad kostar sms:en?",
-    a: "Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms.",
+    a: "Sms finns i produkten. På Bergs visade den publika statsidan antal förankomst-sms. Vi påstår inte att produktions-cron är bevisad. Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms.",
   },
   {
     q: "Funkar det för min personal?",
@@ -36,7 +36,15 @@ const ITEMS = [
   },
   {
     q: "Vi använder inte Sirvoy — funkar det ändå?",
-    a: "Ja. Booking.com och manuell inmatning stöds, och fler kopplingar är på väg. Säg till vilken du behöver.",
+    a: "CORE är dogfoodad bredvid Sirvoy. Andra setupar är ett samtal, inte ett påstående. Vi säljer inte Booking.com utan Sirvoy.",
+  },
+  {
+    q: "Kan vi säga upp Sirvoy när vi börjar med StayBoost?",
+    a: "Nej. Sirvoy är kvar tills sista utcheckningen. StayBoost körs parallellt — gästflöde efter bokning. iCal är bara datum. Slå inte av Sirvoys kanaler.",
+  },
+  {
+    q: "Är min anläggning isolerad från andra kunders data?",
+    a: "Nej. Isolation är obevisad. Läs Tidiga kunder.",
   },
 ];
 
