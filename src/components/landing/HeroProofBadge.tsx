@@ -2,8 +2,7 @@ import { useStayBoostStats } from "@/hooks/useStayBoostStats";
 import { formatInt, formatSek } from "@/lib/stats";
 
 /**
- * Hero-bevisbadge. Delar `useStayBoostStats` med CaseStudy — TanStack Query
- * dedupliserar samma queryKey, så det blir ett enda nätverksanrop per session.
+ * Hero-bevisbadge med verifierade totalsiffror från 2026 års bokningsexport.
  */
 export function HeroProofBadge() {
   const { stats } = useStayBoostStats();
@@ -20,7 +19,7 @@ export function HeroProofBadge() {
         <span className="font-medium text-white">
           {formatSek(stats.paidAddonRevenueSek)} i tillval
         </span>{" "}
-        på {formatInt(stats.bookings2026)} bokningar — live från Bergs Slussar Glamping
+        på {formatInt(stats.bookings2026)} bokningar — verifierad bokningsexport 2026
       </span>
       <span aria-hidden className="shrink-0 transition-transform group-hover:translate-x-0.5">
         →

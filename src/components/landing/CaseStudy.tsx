@@ -24,17 +24,12 @@ function StatCard({ value, label }: { value: string; label: string }) {
 }
 
 function StatusPill({ source }: { source: StatsSource }) {
-  const label =
-    source === "live"
-      ? "Live från Bergs Slussar Glamping"
-      : source === "cache"
-        ? "Senast kända siffror från Bergs Slussar Glamping"
-        : "Verifierade siffror från Bergs Slussar Glamping";
+  const label = "Verifierad bokningsexport · Bergs Slussar Glamping";
   return (
     <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--brass)]/40 bg-[color:var(--brass)]/10 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[color:var(--brass)]">
       <span
         className={`inline-block h-1.5 w-1.5 rounded-full ${
-          source === "live" ? "bg-[color:var(--brass)] animate-pulse" : "bg-[color:var(--brass)]/60"
+          source === "export" ? "bg-[color:var(--brass)]" : "bg-[color:var(--brass)]/60"
         }`}
         aria-hidden
       />
@@ -111,7 +106,7 @@ export function CaseStudy() {
           <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
             <StatusPill source={source} />
             <p className="text-xs text-[color:var(--ink)]/55">
-              Senast uppdaterad {formatUpdatedAt(updatedAt)}
+              Exporterad {formatUpdatedAt(updatedAt)}
             </p>
           </div>
           <p className="mt-5 max-w-2xl text-[color:var(--ink)]/75">
@@ -231,10 +226,10 @@ export function CaseStudy() {
         </div>
 
         <p className="mt-10 max-w-3xl text-xs leading-relaxed text-[color:var(--ink)]/55">
-          Källa: aggregerad driftstatistik från Bergs Slussar Glamping för säsongen 2026 fram till i
-          dag. Ingen gäst-, personal- eller betalningsdata visas. Siffrorna beskriver hur systemet
-          fungerar på den här anläggningen och är inte ett löfte om samma resultat för andra
-          boenden.
+          Källa: komplett Sirvoy-bokningsexport från Bergs Slussar Glamping, exporterad 3 september
+          2026 (323 rader: boende, tillval och betalningar). Ingen gäst-, personal- eller
+          betalningsdata visas. Siffrorna beskriver den här anläggningen och är inte ett löfte om
+          samma resultat för andra boenden.
         </p>
       </div>
     </section>
