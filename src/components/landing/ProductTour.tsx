@@ -160,7 +160,7 @@ function GuestHubDemo() {
   const togglePref = (p: string) =>
     setPrefs((cur) => (cur.includes(p) ? cur.filter((x) => x !== p) : [...cur, p]));
 
-  const total = breakfast * 249 + lateout * 150 + fika * 89;
+  const total = breakfast * 209 + lateout * 399 + fika * 89;
 
   const submit = () => {
     setStatus("await");
@@ -177,14 +177,14 @@ function GuestHubDemo() {
         </div>
 
         <Stepper
-          label="Frukostkorg"
-          price="249 kr/person"
+          label="Frukost"
+          price="209 kr/person"
           value={breakfast}
           onChange={setBreakfast}
         />
         <Stepper
-          label="Sen utcheckning"
-          price="150 kr"
+          label="Sen utcheckning (till kl 12.00)"
+          price="399 kr"
           value={lateout}
           onChange={setLateout}
           max={1}
@@ -843,15 +843,15 @@ function AdminPane() {
             <OrderRow
               tent="Tält 3"
               name="Erikson · 15 juli"
-              item="Ved (säck) × 2"
-              price="240 kr"
+              item="Frukost × 2"
+              price="418 kr"
               status="paid"
             />
             <OrderRow
               tent="Tält 1"
               name="Lund · 13 juli"
-              item="Bastutid 1h"
-              price="350 kr"
+              item="SUP-uthyrning (24 h)"
+              price="100 kr"
               status="paid"
             />
 
