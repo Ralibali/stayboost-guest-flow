@@ -435,10 +435,10 @@ function TimelineMock() {
 function AddonsMock() {
   const { stats } = useStayBoostStats();
   const addons = stats.addonDistribution
-    .filter((a) => a.units > 0 && a.revenue > 0)
+    .filter((a) => a.units > 0)
     .map((a) => ({
       name: a.name,
-      price: Math.round(a.revenue / a.units),
+      price: a.revenue > 0 ? `${Math.round(a.revenue / a.units)} kr i snitt` : "0 kr i exporten",
       orders: a.orders,
     }));
 
@@ -453,7 +453,7 @@ function AddonsMock() {
             className="rounded-xl border border-[color:var(--line)] bg-[color:var(--bg)] p-4 text-sm"
           >
             <div className="font-semibold">{a.name}</div>
-            <div className="mt-1 text-[color:var(--brass)]">{a.price} kr</div>
+            <div className="mt-1 text-[color:var(--brass)]">{a.price}</div>
             <div className="mt-1 text-xs text-[color:var(--ink)]/55">
               {a.orders} {a.orders === 1 ? "bokning" : "bokningar"} i år
             </div>
@@ -461,9 +461,9 @@ function AddonsMock() {
         ))}
       </div>
       <p className="mt-3 text-xs text-[color:var(--ink)]/55">
-        Verkliga tillval och snittpriser från Göta Kanal Glamping 2026 —{" "}
-        {stats.paidAddonOrders} betalda tillval, {stats.paidAddonRevenueSek.toLocaleString("sv-SE")}{" "}
-        kr.
+        Samtliga tillval och snittbelopp från den kompletta bokningsexporten 2026 —{" "}
+        {stats.paidAddonOrders} betalda tillvalsordrar, totalt{" "}
+        {stats.paidAddonRevenueSek.toLocaleString("sv-SE")} kr.
       </p>
     </div>
   );
