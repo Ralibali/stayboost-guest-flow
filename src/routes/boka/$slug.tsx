@@ -415,7 +415,7 @@ function PublicBookingPage() {
     if (departureBlocked(unit, iso)) return;
     if (!rangeFree(unit, checkin, iso)) return;
     const nights: string[] = [];
-    for (let current = checkin; current < iso;) {
+    for (let current = checkin; current < iso; ) {
       nights.push(current);
       const date = new Date(`${current}T00:00:00Z`);
       date.setUTCDate(date.getUTCDate() + 1);
@@ -1555,7 +1555,7 @@ function MonthCalendar({
               disabled = true;
             } else {
               const nights: string[] = [];
-              for (let current = checkin; current < iso;) {
+              for (let current = checkin; current < iso; ) {
                 nights.push(current);
                 const date = new Date(`${current}T00:00:00Z`);
                 date.setUTCDate(date.getUTCDate() + 1);

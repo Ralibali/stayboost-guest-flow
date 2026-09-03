@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 
-// TODO: byt till din riktiga bokningslänk (Cal.com / Savvycal / SimplyBook).
+// Sätt VITE_PUBLIC_BOOKING_URL (Cal.com / SavvyCal / SimplyBook) för att bädda in kalendern;
+// utan den visas mejl-fallbacken nedan.
 // Cal.com stödjer inbäddning direkt via iframe och postar bekräftelser via postMessage.
 const BOOKING_URL =
   (typeof import.meta !== "undefined" &&
@@ -157,10 +158,12 @@ export function BookFounder() {
                 </p>
               </div>
             )}
-            <p className="mt-3 text-[0.8rem] text-[color:var(--ink)]/55">
-              Ingen kalenderintegration än — bokning sker via mejl så inga cookies från tredje part
-              laddas.
-            </p>
+            {!BOOKING_URL && !booked && (
+              <p className="mt-3 text-[0.8rem] text-[color:var(--ink)]/55">
+                Ingen kalenderintegration än — bokning sker via mejl så inga cookies från tredje
+                part laddas.
+              </p>
+            )}
           </div>
         </div>
       </div>

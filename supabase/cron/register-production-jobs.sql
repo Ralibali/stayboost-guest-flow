@@ -62,3 +62,18 @@ select cron.schedule(
 --   select * from cron.job_run_details order by start_time desc limit 20;
 --   select job_name, last_started_at, last_succeeded_at, last_failed_at, last_error
 --     from public.ops_job_state order by job_name;
+
+-- Registrera cron-hemligheten för Edge Functions (SHA-256, aldrig råvärdet).
+-- Krävs om CRON_SECRET inte sätts som Edge Function-secret; ofarligt att köra
+-- även om den är satt. Kör om detta block varje gång hemligheten roteras.
+create extension if not exists pgcrypto with schema extensions;
+insert into public.ops_runtime_auth (key, secret_sha256, updated_at)
+select
+  'cron',
+  encode(extensions.digest(decrypted_secret, 'sha256'), 'hex'),
+  now()
+from vault.decrypted_secrets
+where name = 'stayboost_cron_secret'
+on conflict (key) do update
+  set secret_sha256 = excluded.secret_sha256,
+      updated_at = excluded.updated_at;
