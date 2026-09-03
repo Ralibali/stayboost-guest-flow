@@ -21,7 +21,7 @@ type Scenario = {
 const SCENARIOS: Scenario[] = [
   { key: "valkomst", label: "Välkomst", emoji: "👋", hint: "2 dagar före ankomst" },
   { key: "portkod", label: "Portkod", emoji: "🔑", hint: "Ankomstdagen" },
-  { key: "frukost", label: "Frukostkorg", emoji: "🥐", hint: "Kväll 1" },
+  { key: "frukost", label: "Frukost", emoji: "🥐", hint: "Kväll 1" },
   { key: "sen-utcheckning", label: "Sen utcheckning", emoji: "⏰", hint: "Dagen innan avresa" },
   { key: "omdome", label: "Omdöme", emoji: "⭐", hint: "Dagen efter avresa" },
 ];

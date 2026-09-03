@@ -16,6 +16,7 @@ import { CaseStudy } from "@/components/landing/CaseStudy";
 import { BookFounder } from "@/components/landing/BookFounder";
 import { HeroProofBadge } from "@/components/landing/HeroProofBadge";
 import { canonicalUrl } from "@/lib/site-url";
+import { useStayBoostStats } from "@/hooks/useStayBoostStats";
 
 const BRAND_NAME = "StayBoost";
 
@@ -256,7 +257,7 @@ function Problem() {
     },
     {
       title: "Intäkter som aldrig säljs",
-      body: "Sen utcheckning, frukostkorg, ved. Gästen hade sagt ja — om någon frågat i rätt ögonblick.",
+      body: "Sen utcheckning, frukost, fikapåse. Gästen hade sagt ja — om någon frågat i rätt ögonblick.",
     },
     {
       title: "Lappar, grupptråden och huvudet",
@@ -360,7 +361,7 @@ function Features() {
     },
     {
       title: "Din meny av extraintäkter.",
-      body: "Frukostkorg, bastutid, guidade turer, massage, hyrutrustning — även från lokala partners som du tar provision på. StayBoost erbjuder rätt tillval vid rätt tidpunkt, gästen betalar med ett tryck.",
+      body: "Frukost, sen utcheckning, SUP-uthyrning, fikapåse, tidig incheckning — även från lokala partners som du tar provision på. StayBoost erbjuder rätt tillval vid rätt tidpunkt, gästen betalar med ett tryck.",
       fact: "15–25 % av gästerna tackar ja.",
       mock: <AddonsMock />,
     },
@@ -432,30 +433,47 @@ function TimelineMock() {
 }
 
 function AddonsMock() {
-  const addons = [
-    { name: "Sen utcheckning", price: 150 },
-    { name: "Frukostkorg", price: 249 },
-    { name: "Ved (säck)", price: 120 },
-    { name: "Bastutid 1h", price: 350 },
-    { name: "Cykeluthyrning", price: 200 },
-    { name: "Vinpaket", price: 395 },
-  ];
+  const { stats } = useStayBoostStats();
+  const addons = stats.addonDistribution
+    .filter((a) => a.units > 0 && a.revenue > 0)
+    .map((a) => ({
+      name: a.name,
+      price: Math.round(a.revenue / a.units),
+      orders: a.orders,
+    }));
+
+  if (addons.length === 0) return null;
+
   return (
-    <div className="grid grid-cols-2 gap-3">
-      {addons.map((a, i) => (
-        <div
-          key={i}
-          className="rounded-xl border border-[color:var(--line)] bg-[color:var(--bg)] p-4 text-sm"
-        >
-          <div className="font-semibold">{a.name}</div>
-          <div className="mt-1 text-[color:var(--brass)]">{a.price} kr</div>
-        </div>
-      ))}
+    <div>
+      <div className="grid grid-cols-2 gap-3">
+        {addons.map((a) => (
+          <div
+            key={a.name}
+            className="rounded-xl border border-[color:var(--line)] bg-[color:var(--bg)] p-4 text-sm"
+          >
+            <div className="font-semibold">{a.name}</div>
+            <div className="mt-1 text-[color:var(--brass)]">{a.price} kr</div>
+            <div className="mt-1 text-xs text-[color:var(--ink)]/55">
+              {a.orders} {a.orders === 1 ? "bokning" : "bokningar"} i år
+            </div>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-xs text-[color:var(--ink)]/55">
+        Verkliga tillval och snittpriser från Göta Kanal Glamping 2026 —{" "}
+        {stats.paidAddonOrders} betalda tillval, {stats.paidAddonRevenueSek.toLocaleString("sv-SE")}{" "}
+        kr.
+      </p>
     </div>
   );
 }
 
 function GuestHubMock() {
+  const { stats } = useStayBoostStats();
+  const breakfast = stats.addonDistribution.find((a) => a.slug === "breakfast");
+  const breakfastPrice =
+    breakfast && breakfast.units > 0 ? Math.round(breakfast.revenue / breakfast.units) : 209;
   return (
     <div className="mx-auto max-w-[260px] rounded-2xl border border-[color:var(--line)] bg-[color:var(--bg)] p-4">
       <div className="text-center">
@@ -468,9 +486,9 @@ function GuestHubMock() {
         <InfoRow k="Incheckning" v="15:00" />
       </div>
       <div className="mt-4 rounded-xl border border-[color:var(--brass)]/50 bg-white p-3 text-xs">
-        <div className="font-semibold">Frukostkorg</div>
+        <div className="font-semibold">{breakfast?.name ?? "Frukost"}</div>
         <div className="mt-1 flex items-center justify-between">
-          <span className="text-[color:var(--brass)]">249 kr</span>
+          <span className="text-[color:var(--brass)]">{breakfastPrice} kr</span>
           <span className="rounded-md bg-[color:var(--brass)] px-2 py-1 text-white">Boka</span>
         </div>
       </div>
