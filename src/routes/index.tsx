@@ -729,7 +729,11 @@ function Footer() {
         </div>
         <div className="text-sm">
           <div className="mb-3 font-semibold text-white">Kontakt</div>
-          <p>info@stayboost.se</p>
+          <p>
+            <a href="mailto:info@auroramedia.se" className="hover:text-white">
+              info@auroramedia.se
+            </a>
+          </p>
           <p className="mt-1">Linköping, Sverige</p>
         </div>
       </div>
