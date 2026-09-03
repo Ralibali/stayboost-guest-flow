@@ -880,7 +880,7 @@ function AdminPane() {
                   </div>
                   <div className="flex items-center justify-between gap-2">
                     <div>
-                      <div className="font-semibold">Frukostkorg × 2 · Tält 1 · 498 kr</div>
+                      <div className="font-semibold">Frukost × 2 · Tält 1 · 418 kr</div>
                       <div className="text-[0.7rem] text-[color:var(--ink)]/60">
                         {confirmed ? "Status: Betald ✓" : "Avvaktar betalning"}
                       </div>

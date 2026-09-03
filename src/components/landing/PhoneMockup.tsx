@@ -14,10 +14,10 @@ const SCRIPT: Msg[] = [
   },
   {
     side: "in",
-    text: "Vill du ha frukostkorgen levererad till dörren? 249 kr — svara JA så fixar vi det.",
+    text: "Vill du ha frukosten levererad till dörren? 209 kr — svara JA så fixar vi det.",
   },
   { side: "out", text: "JA tack!" },
-  { side: "in", text: "✓ Frukostkorg bekräftad — betald 249 kr", variant: "confirm" },
+  { side: "in", text: "✓ Frukost bekräftad — betald 209 kr", variant: "confirm" },
 ];
 
 export function PhoneMockup() {
@@ -51,7 +51,7 @@ export function PhoneMockup() {
         <span>💰</span>
         <span className="font-medium">
           Ny merförsäljning:{" "}
-          <span className="text-[color:var(--brass)]">Sen utcheckning, 150 kr</span>
+          <span className="text-[color:var(--brass)]">Sen utcheckning, 399 kr</span>
         </span>
       </motion.div>
 

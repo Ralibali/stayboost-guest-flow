@@ -257,7 +257,7 @@ function Problem() {
     },
     {
       title: "Intäkter som aldrig säljs",
-      body: "Sen utcheckning, frukostkorg, ved. Gästen hade sagt ja — om någon frågat i rätt ögonblick.",
+      body: "Sen utcheckning, frukost, fikapåse. Gästen hade sagt ja — om någon frågat i rätt ögonblick.",
     },
     {
       title: "Lappar, grupptråden och huvudet",
@@ -361,7 +361,7 @@ function Features() {
     },
     {
       title: "Din meny av extraintäkter.",
-      body: "Frukostkorg, bastutid, guidade turer, massage, hyrutrustning — även från lokala partners som du tar provision på. StayBoost erbjuder rätt tillval vid rätt tidpunkt, gästen betalar med ett tryck.",
+      body: "Frukost, sen utcheckning, SUP-uthyrning, fikapåse, tidig incheckning — även från lokala partners som du tar provision på. StayBoost erbjuder rätt tillval vid rätt tidpunkt, gästen betalar med ett tryck.",
       fact: "15–25 % av gästerna tackar ja.",
       mock: <AddonsMock />,
     },
