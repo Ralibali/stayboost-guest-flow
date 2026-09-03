@@ -37,7 +37,6 @@ function formatKr(n: number) {
 
 export function RevenueCalculator() {
   const [bookings, setBookings] = useState(30);
-  const [tracked, setTracked] = useState(false);
 
   // bookings × 0.20 × 200 kr → round to nearest 100
   const raw = bookings * 0.2 * 200;
@@ -49,11 +48,6 @@ export function RevenueCalculator() {
 
   const onSlide = (val: number) => {
     setBookings(val);
-    if (!tracked && typeof window !== "undefined") {
-      const w = window as unknown as { plausible?: (e: string) => void };
-      w.plausible?.("Calculator Used");
-      setTracked(true);
-    }
   };
 
   return (

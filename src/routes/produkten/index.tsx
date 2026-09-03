@@ -18,6 +18,12 @@ import {
   Sun,
   Users,
 } from "lucide-react";
+import {
+  ANALYTICS_CTAS,
+  ANALYTICS_SURFACES,
+  demoLocationFromPath,
+  trackCtaClicked,
+} from "@/lib/analytics";
 import { PROPERTY } from "@/lib/demo-data";
 
 export const Route = createFileRoute("/produkten/")({
@@ -170,6 +176,13 @@ function DemoIndex() {
             >
               <Link
                 to={c.to}
+                onClick={() =>
+                  trackCtaClicked({
+                    surface: ANALYTICS_SURFACES.PRODUKTEN,
+                    cta: ANALYTICS_CTAS.DEMO,
+                    location: demoLocationFromPath(c.to),
+                  })
+                }
                 className="card-surface group flex h-full flex-col p-7 transition hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(20,36,28,0.12)]"
               >
                 <div className="flex items-center justify-between">

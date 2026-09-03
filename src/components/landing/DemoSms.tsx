@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { useServerFn } from "@tanstack/react-start";
+import { ANALYTICS_CTAS, ANALYTICS_SURFACES, trackCtaClicked } from "@/lib/analytics";
 import { sendDemoSms } from "@/lib/sms.functions";
 
 const ERROR_MESSAGES: Record<string, string> = {
@@ -49,12 +50,6 @@ export function DemoSms() {
       if (res.ok) {
         setState("ok");
         setLastSent(scenario);
-        if (typeof window !== "undefined") {
-          const w = window as unknown as {
-            plausible?: (e: string, opts?: { props?: Record<string, string> }) => void;
-          };
-          w.plausible?.("Demo SMS Sent", { props: { scenario } });
-        }
       } else {
         setState("error");
         setError(ERROR_MESSAGES[res.error] ?? ERROR_MESSAGES.server_error);
@@ -121,6 +116,11 @@ export function DemoSms() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
+            trackCtaClicked({
+              surface: ANALYTICS_SURFACES.LANDING,
+              cta: ANALYTICS_CTAS.SMS_TEST,
+              location: "demo_sms",
+            });
             void send();
           }}
           noValidate
