@@ -231,8 +231,7 @@ async function replay(
   );
 }
 
-const hasAPayload = (text: string) =>
-  /Alice|REF-A|book-a|cs_test_a|Alpine A|SECRET-A/.test(text);
+const hasAPayload = (text: string) => /Alice|REF-A|book-a|cs_test_a|Alpine A|SECRET-A/.test(text);
 
 describe("tenant isolation: stripe-webhook", () => {
   it("rejects a webhook for property A's Stripe id when the event claims property B", async () => {
