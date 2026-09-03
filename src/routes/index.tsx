@@ -16,6 +16,7 @@ import { CaseStudy } from "@/components/landing/CaseStudy";
 import { BookFounder } from "@/components/landing/BookFounder";
 import { HeroProofBadge } from "@/components/landing/HeroProofBadge";
 import { canonicalUrl } from "@/lib/site-url";
+import { useStayBoostStats } from "@/hooks/useStayBoostStats";
 
 const BRAND_NAME = "StayBoost";
 
@@ -469,6 +470,10 @@ function AddonsMock() {
 }
 
 function GuestHubMock() {
+  const { stats } = useStayBoostStats();
+  const breakfast = stats.addonDistribution.find((a) => a.slug === "breakfast");
+  const breakfastPrice =
+    breakfast && breakfast.units > 0 ? Math.round(breakfast.revenue / breakfast.units) : 209;
   return (
     <div className="mx-auto max-w-[260px] rounded-2xl border border-[color:var(--line)] bg-[color:var(--bg)] p-4">
       <div className="text-center">
@@ -481,9 +486,9 @@ function GuestHubMock() {
         <InfoRow k="Incheckning" v="15:00" />
       </div>
       <div className="mt-4 rounded-xl border border-[color:var(--brass)]/50 bg-white p-3 text-xs">
-        <div className="font-semibold">Frukostkorg</div>
+        <div className="font-semibold">{breakfast?.name ?? "Frukost"}</div>
         <div className="mt-1 flex items-center justify-between">
-          <span className="text-[color:var(--brass)]">249 kr</span>
+          <span className="text-[color:var(--brass)]">{breakfastPrice} kr</span>
           <span className="rounded-md bg-[color:var(--brass)] px-2 py-1 text-white">Boka</span>
         </div>
       </div>
