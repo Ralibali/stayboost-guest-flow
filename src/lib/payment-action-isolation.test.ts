@@ -44,7 +44,10 @@ async function handlePaymentActionAsOnMain(
     if (booking.status === "cancelled") {
       return json({ ok: true, duplicate: true, status: "cancelled" });
     }
-    const { error } = await admin.from("bookings").update({ status: "cancelled" }).eq("id", booking.id);
+    const { error } = await admin
+      .from("bookings")
+      .update({ status: "cancelled" })
+      .eq("id", booking.id);
     if (error) return json({ error: error.message }, 500);
     return json({ ok: true, status: "cancelled" });
   }
@@ -67,9 +70,7 @@ async function handlePaymentActionAsOnMain(
 }
 
 const handleUnderTest =
-  process.env.ISOLATION_AGAINST_MAIN === "1"
-    ? handlePaymentActionAsOnMain
-    : handlePaymentAction;
+  process.env.ISOLATION_AGAINST_MAIN === "1" ? handlePaymentActionAsOnMain : handlePaymentAction;
 
 // Isolation oracle for the authenticated service_role payment-action.
 // Two properties. Cross-tenant attempts present B's property_id (tenant
@@ -174,7 +175,10 @@ function createMockAdmin(
         if (patch) {
           for (const row of match()) Object.assign(row, patch);
         }
-        return Promise.resolve({ data: match().map(attachJoin), error: null }).then(resolve, reject);
+        return Promise.resolve({ data: match().map(attachJoin), error: null }).then(
+          resolve,
+          reject,
+        );
       },
     };
     return query;
@@ -208,10 +212,10 @@ describe("tenant isolation: payment-action", () => {
   it("rejects acting on property A's booking when authenticated as B / claiming B", async () => {
     // Two properties, one operator (B). Owner-join would pass for both;
     // claiming B while acting on A's booking.id is the leak on main.
-    const admin = createMockAdmin([bookingA, bookingB], [
-      { ...propertyA, owner_id: ownerB },
-      propertyB,
-    ]);
+    const admin = createMockAdmin(
+      [bookingA, bookingB],
+      [{ ...propertyA, owner_id: ownerB }, propertyB],
+    );
     const res = await replay(admin, ownerB, {
       bookingId: bookingA.id,
       action: "cancel_booking",
@@ -230,10 +234,10 @@ describe("tenant isolation: payment-action", () => {
 
   it("rejects marking property A's Swish paid when the request claims property B", async () => {
     // Same owner of A and B — owner-join would pass; property_id must not.
-    const admin = createMockAdmin([bookingA, bookingB], [
-      { ...propertyA, owner_id: ownerB },
-      propertyB,
-    ]);
+    const admin = createMockAdmin(
+      [bookingA, bookingB],
+      [{ ...propertyA, owner_id: ownerB }, propertyB],
+    );
     const res = await replay(admin, ownerB, {
       bookingId: bookingA.id,
       action: "mark_swish_paid",
