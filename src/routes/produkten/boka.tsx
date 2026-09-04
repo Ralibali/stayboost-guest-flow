@@ -1000,6 +1000,8 @@ function BookingFlow() {
           </aside>
         )}
       </div>
+      {/* Luft under innehållet så den klistrade mobilraden inte täcker något */}
+      {step < 4 && <div aria-hidden className="h-24 lg:hidden" />}
       {/* Mobil: klistrad totalrad så priset alltid syns medan man väljer */}
       {step < 4 && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--line)] bg-white/92 px-4 py-3 backdrop-blur lg:hidden">
