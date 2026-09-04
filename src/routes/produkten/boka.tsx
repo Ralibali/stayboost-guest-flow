@@ -212,9 +212,13 @@ function BookingFlow() {
         </div>
       )}
 
-      <div className={step < 4 ? "grid gap-6 pb-24 lg:grid-cols-[1fr_340px] lg:pb-0" : ""}>
+      <div
+        className={
+          step < 4 ? "grid gap-6 pb-24 lg:grid-cols-[minmax(0,1fr)_340px] lg:pb-0" : ""
+        }
+      >
         {/* ---------- Vänster: steg ---------- */}
-        <div>
+        <div className="min-w-0">
           <AnimatePresence mode="wait">
             {/* STEG 1 — Datum */}
             {step === 0 && (
