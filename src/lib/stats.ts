@@ -34,12 +34,10 @@ export interface StayBoostStats {
 }
 
 /**
- * Verifierade siffror från hela bokningsexporten för Bergs Slussar Glamping 2026.
+ * Verifierade siffror från hela Sirvoy-bokningsexporten för Bergs Slussar Glamping 2026.
  * Källa: sirvoy_booking_content_2026-09-03_11_49_27.csv (323 rader).
- * Exportens fasta ögonblicksbild används på marknadssidan så att en ofullständig
- * drift-endpoint inte skriver över boknings- och tillvalsunderlaget.
  */
-export const FALLBACK_STATS: StayBoostStats = {
+export const SIRVOY_EXPORT_STATS: StayBoostStats = {
   bookings2026: 152,
   uniqueGuests: 149,
   guestNights: 194,
@@ -81,6 +79,103 @@ export const FALLBACK_STATS: StayBoostStats = {
   ],
   updatedAt: "2026-09-03T09:49:27.000Z",
 };
+
+/**
+ * Ögonblicksbild av StayBoosts egen drift (Göta kanal-admin) — används när
+ * live-endpointen inte svarar, så totalerna aldrig kollapsar till bara exporten.
+ */
+export const STAYBOOST_LIVE_SNAPSHOT: StayBoostStats = {
+  bookings2026: 156,
+  uniqueGuests: 140,
+  guestNights: 183,
+  bookingValueSek: 308290,
+  paidAddonOrders: 32,
+  paidAddonRevenueSek: 13904,
+  avgPaidAddonSek: 435,
+  prearrivalMessages: { sent: 111, total: 156 },
+  digitalCheckIns: 139,
+  breakfastDeliveries: { done: 41, total: 41 },
+  sms: { sent: 88, total: 95 },
+  traffic: { pageViews: 22393, sessions: 774, clickEvents: 14615 },
+  addonDistribution: [
+    { slug: "breakfast", name: "Frukost", orders: 20, units: 50, revenue: 10430 },
+    {
+      slug: "late_checkout",
+      name: "Sen utcheckning (till kl 12.00)",
+      orders: 6,
+      units: 6,
+      revenue: 2397,
+    },
+    { slug: "sup_rental", name: "SUP-uthyrning (24 h)", orders: 4, units: 5, revenue: 500 },
+    {
+      slug: "early_checkin",
+      name: "Tidig incheckning (kl 12.00)",
+      orders: 1,
+      units: 1,
+      revenue: 399,
+    },
+    { slug: "fika_bag", name: "Fikapåse", orders: 1, units: 2, revenue: 178 },
+  ],
+  updatedAt: "2026-09-04T10:43:10.234Z",
+};
+
+/**
+ * Slår ihop Sirvoy-exporten med StayBoosts egen drift till totalsiffror.
+ * Tillval summeras per slug; namnet från den första källan vinner.
+ */
+export function mergeStats(a: StayBoostStats, b: StayBoostStats): StayBoostStats {
+  const addons = new Map<string, AddonRow>();
+  for (const row of [...a.addonDistribution, ...b.addonDistribution]) {
+    const prev = addons.get(row.slug);
+    if (prev) {
+      addons.set(row.slug, {
+        ...prev,
+        orders: prev.orders + row.orders,
+        units: prev.units + row.units,
+        revenue: prev.revenue + row.revenue,
+      });
+    } else {
+      addons.set(row.slug, { ...row });
+    }
+  }
+  const addonDistribution = [...addons.values()].sort((x, y) => y.revenue - x.revenue);
+  const paidAddonOrders = a.paidAddonOrders + b.paidAddonOrders;
+  const paidAddonRevenueSek = a.paidAddonRevenueSek + b.paidAddonRevenueSek;
+
+  return {
+    bookings2026: a.bookings2026 + b.bookings2026,
+    uniqueGuests: a.uniqueGuests + b.uniqueGuests,
+    guestNights: a.guestNights + b.guestNights,
+    bookingValueSek: a.bookingValueSek + b.bookingValueSek,
+    paidAddonOrders,
+    paidAddonRevenueSek,
+    avgPaidAddonSek: paidAddonOrders > 0 ? Math.round(paidAddonRevenueSek / paidAddonOrders) : 0,
+    prearrivalMessages: {
+      sent: a.prearrivalMessages.sent + b.prearrivalMessages.sent,
+      total: a.prearrivalMessages.total + b.prearrivalMessages.total,
+    },
+    digitalCheckIns: a.digitalCheckIns + b.digitalCheckIns,
+    breakfastDeliveries: {
+      done: a.breakfastDeliveries.done + b.breakfastDeliveries.done,
+      total: a.breakfastDeliveries.total + b.breakfastDeliveries.total,
+    },
+    sms: { sent: a.sms.sent + b.sms.sent, total: a.sms.total + b.sms.total },
+    traffic: {
+      pageViews: a.traffic.pageViews + b.traffic.pageViews,
+      sessions: a.traffic.sessions + b.traffic.sessions,
+      clickEvents: a.traffic.clickEvents + b.traffic.clickEvents,
+    },
+    addonDistribution,
+    updatedAt: a.updatedAt > b.updatedAt ? a.updatedAt : b.updatedAt,
+  };
+}
+
+/** Totalen: Sirvoy-export + StayBoost-drift. */
+export const FALLBACK_STATS: StayBoostStats = mergeStats(
+  SIRVOY_EXPORT_STATS,
+  STAYBOOST_LIVE_SNAPSHOT,
+);
+
 
 // ---------- Validation ----------
 
