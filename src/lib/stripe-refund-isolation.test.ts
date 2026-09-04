@@ -181,15 +181,15 @@ function createMockAdmin(seedBookings: Row[] = [bookingA, bookingB]) {
         filters.every((filter) => row[filter.column] === filter.value),
       );
 
-    const applyEmbeds = (rows: Row[]) => {
+    const applyEmbeds = (rows: Row[]): Row[] => {
       if (!select.includes("properties!inner(owner_id)")) return rows.map((row) => ({ ...row }));
-      return rows
-        .map((row) => {
-          const property = tables.properties.find((item) => item.id === row.property_id);
-          if (!property) return null;
-          return { ...row, properties: { owner_id: property.owner_id } };
-        })
-        .filter((row): row is Row => row !== null);
+      const embedded: Row[] = [];
+      for (const row of rows) {
+        const property = tables.properties.find((item) => item.id === row.property_id);
+        if (!property) continue;
+        embedded.push({ ...row, properties: { owner_id: property.owner_id } });
+      }
+      return embedded;
     };
 
     const query = {
