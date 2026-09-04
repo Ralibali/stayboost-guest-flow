@@ -1,25 +1,58 @@
-import { FALLBACK_STATS, type StayBoostStats } from "@/lib/stats";
+import { useQuery } from "@tanstack/react-query";
 
-export type StatsSource = "export";
+import {
+  FALLBACK_STATS,
+  SIRVOY_EXPORT_STATS,
+  STATS_REFRESH_MS,
+  fetchStayBoostStats,
+  mergeStats,
+  writeCachedStats,
+  type StayBoostStats,
+} from "@/lib/stats";
+
+export type StatsSource = "combined" | "export";
 
 export interface UseStayBoostStatsResult {
   stats: StayBoostStats;
   source: StatsSource;
-  /** Tidpunkten bakom datan — ISO-sträng från API:t eller fallback. */
+  /** Tidpunkten bakom datan — ISO-sträng från API:t eller senaste ögonblicksbild. */
   updatedAt: string;
   isFetching: boolean;
 }
 
 /**
- * Marknadssidan använder den verifierade Sirvoy-exporten som fast källa.
- * Drift-endpointen innehåller bara en delmängd av tillvalen och får därför
- * inte skriva över exportens totalsiffror efter sidladdning.
+ * Totalsiffror = verifierad Sirvoy-export + StayBoosts egen drift (Göta kanal-admin).
+ * Live-driften hämtas från stats-endpointen och summeras ovanpå exporten.
+ * Utan svar används den senaste cachade/inbakade driftsiffran, så totalerna står kvar.
  */
 export function useStayBoostStats(): UseStayBoostStatsResult {
+  const query = useQuery({
+    queryKey: ["stayboost-stats"],
+    queryFn: async ({ signal }) => {
+      const live = await fetchStayBoostStats(signal);
+      writeCachedStats(live);
+      return live;
+    },
+    staleTime: STATS_REFRESH_MS,
+    refetchInterval: STATS_REFRESH_MS,
+    retry: 1,
+  });
+
+  const live = query.data ?? null;
+  if (!live) {
+    return {
+      stats: FALLBACK_STATS,
+      source: "combined",
+      updatedAt: FALLBACK_STATS.updatedAt,
+      isFetching: query.isFetching,
+    };
+  }
+
+  const stats = mergeStats(SIRVOY_EXPORT_STATS, live);
   return {
-    stats: FALLBACK_STATS,
-    source: "export",
-    updatedAt: FALLBACK_STATS.updatedAt,
-    isFetching: false,
+    stats,
+    source: "combined",
+    updatedAt: stats.updatedAt,
+    isFetching: query.isFetching,
   };
 }
