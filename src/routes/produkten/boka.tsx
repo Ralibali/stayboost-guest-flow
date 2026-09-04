@@ -324,7 +324,7 @@ function BookingFlow() {
                         key={u.id}
                         disabled={!free}
                         onClick={() => setUnitId(u.id)}
-                        className={`card-surface flex w-full items-center gap-4 p-4 text-left transition sm:gap-5 sm:p-5 ${
+                        className={`card-surface grid w-full grid-cols-[auto_minmax(0,1fr)] items-center gap-x-3 gap-y-3 p-4 text-left transition sm:flex sm:items-center sm:gap-5 sm:p-5 ${
                           selected
                             ? "ring-2 ring-[color:var(--brass)]"
                             : free
@@ -333,7 +333,7 @@ function BookingFlow() {
                         }`}
                       >
                         <span
-                          className={`grid h-20 w-20 shrink-0 place-items-center rounded-[20px] text-4xl ring-1 ring-[color:var(--line)] ${
+                          className={`grid h-16 w-16 shrink-0 place-items-center rounded-[20px] text-3xl ring-1 ring-[color:var(--line)] sm:h-20 sm:w-20 sm:text-4xl ${
                             u.type === "stuga"
                               ? "bg-gradient-to-br from-[color:var(--forest)]/12 to-[color:var(--brass)]/15"
                               : "bg-gradient-to-br from-amber-100/70 to-emerald-100/60"
@@ -341,14 +341,12 @@ function BookingFlow() {
                         >
                           {u.imageEmoji}
                         </span>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <h3 className="font-sans text-[16px] font-bold">{u.name}</h3>
-                            <span className="rounded-full bg-[color:var(--bg)] px-2 py-0.5 text-[11px] font-medium text-[color:var(--ink)]/60">
-                              {u.type === "stuga" ? "Stuga" : "Tält"} · {u.capacity} bäddar
-                            </span>
-                          </div>
-                          <p className="mt-0.5 line-clamp-1 text-[13px] text-[color:var(--ink)]/60">
+                        <div className="min-w-0 sm:flex-1">
+                          <h3 className="font-sans text-[16px] font-bold">{u.name}</h3>
+                          <span className="mt-1 inline-block rounded-full bg-[color:var(--bg)] px-2 py-0.5 text-[11px] font-medium text-[color:var(--ink)]/60">
+                            {u.type === "stuga" ? "Stuga" : "Tält"} · {u.capacity} bäddar
+                          </span>
+                          <p className="mt-1 text-[13px] text-[color:var(--ink)]/60 sm:line-clamp-1">
                             {u.blurb}
                           </p>
                           {!fits && (
@@ -362,26 +360,29 @@ function BookingFlow() {
                             </p>
                           )}
                         </div>
-                        <div className="shrink-0 text-right">
-                          {free ? (
-                            <>
-                              <div className="font-[Fraunces] text-xl font-semibold">
-                                {fmtKr(price)}
-                              </div>
-                              <div className="text-[11px] text-[color:var(--ink)]/50">
-                                {fmtKr(Math.round(price / nights))}/natt
-                              </div>
-                            </>
-                          ) : (
-                            <span className="text-[12px] text-[color:var(--ink)]/45">—</span>
+                        <div className="col-span-2 flex items-center justify-between gap-3 border-t border-[color:var(--line)] pt-3 sm:col-span-1 sm:shrink-0 sm:justify-end sm:border-0 sm:pt-0">
+                          <div className="sm:text-right">
+                            {free ? (
+                              <>
+                                <div className="font-[Fraunces] text-xl font-semibold tabular-nums">
+                                  {fmtKr(price)}
+                                </div>
+                                <div className="text-[11px] text-[color:var(--ink)]/50 tabular-nums">
+                                  {fmtKr(Math.round(price / nights))}/natt
+                                </div>
+                              </>
+                            ) : (
+                              <span className="text-[12px] text-[color:var(--ink)]/45">—</span>
+                            )}
+                          </div>
+                          {selected && (
+                            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[color:var(--brass)] text-white">
+                              <Check size={15} strokeWidth={3} />
+                            </span>
                           )}
                         </div>
-                        {selected && (
-                          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[color:var(--brass)] text-white">
-                            <Check size={15} strokeWidth={3} />
-                          </span>
-                        )}
                       </button>
+
                     );
                   })}
                 </div>
