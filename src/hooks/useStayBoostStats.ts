@@ -6,7 +6,6 @@ import {
   STATS_REFRESH_MS,
   fetchStayBoostStats,
   mergeStats,
-  readCachedStats,
   writeCachedStats,
   type StayBoostStats,
 } from "@/lib/stats";
@@ -39,7 +38,7 @@ export function useStayBoostStats(): UseStayBoostStatsResult {
     retry: 1,
   });
 
-  const live = query.data ?? readCachedStats();
+  const live = query.data ?? null;
   if (!live) {
     return {
       stats: FALLBACK_STATS,
