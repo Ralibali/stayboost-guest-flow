@@ -1,8 +1,5 @@
 import { guestNameFrom, isBlockEvent, type IcsEvent } from "./ics.ts";
-import {
-  classifyDisappearancePolicy,
-  nextMissingObservation,
-} from "./ical-reconciliation.ts";
+import { classifyDisappearancePolicy, nextMissingObservation } from "./ical-reconciliation.ts";
 
 // Isolering: property_id härleds från ical_sources.property_id efter att
 // källan resolvats. Booking-rader hämtas/uppdateras aldrig på
@@ -10,9 +7,7 @@ import {
 
 export type IcalSyncQuery = {
   select: (columns: string) => IcalSyncQuery;
-  insert: (
-    row: Record<string, unknown>,
-  ) => Promise<{ error: { message?: string } | null }>;
+  insert: (row: Record<string, unknown>) => Promise<{ error: { message?: string } | null }>;
   update: (patch: Record<string, unknown>) => IcalSyncQuery;
   eq: (column: string, value: unknown) => IcalSyncQuery;
   lt: (column: string, value: unknown) => IcalSyncQuery;
@@ -49,6 +44,19 @@ export type IcalSyncStats = {
 const BOOKING_SELECT =
   "id, ical_uid, guest_name, checkin_date, checkout_date, status, ical_missing_since, ical_missing_count, ical_cancelled_at, ical_cancel_reason";
 
+type BookingRow = {
+  id: string;
+  ical_uid?: string | null;
+  guest_name?: string | null;
+  checkin_date: string;
+  checkout_date: string;
+  status: string;
+  ical_missing_since?: string | null;
+  ical_missing_count?: number | null;
+  ical_cancelled_at?: string | null;
+  ical_cancel_reason?: string | null;
+};
+
 export function tenantPropertyId(source: IcalSyncSource): string | null {
   const propertyId = String(source.property_id ?? "").trim();
   return propertyId || null;
@@ -76,14 +84,14 @@ export async function syncIcalSourceBookings(
   const activeEvents = events.filter((event) => event.status !== "CANCELLED");
   const explicitCancelledEvents = events.filter((event) => event.status === "CANCELLED");
 
-  const { data: existing, error: existingError } = await admin
+  const { data: existing, error: existingError } = (await admin
     .from("bookings")
     .select(BOOKING_SELECT)
     .eq("ical_source_id", source.id)
-    .eq("property_id", propertyId);
+    .eq("property_id", propertyId)) as { data?: BookingRow[]; error: { message?: string } | null };
   if (existingError) throw existingError;
 
-  const byUid = new Map((existing ?? []).map((booking: any) => [booking.ical_uid, booking]));
+  const byUid = new Map((existing ?? []).map((booking) => [booking.ical_uid, booking] as const));
   let created = 0;
   let updated = 0;
   let cancelled = 0;
@@ -171,15 +179,14 @@ export async function syncIcalSourceBookings(
   }
 
   const futureConfirmed = (existing ?? []).filter(
-    (booking: any) =>
+    (booking) =>
       booking.ical_uid &&
       booking.status === "confirmed" &&
       booking.checkin_date >= opts.today &&
       !explicitCancelledEvents.some((event) => event.uid === booking.ical_uid),
   );
   const missingCandidates = futureConfirmed.filter(
-    (booking: any) =>
-      booking.ical_uid && !activeEvents.some((event) => event.uid === booking.ical_uid),
+    (booking) => booking.ical_uid && !activeEvents.some((event) => event.uid === booking.ical_uid),
   );
   const disappearancePolicy = classifyDisappearancePolicy({
     channelType: source.channel_type,

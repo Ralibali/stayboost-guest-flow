@@ -9,6 +9,15 @@ import type { IcsEvent } from "../../supabase/functions/_shared/ics";
 // Replica of default-branch ical-sync booking I/O (main @ 348d8a3):
 // load by ical_source_id only; overlap by unit_id only; update by booking.id.
 // Used only when ISOLATION_AGAINST_MAIN=1 to record the leak. Not shipped.
+type MainBookingRow = {
+  id: string;
+  ical_uid: string;
+  guest_name?: string | null;
+  checkin_date: string;
+  checkout_date: string;
+  status: string;
+};
+
 async function syncIcalSourceBookingsAsOnMain(
   admin: IcalSyncAdmin,
   source: IcalSyncSource,
@@ -16,24 +25,25 @@ async function syncIcalSourceBookingsAsOnMain(
   opts: { today: string; nowIso: string },
 ) {
   const activeEvents = reservationEvents.filter((event) => event.status !== "CANCELLED");
-  const explicitCancelledEvents = reservationEvents.filter(
-    (event) => event.status === "CANCELLED",
-  );
+  const explicitCancelledEvents = reservationEvents.filter((event) => event.status === "CANCELLED");
 
-  const { data: existing, error: existingError } = await admin
+  const { data: existing, error: existingError } = (await admin
     .from("bookings")
     .select(
       "id, ical_uid, guest_name, checkin_date, checkout_date, status, ical_missing_since, ical_missing_count, ical_cancelled_at, ical_cancel_reason",
     )
-    .eq("ical_source_id", source.id);
+    .eq("ical_source_id", source.id)) as {
+    data?: MainBookingRow[];
+    error: { message?: string } | null;
+  };
   if (existingError) throw existingError;
 
-  const byUid = new Map((existing ?? []).map((booking) => [booking.ical_uid, booking]));
+  const byUid = new Map((existing ?? []).map((booking) => [booking.ical_uid, booking] as const));
   let created = 0;
   let updated = 0;
   let cancelled = 0;
   let conflicts = 0;
-  let protectedMissing = 0;
+  const protectedMissing = 0;
 
   for (const event of activeEvents) {
     const previous = byUid.get(event.uid);
@@ -174,9 +184,7 @@ type Filter = {
   op: "eq" | "lt" | "gt";
 };
 
-function createMockAdmin(
-  seedBookings: Row[] = [bookingA, bookingB],
-) {
+function createMockAdmin(seedBookings: Row[] = [bookingA, bookingB]) {
   const tables: Record<string, Row[]> = {
     bookings: seedBookings.map((row) => ({ ...row })),
   };
@@ -262,10 +270,7 @@ async function syncSource(
 describe("tenant isolation: ical-sync", () => {
   it("rejects updating property A's booking when syncing under property B's source", async () => {
     // A's booking is associated to B's source id only — the leak on main.
-    const admin = createMockAdmin([
-      { ...bookingA, ical_source_id: sourceB.id },
-      bookingB,
-    ]);
+    const admin = createMockAdmin([{ ...bookingA, ical_source_id: sourceB.id }, bookingB]);
 
     const result = await syncSource(
       sourceB,
@@ -286,10 +291,7 @@ describe("tenant isolation: ical-sync", () => {
   });
 
   it("rejects cancelling property A's booking via property B's source identity", async () => {
-    const admin = createMockAdmin([
-      { ...bookingA, ical_source_id: sourceB.id },
-      bookingB,
-    ]);
+    const admin = createMockAdmin([{ ...bookingA, ical_source_id: sourceB.id }, bookingB]);
 
     const result = await syncSource(
       sourceB,
@@ -322,12 +324,12 @@ describe("tenant isolation: ical-sync", () => {
     expect(result.conflicts, "overlap must be tenant-scoped; A's nights are not B's").toBe(0);
     expect(admin.booking("book-a")?.checkin_date).toBe("2026-09-10");
     expect(admin.booking("book-a")?.status).toBe("confirmed");
-    expect(admin.bookings().some((row) => row.ical_uid === "uid-new-b" && row.property_id === "prop-b")).toBe(
-      true,
-    );
-    expect(admin.bookings().some((row) => row.ical_uid === "uid-new-b" && row.property_id === "prop-a")).toBe(
-      false,
-    );
+    expect(
+      admin.bookings().some((row) => row.ical_uid === "uid-new-b" && row.property_id === "prop-b"),
+    ).toBe(true);
+    expect(
+      admin.bookings().some((row) => row.ical_uid === "uid-new-b" && row.property_id === "prop-a"),
+    ).toBe(false);
   });
 
   it("still updates the matching tenant when source and booking property_id agree", async () => {
