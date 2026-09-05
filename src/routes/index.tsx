@@ -15,6 +15,12 @@ import { DemoSms } from "@/components/landing/DemoSms";
 import { CaseStudy } from "@/components/landing/CaseStudy";
 import { BookFounder } from "@/components/landing/BookFounder";
 import { HeroProofBadge } from "@/components/landing/HeroProofBadge";
+import {
+  ANALYTICS_CTAS,
+  ANALYTICS_PLANS,
+  ANALYTICS_SURFACES,
+  trackCtaClicked,
+} from "@/lib/analytics";
 import { canonicalUrl } from "@/lib/site-url";
 import { useStayBoostStats } from "@/hooks/useStayBoostStats";
 
@@ -92,7 +98,17 @@ function Header() {
           <a href="#produkten" className="hover:text-[color:var(--brass)]">
             Produkten
           </a>
-          <Link to="/produkten" className="font-semibold text-[color:var(--brass)]">
+          <Link
+            to="/produkten"
+            className="font-semibold text-[color:var(--brass)]"
+            onClick={() =>
+              trackCtaClicked({
+                surface: ANALYTICS_SURFACES.LANDING,
+                cta: ANALYTICS_CTAS.DEMO,
+                location: "oversikt",
+              })
+            }
+          >
             Utforska
           </Link>
           <a href="#pris" className="hover:text-[color:var(--brass)]">
@@ -110,6 +126,13 @@ function Header() {
           search={{ mode: "up" }}
           className="btn-primary shrink-0"
           style={{ padding: "9px 16px", fontSize: "0.85rem" }}
+          onClick={() =>
+            trackCtaClicked({
+              surface: ANALYTICS_SURFACES.LANDING,
+              cta: ANALYTICS_CTAS.KOM_IGANG,
+              location: "header",
+            })
+          }
         >
           Kom igång
         </Link>
@@ -188,15 +211,13 @@ function Hero() {
           <p className="mt-3 text-[0.8rem] text-white/70 sm:mt-4 sm:text-[0.85rem]">
             <a
               href="#prova-sms"
-              onClick={() => {
-                if (typeof window === "undefined") return;
-                const w = window as unknown as {
-                  plausible?: (e: string, opts?: { props?: Record<string, string> }) => void;
-                };
-                w.plausible?.("Hero Sms Link Clicked", {
-                  props: { target: "prova-sms", label: "känn på gästflödet via sms" },
-                });
-              }}
+              onClick={() =>
+                trackCtaClicked({
+                  surface: ANALYTICS_SURFACES.LANDING,
+                  cta: ANALYTICS_CTAS.SMS_TEST,
+                  location: "hero",
+                })
+              }
               className="underline decoration-white/40 underline-offset-2 hover:text-white hover:decoration-white"
             >
               eller känn på gästflödet via sms
@@ -575,7 +596,15 @@ function Pricing() {
           <div className="mx-auto mt-12 max-w-[520px] border-y border-[color:var(--line)] px-0 py-10 md:border md:px-10">
             <div className="mb-8 flex items-center justify-center gap-6 text-sm">
               <button
-                onClick={() => setAnnual(false)}
+                onClick={() => {
+                  setAnnual(false);
+                  trackCtaClicked({
+                    surface: ANALYTICS_SURFACES.LANDING,
+                    cta: ANALYTICS_CTAS.PRICING_PLAN,
+                    location: "pricing",
+                    plan: ANALYTICS_PLANS.MONTHLY,
+                  });
+                }}
                 className={`pb-1 transition ${
                   !annual
                     ? "border-b border-[color:var(--ink)] font-medium"
@@ -585,7 +614,15 @@ function Pricing() {
                 Månadsvis
               </button>
               <button
-                onClick={() => setAnnual(true)}
+                onClick={() => {
+                  setAnnual(true);
+                  trackCtaClicked({
+                    surface: ANALYTICS_SURFACES.LANDING,
+                    cta: ANALYTICS_CTAS.PRICING_PLAN,
+                    location: "pricing",
+                    plan: ANALYTICS_PLANS.ANNUAL,
+                  });
+                }}
                 className={`pb-1 transition ${
                   annual
                     ? "border-b border-[color:var(--ink)] font-medium"
@@ -648,7 +685,11 @@ function Pricing() {
             </ul>
 
             <div className="mt-8">
-              <SignupCta location="pricing" buttonLabel="Kom igång" />
+              <SignupCta
+                location="pricing"
+                buttonLabel="Kom igång"
+                plan={annual ? ANALYTICS_PLANS.ANNUAL : ANALYTICS_PLANS.MONTHLY}
+              />
             </div>
             <p className="mt-4 text-center text-xs text-[color:var(--ink)]/55">
               Betalar det inte för sig själv första månaden gör det inte sitt jobb.

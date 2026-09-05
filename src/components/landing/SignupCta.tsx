@@ -1,5 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import {
+  ANALYTICS_CTAS,
+  ANALYTICS_SURFACES,
+  trackCtaClicked,
+  type CtaClickedProps,
+} from "@/lib/analytics";
 
 type Variant = "light" | "dark";
 
@@ -8,6 +14,7 @@ interface Props {
   variant?: Variant;
   buttonLabel?: string;
   className?: string;
+  plan?: CtaClickedProps["plan"];
 }
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -21,6 +28,7 @@ export function SignupCta({
   variant = "light",
   buttonLabel = "Kom igång",
   className = "",
+  plan,
 }: Props) {
   const [email, setEmail] = useState("");
   const navigate = useNavigate();
@@ -29,12 +37,12 @@ export function SignupCta({
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     const trimmed = email.trim();
-    if (typeof window !== "undefined") {
-      const w = window as unknown as {
-        plausible?: (ev: string, o?: { props?: Record<string, string> }) => void;
-      };
-      w.plausible?.("Signup CTA", { props: { location } });
-    }
+    trackCtaClicked({
+      surface: ANALYTICS_SURFACES.LANDING,
+      cta: ANALYTICS_CTAS.KOM_IGANG,
+      location,
+      ...(plan ? { plan } : {}),
+    });
     navigate({
       to: "/app/login",
       search: EMAIL_RE.test(trimmed) ? { mode: "up", email: trimmed } : { mode: "up" },

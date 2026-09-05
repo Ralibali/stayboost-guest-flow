@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { ANALYTICS_CTAS, ANALYTICS_SURFACES, trackCtaClicked } from "@/lib/analytics";
 
 export function StickyMobileCTA() {
   const [show, setShow] = useState(false);
@@ -43,10 +44,11 @@ export function StickyMobileCTA() {
   }, []);
 
   const track = () => {
-    if (typeof window !== "undefined") {
-      const w = window as unknown as { plausible?: (e: string) => void };
-      w.plausible?.("Sticky CTA Click");
-    }
+    trackCtaClicked({
+      surface: ANALYTICS_SURFACES.LANDING,
+      cta: ANALYTICS_CTAS.KOM_IGANG,
+      location: "sticky_mobile",
+    });
   };
 
   return (
