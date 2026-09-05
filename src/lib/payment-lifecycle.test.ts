@@ -15,7 +15,7 @@ const refund = read("supabase/functions/stripe-refund/index.ts");
 const paymentAction = read("supabase/functions/payment-action/index.ts");
 const bookingAdmin = read("src/routes/app/bokningar.tsx");
 const guestPage = read("src/routes/g/$token.tsx");
-const guestApi = read("supabase/functions/guest-page/index.ts");
+const guestApi = read("supabase/functions/_shared/guest-page.ts");
 
 describe("BP-3 payment lifecycle", () => {
   it("persists the same explicit Stripe hold expiry in Checkout and StayBoost", () => {
