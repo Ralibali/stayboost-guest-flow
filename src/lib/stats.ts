@@ -1,9 +1,8 @@
 // Typad klient + hjälpare för det publika StayBoost-statistik-API:t.
-// Endpointen har 5 min cache; vi håller samma refetch-kadens klient-side
-// och cachar senaste lyckade svar i localStorage för graceful fallback.
-
-export const STATS_ENDPOINT =
-  "https://cmqajoqwafkjyvfbgsmq.supabase.co/functions/v1/stayboost-stats";
+// Live-siffror hämtas via same-origin server function (stats.functions.ts)
+// så webbläsaren aldrig korsar till edge-funktionen (CORS på stayboost.se
+// tillåter bara Lovable-preview-originen). 5 min cache klient-side +
+// localStorage för graceful fallback.
 
 export const STATS_STORAGE_KEY = "stayboost:stats:v1";
 export const STATS_REFRESH_MS = 5 * 60 * 1000;
@@ -344,20 +343,6 @@ export function writeCachedStats(data: StayBoostStats): void {
   } catch {
     // Quota/private-mode etc — ignorera tyst.
   }
-}
-
-// ---------- Fetch ----------
-
-export async function fetchStayBoostStats(signal?: AbortSignal): Promise<StayBoostStats> {
-  const res = await fetch(STATS_ENDPOINT, {
-    signal,
-    headers: { accept: "application/json" },
-  });
-  if (!res.ok) throw new Error(`stats_http_${res.status}`);
-  const raw = (await res.json()) as unknown;
-  const parsed = parseStatsResponse(raw);
-  if (!parsed) throw new Error("stats_invalid_shape");
-  return parsed;
 }
 
 // ---------- Beräkningar ----------
