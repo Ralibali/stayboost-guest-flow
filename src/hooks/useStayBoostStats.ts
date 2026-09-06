@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 
+import { getStayBoostStats } from "@/lib/stats.functions";
 import {
   FALLBACK_STATS,
   SIRVOY_EXPORT_STATS,
   STATS_REFRESH_MS,
-  fetchStayBoostStats,
   mergeStats,
+  readCachedStats,
   writeCachedStats,
   type StayBoostStats,
 } from "@/lib/stats";
@@ -22,23 +23,24 @@ export interface UseStayBoostStatsResult {
 
 /**
  * Totalsiffror = verifierad Sirvoy-export + StayBoosts egen drift (Göta kanal-admin).
- * Live-driften hämtas från stats-endpointen och summeras ovanpå exporten.
+ * Live-driften hämtas same-origin (server proxy) och summeras ovanpå exporten.
  * Utan svar används den senaste cachade/inbakade driftsiffran, så totalerna står kvar.
  */
 export function useStayBoostStats(): UseStayBoostStatsResult {
   const query = useQuery({
     queryKey: ["stayboost-stats"],
-    queryFn: async ({ signal }) => {
-      const live = await fetchStayBoostStats(signal);
-      writeCachedStats(live);
-      return live;
+    queryFn: async () => {
+      const res = await getStayBoostStats();
+      if (!res.ok || !res.stats) return null;
+      writeCachedStats(res.stats);
+      return res.stats;
     },
     staleTime: STATS_REFRESH_MS,
     refetchInterval: STATS_REFRESH_MS,
-    retry: 1,
+    retry: 0,
   });
 
-  const live = query.data ?? null;
+  const live = query.data ?? readCachedStats();
   if (!live) {
     return {
       stats: FALLBACK_STATS,

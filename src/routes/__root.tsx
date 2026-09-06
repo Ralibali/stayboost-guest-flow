@@ -10,6 +10,7 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { initAnalytics } from "../lib/analytics";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 
 function NotFoundComponent() {
@@ -66,12 +67,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => {
-    const plausibleDomain =
-      (typeof import.meta !== "undefined" &&
-        (import.meta as unknown as { env?: Record<string, string> }).env
-          ?.VITE_PUBLIC_PLAUSIBLE_DOMAIN) ||
-      "stayboost.se";
-
     const softwareLd = {
       "@context": "https://schema.org",
       "@type": "SoftwareApplication",
@@ -185,11 +180,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
       scripts: [
         {
-          defer: true,
-          "data-domain": plausibleDomain,
-          src: "https://plausible.io/js/script.js",
-        },
-        {
           type: "application/ld+json",
           children: JSON.stringify(softwareLd),
         },
@@ -226,6 +216,9 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => {
+    initAnalytics();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

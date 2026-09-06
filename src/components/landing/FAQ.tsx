@@ -73,14 +73,7 @@ export function FAQ() {
               <div key={i} className="border-b border-[color:var(--line)]">
                 <button
                   onClick={() => {
-                    const next = isOpen ? null : i;
-                    setOpen(next);
-                    if (next !== null && typeof window !== "undefined") {
-                      const w = window as unknown as {
-                        plausible?: (e: string, o?: { props?: Record<string, string> }) => void;
-                      };
-                      w.plausible?.("FAQ Opened", { props: { question: item.q } });
-                    }
+                    setOpen(isOpen ? null : i);
                   }}
                   className="flex w-full items-center justify-between gap-4 py-6 text-left"
                   aria-expanded={isOpen}

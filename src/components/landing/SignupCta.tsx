@@ -1,4 +1,10 @@
 import { Link } from "@tanstack/react-router";
+import {
+  ANALYTICS_CTAS,
+  ANALYTICS_SURFACES,
+  trackCtaClicked,
+  type CtaClickedProps,
+} from "@/lib/analytics";
 
 type Variant = "light" | "dark";
 
@@ -7,6 +13,7 @@ interface Props {
   variant?: Variant;
   buttonLabel?: string;
   className?: string;
+  plan?: CtaClickedProps["plan"];
 }
 
 /**
@@ -19,16 +26,17 @@ export function SignupCta({
   variant = "light",
   buttonLabel = "Öppna produktdemon",
   className = "",
+  plan,
 }: Props) {
   const dark = variant === "dark";
 
   const track = () => {
-    if (typeof window !== "undefined") {
-      const w = window as unknown as {
-        plausible?: (ev: string, o?: { props?: Record<string, string> }) => void;
-      };
-      w.plausible?.("Signup CTA", { props: { location } });
-    }
+    trackCtaClicked({
+      surface: ANALYTICS_SURFACES.LANDING,
+      cta: ANALYTICS_CTAS.OPPN_A_PRODUKTDEMON,
+      location,
+      ...(plan ? { plan } : {}),
+    });
   };
 
   return (
