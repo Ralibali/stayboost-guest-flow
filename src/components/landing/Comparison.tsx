@@ -173,8 +173,8 @@ export function Comparison() {
 
         <p className="mt-4 text-center text-[12px] leading-relaxed text-[color:var(--ink)]/50">
           *BookSpot riktar sig till större aktivitetsbolag med pris efter volym. **Sirvoy är
-          kanalhanteraren — StayBoost ersätter den inte. iCal är bara datum, inte
-          kanalhantering. Jämförelsen bygger på publika funktionslistor, juli 2026.
+          kanalhanteraren — StayBoost ersätter den inte. iCal är bara datum, inte kanalhantering.
+          Jämförelsen bygger på publika funktionslistor, juli 2026.
         </p>
       </div>
     </section>
