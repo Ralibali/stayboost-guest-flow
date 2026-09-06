@@ -89,13 +89,12 @@ export function BookFounder() {
               </li>
             </ul>
             <p className="mt-6 text-[0.85rem] text-[color:var(--ink)]/55">
-              Föredrar du att hoppa rakt in?{" "}
+              Föredrar du att titta själv?{" "}
               <Link
-                to="/app/login"
-                search={{ mode: "up" }}
+                to="/produkten"
                 className="underline decoration-[color:var(--ink)]/30 underline-offset-2 hover:text-[color:var(--ink)]"
               >
-                Skapa konto direkt istället
+                Öppna produktdemon
               </Link>
             </p>
           </div>
@@ -154,7 +153,7 @@ export function BookFounder() {
                   Mejla {CONTACT_EMAIL}
                 </a>
                 <p className="mt-4 text-[0.85rem] text-[color:var(--ink)]/55">
-                  Föredrar du att testa på egen hand? Skapa konto ovan — det tar en minut.
+                  Föredrar du att titta själv? Öppna produktdemon — exempeldata, Sirvoy är kvar.
                 </p>
               </div>
             )}

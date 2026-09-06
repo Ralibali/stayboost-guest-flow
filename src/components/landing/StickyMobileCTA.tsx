@@ -65,12 +65,11 @@ export function StickyMobileCTA() {
           <div className="text-white/70">Ingen bindningstid</div>
         </div>
         <Link
-          to="/app/login"
-          search={{ mode: "up" }}
+          to="/produkten"
           onClick={track}
           className="rounded-xl bg-[color:var(--brass)] px-4 py-2.5 text-sm font-semibold text-white"
         >
-          Kom igång →
+          Öppna produktdemon
         </Link>
       </div>
     </div>
