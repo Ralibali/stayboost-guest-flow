@@ -13,10 +13,12 @@ import {
   Globe,
   KeyRound,
   LayoutDashboard,
+  ShieldCheck,
   Sparkles,
   Sun,
   Users,
 } from "lucide-react";
+import { DEMO_TRUST_LINE } from "@/components/produkten/demo-copy";
 
 const DEMO_GROUPS = [
   {
@@ -116,13 +118,20 @@ export function DemoShell({ children }: { children: ReactNode }) {
             })}
           </div>
         </nav>
+
+        <div className="border-t border-[color:var(--brass)]/30 bg-[#f3e8c8] text-[color:var(--forest)]">
+          <p className="mx-auto flex max-w-6xl items-center justify-center gap-2 px-4 py-1.5 text-center text-[12px] font-semibold leading-snug sm:px-6 sm:text-[13px]">
+            <ShieldCheck size={14} className="hidden shrink-0 sm:block" aria-hidden />
+            {DEMO_TRUST_LINE}
+          </p>
+        </div>
       </header>
 
       <div className="mx-auto max-w-6xl px-4 pb-20 pt-8 sm:px-6">{children}</div>
 
       <footer className="border-t border-[color:var(--line)] py-6 text-center text-[13px] text-[color:var(--ink)]/55">
         <Sparkles className="mr-1.5 inline-block" size={13} />
-        Förhandsvisning — allt du ser är exempeldata. Inget bokas eller debiteras på riktigt.
+        {DEMO_TRUST_LINE}
       </footer>
     </div>
   );

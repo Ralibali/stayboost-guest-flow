@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { motion } from "framer-motion";
 import { AlertTriangle, Check, ChefHat, Clock3, Croissant, Truck } from "lucide-react";
 import { BREAKFAST, fmtDateLong, unitOf } from "@/lib/demo-data";
+import { DemoEmptyState } from "@/components/produkten/DemoEmptyState";
 
 export const Route = createFileRoute("/produkten/frukost")({
   component: BreakfastView,
@@ -43,7 +44,8 @@ function BreakfastView() {
   const totalPortions = BREAKFAST.reduce((s, b) => s + b.portions, 0);
   const allergyCount = BREAKFAST.filter((b) => b.allergies.length > 0).length;
   const delivered = Object.values(statuses).filter((s) => s === "levererad").length;
-  const progress = Math.round((delivered / BREAKFAST.length) * 100);
+  const progress =
+    BREAKFAST.length === 0 ? 0 : Math.round((delivered / BREAKFAST.length) * 100);
 
   const specialKost = useMemo(() => {
     const byCombo = new Map<string, number>();
@@ -112,6 +114,12 @@ function BreakfastView() {
 
         {/* Lista */}
         <div className="mt-6 space-y-4">
+          {sorted.length === 0 && (
+            <DemoEmptyState
+              title="Inga leveranser ännu"
+              body="När gäster beställer frukost i gästhubben dyker portionerna upp här senast kl 20:00 kvällen före."
+            />
+          )}
           {sorted.map((b, i) => {
             const unit = unitOf(b.unitId);
             const status = statuses[b.id];

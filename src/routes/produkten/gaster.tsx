@@ -126,8 +126,9 @@ function GuestsView() {
           </motion.button>
         ))}
         {filtered.length === 0 && (
-          <p className="py-8 text-center text-[14px] text-[color:var(--ink)]/50">
-            Inga gäster matchar — prova ett annat sökord.
+          <p className="py-8 text-center text-[14px] text-[color:var(--ink)]/55">
+            Inga gäster matchar — prova ett annat sökord, eller rensa sökfältet för att se
+            exempelregistret.
           </p>
         )}
       </div>

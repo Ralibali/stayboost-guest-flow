@@ -48,6 +48,7 @@ import {
   type AddonCategory,
 } from "@/lib/demo-data";
 import { GIFT_CARDS, getSessionGiftCards } from "@/lib/upsell-data";
+import { DemoEmptyState } from "@/components/produkten/DemoEmptyState";
 
 export const Route = createFileRoute("/produkten/admin")({
   component: AdminDashboard,
@@ -110,19 +111,20 @@ function AdminDashboard() {
               <CalendarRange size={15} />
               Kalender & bokningar
             </Link>
-            <span className="flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-2 text-[13px] font-semibold text-emerald-800">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute h-full w-full animate-ping rounded-full bg-emerald-500 opacity-70" />
-                <span className="h-2 w-2 rounded-full bg-emerald-600" />
-              </span>
-              Live — uppdateras i realtid
+            <span className="flex items-center gap-2 rounded-full bg-amber-50 px-4 py-2 text-[13px] font-semibold text-amber-900 ring-1 ring-amber-200">
+              Demoillustration — exempeldata
             </span>
           </div>
         </div>
       </motion.div>
 
+      <p className="mt-4 max-w-2xl text-[13px] leading-relaxed text-[color:var(--ink)]/65">
+        Julikorten och graferna nedan är en <strong className="font-semibold text-[color:var(--ink)]">demoillustration</strong> med
+        exempeldata — inte livesiffror och inte samma feed som Bergs case study på startsidan.
+      </p>
+
       {/* KPI:er */}
-      <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi
           icon={Banknote}
           label="Merförsäljning i juli"
@@ -242,7 +244,7 @@ function AdminDashboard() {
           className="card-surface flex flex-col p-6 lg:col-span-2"
         >
           <h2 className="font-sans text-[17px] font-bold">Orderflöde</h2>
-          <p className="text-[13px] text-[color:var(--ink)]/55">Betalningar i realtid</p>
+          <p className="text-[13px] text-[color:var(--ink)]/55">Exempel på inkomna ordrar</p>
           <div className="mt-4 flex-1 space-y-3 overflow-y-auto">
             {ORDERS.map((o) => {
               const a = addonById[o.addonId];
@@ -285,6 +287,12 @@ function AdminDashboard() {
             <ArrowUpRight size={18} className="text-[color:var(--success)]" /> Ankomster i dag
           </h2>
           <div className="mt-4 space-y-3">
+            {arrivalsToday.length === 0 && (
+              <DemoEmptyState
+                title="Inga ankomster just nu"
+                body="När gäster checkar in syns de här. I den här demon är listan exempeldata."
+              />
+            )}
             {arrivalsToday.map((g) => (
               <GuestRow
                 key={g.id}
@@ -305,6 +313,12 @@ function AdminDashboard() {
             <ArrowDownLeft size={18} className="text-[color:var(--brass)]" /> Avresor i dag
           </h2>
           <div className="mt-4 space-y-3">
+            {departuresToday.length === 0 && (
+              <DemoEmptyState
+                title="Inga avresor just nu"
+                body="Utcheckningar dyker upp här samma dag. I den här demon är listan exempeldata."
+              />
+            )}
             {departuresToday.map((g) => (
               <GuestRow
                 key={g.id}

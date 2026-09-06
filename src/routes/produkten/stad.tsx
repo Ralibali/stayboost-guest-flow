@@ -13,6 +13,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { CLEANING, fmtTime, unitOf } from "@/lib/demo-data";
+import { DemoEmptyState } from "@/components/produkten/DemoEmptyState";
 
 export const Route = createFileRoute("/produkten/stad")({
   component: CleaningView,
@@ -148,6 +149,18 @@ function CleaningView() {
       </AnimatePresence>
 
       <div className="mt-6 space-y-5">
+        {visible.length === 0 && (
+          <DemoEmptyState
+            title={
+              tasks.length === 0 ? "Inga enheter att städa just nu" : "Inga enheter i den här vyn"
+            }
+            body={
+              tasks.length === 0
+                ? "När det finns avresor eller påsläpp dyker de upp här med checklista och tidsfönster."
+                : "Byt filter ovan — det kan finnas enheter som väntar, pågår eller redan är klara."
+            }
+          />
+        )}
         {visible.map((t, i) => {
           const unit = unitOf(t.unitId);
           const done = t.checklist.filter((c) => c.done).length;

@@ -15,6 +15,7 @@ import {
 import { ADDONS, CLEANING, GUESTS, PROPERTY, fmtDateLong, unitOf } from "@/lib/demo-data";
 import { RESOURCES, addDays, resourceBooked, startOfDay } from "@/lib/booking-data";
 import { getAssignee } from "@/lib/staff-data";
+import { DemoEmptyState } from "@/components/produkten/DemoEmptyState";
 
 export const Route = createFileRoute("/produkten/dagsoversikt")({
   component: Dagsoversikt,
@@ -127,7 +128,12 @@ function Dagsoversikt() {
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
         {/* Ankomster */}
         <Section title={`Ankomster (från ${PROPERTY.checkInTime})`} icon={ArrowUpRight}>
-          {arrivals.length === 0 && <Empty text="Inga ankomster" />}
+          {arrivals.length === 0 && (
+            <DemoEmptyState
+              title="Inga ankomster den här dagen"
+              body="Växla till i dag eller i morgon, eller kom tillbaka när gäster checkar in."
+            />
+          )}
           {arrivals.map((g) => (
             <GuestLine
               key={g.id}
@@ -140,7 +146,12 @@ function Dagsoversikt() {
 
         {/* Avresor */}
         <Section title={`Avresor (senast ${PROPERTY.checkOutTime})`} icon={ArrowDownLeft}>
-          {departures.length === 0 && <Empty text="Inga avresor" />}
+          {departures.length === 0 && (
+            <DemoEmptyState
+              title="Inga avresor den här dagen"
+              body="Växla till i dag eller i morgon för att se utcheckningar och städstatus."
+            />
+          )}
           {departures.map((g) => {
             const task = CLEANING.find((t) => t.unitId === g.unitId && t.type === "avresa");
             const badge =
@@ -171,7 +182,12 @@ function Dagsoversikt() {
           <AssigneeChip taskKey="manifest-prep" />
         </div>
         {prepItems.length === 0 ? (
-          <p className="mt-3 text-[14px] text-[color:var(--ink)]/55">Inget att förbereda 🎉</p>
+          <div className="mt-3">
+            <DemoEmptyState
+              title="Inget att förbereda den här dagen"
+              body="Tillval dyker upp här när ankommande gäster har beställt — t.ex. frukostkorg eller ved."
+            />
+          </div>
         ) : (
           <div className="mt-4 space-y-2.5">
             {prepItems.map((p, i) => (
@@ -377,10 +393,6 @@ function Summary({
       <div className="text-[12px] text-[color:var(--ink)]/55">{label}</div>
     </div>
   );
-}
-
-function Empty({ text }: { text: string }) {
-  return <p className="py-2 text-[14px] text-[color:var(--ink)]/50">{text}</p>;
 }
 
 function AssigneeChip({ taskKey }: { taskKey: string }) {

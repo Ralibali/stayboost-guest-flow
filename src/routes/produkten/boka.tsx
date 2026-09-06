@@ -176,15 +176,19 @@ function BookingFlow() {
   const stepHint =
     step === 0
       ? !checkIn
-        ? "Välj incheckningsdatum i kalendern"
+        ? "Nästa steg: klicka på incheckningsdatum i kalendern"
         : !checkOut
-          ? "Välj utcheckningsdatum"
+          ? "Nästa steg: klicka på utcheckningsdatum"
           : `${nights} ${nights === 1 ? "natt vald" : "nätter valda"}`
       : step === 1
         ? "Välj ett boende ovan"
         : step === 3
           ? "Fyll i namn, mejl och mobilnummer"
           : "Lägg till tillval — eller fortsätt direkt";
+
+  const dateNextStep = !checkIn
+    ? "Klicka på ankomstdagen i kalendern. Därefter utcheckning — Fortsätt aktiveras när båda datumen är valda."
+    : "Klicka på utcheckningsdatum. Fortsätt aktiveras när vistelsen har både in- och utcheckning.";
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -299,12 +303,16 @@ function BookingFlow() {
                           {nights === 1 ? "natt" : "nätter"}
                         </span>
                       ) : (
-                        <span className="text-[color:var(--ink)]/50">
-                          Välj inchecknings- och utcheckningsdatum
-                        </span>
+                        <span className="font-medium text-[color:var(--ink)]/75">{stepHint}</span>
                       )}
                     </div>
                   </div>
+                  {nights === 0 && (
+                    <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--line)] bg-[color:var(--bg)]/80 px-4 py-3 text-[13px] leading-relaxed text-[color:var(--ink)]/70">
+                      <p className="font-semibold text-[color:var(--ink)]">{stepHint}</p>
+                      <p className="mt-1">{dateNextStep}</p>
+                    </div>
+                  )}
                 </div>
               </StepShell>
             )}
@@ -924,10 +932,20 @@ function BookingFlow() {
                   disabled={!canNext}
                   className="btn-primary flex-1 !rounded-2xl disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  {step === 2 ? "Till betalning" : "Fortsätt"} <ArrowRight size={17} />
+                  {canNext ? (
+                    <>
+                      {step === 2 ? "Till betalning" : "Fortsätt"} <ArrowRight size={17} />
+                    </>
+                  ) : (
+                    stepHint
+                  )}
                 </button>
               </div>
-              {!canNext && <p className="text-[13px] text-[color:var(--ink)]/50">{stepHint}</p>}
+              {!canNext && (
+                <p className="text-[13px] text-[color:var(--ink)]/65">
+                  {step === 0 ? dateNextStep : stepHint}
+                </p>
+              )}
             </div>
           )}
           {step === 3 && (
@@ -942,7 +960,7 @@ function BookingFlow() {
 
         {/* ---------- Höger: prissammanfattning ---------- */}
         {step < 4 && (
-          <aside className="lg:sticky lg:top-32 lg:self-start">
+          <aside className="lg:sticky lg:top-40 lg:self-start">
             <div className="card-surface p-5">
               <h2 className="flex items-center gap-2 font-sans text-[15px] font-bold">
                 <BedDouble size={16} className="text-[color:var(--brass)]" />
@@ -1030,7 +1048,15 @@ function BookingFlow() {
                 disabled={!canNext}
                 className="btn-primary shrink-0 !rounded-2xl !px-5 !py-3 text-[15px] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {step === 2 ? "Till betalning" : "Fortsätt"} <ArrowRight size={16} />
+                {canNext ? (
+                  <>
+                    {step === 2 ? "Till betalning" : "Fortsätt"} <ArrowRight size={16} />
+                  </>
+                ) : step === 0 && !checkOut ? (
+                  "Välj datum först"
+                ) : (
+                  stepHint
+                )}
               </button>
             ) : (
               <span className="shrink-0 text-[12px] text-[color:var(--ink)]/50">inkl. moms</span>
