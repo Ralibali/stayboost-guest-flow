@@ -66,7 +66,7 @@ function BreakfastView() {
   );
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto min-w-0 max-w-3xl overflow-x-clip">
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -80,7 +80,7 @@ function BreakfastView() {
         </div>
 
         {/* Sammanfattning */}
-        <div className="mt-6 grid grid-cols-3 gap-3">
+        <div className="mt-6 grid min-w-0 grid-cols-3 gap-2 sm:gap-3">
           <SummaryCard icon={Croissant} value={String(totalPortions)} label="portioner totalt" />
           <SummaryCard
             icon={AlertTriangle}
@@ -178,7 +178,7 @@ function BreakfastView() {
                 <button
                   onClick={() => setStatuses((s) => ({ ...s, [b.id]: NEXT[status] }))}
                   disabled={status === "levererad"}
-                  className={`mt-4 w-full rounded-xl py-3 text-[14px] font-semibold transition ${
+                  className={`mt-4 min-h-11 w-full rounded-xl py-3 text-[14px] font-semibold transition ${
                     status === "levererad"
                       ? "cursor-default bg-emerald-50 text-emerald-700"
                       : "bg-[color:var(--forest)] text-white hover:brightness-110"
@@ -218,13 +218,15 @@ function SummaryCard({
   warn?: boolean;
 }) {
   return (
-    <div className="card-surface p-4 text-center">
+    <div className="card-surface min-w-0 p-3 text-center sm:p-4">
       <Icon
         size={18}
         className={`mx-auto ${warn ? "text-red-600" : "text-[color:var(--brass)]"}`}
       />
-      <div className="mt-1.5 font-[Fraunces] text-2xl font-semibold">{value}</div>
-      <div className="text-[12px] text-[color:var(--ink)]/55">{label}</div>
+      <div className="mt-1.5 font-[Fraunces] text-xl font-semibold sm:text-2xl">{value}</div>
+      <div className="text-[11px] leading-snug text-[color:var(--ink)]/55 sm:text-[12px]">
+        {label}
+      </div>
     </div>
   );
 }

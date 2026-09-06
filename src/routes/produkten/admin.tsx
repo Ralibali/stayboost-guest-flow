@@ -94,7 +94,7 @@ function AdminDashboard() {
   const maxSold = topSellers[0]?.soldThisMonth ?? 1;
 
   return (
-    <div>
+    <div className="min-w-0 overflow-x-clip">
       {/* Titel */}
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -106,12 +106,12 @@ function AdminDashboard() {
           <div className="flex flex-wrap items-center gap-2.5">
             <Link
               to="/produkten/bokningar"
-              className="flex items-center gap-2 rounded-full bg-[color:var(--forest)] px-4 py-2 text-[13px] font-semibold text-white transition hover:brightness-110"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[color:var(--forest)] px-4 text-[13px] font-semibold text-white transition hover:brightness-110"
             >
               <CalendarRange size={15} />
               Kalender & bokningar
             </Link>
-            <span className="flex items-center gap-2 rounded-full bg-amber-50 px-4 py-2 text-[13px] font-semibold text-amber-900 ring-1 ring-amber-200">
+            <span className="inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-50 px-4 text-[13px] font-semibold text-amber-900 ring-1 ring-amber-200">
               Demoillustration — exempeldata
             </span>
           </div>
@@ -350,14 +350,14 @@ function AdminDashboard() {
             </div>
             <button
               onClick={() => setModalOpen(true)}
-              className="btn-primary shrink-0 !rounded-xl !px-3.5 !py-2 text-[13px]"
+              className="btn-primary min-h-11 shrink-0 !rounded-xl !px-3.5 !py-2 text-[13px]"
             >
               <Plus size={15} /> Nytt tillval
             </button>
           </div>
 
           {/* Kategorifilter */}
-          <div className="scrollbar-none -mx-1 mt-4 flex gap-1.5 overflow-x-auto px-1 pb-1">
+          <div className="scrollbar-none -mx-1 mt-4 flex gap-1.5 overflow-x-auto overscroll-x-contain px-1 pb-1">
             {[
               { id: "alla" as const, label: "Alla" },
               ...(Object.keys(ADDON_CATEGORY_LABELS) as AddonCategory[]).map((c) => ({
@@ -371,7 +371,7 @@ function AdminDashboard() {
                 <button
                   key={g.id}
                   onClick={() => setAddonFilter(g.id)}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium transition ${
+                  className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-[12px] font-medium whitespace-nowrap transition ${
                     addonFilter === g.id
                       ? "bg-[color:var(--forest)] text-white"
                       : "bg-[color:var(--bg)] text-[color:var(--ink)]/60 hover:bg-[color:var(--line)]/60"
@@ -838,10 +838,10 @@ function Kpi({
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`card-surface p-5 ${accent ? "!border-[color:var(--brass)]/50 !bg-gradient-to-br !from-white !to-amber-50/60" : ""}`}
+      className={`card-surface min-w-0 p-4 sm:p-5 ${accent ? "!border-[color:var(--brass)]/50 !bg-gradient-to-br !from-white !to-amber-50/60" : ""}`}
     >
-      <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/55">
-        <Icon size={14} className="text-[color:var(--brass)]" />
+      <div className="flex items-start gap-2 text-[11px] leading-snug font-semibold tracking-wide text-[color:var(--ink)]/55 uppercase sm:text-[12px]">
+        <Icon size={14} className="mt-0.5 shrink-0 text-[color:var(--brass)]" />
         {label}
       </div>
       <div className="mt-2 font-[Fraunces] text-[26px] font-semibold leading-none tabular-nums">

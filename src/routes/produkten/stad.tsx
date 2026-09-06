@@ -77,7 +77,7 @@ function CleaningView() {
     );
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto min-w-0 max-w-3xl overflow-x-clip">
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -110,7 +110,7 @@ function CleaningView() {
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              className={`rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition ${
+              className={`inline-flex min-h-11 items-center rounded-full px-3.5 text-[12px] font-semibold transition ${
                 filter === f.key
                   ? "bg-[color:var(--forest)] text-white"
                   : "border border-[color:var(--line)] bg-white text-[color:var(--ink)]/60 hover:text-[color:var(--ink)]"
@@ -204,12 +204,12 @@ function CleaningView() {
 
                 {/* Statusknappar + tidsstämpel */}
                 <div className="flex flex-col items-end gap-1">
-                  <div className="flex rounded-full border border-[color:var(--line)] bg-[color:var(--bg)] p-1 text-[12px] font-semibold">
+                  <div className="flex flex-wrap rounded-full border border-[color:var(--line)] bg-[color:var(--bg)] p-1 text-[12px] font-semibold">
                     {(["väntar", "pågår", "klar"] as const).map((s) => (
                       <button
                         key={s}
                         onClick={() => setStatus(t.id, s)}
-                        className={`rounded-full px-3.5 py-1.5 capitalize transition ${
+                        className={`inline-flex min-h-11 items-center rounded-full px-3.5 capitalize transition ${
                           t.status === s
                             ? s === "klar"
                               ? "bg-emerald-600 text-white"
