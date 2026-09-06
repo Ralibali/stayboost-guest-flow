@@ -6,18 +6,14 @@
 
 import { parseStatsResponse, type StayBoostStats } from "./stats";
 
-export type StayBoostStatsResult =
-  | { ok: true; stats: StayBoostStats }
-  | { ok: false; stats: null };
+export type StayBoostStatsResult = { ok: true; stats: StayBoostStats } | { ok: false; stats: null };
 
 export const STATS_UPSTREAM_ENDPOINT =
   "https://cmqajoqwafkjyvfbgsmq.supabase.co/functions/v1/stayboost-stats";
 
 export const STATS_UPSTREAM_TIMEOUT_MS = 8_000;
 
-export async function fetchUpstreamStayBoostStats(
-  signal?: AbortSignal,
-): Promise<StayBoostStats> {
+export async function fetchUpstreamStayBoostStats(signal?: AbortSignal): Promise<StayBoostStats> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), STATS_UPSTREAM_TIMEOUT_MS);
   const onAbort = () => controller.abort();
