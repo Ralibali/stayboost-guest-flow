@@ -28,7 +28,7 @@ const ROWS: { label: string; stayboost: Cell; bookspot: Cell; sirvoy: Cell }[] =
   },
   {
     label: "Kanalhanterare (Booking.com, Airbnb)",
-    stayboost: "ja",
+    stayboost: "nej",
     bookspot: "delvis",
     sirvoy: "ja",
   },
@@ -151,7 +151,7 @@ export function Comparison() {
         <div className="card-surface mt-6 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
           <div>
             <p className="text-[0.68rem] font-medium uppercase tracking-[0.14em] text-[color:var(--ink)]/45">
-              Konkret exempel — Sirvoy-export + StayBoost-drift 2026
+              Konkret exempel — Sirvoy-export (marknadsfall) + stayboost-stats · Bergs 2026
             </p>
             <p className="mt-2 text-[0.95rem] leading-relaxed text-[color:var(--ink)]/80">
               <strong className="font-semibold text-[color:var(--ink)]">
@@ -172,9 +172,9 @@ export function Comparison() {
         </div>
 
         <p className="mt-4 text-center text-[12px] leading-relaxed text-[color:var(--ink)]/50">
-          *BookSpot riktar sig till större aktivitetsbolag med pris efter volym. **Sirvoy är en
-          kanalhanterare — tillval, teamvyer och gästflöden ingår inte. Jämförelsen bygger på
-          publika funktionslistor, juli 2026.
+          *BookSpot riktar sig till större aktivitetsbolag med pris efter volym. **Sirvoy är
+          kanalhanteraren — StayBoost ersätter den inte. iCal är bara datum, inte
+          kanalhantering. Jämförelsen bygger på publika funktionslistor, juli 2026.
         </p>
       </div>
     </section>

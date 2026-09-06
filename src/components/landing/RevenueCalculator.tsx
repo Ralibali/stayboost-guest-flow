@@ -114,17 +114,17 @@ export function RevenueCalculator() {
             </p>
             <p className="mt-3 text-white/80">
               + cirka <strong className="text-white">5 timmar i veckan</strong> i sparad drifttid —
-              frukostlistor, städinstruktioner och gästfrågor som sköter sig själva.
+              kalkylantagande från Bergs, inte en garanti.
             </p>
             <p className="mt-4 text-[0.8rem] leading-relaxed text-white/50">
-              Baserat på att 15–25 % av gästerna bokar tillval för i snitt 200 kr. Konservativt
-              räknat med 20 %.
+              Kalkylatorn räknar med att 15–25 % av gästerna bokar tillval för i snitt 200 kr —
+              observerat på Bergs, inte ett löfte. Konservativt räknat med 20 %.
             </p>
           </div>
         </motion.div>
 
         <div className="mx-auto mt-8 max-w-md">
-          <SignupCta location="calculator" variant="dark" buttonLabel="Börja räkna hem det →" />
+          <SignupCta location="calculator" variant="dark" />
         </div>
       </div>
 

@@ -91,7 +91,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const faqItems = [
       [
         "Fungerar det med Sirvoy och Booking.com?",
-        "Ja. StayBoost hämtar dina bokningar automatiskt. Har du ett annat system kan du lägga in bokningar manuellt på under en minut.",
+        "Sirvoy är channel manager. StayBoost körs parallellt — gästflöde efter bokning. iCal är bara datum. StayBoost hämtar inte Booking.com automatiskt.",
       ],
       [
         "Behöver mina gäster ladda ner en app?",
@@ -99,7 +99,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
       [
         "Hur lång tid tar det att komma igång?",
-        "En kväll. Koppla bokningarna, välj bland färdiga mallar, klart. De flesta skickar sitt första automatiska meddelande samma dag.",
+        'Titta på /produkten — det är exempeldata. Ingen cutover. Sirvoy är kvar. "En kväll" är inte ett driftpåstående.',
       ],
       [
         "Vad händer om en gäst svarar på ett sms?",
@@ -123,7 +123,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
       [
         "Vi använder inte Sirvoy — funkar det ändå?",
-        "Ja. Booking.com och manuell inmatning stöds, och fler kopplingar är på väg. Säg till vilken du behöver.",
+        "CORE är dogfoodad bredvid Sirvoy. Andra setupar är ett samtal, inte ett påstående. Vi säljer inte Booking.com utan Sirvoy.",
       ],
     ];
 
@@ -145,7 +145,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         {
           name: "description",
           content:
-            "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system. 449 kr/mån, igång på en kväll.",
+            "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system. 449 kr/mån. Titta på /produkten — exempeldata.",
         },
         {
           property: "og:title",

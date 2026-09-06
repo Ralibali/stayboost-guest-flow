@@ -1,8 +1,8 @@
 const ITEMS = [
   {
     icon: "🔗",
-    title: "Sirvoy & Booking.com-import",
-    body: "Bokningar, gäster, telefonnummer och tillval läses in korrekt — även krångliga flertältsbokningar.",
+    title: "Sirvoy-koppling",
+    body: "StayBoost körs parallellt med Sirvoy — gästflöde efter bokning. iCal är bara datum. Booking.com hämtas inte automatiskt.",
   },
   {
     icon: "💳",

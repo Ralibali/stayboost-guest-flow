@@ -19,7 +19,8 @@ export function HeroProofBadge() {
         <span className="font-medium text-white">
           {formatSek(stats.paidAddonRevenueSek)} i tillval
         </span>{" "}
-        på {formatInt(stats.bookings2026)} bokningar — Sirvoy-export + StayBoost-drift 2026
+        på {formatInt(stats.bookings2026)} bokningar — Sirvoy-export (marknadsfall) +
+        stayboost-stats · Bergs
       </span>
       <span aria-hidden className="shrink-0 transition-transform group-hover:translate-x-0.5">
         →

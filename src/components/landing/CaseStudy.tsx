@@ -26,8 +26,8 @@ function StatCard({ value, label }: { value: string; label: string }) {
 function StatusPill({ source }: { source: StatsSource }) {
   const label =
     source === "combined"
-      ? "Sirvoy-export + StayBoost-drift · Bergs Slussar Glamping"
-      : "Verifierad bokningsexport · Bergs Slussar Glamping";
+      ? "Sirvoy-export (marknadsfall) + stayboost-stats (live) · Bergs"
+      : "Sirvoy-export · marknadsfall · Bergs";
   return (
     <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--brass)]/40 bg-[color:var(--brass)]/10 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[color:var(--brass)]">
       <span
@@ -114,8 +114,8 @@ export function CaseStudy() {
           </div>
           <p className="mt-5 max-w-2xl text-[color:var(--ink)]/75">
             StayBoost är byggt ovanpå en befintlig glampingverksamhet vid Göta kanal. Siffrorna
-            nedan är verklig drift — samma system, samma gäster, samma säsong. Inget påhittat, inga
-            marknadsföringsantaganden.
+            beskriver Bergs — inte ett löfte för andra boenden. Marknadsfallet är Sirvoy-exportens
+            summering. Live-siffror kommer från stayboost-stats-API:t. Det är två olika flöden.
           </p>
         </div>
 

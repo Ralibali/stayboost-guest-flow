@@ -106,12 +106,11 @@ function Header() {
           </Link>
         </nav>
         <Link
-          to="/app/login"
-          search={{ mode: "up" }}
+          to="/produkten"
           className="btn-primary shrink-0"
           style={{ padding: "9px 16px", fontSize: "0.85rem" }}
         >
-          Kom igång
+          Öppna produktdemon
         </Link>
       </div>
     </header>
@@ -180,10 +179,10 @@ function Hero() {
             {BRAND_NAME} lägger sig ovanpå bokningarna du redan har — egen provisionsfri
             bokningsmotor, automatiserad merförsäljning, gäst-sms, digital incheckning och
             arbetsvyer för frukost och städning. Ett lager driftautomation för små boenden. Utan
-            app. Igång på en kväll.
+            app. Titta på /produkten — exempeldata. Sirvoy är kvar.
           </p>
           <div className="mt-6 max-w-md sm:mt-8">
-            <SignupCta location="hero" variant="dark" buttonLabel="Kom igång" />
+            <SignupCta location="hero" variant="dark" />
           </div>
           <p className="mt-3 text-[0.8rem] text-white/70 sm:mt-4 sm:text-[0.85rem]">
             <a
@@ -300,7 +299,7 @@ function HowItWorks() {
     {
       n: 1,
       title: "Koppla dina bokningar",
-      body: "Fungerar med Sirvoy, Booking.com och manuell inmatning. Fem minuter, klart.",
+      body: "StayBoost körs parallellt med Sirvoy — gästflöde efter bokning. iCal är bara datum. Booking.com hämtas inte automatiskt.",
     },
     {
       n: 2,
@@ -322,7 +321,7 @@ function HowItWorks() {
         <div className="max-w-2xl">
           <p className="eyebrow">Tre steg</p>
           <h2 className="mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
-            Igång på en kväll. På riktigt.
+            Titta på /produkten först.
           </h2>
         </div>
 
@@ -356,13 +355,13 @@ function Features() {
     {
       title: "Rätt ord, rätt sekund — utan att du lyfter ett finger.",
       body: "Välkomstinfo två dagar före ankomst, portkod på incheckningsdagen, tips på middagsställen kväll ett, omdömesfråga dagen efter utcheckning. Allt tajmat mot bokningen, automatiskt.",
-      fact: "Sparar i snitt 5 timmar per vecka.",
+      fact: "Räknar med ca 5 timmar per vecka — observerat på Bergs, inte en garanti.",
       mock: <TimelineMock />,
     },
     {
       title: "Din meny av extraintäkter.",
       body: "Frukost, sen utcheckning, SUP-uthyrning, fikapåse, tidig incheckning — även från lokala partners som du tar provision på. StayBoost erbjuder rätt tillval vid rätt tidpunkt, gästen betalar med ett tryck.",
-      fact: "15–25 % av gästerna tackar ja.",
+      fact: "Kalkylatorn räknar med 15–25 % — observerat på Bergs, inte ett löfte.",
       mock: <AddonsMock />,
     },
     {
@@ -634,7 +633,7 @@ function Pricing() {
                 "Tillvalsmarknadsplats — sälj lokala partners upplevelser mot provision",
                 "Gästhubb + digital incheckning",
                 "Frukost- och städvyer med rollinloggning",
-                "Sirvoy- & Booking.com-koppling",
+                "Sirvoy-koppling (Booking.com via Sirvoy)",
                 "Svensk support",
                 "Ingen startavgift, ingen bindningstid",
               ].map((f) => (
@@ -648,7 +647,7 @@ function Pricing() {
             </ul>
 
             <div className="mt-8">
-              <SignupCta location="pricing" buttonLabel="Kom igång" />
+              <SignupCta location="pricing" />
             </div>
             <p className="mt-4 text-center text-xs text-[color:var(--ink)]/55">
               Betalar det inte för sig själv första månaden gör det inte sitt jobb.
@@ -675,7 +674,7 @@ function FinalCTA() {
         </FadeUp>
         <FadeUp delay={0.1}>
           <div className="mx-auto mt-8 max-w-md">
-            <SignupCta location="final" variant="dark" buttonLabel="Skapa konto — kom igång" />
+            <SignupCta location="final" variant="dark" />
           </div>
         </FadeUp>
       </div>
@@ -709,6 +708,11 @@ function Footer() {
               </a>
             </li>
             <li>
+              <Link to="/produkten" className="font-semibold text-white hover:text-white">
+                Öppna produktdemon
+              </Link>
+            </li>
+            <li>
               <a href="#mallar" className="hover:text-white">
                 Gratis mallar
               </a>
@@ -722,6 +726,11 @@ function Footer() {
               <a href="#faq" className="hover:text-white">
                 FAQ
               </a>
+            </li>
+            <li>
+              <Link to="/app/login" className="hover:text-white">
+                Logga in
+              </Link>
             </li>
             <li>
               <a href="/integritetspolicy" className="hover:text-white">
