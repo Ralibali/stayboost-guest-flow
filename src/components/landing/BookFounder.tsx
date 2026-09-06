@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
+import { ANALYTICS_CTAS, ANALYTICS_SURFACES, trackCtaClicked } from "@/lib/analytics";
 
 // Sätt VITE_PUBLIC_BOOKING_URL (Cal.com / SavvyCal / SimplyBook) för att bädda in kalendern;
 // utan den visas mejl-fallbacken nedan.
@@ -10,10 +11,6 @@ const BOOKING_URL =
   "";
 
 const CONTACT_EMAIL = "info@auroramedia.se";
-
-type PlausibleWin = {
-  plausible?: (e: string, opts?: { props?: Record<string, string> }) => void;
-};
 
 export function BookFounder() {
   const [booked, setBooked] = useState(false);
@@ -38,10 +35,6 @@ export function BookFounder() {
 
       if (isSuccess) {
         setBooked(true);
-        const w = window as unknown as PlausibleWin;
-        w.plausible?.("Founder Call Booked", {
-          props: { source: "embed" },
-        });
       }
     }
     window.addEventListener("message", onMessage);
@@ -93,6 +86,13 @@ export function BookFounder() {
               <Link
                 to="/produkten"
                 className="underline decoration-[color:var(--ink)]/30 underline-offset-2 hover:text-[color:var(--ink)]"
+                onClick={() =>
+                  trackCtaClicked({
+                    surface: ANALYTICS_SURFACES.LANDING,
+                    cta: ANALYTICS_CTAS.OPPN_A_PRODUKTDEMON,
+                    location: "founder",
+                  })
+                }
               >
                 Öppna produktdemon
               </Link>

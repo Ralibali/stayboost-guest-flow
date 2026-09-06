@@ -2,6 +2,12 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { z } from "zod";
 import { useServerFn } from "@tanstack/react-start";
+import {
+  ANALYTICS_FORMS,
+  ANALYTICS_SURFACES,
+  trackFormStarted,
+  trackFormSubmitted,
+} from "@/lib/analytics";
 import { subscribe } from "@/lib/subscribe.functions";
 
 const schema = z.object({
@@ -14,8 +20,16 @@ export function LeadMagnet() {
   const [state, setState] = useState<"idle" | "loading" | "ok" | "error">("idle");
   const call = useServerFn(subscribe);
 
+  const markFormStarted = () => {
+    trackFormStarted({
+      form: ANALYTICS_FORMS.FREE_TEMPLATES,
+      surface: ANALYTICS_SURFACES.LANDING,
+    });
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
+    markFormStarted();
     const parsed = schema.safeParse({ email });
     if (!parsed.success) {
       setError(parsed.error.issues[0]?.message ?? "Ogiltig e-post");
@@ -27,10 +41,10 @@ export function LeadMagnet() {
       const res = await call({ data: { email: parsed.data.email, source: "sms-mallar" } });
       if (res.ok) {
         setState("ok");
-        if (typeof window !== "undefined") {
-          const w = window as unknown as { plausible?: (e: string) => void };
-          w.plausible?.("Lead Magnet Download");
-        }
+        trackFormSubmitted({
+          form: ANALYTICS_FORMS.FREE_TEMPLATES,
+          surface: ANALYTICS_SURFACES.LANDING,
+        });
       } else {
         setState("error");
         setError("Något gick fel — försök igen.");
@@ -69,7 +83,11 @@ export function LeadMagnet() {
               required
               autoComplete="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onFocus={markFormStarted}
+              onChange={(e) => {
+                markFormStarted();
+                setEmail(e.target.value);
+              }}
               placeholder="din@epost.se"
               className="flex-1 rounded-xl border border-[color:var(--line)] bg-white px-4 py-3 text-base outline-none focus:border-[color:var(--brass)]"
               aria-invalid={!!error}
