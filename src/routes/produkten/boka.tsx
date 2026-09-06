@@ -217,9 +217,7 @@ function BookingFlow() {
       )}
 
       <div
-        className={
-          step < 4 ? "grid gap-6 pb-24 lg:grid-cols-[minmax(0,1fr)_340px] lg:pb-0" : ""
-        }
+        className={step < 4 ? "grid gap-6 pb-24 lg:grid-cols-[minmax(0,1fr)_340px] lg:pb-0" : ""}
       >
         {/* ---------- Vänster: steg ---------- */}
         <div className="min-w-0">
@@ -394,7 +392,6 @@ function BookingFlow() {
                           )}
                         </div>
                       </button>
-
                     );
                   })}
                 </div>

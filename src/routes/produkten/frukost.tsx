@@ -44,8 +44,7 @@ function BreakfastView() {
   const totalPortions = BREAKFAST.reduce((s, b) => s + b.portions, 0);
   const allergyCount = BREAKFAST.filter((b) => b.allergies.length > 0).length;
   const delivered = Object.values(statuses).filter((s) => s === "levererad").length;
-  const progress =
-    BREAKFAST.length === 0 ? 0 : Math.round((delivered / BREAKFAST.length) * 100);
+  const progress = BREAKFAST.length === 0 ? 0 : Math.round((delivered / BREAKFAST.length) * 100);
 
   const specialKost = useMemo(() => {
     const byCombo = new Map<string, number>();

@@ -1,2 +1,1 @@
-export const DEMO_TRUST_LINE =
-  "Förhandsvisning — exempeldata. Inget bokas eller debiteras.";
+export const DEMO_TRUST_LINE = "Förhandsvisning — exempeldata. Inget bokas eller debiteras.";

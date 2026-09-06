@@ -119,7 +119,8 @@ function AdminDashboard() {
       </motion.div>
 
       <p className="mt-4 max-w-2xl text-[13px] leading-relaxed text-[color:var(--ink)]/65">
-        Julikorten och graferna nedan är en <strong className="font-semibold text-[color:var(--ink)]">demoillustration</strong> med
+        Julikorten och graferna nedan är en{" "}
+        <strong className="font-semibold text-[color:var(--ink)]">demoillustration</strong> med
         exempeldata — inte livesiffror och inte samma feed som Bergs case study på startsidan.
       </p>
 
