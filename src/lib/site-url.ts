@@ -3,6 +3,9 @@ export const CANONICAL_ORIGIN = "https://stayboost.se";
 
 export const LEGAL_PATHS = ["/integritetspolicy", "/villkor", "/cookies", "/dpa"] as const;
 
+/** Sales page. Not in the live sitemap until stayboost.se actually serves it. */
+export const SALES_PATHS = ["/tidiga-kunder"] as const;
+
 export type LegalPath = (typeof LEGAL_PATHS)[number];
 
 export function isLovablePreviewHost(hostname: string): boolean {
