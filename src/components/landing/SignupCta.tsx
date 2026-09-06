@@ -33,7 +33,11 @@ export function SignupCta({
 
   return (
     <div className={className}>
-      <Link to="/produkten" onClick={track} className="btn-primary inline-flex w-full justify-center sm:w-auto">
+      <Link
+        to="/produkten"
+        onClick={track}
+        className="btn-primary inline-flex w-full justify-center sm:w-auto"
+      >
         {buttonLabel}
       </Link>
       <p className={`mt-2 text-xs ${dark ? "text-white/60" : "text-[color:var(--ink)]/55"}`}>

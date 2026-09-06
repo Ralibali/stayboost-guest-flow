@@ -47,7 +47,7 @@ function CheckIn() {
   };
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto min-w-0 max-w-md overflow-x-clip">
       {/* Stegindikator */}
       <div className="mb-8 flex items-center gap-2">
         {steps.map((s, i) => (
@@ -122,7 +122,10 @@ function CheckIn() {
               </Field>
             </div>
 
-            <button onClick={() => setStep(1)} className="btn-primary mt-6 w-full !rounded-2xl">
+            <button
+              onClick={() => setStep(1)}
+              className="btn-primary mt-6 min-h-11 w-full !rounded-2xl"
+            >
               Fortsätt <ArrowRight size={17} />
             </button>
           </motion.div>
@@ -168,13 +171,13 @@ function CheckIn() {
             </div>
 
             <div className="mt-6 flex gap-3">
-              <button onClick={() => setStep(0)} className="btn-ghost !rounded-2xl">
+              <button onClick={() => setStep(0)} className="btn-ghost min-h-11 !rounded-2xl">
                 <ArrowLeft size={17} />
               </button>
               <button
                 onClick={() => setStep(2)}
                 disabled={!accepted}
-                className="btn-primary flex-1 !rounded-2xl disabled:cursor-not-allowed disabled:opacity-40"
+                className="btn-primary min-h-11 flex-1 !rounded-2xl disabled:cursor-not-allowed disabled:opacity-40"
               >
                 <ShieldCheck size={17} /> Checka in
               </button>

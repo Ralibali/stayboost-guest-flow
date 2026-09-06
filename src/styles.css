@@ -209,6 +209,15 @@
   display: none;
 }
 
+@utility demo-touch {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@utility demo-safe-bottom {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0px));
+}
+
 /* Operatörs-UI: formulärfält */
 .inp {
   width: 100%;

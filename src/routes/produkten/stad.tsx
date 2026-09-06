@@ -13,6 +13,7 @@ import {
   TriangleAlert,
 } from "lucide-react";
 import { CLEANING, fmtTime, unitOf } from "@/lib/demo-data";
+import { DemoEmptyState } from "@/components/produkten/DemoEmptyState";
 
 export const Route = createFileRoute("/produkten/stad")({
   component: CleaningView,
@@ -76,7 +77,7 @@ function CleaningView() {
     );
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto min-w-0 max-w-3xl overflow-x-clip">
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -109,7 +110,7 @@ function CleaningView() {
             <button
               key={f.key}
               onClick={() => setFilter(f.key)}
-              className={`rounded-full px-3.5 py-1.5 text-[12px] font-semibold transition ${
+              className={`inline-flex min-h-11 items-center rounded-full px-3.5 text-[12px] font-semibold transition ${
                 filter === f.key
                   ? "bg-[color:var(--forest)] text-white"
                   : "border border-[color:var(--line)] bg-white text-[color:var(--ink)]/60 hover:text-[color:var(--ink)]"
@@ -148,6 +149,18 @@ function CleaningView() {
       </AnimatePresence>
 
       <div className="mt-6 space-y-5">
+        {visible.length === 0 && (
+          <DemoEmptyState
+            title={
+              tasks.length === 0 ? "Inga enheter att städa just nu" : "Inga enheter i den här vyn"
+            }
+            body={
+              tasks.length === 0
+                ? "När det finns avresor eller påsläpp dyker de upp här med checklista och tidsfönster."
+                : "Byt filter ovan — det kan finnas enheter som väntar, pågår eller redan är klara."
+            }
+          />
+        )}
         {visible.map((t, i) => {
           const unit = unitOf(t.unitId);
           const done = t.checklist.filter((c) => c.done).length;
@@ -191,12 +204,12 @@ function CleaningView() {
 
                 {/* Statusknappar + tidsstämpel */}
                 <div className="flex flex-col items-end gap-1">
-                  <div className="flex rounded-full border border-[color:var(--line)] bg-[color:var(--bg)] p-1 text-[12px] font-semibold">
+                  <div className="flex flex-wrap rounded-full border border-[color:var(--line)] bg-[color:var(--bg)] p-1 text-[12px] font-semibold">
                     {(["väntar", "pågår", "klar"] as const).map((s) => (
                       <button
                         key={s}
                         onClick={() => setStatus(t.id, s)}
-                        className={`rounded-full px-3.5 py-1.5 capitalize transition ${
+                        className={`inline-flex min-h-11 items-center rounded-full px-3.5 capitalize transition ${
                           t.status === s
                             ? s === "klar"
                               ? "bg-emerald-600 text-white"

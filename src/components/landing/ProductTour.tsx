@@ -176,12 +176,7 @@ function GuestHubDemo() {
           <div className="text-xs text-[color:var(--ink)]/60">Sjöbris · 12–14 juli · 2 nätter</div>
         </div>
 
-        <Stepper
-          label="Frukost"
-          price="209 kr/person"
-          value={breakfast}
-          onChange={setBreakfast}
-        />
+        <Stepper label="Frukost" price="209 kr/person" value={breakfast} onChange={setBreakfast} />
         <Stepper
           label="Sen utcheckning (till kl 12.00)"
           price="399 kr"

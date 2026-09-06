@@ -48,6 +48,7 @@ import {
 } from "@/lib/booking-data";
 import { BUNDLES, REBOOKING_GUARANTEE, REDEEMABLE, type Bundle } from "@/lib/upsell-data";
 import { MonthGrid } from "@/components/produkten/MonthGrid";
+import { DEMO_SAFE_AREA_BOTTOM, demoMobileContinueLabel } from "@/components/produkten/demo-copy";
 
 export const Route = createFileRoute("/produkten/boka")({
   component: BookingFlow,
@@ -176,9 +177,9 @@ function BookingFlow() {
   const stepHint =
     step === 0
       ? !checkIn
-        ? "Välj incheckningsdatum i kalendern"
+        ? "Nästa steg: klicka på incheckningsdatum i kalendern"
         : !checkOut
-          ? "Välj utcheckningsdatum"
+          ? "Nästa steg: klicka på utcheckningsdatum"
           : `${nights} ${nights === 1 ? "natt vald" : "nätter valda"}`
       : step === 1
         ? "Välj ett boende ovan"
@@ -186,8 +187,12 @@ function BookingFlow() {
           ? "Fyll i namn, mejl och mobilnummer"
           : "Lägg till tillval — eller fortsätt direkt";
 
+  const dateNextStep = !checkIn
+    ? "Klicka på ankomstdagen i kalendern. Därefter utcheckning — Fortsätt aktiveras när båda datumen är valda."
+    : "Klicka på utcheckningsdatum. Fortsätt aktiveras när vistelsen har både in- och utcheckning.";
+
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto min-w-0 max-w-5xl overflow-x-clip">
       {/* Stegindikator */}
       {step < 4 && (
         <div className="mb-8">
@@ -212,11 +217,7 @@ function BookingFlow() {
         </div>
       )}
 
-      <div
-        className={
-          step < 4 ? "grid gap-6 pb-24 lg:grid-cols-[minmax(0,1fr)_340px] lg:pb-0" : ""
-        }
-      >
+      <div className={step < 4 ? "grid gap-6 pb-8 lg:grid-cols-[minmax(0,1fr)_340px] lg:pb-0" : ""}>
         {/* ---------- Vänster: steg ---------- */}
         <div className="min-w-0">
           <AnimatePresence mode="wait">
@@ -229,22 +230,27 @@ function BookingFlow() {
                   sub="Priserna i kalendern är lägsta nattpris. Helgerna bokas först."
                 />
                 <div className="card-surface mt-6 p-4 sm:p-6">
-                  <div className="mb-4 flex items-center justify-between">
+                  <div className="mb-4 flex items-center justify-between gap-2">
                     <button
                       onClick={() => setMonthOffset((m) => Math.max(0, m - 1))}
                       disabled={monthOffset === 0}
-                      className="grid h-9 w-9 place-items-center rounded-full border border-[color:var(--line)] transition hover:bg-[color:var(--bg)] disabled:opacity-30"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[color:var(--line)] transition hover:bg-[color:var(--bg)] disabled:opacity-30"
                       aria-label="Föregående månad"
                     >
                       <ChevronLeft size={17} />
                     </button>
-                    <div className="flex items-center gap-2 text-[14px] font-semibold">
-                      <CalendarDays size={16} className="text-[color:var(--brass)]" />
-                      {monthName(today, monthOffset)} — {monthName(today, monthOffset + 1)}
+                    <div className="flex min-w-0 flex-1 items-center justify-center gap-2 text-center text-[13px] font-semibold leading-snug sm:text-[14px]">
+                      <CalendarDays
+                        size={16}
+                        className="hidden shrink-0 text-[color:var(--brass)] sm:block"
+                      />
+                      <span className="min-w-0">
+                        {monthName(today, monthOffset)} — {monthName(today, monthOffset + 1)}
+                      </span>
                     </div>
                     <button
                       onClick={() => setMonthOffset((m) => Math.min(2, m + 1))}
-                      className="grid h-9 w-9 place-items-center rounded-full border border-[color:var(--line)] transition hover:bg-[color:var(--bg)]"
+                      className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-[color:var(--line)] transition hover:bg-[color:var(--bg)]"
                       aria-label="Nästa månad"
                     >
                       <ChevronRight size={17} />
@@ -299,12 +305,16 @@ function BookingFlow() {
                           {nights === 1 ? "natt" : "nätter"}
                         </span>
                       ) : (
-                        <span className="text-[color:var(--ink)]/50">
-                          Välj inchecknings- och utcheckningsdatum
-                        </span>
+                        <span className="font-medium text-[color:var(--ink)]/75">{stepHint}</span>
                       )}
                     </div>
                   </div>
+                  {nights === 0 && (
+                    <div className="mt-4 rounded-2xl border border-dashed border-[color:var(--line)] bg-[color:var(--bg)]/80 px-4 py-3 text-[13px] leading-relaxed text-[color:var(--ink)]/70">
+                      <p className="font-semibold text-[color:var(--ink)]">{stepHint}</p>
+                      <p className="mt-1">{dateNextStep}</p>
+                    </div>
+                  )}
                 </div>
               </StepShell>
             )}
@@ -386,7 +396,6 @@ function BookingFlow() {
                           )}
                         </div>
                       </button>
-
                     );
                   })}
                 </div>
@@ -471,7 +480,7 @@ function BookingFlow() {
                   ];
                   return (
                     <>
-                      <div className="scrollbar-none -mx-1 mt-5 flex gap-2 overflow-x-auto px-1 pb-1">
+                      <div className="scrollbar-none -mx-1 mt-5 flex gap-2 overflow-x-auto overscroll-x-contain px-1 pb-1">
                         {tabs.map((g) => {
                           const n =
                             g.id === "alla"
@@ -481,7 +490,7 @@ function BookingFlow() {
                             <button
                               key={g.id}
                               onClick={() => setAddonGroup(g.id)}
-                              className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-medium transition ${
+                              className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium whitespace-nowrap transition ${
                                 addonGroup === g.id
                                   ? "bg-[color:var(--forest)] text-white shadow-sm"
                                   : "bg-[color:var(--line)]/40 text-[color:var(--ink)]/60 hover:bg-[color:var(--line)]/70"
@@ -924,10 +933,20 @@ function BookingFlow() {
                   disabled={!canNext}
                   className="btn-primary flex-1 !rounded-2xl disabled:cursor-not-allowed disabled:opacity-40"
                 >
-                  {step === 2 ? "Till betalning" : "Fortsätt"} <ArrowRight size={17} />
+                  {canNext ? (
+                    <>
+                      {step === 2 ? "Till betalning" : "Fortsätt"} <ArrowRight size={17} />
+                    </>
+                  ) : (
+                    stepHint
+                  )}
                 </button>
               </div>
-              {!canNext && <p className="text-[13px] text-[color:var(--ink)]/50">{stepHint}</p>}
+              {!canNext && (
+                <p className="text-[13px] text-[color:var(--ink)]/65">
+                  {step === 0 ? dateNextStep : stepHint}
+                </p>
+              )}
             </div>
           )}
           {step === 3 && (
@@ -942,7 +961,7 @@ function BookingFlow() {
 
         {/* ---------- Höger: prissammanfattning ---------- */}
         {step < 4 && (
-          <aside className="lg:sticky lg:top-32 lg:self-start">
+          <aside className="lg:sticky lg:top-40 lg:self-start">
             <div className="card-surface p-5">
               <h2 className="flex items-center gap-2 font-sans text-[15px] font-bold">
                 <BedDouble size={16} className="text-[color:var(--brass)]" />
@@ -1004,11 +1023,20 @@ function BookingFlow() {
           </aside>
         )}
       </div>
-      {/* Luft under innehållet så den klistrade mobilraden inte täcker något */}
-      {step < 4 && <div aria-hidden className="h-24 lg:hidden" />}
+      {/* Luft under innehållet så den klistrade mobilraden + safe-area inte täcker något */}
+      {step < 4 && (
+        <div
+          aria-hidden
+          className="lg:hidden"
+          style={{ height: "calc(5.75rem + env(safe-area-inset-bottom, 0px))" }}
+        />
+      )}
       {/* Mobil: klistrad totalrad så priset alltid syns medan man väljer */}
       {step < 4 && (
-        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--line)] bg-white/92 px-4 py-3 backdrop-blur lg:hidden">
+        <div
+          className="fixed inset-x-0 bottom-0 z-40 border-t border-[color:var(--line)] bg-white/92 px-4 pt-3 backdrop-blur lg:hidden"
+          style={{ paddingBottom: DEMO_SAFE_AREA_BOTTOM }}
+        >
           <div className="mx-auto flex max-w-5xl items-center justify-between gap-3">
             <div className="min-w-0">
               {total > 0 ? (
@@ -1021,16 +1049,23 @@ function BookingFlow() {
                   </p>
                 </>
               ) : (
-                <p className="text-[13px] font-medium text-[color:var(--ink)]/60">{stepHint}</p>
+                <p className="text-[13px] leading-snug font-medium text-[color:var(--ink)]/60">
+                  {stepHint}
+                </p>
               )}
             </div>
             {step < 3 ? (
               <button
                 onClick={() => setStep((s) => s + 1)}
                 disabled={!canNext}
-                className="btn-primary shrink-0 !rounded-2xl !px-5 !py-3 text-[15px] disabled:cursor-not-allowed disabled:opacity-40"
+                className="btn-primary inline-flex min-h-11 shrink-0 !rounded-2xl !px-4 !py-2.5 text-[14px] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {step === 2 ? "Till betalning" : "Fortsätt"} <ArrowRight size={16} />
+                {demoMobileContinueLabel({
+                  canNext,
+                  step,
+                  hasCheckOut: Boolean(checkOut),
+                })}
+                {canNext && <ArrowRight size={16} />}
               </button>
             ) : (
               <span className="shrink-0 text-[12px] text-[color:var(--ink)]/50">inkl. moms</span>
@@ -1060,7 +1095,7 @@ function StepTitle({ eyebrow, title, sub }: { eyebrow: string; title: string; su
   return (
     <div>
       <p className="eyebrow">{eyebrow}</p>
-      <h1 className="mt-2 text-3xl">{title}</h1>
+      <h1 className="mt-2 text-[1.75rem] leading-tight sm:text-3xl">{title}</h1>
       <p className="mt-2 text-[15px] text-[color:var(--ink)]/65">{sub}</p>
     </div>
   );

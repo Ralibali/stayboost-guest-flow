@@ -230,10 +230,10 @@ export function CaseStudy() {
 
         <p className="mt-10 max-w-3xl text-xs leading-relaxed text-[color:var(--ink)]/55">
           Källa: komplett Sirvoy-bokningsexport från Bergs Slussar Glamping (323 rader: boende,
-          tillval och betalningar, exporterad 3 september 2026) summerad med StayBoosts egen drift
-          i samma anläggnings admin, som hämtas löpande. Ingen gäst-, personal- eller
-          betalningsdata visas. Siffrorna beskriver den här anläggningen och är inte ett löfte om
-          samma resultat för andra boenden.
+          tillval och betalningar, exporterad 3 september 2026) summerad med StayBoosts egen drift i
+          samma anläggnings admin, som hämtas löpande. Ingen gäst-, personal- eller betalningsdata
+          visas. Siffrorna beskriver den här anläggningen och är inte ett löfte om samma resultat
+          för andra boenden.
         </p>
       </div>
     </section>

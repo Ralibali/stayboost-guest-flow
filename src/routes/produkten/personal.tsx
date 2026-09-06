@@ -19,6 +19,7 @@ import {
   staffById,
   type StaffMember,
 } from "@/lib/staff-data";
+import { DemoEmptyState } from "@/components/produkten/DemoEmptyState";
 
 export const Route = createFileRoute("/produkten/personal")({
   component: StaffView,
@@ -77,6 +78,12 @@ function StaffView() {
         </p>
 
         <div className="mt-5 space-y-3">
+          {CLEANING.length === 0 && (
+            <DemoEmptyState
+              title="Inga städuppgifter att tilldela"
+              body="När det finns enheter att städa kan du koppla rätt person här — uppdateras direkt i Städvyn."
+            />
+          )}
           {CLEANING.map((t) => {
             const key = `stad-${t.unitId}`;
             const unit = unitOf(t.unitId);

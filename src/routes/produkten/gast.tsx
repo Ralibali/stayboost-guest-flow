@@ -78,7 +78,7 @@ function GuestHub() {
   };
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto min-w-0 max-w-md overflow-x-clip">
       {/* Gäst-kort */}
       <motion.div
         initial={{ opacity: 0, y: 16 }}
@@ -108,14 +108,14 @@ function GuestHub() {
         </div>
 
         {/* Incheckningsstatus */}
-        <div className="flex items-center justify-between bg-[color:var(--brass)] px-6 py-3.5">
-          <div className="flex items-center gap-2.5 text-[14px] font-medium">
-            <Clock size={16} />
+        <div className="flex flex-col gap-2.5 bg-[color:var(--brass)] px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="flex min-w-0 items-center gap-2.5 text-[14px] leading-snug font-medium">
+            <Clock size={16} className="shrink-0" />
             Incheckning från {PROPERTY.checkInTime} i dag
           </div>
           <Link
             to="/produkten/incheckning"
-            className="flex items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[13px] font-semibold text-[color:var(--ink)] transition hover:bg-white/90"
+            className="inline-flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-full bg-white px-4 text-[13px] font-semibold text-[color:var(--ink)] transition hover:bg-white/90"
           >
             <LogIn size={14} />
             Checka in
@@ -160,7 +160,7 @@ function GuestHub() {
         </div>
 
         {/* Kategorifilter */}
-        <div className="scrollbar-none -mx-1 mt-4 flex gap-2 overflow-x-auto px-1 pb-1">
+        <div className="scrollbar-none -mx-1 mt-4 flex gap-2 overflow-x-auto overscroll-x-contain px-1 pb-1">
           {[
             { id: "alla" as const, label: "Alla", emoji: "✨" },
             { id: "mat" as const, label: ADDON_CATEGORY_LABELS.mat, emoji: "🧺" },
@@ -176,7 +176,7 @@ function GuestHub() {
               <button
                 key={g.id}
                 onClick={() => setGroup(g.id)}
-                className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-2 text-[13px] font-medium transition ${
+                className={`inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-medium whitespace-nowrap transition ${
                   group === g.id
                     ? "bg-[color:var(--forest)] text-white shadow-sm"
                     : "bg-[color:var(--line)]/40 text-[color:var(--ink)]/60 hover:bg-[color:var(--line)]/70"
@@ -318,11 +318,12 @@ function GuestHub() {
             initial={{ y: 90, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 90, opacity: 0 }}
-            className="fixed inset-x-4 bottom-4 z-40 mx-auto max-w-md"
+            className="fixed inset-x-4 z-40 mx-auto max-w-md"
+            style={{ bottom: "max(1rem, env(safe-area-inset-bottom, 0px))" }}
           >
             <button
               onClick={() => setPayOpen(true)}
-              className="flex w-full items-center justify-between rounded-2xl bg-[color:var(--brass)] px-5 py-4 text-white shadow-[0_16px_40px_rgba(176,141,62,0.45)] transition hover:brightness-105"
+              className="flex min-h-11 w-full items-center justify-between rounded-2xl bg-[color:var(--brass)] px-5 py-3.5 text-white shadow-[0_16px_40px_rgba(176,141,62,0.45)] transition hover:brightness-105"
             >
               <span className="flex items-center gap-2.5 font-semibold">
                 <ShoppingBag size={18} />
@@ -350,7 +351,7 @@ function GuestHub() {
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
               transition={{ type: "spring", damping: 30, stiffness: 300 }}
-              className="fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-[28px] bg-white p-6 pb-8 shadow-2xl"
+              className="demo-safe-bottom fixed inset-x-0 bottom-0 z-50 mx-auto max-w-md rounded-t-[28px] bg-white p-6 shadow-2xl"
             >
               <div className="mx-auto mb-5 h-1.5 w-12 rounded-full bg-[color:var(--line)]" />
               <h3 className="text-xl">Bekräfta tillval</h3>

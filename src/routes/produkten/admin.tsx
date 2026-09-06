@@ -48,6 +48,7 @@ import {
   type AddonCategory,
 } from "@/lib/demo-data";
 import { GIFT_CARDS, getSessionGiftCards } from "@/lib/upsell-data";
+import { DemoEmptyState } from "@/components/produkten/DemoEmptyState";
 
 export const Route = createFileRoute("/produkten/admin")({
   component: AdminDashboard,
@@ -93,7 +94,7 @@ function AdminDashboard() {
   const maxSold = topSellers[0]?.soldThisMonth ?? 1;
 
   return (
-    <div>
+    <div className="min-w-0 overflow-x-clip">
       {/* Titel */}
       <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}>
         <div className="flex flex-wrap items-end justify-between gap-4">
@@ -105,24 +106,26 @@ function AdminDashboard() {
           <div className="flex flex-wrap items-center gap-2.5">
             <Link
               to="/produkten/bokningar"
-              className="flex items-center gap-2 rounded-full bg-[color:var(--forest)] px-4 py-2 text-[13px] font-semibold text-white transition hover:brightness-110"
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-[color:var(--forest)] px-4 text-[13px] font-semibold text-white transition hover:brightness-110"
             >
               <CalendarRange size={15} />
               Kalender & bokningar
             </Link>
-            <span className="flex items-center gap-2 rounded-full bg-emerald-100 px-4 py-2 text-[13px] font-semibold text-emerald-800">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute h-full w-full animate-ping rounded-full bg-emerald-500 opacity-70" />
-                <span className="h-2 w-2 rounded-full bg-emerald-600" />
-              </span>
-              Live — uppdateras i realtid
+            <span className="inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-50 px-4 text-[13px] font-semibold text-amber-900 ring-1 ring-amber-200">
+              Demoillustration — exempeldata
             </span>
           </div>
         </div>
       </motion.div>
 
+      <p className="mt-4 max-w-2xl text-[13px] leading-relaxed text-[color:var(--ink)]/65">
+        Julikorten och graferna nedan är en{" "}
+        <strong className="font-semibold text-[color:var(--ink)]">demoillustration</strong> med
+        exempeldata — inte livesiffror och inte samma feed som Bergs case study på startsidan.
+      </p>
+
       {/* KPI:er */}
-      <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi
           icon={Banknote}
           label="Merförsäljning i juli"
@@ -242,7 +245,7 @@ function AdminDashboard() {
           className="card-surface flex flex-col p-6 lg:col-span-2"
         >
           <h2 className="font-sans text-[17px] font-bold">Orderflöde</h2>
-          <p className="text-[13px] text-[color:var(--ink)]/55">Betalningar i realtid</p>
+          <p className="text-[13px] text-[color:var(--ink)]/55">Exempel på inkomna ordrar</p>
           <div className="mt-4 flex-1 space-y-3 overflow-y-auto">
             {ORDERS.map((o) => {
               const a = addonById[o.addonId];
@@ -285,6 +288,12 @@ function AdminDashboard() {
             <ArrowUpRight size={18} className="text-[color:var(--success)]" /> Ankomster i dag
           </h2>
           <div className="mt-4 space-y-3">
+            {arrivalsToday.length === 0 && (
+              <DemoEmptyState
+                title="Inga ankomster just nu"
+                body="När gäster checkar in syns de här. I den här demon är listan exempeldata."
+              />
+            )}
             {arrivalsToday.map((g) => (
               <GuestRow
                 key={g.id}
@@ -305,6 +314,12 @@ function AdminDashboard() {
             <ArrowDownLeft size={18} className="text-[color:var(--brass)]" /> Avresor i dag
           </h2>
           <div className="mt-4 space-y-3">
+            {departuresToday.length === 0 && (
+              <DemoEmptyState
+                title="Inga avresor just nu"
+                body="Utcheckningar dyker upp här samma dag. I den här demon är listan exempeldata."
+              />
+            )}
             {departuresToday.map((g) => (
               <GuestRow
                 key={g.id}
@@ -335,14 +350,14 @@ function AdminDashboard() {
             </div>
             <button
               onClick={() => setModalOpen(true)}
-              className="btn-primary shrink-0 !rounded-xl !px-3.5 !py-2 text-[13px]"
+              className="btn-primary min-h-11 shrink-0 !rounded-xl !px-3.5 !py-2 text-[13px]"
             >
               <Plus size={15} /> Nytt tillval
             </button>
           </div>
 
           {/* Kategorifilter */}
-          <div className="scrollbar-none -mx-1 mt-4 flex gap-1.5 overflow-x-auto px-1 pb-1">
+          <div className="scrollbar-none -mx-1 mt-4 flex gap-1.5 overflow-x-auto overscroll-x-contain px-1 pb-1">
             {[
               { id: "alla" as const, label: "Alla" },
               ...(Object.keys(ADDON_CATEGORY_LABELS) as AddonCategory[]).map((c) => ({
@@ -356,7 +371,7 @@ function AdminDashboard() {
                 <button
                   key={g.id}
                   onClick={() => setAddonFilter(g.id)}
-                  className={`shrink-0 rounded-full px-3 py-1.5 text-[12px] font-medium transition ${
+                  className={`inline-flex min-h-11 shrink-0 items-center rounded-full px-3 text-[12px] font-medium whitespace-nowrap transition ${
                     addonFilter === g.id
                       ? "bg-[color:var(--forest)] text-white"
                       : "bg-[color:var(--bg)] text-[color:var(--ink)]/60 hover:bg-[color:var(--line)]/60"
@@ -823,10 +838,10 @@ function Kpi({
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      className={`card-surface p-5 ${accent ? "!border-[color:var(--brass)]/50 !bg-gradient-to-br !from-white !to-amber-50/60" : ""}`}
+      className={`card-surface min-w-0 p-4 sm:p-5 ${accent ? "!border-[color:var(--brass)]/50 !bg-gradient-to-br !from-white !to-amber-50/60" : ""}`}
     >
-      <div className="flex items-center gap-2 text-[12px] font-semibold uppercase tracking-wide text-[color:var(--ink)]/55">
-        <Icon size={14} className="text-[color:var(--brass)]" />
+      <div className="flex items-start gap-2 text-[11px] leading-snug font-semibold tracking-wide text-[color:var(--ink)]/55 uppercase sm:text-[12px]">
+        <Icon size={14} className="mt-0.5 shrink-0 text-[color:var(--brass)]" />
         {label}
       </div>
       <div className="mt-2 font-[Fraunces] text-[26px] font-semibold leading-none tabular-nums">

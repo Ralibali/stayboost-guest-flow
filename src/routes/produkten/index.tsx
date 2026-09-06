@@ -141,7 +141,7 @@ const CARDS = [
 
 function DemoIndex() {
   return (
-    <div>
+    <div className="min-w-0 overflow-x-clip">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -170,7 +170,7 @@ function DemoIndex() {
             >
               <Link
                 to={c.to}
-                className="card-surface group flex h-full flex-col p-7 transition hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(20,36,28,0.12)]"
+                className="card-surface group flex h-full min-w-0 min-h-11 flex-col p-6 sm:p-7 transition hover:-translate-y-1 hover:shadow-[0_18px_45px_rgba(20,36,28,0.12)]"
               >
                 <div className="flex items-center justify-between">
                   <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[color:var(--forest)] text-white">

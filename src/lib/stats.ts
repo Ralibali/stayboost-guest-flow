@@ -176,7 +176,6 @@ export const FALLBACK_STATS: StayBoostStats = mergeStats(
   STAYBOOST_LIVE_SNAPSHOT,
 );
 
-
 // ---------- Validation ----------
 
 function isFiniteNumber(v: unknown): v is number {
