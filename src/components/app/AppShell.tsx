@@ -3,6 +3,7 @@ import {
   BarChart3,
   CalendarDays,
   CalendarRange,
+  CheckCircle2,
   ChevronRight,
   ExternalLink,
   LayoutDashboard,
@@ -21,6 +22,7 @@ import { PlatformOwnerPanel } from "@/components/app/PlatformOwnerPanel";
 
 const NAV = [
   { to: "/app", label: "Översikt", icon: LayoutDashboard, group: "Drift" },
+  { to: "/app/arbete", label: "Städning & leveranser", icon: CheckCircle2, group: "Drift" },
   { to: "/app/idag", label: "Idag", icon: SunMedium, group: "Drift" },
   { to: "/app/bokningar", label: "Bokningar", icon: CalendarDays, group: "Drift" },
   { to: "/app/kalender", label: "Kalender", icon: CalendarRange, group: "Drift" },

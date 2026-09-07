@@ -213,12 +213,7 @@ export function classifyIcalHealth(
 /* ---------- Prisregler (datumstyrda) ---------- */
 
 export type RateRuleKind =
-  | "price_override"
-  | "price_multiplier"
-  | "min_stay"
-  | "closed"
-  | "no_arrival"
-  | "no_departure";
+  "price_override" | "price_multiplier" | "min_stay" | "closed" | "no_arrival" | "no_departure";
 
 export type RateRule = {
   id: string;
