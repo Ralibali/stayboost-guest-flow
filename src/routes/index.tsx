@@ -736,6 +736,9 @@ function Footer() {
         </div>
         <div className="text-sm">
           <div className="mb-3 font-semibold text-white">Länkar</div>
+          <a className="inline-block mb-3 underline hover:text-white" href="/blogg">
+            Blogg för små boenden
+          </a>
           <ul className="space-y-2">
             <li>
               <a href="#sa-funkar-det" className="hover:text-white">

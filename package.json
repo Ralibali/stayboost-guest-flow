@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "test": "vitest run",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "editorial:check": "node scripts/editorial-check.mjs",
+    "prebuild": "npm run editorial:check && node scripts/generate-editorial-sitemap.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
