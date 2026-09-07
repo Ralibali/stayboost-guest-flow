@@ -13,6 +13,10 @@ type Draft = {
   price: string;
   price_type: "per_booking" | "per_night";
   image_url: string;
+  internal_only: boolean;
+  available_from: string;
+  available_to: string;
+  max_quantity: number;
 };
 
 const EMPTY: Draft = {
@@ -21,6 +25,10 @@ const EMPTY: Draft = {
   price: "",
   price_type: "per_booking",
   image_url: "",
+  internal_only: false,
+  available_from: "",
+  available_to: "",
+  max_quantity: 20,
 };
 
 const fmtKr = (n: number) => `${n.toLocaleString("sv-SE")} kr`;
@@ -90,6 +98,21 @@ function AddonsPage() {
 
   const save = async () => {
     if (!supabase || !property || !draft.name.trim()) return;
+    if (
+      (draft.available_from || draft.available_to) &&
+      (!draft.available_from || !draft.available_to || draft.available_to < draft.available_from)
+    ) {
+      setActionError("Ange både start- och slutdatum i rätt ordning, eller lämna båda tomma.");
+      return;
+    }
+    if (
+      !Number.isInteger(draft.max_quantity) ||
+      draft.max_quantity < 1 ||
+      draft.max_quantity > 20
+    ) {
+      setActionError("Välj högst 1–20 stycken per bokning.");
+      return;
+    }
     setSaving(true);
     setActionError(null);
     const row = {
@@ -99,6 +122,10 @@ function AddonsPage() {
       price: Math.max(0, Math.round(Number(draft.price) || 0)),
       price_type: draft.price_type,
       image_url: draft.image_url.trim() || null,
+      internal_only: draft.internal_only,
+      available_from: draft.available_from || null,
+      available_to: draft.available_to || null,
+      max_quantity: draft.max_quantity,
     };
     const result = editingId
       ? await supabase.from("addons").update(row).eq("id", editingId)
@@ -120,6 +147,10 @@ function AddonsPage() {
       price: String(addon.price),
       price_type: addon.price_type,
       image_url: addon.image_url ?? "",
+      internal_only: addon.internal_only ?? false,
+      available_from: addon.available_from ?? "",
+      available_to: addon.available_to ?? "",
+      max_quantity: addon.max_quantity ?? 20,
     });
     setShowForm(true);
     setActionError(null);
@@ -232,6 +263,53 @@ function AddonsPage() {
               </select>
             </div>
 
+            <fieldset className="space-y-3 rounded-xl border p-4">
+              <legend className="px-1 text-sm font-semibold">När kan tillvalet bokas?</legend>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="text-sm">
+                  Tillgängligt från
+                  <input
+                    type="date"
+                    value={draft.available_from}
+                    onChange={(e) => setDraft({ ...draft, available_from: e.target.value })}
+                    className="inp mt-1"
+                  />
+                </label>
+                <label className="text-sm">
+                  Till och med
+                  <input
+                    type="date"
+                    value={draft.available_to}
+                    onChange={(e) => setDraft({ ...draft, available_to: e.target.value })}
+                    className="inp mt-1"
+                  />
+                </label>
+              </div>
+              <p className="text-xs text-[color:var(--ink)]/60">
+                Lämna datumen tomma för hela året. Tillvalet kan väljas när minst en natt i
+                vistelsen ligger inom perioden. Antal väljs per bokning.
+              </p>
+              <label className="block text-sm">
+                Högsta antal per bokning
+                <input
+                  type="number"
+                  min={1}
+                  max={20}
+                  step={1}
+                  value={draft.max_quantity}
+                  onChange={(e) => setDraft({ ...draft, max_quantity: Number(e.target.value) })}
+                  className="inp mt-1"
+                />
+              </label>
+              <label className="flex gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={draft.internal_only}
+                  onChange={(e) => setDraft({ ...draft, internal_only: e.target.checked })}
+                />
+                Endast internt — visas inte i gästens bokningsformulär
+              </label>
+            </fieldset>
             <div className="flex items-center gap-3">
               {draft.image_url ? (
                 <img
@@ -315,6 +393,10 @@ function AddonsPage() {
             )}
             <div className="min-w-0 flex-1">
               <p className="truncate text-[15px] font-semibold">{addon.name}</p>
+              <p className="text-xs text-[color:var(--ink)]/60">
+                {addon.internal_only ? "Endast internt · " : ""}Max {addon.max_quantity ?? 20} st
+                {addon.available_from ? ` · ${addon.available_from}–${addon.available_to}` : ""}
+              </p>
               {addon.description && (
                 <p className="mt-0.5 line-clamp-1 text-[13px] text-[color:var(--ink)]/55">
                   {addon.description}

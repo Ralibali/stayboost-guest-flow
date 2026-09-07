@@ -397,13 +397,14 @@ describe("Fas 1-migration mot Postgres", () => {
     const preDate = new Date(new Date(in10).getTime() - 2 * 86400000).toISOString().slice(0, 10);
     expect(new Date(pre.send_at).toISOString()).toBe(stockholmToUtc(preDate, "09:00"));
 
-    // Sen import: incheckning i dag → inga förfallna meddelanden spamas ut
-    const today = new Date().toISOString().slice(0, 10);
+    // Sen import: incheckning två dagar bakåt → båda ankomstutskicken har
+    // förfallit oavsett klockslag eller skillnaden mellan UTC och Stockholm.
+    const pastCheckin = addDays(-2);
     const in3 = new Date(Date.now() + 3 * 86400000).toISOString().slice(0, 10);
     const b2 = await db.query<{ id: string }>(
       `insert into bookings (property_id, unit_id, source, checkin_date, checkout_date)
        values ($1, $2, 'manual', $3, $4) returning id`,
-      [pid, uid, today, in3],
+      [pid, uid, pastCheckin, in3],
     );
     const msgs2 = await db.query<{ trigger_type: string }>(
       `select sm.template_id, mt.trigger_type from scheduled_messages sm

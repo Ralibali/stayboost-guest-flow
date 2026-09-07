@@ -49,6 +49,7 @@ function OnboardingPage() {
       .from("properties")
       .insert({
         owner_id: session.user.id,
+        booking_enabled: false,
         name: form.name.trim(),
         checkin_time: form.checkin_time,
         checkout_time: form.checkout_time,
@@ -95,7 +96,8 @@ function OnboardingPage() {
       <p className="eyebrow">Välkommen till StayBoost</p>
       <h1 className="mt-2 font-[Fraunces] text-3xl font-semibold">Berätta om din anläggning</h1>
       <p className="mt-2 text-[15px] text-[color:var(--ink)]/65">
-        Börja med grunderna. Bilder, priser, bäddar och faciliteter kan kompletteras direkt efteråt.
+        Börja med grunderna. Bokningsformuläret är pausat tills du har kontrollerat priser och
+        tillgänglighet och öppnar det under Inställningar.
       </p>
 
       <section className="card-surface mt-8 space-y-5 p-6">

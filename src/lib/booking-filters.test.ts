@@ -15,6 +15,8 @@ const mk = (over: Partial<Booking>): Booking => ({
   status: "confirmed",
   guest_token: "t".repeat(24),
   notes: null,
+  internal_notes: null,
+  stay_status: "expected",
   payment_status: "paid",
   payment_amount: 2400,
   payment_ref: "SB-ABC123",

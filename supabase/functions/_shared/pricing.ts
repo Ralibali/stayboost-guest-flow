@@ -35,6 +35,11 @@ const isoOf = (t: number) => new Date(t).toISOString().slice(0, 10);
 
 /** Alla nätter i [checkin, checkout) som ISO-datum. */
 export function nightsBetween(checkin: string, checkout: string): string[] {
+  const valid = (iso: string) =>
+    /^\d{4}-\d{2}-\d{2}$/.test(iso) &&
+    Number.isFinite(Date.parse(`${iso}T12:00:00Z`)) &&
+    new Date(`${iso}T12:00:00Z`).toISOString().slice(0, 10) === iso;
+  if (!valid(checkin) || !valid(checkout) || checkout <= checkin) return [];
   const { y, m, d } = parseIso(checkin);
   const out: string[] = [];
   for (let t = Date.UTC(y, m - 1, d); isoOf(t) < checkout; t += 86400000) {
@@ -101,4 +106,3 @@ export function quoteStay(
 export function rangesOverlap(aFrom: string, aTo: string, bFrom: string, bTo: string): boolean {
   return aFrom < bTo && bFrom < aTo;
 }
-

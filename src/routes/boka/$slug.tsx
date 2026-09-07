@@ -1,3 +1,6 @@
+import { SUPABASE_URL } from "@/lib/supabase-config";
+import { StaySearch } from "@/components/StaySearch";
+import { addonAvailableForStay } from "../../../supabase/functions/_shared/addons";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -24,6 +27,13 @@ import {
   type UnitPricing,
 } from "../../../supabase/functions/_shared/pricing";
 import { minStayFromRules, type RateRule } from "../../../supabase/functions/_shared/rate-rules";
+import {
+  bookingLanguage,
+  GLAMPING_ORIGIN,
+  glampingEmbedTarget,
+  isGlampingProperty,
+  isHostedStripeCheckout,
+} from "@/lib/glamping-embed";
 
 export const Route = createFileRoute("/boka/$slug")({
   component: PublicBookingPage,
@@ -42,10 +52,7 @@ const C = {
 } as const;
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const FUNCTIONS_BASE = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(
-  /\/$/,
-  "",
-);
+const FUNCTIONS_BASE = SUPABASE_URL.replace(/\/$/, "");
 const isoToday = () => new Date().toISOString().slice(0, 10);
 const isoOf = (d: Date) => d.toISOString().slice(0, 10);
 
@@ -240,16 +247,23 @@ type EngineAddon = {
   price: number;
   priceType: "per_booking" | "per_night";
   imageUrl: string | null;
+  availableFrom: string | null;
+  availableTo: string | null;
+  maxQuantity: number;
 };
 
 type EngineData = {
   property: {
+    bookingEnabled: boolean;
+    maxStay: number;
+    contactEmail: string | null;
     name: string;
     slug: string;
     checkinTime: string;
     checkoutTime: string;
     swishNumber: string | null;
     stripeAvailable: boolean;
+    availableThrough?: string;
   };
   units: EngineUnit[];
   addons: EngineAddon[];
@@ -275,7 +289,21 @@ const departureBlocked = (u: EngineUnit, iso: string) =>
 
 function PublicBookingPage() {
   const { slug } = Route.useParams();
+  const glampingProperty = isGlampingProperty(slug, import.meta.env.VITE_GOGLAMPING_PROPERTY_SLUG);
+  const embedTarget =
+    typeof document === "undefined"
+      ? null
+      : glampingEmbedTarget(
+          slug,
+          import.meta.env.VITE_GOGLAMPING_PROPERTY_SLUG,
+          window.location.search,
+          document.referrer,
+        );
   const [lang, setLangState] = useState<Lang>(detectLang);
+  useEffect(() => {
+    const requested = bookingLanguage(window.location.search);
+    if (requested) setLangState(requested);
+  }, []);
   const t = getStrings(lang);
   const x = EXTRA[lang];
   const locale = LOCALES[lang];
@@ -315,6 +343,15 @@ function PublicBookingPage() {
     paymentRef?: string;
   } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!embedTarget || window.parent === window) return;
+    if (loadError || (data && data.units.length === 0)) {
+      window.parent.postMessage({ type: "stayboost:error" }, embedTarget);
+    } else if (data && data.units.length > 0) {
+      window.parent.postMessage({ type: "stayboost:ready" }, embedTarget);
+    }
+  }, [embedTarget, loadError, data]);
 
   useEffect(() => {
     if (!FUNCTIONS_BASE) {
@@ -359,17 +396,29 @@ function PublicBookingPage() {
     );
   }, [unit, quote]);
 
+  const availableAddons = (data?.addons ?? []).filter((addon) =>
+    addonAvailableForStay(
+      {
+        available_from: addon.availableFrom,
+        available_to: addon.availableTo,
+        price_type: addon.priceType,
+      },
+      checkin ?? "",
+      checkout ?? "",
+    ),
+  );
+
   const chosenAddons = useMemo(() => {
     if (!data || !quote) return [];
-    return data.addons
+    return availableAddons
       .filter((addon) => (addonQty[addon.id] ?? 0) > 0)
       .map((addon) => {
-        const qty = addonQty[addon.id] ?? 0;
+        const qty = Math.min(addonQty[addon.id] ?? 0, addon.maxQuantity ?? 20);
         const lineTotal =
           addon.priceType === "per_night" ? addon.price * qty * quote.nights : addon.price * qty;
         return { ...addon, qty, lineTotal };
       });
-  }, [data, quote, addonQty]);
+  }, [data, quote, addonQty, availableAddons]);
 
   const addonsTotal = chosenAddons.reduce((sum, addon) => sum + addon.lineTotal, 0);
   const grandTotal = (quote?.total ?? 0) + addonsTotal;
@@ -386,7 +435,10 @@ function PublicBookingPage() {
 
   const nameValid = name.trim().length >= 2;
   const emailValid = EMAIL.test(email.trim());
-  const canSubmit = Boolean(unit && quote && minStayOk && !sending);
+  const maxStayOk = !quote || quote.nights <= (data?.property.maxStay ?? 30);
+  const canSubmit = Boolean(
+    unit && quote && minStayOk && maxStayOk && data?.property.bookingEnabled !== false && !sending,
+  );
 
   const resetDates = () => {
     setCheckin(null);
@@ -415,18 +467,19 @@ function PublicBookingPage() {
     if (departureBlocked(unit, iso)) return;
     if (!rangeFree(unit, checkin, iso)) return;
     const nights: string[] = [];
-    for (let current = checkin; current < iso; ) {
+    for (let current = checkin; current < iso;) {
       nights.push(current);
       const date = new Date(`${current}T00:00:00Z`);
       date.setUTCDate(date.getUTCDate() + 1);
       current = date.toISOString().slice(0, 10);
     }
+    if (nights.length > (data?.property.maxStay ?? 30)) return;
     if (nights.some((night) => isClosed(unit, night))) return;
     setCheckout(iso);
   };
 
   const validateBeforeSubmit = () => {
-    if (!unit || !quote) return false;
+    if (!unit || !quote || !canSubmit) return false;
     if (!nameValid) {
       setFormError(x.errName);
       return false;
@@ -463,9 +516,7 @@ function PublicBookingPage() {
           guest_email: email.trim(),
           guest_phone: phone.trim(),
           guests,
-          addons: (Object.entries(addonQty) as [string, number][])
-            .filter(([, quantity]) => quantity > 0)
-            .map(([id, quantity]) => ({ id, quantity })),
+          addons: chosenAddons.map((addon) => ({ id: addon.id, quantity: addon.qty })),
           termsAccepted,
           website,
           ...(payMethod ? { paymentMethod: payMethod } : {}),
@@ -503,7 +554,18 @@ function PublicBookingPage() {
                                     : t.errGeneric;
         setFormError(message);
       } else if (payload.checkoutUrl) {
-        window.location.href = payload.checkoutUrl;
+        if (!isHostedStripeCheckout(payload.checkoutUrl)) {
+          setFormError(t.errGeneric);
+          return;
+        }
+        if (embedTarget && window.parent !== window) {
+          window.parent.postMessage(
+            { type: "stayboost:checkout", url: payload.checkoutUrl },
+            embedTarget,
+          );
+        } else {
+          window.location.href = payload.checkoutUrl;
+        }
         return;
       } else {
         setDone({
@@ -547,6 +609,27 @@ function PublicBookingPage() {
       </div>
     );
   }
+
+  if (data.property.bookingEnabled === false && !done)
+    return (
+      <main className="grid min-h-screen place-items-center p-6" style={{ background: C.page }}>
+        <div className="max-w-md rounded-3xl border bg-white p-8 text-center">
+          <h1 className="font-[Fraunces] text-3xl">{data.property.name}</h1>
+          <p className="mt-4">
+            {lang === "en"
+              ? "Online booking is currently paused. Please contact us for help."
+              : lang === "de"
+                ? "Die Onlinebuchung ist derzeit pausiert. Bitte kontaktieren Sie uns."
+                : "Onlinebokningen är pausad just nu. Kontakta oss så hjälper vi dig."}
+          </p>
+          {data.property.contactEmail && (
+            <a className="mt-4 block underline" href={`mailto:${data.property.contactEmail}`}>
+              {data.property.contactEmail}
+            </a>
+          )}
+        </div>
+      </main>
+    );
 
   const guestUrl = done ? `${window.location.origin}/g/${done.token}` : null;
 
@@ -646,6 +729,8 @@ function PublicBookingPage() {
             </button>
             <a
               href={guestUrl!}
+              target="_blank"
+              rel="noopener noreferrer"
               className="mt-4 block text-center text-[13px] font-semibold underline underline-offset-4"
               style={{ color: C.muted }}
             >
@@ -709,6 +794,19 @@ function PublicBookingPage() {
           </span>
         </div>
 
+        <StaySearch units={data.units} maxStay={data.property.maxStay ?? 30}
+          bookingEnabled={data.property.bookingEnabled !== false} availableThrough={data.property.availableThrough} lang={lang}
+          onChoose={(stay, party) => {
+            setUnitId(stay.unitId); setCheckin(stay.checkin); setCheckout(stay.checkout);
+            setGuests(party); setAddonQty({}); setFormError(null);
+            requestAnimationFrame(() => {
+              const summary = document.getElementById(window.matchMedia('(min-width: 1024px)').matches ? 'stay-booking-summary' : 'stay-booking-summary-mobile');
+              summary?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              summary?.focus({ preventScroll: true });
+            });
+            const start = new Date(`${stay.checkin}T12:00:00`); const now = new Date();
+            setMonthOffset(Math.max(0, Math.min(11, (start.getFullYear() - now.getFullYear()) * 12 + start.getMonth() - now.getMonth())));
+          }} />
         <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_390px] xl:gap-10">
           <div className="space-y-7">
             <section
@@ -844,14 +942,14 @@ function PublicBookingPage() {
               </section>
             ) : null}
 
-            {unit && data.addons.length > 0 ? (
+            {unit && availableAddons.length > 0 ? (
               <section
                 className="rounded-[30px] border bg-white p-5 sm:p-7"
                 style={{ borderColor: C.line }}
               >
                 <SectionHeading step="03" title={t.addonsTitle} description="" />
                 <div className="mt-5 divide-y" style={{ borderColor: C.line }}>
-                  {data.addons.map((addon) => {
+                  {availableAddons.map((addon) => {
                     const qty = addonQty[addon.id] ?? 0;
                     return (
                       <div key={addon.id} className="flex gap-4 py-4 first:pt-0 last:pb-0">
@@ -922,7 +1020,7 @@ function PublicBookingPage() {
                                   onClick={() =>
                                     setAddonQty((current) => ({
                                       ...current,
-                                      [addon.id]: Math.min(20, qty + 1),
+                                      [addon.id]: Math.min(addon.maxQuantity ?? 20, qty + 1),
                                     }))
                                   }
                                   className="grid h-8 w-8 place-items-center rounded-full"
@@ -943,6 +1041,8 @@ function PublicBookingPage() {
 
             {quote && unit ? (
               <section
+                id="stay-booking-summary-mobile"
+                tabIndex={-1}
                 className="rounded-[30px] border bg-white p-5 sm:p-7 lg:hidden"
                 style={{ borderColor: C.line }}
               >
@@ -958,6 +1058,7 @@ function PublicBookingPage() {
                   payMethods={payMethods}
                   payMethod={payMethod}
                   termsAccepted={termsAccepted}
+                  termsUrl={glampingProperty ? `${GLAMPING_ORIGIN}/bokningsvillkor` : undefined}
                   formError={formError}
                   sending={sending}
                   canSubmit={canSubmit}
@@ -978,7 +1079,7 @@ function PublicBookingPage() {
             ) : null}
           </div>
 
-          <aside className="hidden lg:block">
+          <aside id="stay-booking-summary" tabIndex={-1} className="hidden lg:block">
             <div
               className="sticky top-7 rounded-[30px] border bg-white p-6 shadow-[0_24px_70px_rgba(23,35,29,0.07)]"
               style={{ borderColor: C.line }}
@@ -996,6 +1097,7 @@ function PublicBookingPage() {
                   payMethods={payMethods}
                   payMethod={payMethod}
                   termsAccepted={termsAccepted}
+                  termsUrl={glampingProperty ? `${GLAMPING_ORIGIN}/bokningsvillkor` : undefined}
                   formError={formError}
                   sending={sending}
                   canSubmit={canSubmit}
@@ -1209,6 +1311,7 @@ function CheckoutForm({
   payMethods,
   payMethod,
   termsAccepted,
+  termsUrl,
   formError,
   sending,
   canSubmit,
@@ -1236,6 +1339,7 @@ function CheckoutForm({
   payMethods: ("stripe" | "swish")[];
   payMethod: "stripe" | "swish" | null;
   termsAccepted: boolean;
+  termsUrl?: string;
   formError: string | null;
   sending: boolean;
   canSubmit: boolean;
@@ -1386,14 +1490,15 @@ function CheckoutForm({
         />
         <span>
           {x.termsStart}{" "}
-          <Link
-            to="/villkor"
+          <a
+            href={termsUrl ?? "/villkor"}
             target="_blank"
+            rel="noopener noreferrer"
             className="font-bold underline underline-offset-2"
             style={{ color: C.ink }}
           >
             {x.terms}
-          </Link>{" "}
+          </a>{" "}
           {x.and}{" "}
           <Link
             to="/integritetspolicy"
@@ -1555,7 +1660,7 @@ function MonthCalendar({
               disabled = true;
             } else {
               const nights: string[] = [];
-              for (let current = checkin; current < iso; ) {
+              for (let current = checkin; current < iso;) {
                 nights.push(current);
                 const date = new Date(`${current}T00:00:00Z`);
                 date.setUTCDate(date.getUTCDate() + 1);
