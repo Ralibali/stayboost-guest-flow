@@ -467,7 +467,7 @@ function PublicBookingPage() {
     if (departureBlocked(unit, iso)) return;
     if (!rangeFree(unit, checkin, iso)) return;
     const nights: string[] = [];
-    for (let current = checkin; current < iso;) {
+    for (let current = checkin; current < iso; ) {
       nights.push(current);
       const date = new Date(`${current}T00:00:00Z`);
       date.setUTCDate(date.getUTCDate() + 1);
@@ -794,19 +794,43 @@ function PublicBookingPage() {
           </span>
         </div>
 
-        <StaySearch units={data.units} maxStay={data.property.maxStay ?? 30}
-          bookingEnabled={data.property.bookingEnabled !== false} availableThrough={data.property.availableThrough} lang={lang}
+        <StaySearch
+          units={data.units}
+          maxStay={data.property.maxStay ?? 30}
+          bookingEnabled={data.property.bookingEnabled !== false}
+          availableThrough={data.property.availableThrough}
+          lang={lang}
           onChoose={(stay, party) => {
-            setUnitId(stay.unitId); setCheckin(stay.checkin); setCheckout(stay.checkout);
-            setGuests(party); setAddonQty({}); setFormError(null);
+            setUnitId(stay.unitId);
+            setCheckin(stay.checkin);
+            setCheckout(stay.checkout);
+            setGuests(party);
+            setAddonQty({});
+            setFormError(null);
             requestAnimationFrame(() => {
-              const summary = document.getElementById(window.matchMedia('(min-width: 1024px)').matches ? 'stay-booking-summary' : 'stay-booking-summary-mobile');
-              summary?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              const summary = document.getElementById(
+                window.matchMedia("(min-width: 1024px)").matches
+                  ? "stay-booking-summary"
+                  : "stay-booking-summary-mobile",
+              );
+              summary?.scrollIntoView({ behavior: "smooth", block: "start" });
               summary?.focus({ preventScroll: true });
             });
-            const start = new Date(`${stay.checkin}T12:00:00`); const now = new Date();
-            setMonthOffset(Math.max(0, Math.min(11, (start.getFullYear() - now.getFullYear()) * 12 + start.getMonth() - now.getMonth())));
-          }} />
+            const start = new Date(`${stay.checkin}T12:00:00`);
+            const now = new Date();
+            setMonthOffset(
+              Math.max(
+                0,
+                Math.min(
+                  11,
+                  (start.getFullYear() - now.getFullYear()) * 12 +
+                    start.getMonth() -
+                    now.getMonth(),
+                ),
+              ),
+            );
+          }}
+        />
         <div className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_390px] xl:gap-10">
           <div className="space-y-7">
             <section
@@ -1660,7 +1684,7 @@ function MonthCalendar({
               disabled = true;
             } else {
               const nights: string[] = [];
-              for (let current = checkin; current < iso;) {
+              for (let current = checkin; current < iso; ) {
                 nights.push(current);
                 const date = new Date(`${current}T00:00:00Z`);
                 date.setUTCDate(date.getUTCDate() + 1);

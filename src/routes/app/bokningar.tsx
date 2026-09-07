@@ -47,7 +47,10 @@ const svDate = (iso: string) =>
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("sv-SE")} kr`;
 
 type PaymentAction =
-  "cancel_booking" | "mark_swish_paid" | "request_swish_refund" | "confirm_swish_refunded";
+  | "cancel_booking"
+  | "mark_swish_paid"
+  | "request_swish_refund"
+  | "confirm_swish_refunded";
 
 async function invokePaymentAction(bookingId: string, action: PaymentAction) {
   if (!supabase) return { error: "Supabase är inte konfigurerat." };

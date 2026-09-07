@@ -1,13 +1,36 @@
 import { describe, expect, it } from "vitest";
-import { bookingLanguage, glampingEmbedTarget, isGlampingProperty, isHostedStripeCheckout } from "./glamping-embed";
+import {
+  bookingLanguage,
+  glampingEmbedTarget,
+  isGlampingProperty,
+  isHostedStripeCheckout,
+} from "./glamping-embed";
 
 describe("Glamping embed contract", () => {
   it("requires a configured property, explicit embed mode and the correct parent", () => {
-    expect(glampingEmbedTarget("example", "example", "?embed=goglamping", "https://goglampingsweden.se/boka")).toBe("https://goglampingsweden.se");
-    expect(glampingEmbedTarget("example", undefined, "?embed=goglamping", "https://goglampingsweden.se")).toBeNull();
-    expect(glampingEmbedTarget("other", "example", "?embed=goglamping", "https://goglampingsweden.se")).toBeNull();
+    expect(
+      glampingEmbedTarget(
+        "example",
+        "example",
+        "?embed=goglamping",
+        "https://goglampingsweden.se/boka",
+      ),
+    ).toBe("https://goglampingsweden.se");
+    expect(
+      glampingEmbedTarget("example", undefined, "?embed=goglamping", "https://goglampingsweden.se"),
+    ).toBeNull();
+    expect(
+      glampingEmbedTarget("other", "example", "?embed=goglamping", "https://goglampingsweden.se"),
+    ).toBeNull();
     expect(glampingEmbedTarget("example", "example", "", "https://goglampingsweden.se")).toBeNull();
-    expect(glampingEmbedTarget("example", "example", "?embed=goglamping", "https://goglampingsweden.se.evil.example")).toBeNull();
+    expect(
+      glampingEmbedTarget(
+        "example",
+        "example",
+        "?embed=goglamping",
+        "https://goglampingsweden.se.evil.example",
+      ),
+    ).toBeNull();
     expect(glampingEmbedTarget("example", "example", "?embed=goglamping", "")).toBeNull();
   });
   it("does not change other properties' booking terms", () => {

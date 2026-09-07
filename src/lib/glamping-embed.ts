@@ -4,8 +4,17 @@ export function isGlampingProperty(slug: string, configuredSlug?: string) {
   return Boolean(configuredSlug && slug === configuredSlug);
 }
 
-export function glampingEmbedTarget(slug: string, configuredSlug: string | undefined, search: string, referrer: string): string | null {
-  if (!isGlampingProperty(slug, configuredSlug) || new URLSearchParams(search).get("embed") !== "goglamping") return null;
+export function glampingEmbedTarget(
+  slug: string,
+  configuredSlug: string | undefined,
+  search: string,
+  referrer: string,
+): string | null {
+  if (
+    !isGlampingProperty(slug, configuredSlug) ||
+    new URLSearchParams(search).get("embed") !== "goglamping"
+  )
+    return null;
   try {
     return new URL(referrer).origin === GLAMPING_ORIGIN ? GLAMPING_ORIGIN : null;
   } catch {
