@@ -7,12 +7,13 @@ import { canonicalUrl } from "@/lib/canonical";
 
 export const Route = createFileRoute("/g/$token")({
   component: GuestPage,
-  head: ({ params }) => {
-    const url = canonicalUrl(`/g/${params.token}`);
+  head: () => {
+    const url = canonicalUrl("/g");
     return {
       meta: [
         { title: "Din vistelse — StayBoost" },
         { name: "robots", content: "noindex, nofollow" },
+        { name: "referrer", content: "no-referrer" },
         { property: "og:url", content: url },
         { property: "og:type", content: "website" },
       ],
@@ -25,6 +26,17 @@ const C = { bg: "#FAFAF8", ink: "#1B1B19", muted: "#777772", line: "#E2E2DC" } a
 const eyebrow = "text-[11px] font-semibold uppercase tracking-[0.18em]";
 
 type GuestData = {
+  phase?: "before" | "arrival" | "during" | "departure" | "finished" | "no_show";
+  accessAvailable?: boolean;
+  addons?: {
+    id: string;
+    name: string;
+    quantity: number;
+    dueDate: string;
+    status: string;
+    nameSource: string;
+    contextChanged: boolean;
+  }[];
   guestName: string | null;
   checkinDate: string;
   checkoutDate: string;
@@ -62,7 +74,9 @@ function GuestPage() {
   const [data, setData] = useState<GuestData | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [justPaid] = useState(
-    () => new URLSearchParams(window.location.search).get("paid") === "1",
+    () =>
+      typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("paid") === "1",
   );
   const [polls, setPolls] = useState(0);
 
@@ -72,6 +86,8 @@ function GuestPage() {
       return;
     }
     let cancelled = false;
+    setState("loading");
+    setData(null);
     supabase.functions
       .invoke("guest-page", { body: { token } })
       .then(({ data, error }) => {
@@ -100,10 +116,14 @@ function GuestPage() {
     return () => clearTimeout(timer);
   }, [justPaid, data, polls]);
 
-  const copy = (text: string, field: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedField(field);
-    setTimeout(() => setCopiedField(null), 1500);
+  const copy = async (text: string, field: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(field);
+      setTimeout(() => setCopiedField(null), 1500);
+    } catch {
+      setCopiedField(null);
+    }
   };
 
   if (state === "loading") {
@@ -178,6 +198,68 @@ function GuestPage() {
             </div>
           </div>
         </header>
+
+        {data.phase && (
+          <section className="mt-8 rounded-2xl border p-5" style={{ borderColor: C.line }}>
+            <h2 className="text-lg font-semibold">
+              {
+                {
+                  before: "Inför din vistelse",
+                  arrival: "Välkommen – ankomstdag",
+                  during: "Under din vistelse",
+                  departure: "Dags för utcheckning",
+                  finished: "Tack för din vistelse",
+                  no_show: "Kontakta boendet om din vistelse",
+                }[data.phase]
+              }
+            </h2>
+            <p className="mt-2 text-sm" style={{ color: C.muted }}>
+              {data.accessAvailable === false
+                ? "Personliga incheckningsuppgifter visas från dagen före ankomst och under vistelsen. Kontakta boendet om du behöver hjälp."
+                : "Här finns dina incheckningsuppgifter, boendets regler och bokade tillval samlade."}
+            </p>
+            <button
+              className="mt-3 text-sm underline"
+              onClick={() => setPolls((value) => value + 1)}
+            >
+              Uppdatera vistelsen
+            </button>
+          </section>
+        )}
+        {!!data.addons?.length && (
+          <section className="mt-8 space-y-3">
+            <h2 className="font-[Fraunces] text-2xl">Dina bokade tillval</h2>
+            {data.addons.map((addon) => (
+              <article
+                key={addon.id}
+                className="rounded-xl border p-4"
+                style={{ borderColor: C.line }}
+              >
+                <h3 className="font-semibold">
+                  {addon.name} · {addon.quantity} st
+                </h3>
+                <p className="mt-1 text-sm">
+                  {addon.contextChanged
+                    ? "Bokningen har ändrats – värden behöver se över leveransen"
+                    : addon.status === "done"
+                      ? "Levererat"
+                      : addon.status === "in_progress"
+                        ? "Förbereds"
+                        : "Bokat – inväntar leverans"}
+                </p>
+                <p className="mt-1 text-sm" style={{ color: C.muted }}>
+                  Planerat datum: {svLong(addon.dueDate)}
+                </p>
+                {addon.nameSource === "current_catalog" && (
+                  <p className="mt-1 text-xs" style={{ color: C.muted }}>
+                    Äldre bokning: benämningen hämtades från boendets katalog. Kontakta värden om
+                    något inte stämmer.
+                  </p>
+                )}
+              </article>
+            ))}
+          </section>
+        )}
 
         {data.payment?.status === "paid" && (
           <div

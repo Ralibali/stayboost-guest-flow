@@ -26,7 +26,12 @@
  * it is not the primary homepage measure.
  */
 
-import { init as plausibleInit, track as plausibleTrack } from "@plausible-analytics/tracker";
+import {
+  init as plausibleInit,
+  track as plausibleTrack,
+  type PlausibleRequestPayload,
+  type PlausibleConfig,
+} from "@plausible-analytics/tracker";
 
 export const PLAUSIBLE_DOMAIN = "stayboost.se";
 
@@ -91,6 +96,7 @@ export type AnalyticsSink = {
     formSubmissions?: boolean;
     logging?: boolean;
     bindToWindow?: boolean;
+    transformRequest?: PlausibleConfig["transformRequest"];
   }) => void;
   track: (eventName: string, options?: { props?: Record<string, string> }) => void;
 };
@@ -172,6 +178,20 @@ function send(eventName: CanonicalEvent, props: Record<string, string>): void {
  * Current official SPA install: History API pageviews are automatic.
  * Safe to call more than once — later calls are ignored.
  */
+export function redactPrivateAnalytics(
+  payload: PlausibleRequestPayload,
+): PlausibleRequestPayload | null {
+  const privatePath = (path: string) => /^\/(g|app)(\/|$)/.test(path);
+  try {
+    const url = new URL(payload.u);
+    if (privatePath(url.pathname)) return null;
+    const ref = payload.r ? new URL(payload.r) : null;
+    return { ...payload, r: ref && privatePath(ref.pathname) ? null : payload.r };
+  } catch {
+    return null;
+  }
+}
+
 export function initAnalytics(): void {
   if (initialized) return;
   try {
@@ -181,6 +201,7 @@ export function initAnalytics(): void {
       formSubmissions: false,
       logging: false,
       bindToWindow: true,
+      transformRequest: redactPrivateAnalytics,
     });
     initialized = true;
   } catch {

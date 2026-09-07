@@ -18,6 +18,7 @@ import { Route as IntegritetspolicyRouteImport } from './routes/integritetspolic
 import { Route as ProduktenRouteImport } from './routes/produkten'
 import { Route as VillkorRouteImport } from './routes/villkor'
 import { Route as AppIndexRouteImport } from './routes/app/index'
+import { Route as AppArbeteRouteImport } from './routes/app/arbete'
 import { Route as AppBokningarRouteImport } from './routes/app/bokningar'
 import { Route as AppIdagRouteImport } from './routes/app/idag'
 import { Route as AppInstallningarRouteImport } from './routes/app/installningar'
@@ -93,6 +94,11 @@ const VillkorRoute = VillkorRouteImport.update({
 const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppArbeteRoute = AppArbeteRouteImport.update({
+  id: '/arbete',
+  path: '/arbete',
   getParentRoute: () => AppRoute,
 } as any)
 const AppBokningarRoute = AppBokningarRouteImport.update({
@@ -255,6 +261,7 @@ export interface FileRoutesByFullPath {
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/produkten': typeof ProduktenRouteWithChildren
   '/villkor': typeof VillkorRoute
+  '/app/arbete': typeof AppArbeteRoute
   '/app/bokningar': typeof AppBokningarRoute
   '/app/idag': typeof AppIdagRoute
   '/app/installningar': typeof AppInstallningarRoute
@@ -294,6 +301,7 @@ export interface FileRoutesByTo {
   '/google810803ca6fbfcead.html': typeof Google810803ca6fbfceadDothtmlRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/villkor': typeof VillkorRoute
+  '/app/arbete': typeof AppArbeteRoute
   '/app/bokningar': typeof AppBokningarRoute
   '/app/idag': typeof AppIdagRoute
   '/app/installningar': typeof AppInstallningarRoute
@@ -336,6 +344,7 @@ export interface FileRoutesById {
   '/integritetspolicy': typeof IntegritetspolicyRoute
   '/produkten': typeof ProduktenRouteWithChildren
   '/villkor': typeof VillkorRoute
+  '/app/arbete': typeof AppArbeteRoute
   '/app/bokningar': typeof AppBokningarRoute
   '/app/idag': typeof AppIdagRoute
   '/app/installningar': typeof AppInstallningarRoute
@@ -379,6 +388,7 @@ export interface FileRouteTypes {
     | '/integritetspolicy'
     | '/produkten'
     | '/villkor'
+    | '/app/arbete'
     | '/app/bokningar'
     | '/app/idag'
     | '/app/installningar'
@@ -418,6 +428,7 @@ export interface FileRouteTypes {
     | '/google810803ca6fbfcead.html'
     | '/integritetspolicy'
     | '/villkor'
+    | '/app/arbete'
     | '/app/bokningar'
     | '/app/idag'
     | '/app/installningar'
@@ -459,6 +470,7 @@ export interface FileRouteTypes {
     | '/integritetspolicy'
     | '/produkten'
     | '/villkor'
+    | '/app/arbete'
     | '/app/bokningar'
     | '/app/idag'
     | '/app/installningar'
@@ -570,6 +582,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/app/'
       preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/arbete': {
+      id: '/app/arbete'
+      path: '/arbete'
+      fullPath: '/app/arbete'
+      preLoaderRoute: typeof AppArbeteRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/bokningar': {
@@ -786,6 +805,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AppRouteChildren {
+  AppArbeteRoute: typeof AppArbeteRoute
   AppBokningarRoute: typeof AppBokningarRoute
   AppIdagRoute: typeof AppIdagRoute
   AppInstallningarRoute: typeof AppInstallningarRoute
@@ -801,6 +821,7 @@ interface AppRouteChildren {
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppArbeteRoute: AppArbeteRoute,
   AppBokningarRoute: AppBokningarRoute,
   AppIdagRoute: AppIdagRoute,
   AppInstallningarRoute: AppInstallningarRoute,
@@ -874,3 +895,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

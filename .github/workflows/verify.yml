@@ -36,5 +36,13 @@ jobs:
       - name: Test
         run: bun run test
 
+      - name: Set up Deno
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Check guest page function
+        run: deno check supabase/functions/guest-page/index.ts
+
       - name: Build
         run: bun run build

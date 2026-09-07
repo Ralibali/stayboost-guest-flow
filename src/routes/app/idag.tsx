@@ -127,6 +127,13 @@ function TodayPage() {
         </button>
       </div>
 
+      <Link
+        to="/app/arbete"
+        className="inline-flex rounded-xl border border-black/10 bg-white px-4 py-3 text-sm font-semibold"
+      >
+        Öppna städning och tillvalsleveranser →
+      </Link>
+
       {error ? (
         <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-[13px] text-red-700">
           Kunde inte läsa driftläget: {error}
