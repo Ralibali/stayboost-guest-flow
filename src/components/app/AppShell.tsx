@@ -140,7 +140,7 @@ export function AppShell({
             )}
           </div>
           <nav className="scrollbar-none flex gap-1 overflow-x-auto px-3 pb-2.5">
-            {NAV.slice(0, 8).map((item) => {
+            {NAV.map((item) => {
               const active = isActive(item.to);
               return (
                 <Link

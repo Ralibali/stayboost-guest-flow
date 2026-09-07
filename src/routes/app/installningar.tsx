@@ -1,3 +1,6 @@
+import { SUPABASE_URL } from "@/lib/supabase-config";
+import { BookingSettings } from "@/components/app/BookingSettings";
+import { AdminHistory } from "@/components/app/AdminHistory";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Check,
@@ -117,14 +120,18 @@ function SettingsPage() {
     if (!supabase) return;
     if (
       !window.confirm(
-        `Ta bort ${name}? Enhetens iCal-källor raderas. Befintliga bokningar behålls men tappar kopplingen till boendet.`,
+        `Ta bort ${name}? Detta går endast om boendet aldrig har bokats. Dölj boendet om bokningshistorik ska bevaras.`,
       )
     )
       return;
     setActionError(null);
     const { error } = await supabase.from("units").delete().eq("id", id);
     if (error) {
-      setActionError(`Kunde inte ta bort boendet: ${error.message}`);
+      setActionError(
+        error.message.includes("unit_has_bookings")
+          ? "Boendet har bokningar och kan inte tas bort. Använd Dolt för att stoppa nya bokningar och behålla historiken."
+          : "Boendet kunde inte tas bort.",
+      );
       return;
     }
     reload();
@@ -183,6 +190,11 @@ function SettingsPage() {
         </div>
       )}
 
+      <BookingSettings
+        key={`${property.id}-${property.booking_enabled}-${property.max_stay}-${property.contact_email}`}
+        property={property}
+        onSaved={reload}
+      />
       <section className="card-surface mt-6 space-y-4 p-6">
         <h2 className="text-[16px] font-bold">Anläggning</h2>
         <Field label="Namn">
@@ -441,7 +453,7 @@ function SettingsPage() {
               readOnly
               rows={2}
               onFocus={(e) => e.target.select()}
-              value={`<script src="${typeof window !== "undefined" ? window.location.origin : ""}/chat-widget.js" data-api="${(import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "") ?? "https://<projekt>.supabase.co"}/functions/v1/chat-message" data-slug="${form.slug}" async></script>`}
+              value={`<script src="${typeof window !== "undefined" ? window.location.origin : ""}/chat-widget.js" data-api="${SUPABASE_URL.replace(/\/$/, "")}/functions/v1/chat-message" data-slug="${form.slug}" async></script>`}
               className="inp mt-1.5 resize-none !bg-[color:var(--bg)] font-mono text-[11px]"
             />
           </div>
@@ -756,6 +768,7 @@ function SettingsPage() {
         </div>
       </section>
 
+      <AdminHistory propertyId={property.id} />
       <section className="card-surface mt-8 p-6">
         <h2 className="text-[16px] font-bold">Sirvoy-koppling</h2>
         <p className="mt-1 text-[13px] leading-relaxed text-[color:var(--ink)]/55">
@@ -765,7 +778,7 @@ function SettingsPage() {
         <input
           readOnly
           onFocus={(e) => e.target.select()}
-          value={`${(import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "") ?? "https://<projekt>.supabase.co"}/functions/v1/sirvoy-webhook?token=${property.sirvoy_webhook_token}`}
+          value={`${SUPABASE_URL.replace(/\/$/, "")}/functions/v1/sirvoy-webhook?token=${property.sirvoy_webhook_token}`}
           className="inp mt-3 !bg-[color:var(--bg)] font-mono text-[11px]"
         />
       </section>

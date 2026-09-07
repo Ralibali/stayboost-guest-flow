@@ -1,3 +1,6 @@
+import { BookingEditor } from "@/components/app/BookingEditor";
+import { AdminHistory } from "@/components/app/AdminHistory";
+import { STAY_STATUS } from "@/lib/booking-admin";
 import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -15,7 +18,6 @@ import {
   RotateCcw,
   Search,
   Smartphone,
-  Users,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -380,7 +382,20 @@ function BookingsPage() {
         ) : (
           <div className="space-y-2">
             {past.map((booking) => (
-              <PastBookingCard key={booking.id} booking={booking} />
+              <BookingCard
+                key={booking.id}
+                booking={booking}
+                units={units}
+                maxStay={property.max_stay ?? 30}
+                conflicting={conflictIds.has(booking.id)}
+                expanded={expanded === booking.id}
+                onToggle={() => setExpanded(expanded === booking.id ? null : booking.id)}
+                onCancel={() => cancel(booking)}
+                onCopy={() => copyLink(booking)}
+                copied={copied === booking.id}
+                onChanged={load}
+                onError={setPageError}
+              />
             ))}
           </div>
         )
@@ -398,6 +413,8 @@ function BookingsPage() {
             <BookingCard
               key={booking.id}
               booking={booking}
+              units={units}
+              maxStay={property.max_stay ?? 30}
               conflicting={conflictIds.has(booking.id)}
               expanded={expanded === booking.id}
               onToggle={() => setExpanded(expanded === booking.id ? null : booking.id)}
@@ -494,6 +511,8 @@ function EmptyState({ text }: { text: string }) {
 
 function BookingCard({
   booking: b,
+  units,
+  maxStay,
   conflicting,
   expanded,
   onToggle,
@@ -504,6 +523,8 @@ function BookingCard({
   onError,
 }: {
   booking: Booking;
+  units: Unit[];
+  maxStay: number;
   conflicting: boolean;
   expanded: boolean;
   onToggle: () => void;
@@ -514,11 +535,7 @@ function BookingCard({
   onError: (message: string | null) => void;
 }) {
   const [messages, setMessages] = useState<ScheduledMessage[] | null>(null);
-  const [email, setEmail] = useState(b.guest_email ?? "");
-  const [phone, setPhone] = useState(b.guest_phone ?? "");
-  const [guestCount, setGuestCount] = useState(b.guests ?? 1);
-  const [saved, setSaved] = useState(false);
-  const maxGuests = b.unit?.max_guests ?? 20;
+  const [editing, setEditing] = useState(false);
 
   useEffect(() => {
     if (!expanded || !supabase) return;
@@ -531,24 +548,6 @@ function BookingCard({
       .order("send_at")
       .then(({ data }) => setMessages((data as unknown as ScheduledMessage[]) ?? []));
   }, [expanded, b.id]);
-
-  const saveDetails = async () => {
-    if (!supabase) return;
-    onError(null);
-    const guests = Math.min(maxGuests, Math.max(1, Math.round(guestCount)));
-    const { error } = await supabase
-      .from("bookings")
-      .update({ guest_email: email.trim() || null, guest_phone: phone.trim() || null, guests })
-      .eq("id", b.id);
-    if (error) {
-      onError(error.message);
-      return;
-    }
-    setGuestCount(guests);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
-    onChanged();
-  };
 
   const runPaymentAction = async (action: PaymentAction) => {
     onError(null);
@@ -590,6 +589,10 @@ function BookingCard({
               {b.guest_name ?? "Okänd gäst"}
             </span>
             <SourceBadge source={b.source} />
+            {b.status === "cancelled" && <Badge tone="red">Avbokad</Badge>}
+            {b.stay_status && b.stay_status !== "expected" && (
+              <Badge tone="green">{STAY_STATUS[b.stay_status]}</Badge>
+            )}
             {b.payment_status === "pending" && <Badge tone="amber">Betalning väntar</Badge>}
             {b.payment_status === "paid" && <Badge tone="green">Betald</Badge>}
             {b.payment_status === "refund_pending" && <Badge tone="red">Återbetalning krävs</Badge>}
@@ -625,50 +628,42 @@ function BookingCard({
             className="overflow-hidden"
           >
             <div className="space-y-5 border-t border-black/[0.055] bg-[#fafbf9] px-4 py-4 sm:px-5 sm:py-5">
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[color:var(--ink)]/35">
-                    Gästuppgifter
+              {editing ? (
+                <BookingEditor
+                  booking={b}
+                  units={units}
+                  maxStay={maxStay}
+                  onClose={() => setEditing(false)}
+                  onSaved={() => {
+                    setEditing(false);
+                    onChanged();
+                  }}
+                />
+              ) : (
+                <div className="space-y-2 text-sm">
+                  <p>
+                    {b.guest_email ?? "E-post saknas"} · {b.guest_phone ?? "Telefon saknas"}
                   </p>
-                  <span className="text-[9px] text-[color:var(--ink)]/30">Redigera direkt här</span>
-                </div>
-                <div className="grid gap-2.5 sm:grid-cols-[1fr_1fr_110px_auto]">
-                  <input
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Gästens e-post"
-                    type="email"
-                    className="inp !rounded-xl !border-black/[0.08]"
-                  />
-                  <input
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="Gästens mobil"
-                    className="inp !rounded-xl !border-black/[0.08]"
-                  />
-                  <label className="relative">
-                    <Users
-                      size={14}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-[color:var(--ink)]/35"
-                    />
-                    <input
-                      type="number"
-                      min={1}
-                      max={maxGuests}
-                      value={guestCount}
-                      onChange={(e) => setGuestCount(Number(e.target.value))}
-                      className="inp !rounded-xl !border-black/[0.08] !pl-8"
-                      aria-label="Antal gäster"
-                    />
-                  </label>
+                  <p>{STAY_STATUS[b.stay_status ?? "expected"]}</p>
+                  {b.internal_notes && (
+                    <p className="whitespace-pre-wrap rounded-xl bg-amber-50 p-3">
+                      {b.internal_notes}
+                    </p>
+                  )}
                   <button
-                    onClick={saveDetails}
-                    className="rounded-xl border border-black/[0.09] bg-white px-4 py-2.5 text-[12px] font-bold shadow-sm transition hover:border-black/20"
+                    onClick={() => setEditing(true)}
+                    className="rounded-xl border bg-white px-4 py-2.5 font-semibold"
                   >
-                    {saved ? "✓ Sparat" : "Spara"}
+                    Ändra bokning
                   </button>
                 </div>
-              </div>
+              )}
+              <details>
+                <summary className="cursor-pointer text-sm font-semibold">
+                  Visa ändringshistorik
+                </summary>
+                <AdminHistory propertyId={b.property_id} bookingId={b.id} />
+              </details>
 
               {b.payment_status === "pending" && b.payment_expires_at && (
                 <p className="rounded-xl border border-amber-100 bg-amber-50 px-3.5 py-2.5 text-[11px] text-amber-800">
@@ -845,6 +840,7 @@ function BookingCard({
                 </a>
                 <button
                   onClick={onCancel}
+                  disabled={b.status === "cancelled"}
                   className="ml-auto inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[11px] font-bold text-red-600 hover:bg-red-50"
                 >
                   <Ban size={13} /> Avboka
@@ -881,28 +877,6 @@ function SourceBadge({ source }: { source: Booking["source"] }) {
     <span className="rounded-full bg-[#eff2ee] px-2 py-0.5 text-[9px] font-bold text-[color:var(--ink)]/45">
       {label}
     </span>
-  );
-}
-
-function PastBookingCard({ booking }: { booking: Booking }) {
-  return (
-    <div className="flex items-center gap-3 rounded-[18px] border border-black/[0.055] bg-white px-4 py-3 text-[12px] shadow-[0_4px_16px_rgba(25,40,31,0.025)]">
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#f1f3ef] font-[Fraunces] text-[14px] font-semibold text-[#173c2b]">
-        {(booking.guest_name ?? "?").slice(0, 1).toUpperCase()}
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="truncate font-bold">{booking.guest_name ?? "Okänd gäst"}</p>
-        <p className="truncate text-[10px] text-[color:var(--ink)]/38">
-          {booking.unit?.name ?? "—"} · {svDate(booking.checkin_date)}–
-          {svDate(booking.checkout_date)}
-        </p>
-      </div>
-      <span
-        className={`rounded-full px-2 py-1 text-[9px] font-bold ${booking.status === "cancelled" ? "bg-red-50 text-red-700" : "bg-[#f1f3ef] text-[color:var(--ink)]/45"}`}
-      >
-        {booking.status === "cancelled" ? "Avbokad" : "Utcheckad"}
-      </span>
-    </div>
   );
 }
 

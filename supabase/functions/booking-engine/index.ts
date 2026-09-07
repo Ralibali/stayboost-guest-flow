@@ -66,7 +66,9 @@ Deno.serve(async (req) => {
     const slug = url.searchParams.get("slug") ?? "";
     const { data: property } = await admin
       .from("properties")
-      .select("id, name, slug, checkin_time, checkout_time, swish_number, swish_hold_minutes")
+      .select(
+        "id, name, slug, checkin_time, checkout_time, swish_number, swish_hold_minutes, booking_enabled, max_stay, contact_email",
+      )
       .eq("slug", slug)
       .maybeSingle();
     if (!property) return json({ error: "not_found" }, 404);
@@ -83,7 +85,7 @@ Deno.serve(async (req) => {
 
     const today = new Date().toISOString().slice(0, 10);
     const until = new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10);
-    const { data: bookings } = await admin
+    const { data: bookings, error: bookingsError } = await admin
       .from("bookings")
       .select("unit_id, checkin_date, checkout_date")
       .eq("property_id", property.id)
@@ -91,20 +93,27 @@ Deno.serve(async (req) => {
       .gte("checkout_date", today)
       .lte("checkin_date", until);
 
-    const { data: addons } = await admin
+    if (bookingsError) return json({ error: "availability_unavailable" }, 503);
+    const { data: addons, error: addonsError } = await admin
       .from("addons")
-      .select("id, name, description, price, price_type, image_url, sort_order")
+      .select(
+        "id, name, description, price, price_type, image_url, sort_order, internal_only, available_from, available_to, max_quantity",
+      )
       .eq("property_id", property.id)
       .eq("active", true)
       .order("sort_order");
 
-    // Rate rules är opt-in — tabellen kan saknas i äldre miljöer.
-    const { data: rulesData } = await admin
+    if (addonsError) return json({ error: "addons_unavailable" }, 503);
+    const { data: rulesData, error: rulesError } = await admin
       .from("rate_rules")
-      .select("id, unit_id, kind, date_from, date_to, fixed_price, pct_delta, min_stay, priority, active, name")
+      .select(
+        "id, unit_id, kind, date_from, date_to, fixed_price, pct_delta, min_stay, priority, active, name",
+      )
       .eq("property_id", property.id)
       .eq("active", true)
-      .gte("date_to", today);
+      .gte("date_to", today)
+      .order("created_at");
+    if (rulesError) return json({ error: "rules_unavailable" }, 503);
     const rules: RateRule[] = (rulesData ?? []) as RateRule[];
 
     const byUnit = new Map<string, { from: string; to: string }[]>();
@@ -118,6 +127,10 @@ Deno.serve(async (req) => {
 
     return json({
       property: {
+        bookingEnabled: property.booking_enabled,
+        availableThrough: until,
+        maxStay: property.max_stay,
+        contactEmail: property.contact_email,
         name: property.name,
         slug: property.slug,
         checkinTime: property.checkin_time,
@@ -143,14 +156,19 @@ Deno.serve(async (req) => {
         booked: byUnit.get(u.id) ?? [],
         rateRules: rulesForUnit(rules, u.id),
       })),
-      addons: (addons ?? []).map((a) => ({
-        id: a.id,
-        name: a.name,
-        description: a.description,
-        price: a.price,
-        priceType: a.price_type,
-        imageUrl: a.image_url,
-      })),
+      addons: (addons ?? [])
+        .filter((a) => !a.internal_only)
+        .map((a) => ({
+          id: a.id,
+          name: a.name,
+          description: a.description,
+          price: a.price,
+          priceType: a.price_type,
+          imageUrl: a.image_url,
+          availableFrom: a.available_from,
+          availableTo: a.available_to,
+          maxQuantity: a.max_quantity,
+        })),
     });
   }
 
@@ -168,8 +186,10 @@ Deno.serve(async (req) => {
 
     // Begränsa automatiserade massbokningar utan att lagra IP-adressen i klartext.
     const forwarded = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
-    const ip = req.headers.get("cf-connecting-ip") ?? forwarded ?? req.headers.get("x-real-ip") ?? "unknown";
-    const salt = Deno.env.get("RATE_LIMIT_SALT") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "stayboost";
+    const ip =
+      req.headers.get("cf-connecting-ip") ?? forwarded ?? req.headers.get("x-real-ip") ?? "unknown";
+    const salt =
+      Deno.env.get("RATE_LIMIT_SALT") ?? Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "stayboost";
     const ipHash = await sha256(`${salt}:${ip}`);
     const windowStart = new Date(Date.now() - 15 * 60_000).toISOString();
     const { count } = await admin
@@ -186,7 +206,9 @@ Deno.serve(async (req) => {
 
     const { slug, unitId, checkin, checkout } = body ?? {};
     const guestName = String(body?.guest_name ?? "").trim();
-    const guestEmail = String(body?.guest_email ?? "").trim().toLowerCase();
+    const guestEmail = String(body?.guest_email ?? "")
+      .trim()
+      .toLowerCase();
     const guestPhoneRaw = String(body?.guest_phone ?? "").trim();
     const normalizedPhone = guestPhoneRaw ? normalizePhoneSE(guestPhoneRaw) : null;
 
@@ -195,6 +217,7 @@ Deno.serve(async (req) => {
     }
     const today = new Date().toISOString().slice(0, 10);
     if (checkin < today) return json({ error: "past_checkin" }, 400);
+    if (nightsBetween(checkin, checkout).length === 0) return json({ error: "invalid_dates" }, 400);
     if (nightsBetween(checkin, checkout).length > 30) return json({ error: "too_long" }, 400);
     if (guestName.length < 2 || guestName.length > 120)
       return json({ error: "name_required" }, 400);
@@ -205,10 +228,13 @@ Deno.serve(async (req) => {
 
     const { data: property } = await admin
       .from("properties")
-      .select("id, swish_number, swish_hold_minutes")
+      .select("id, swish_number, swish_hold_minutes, booking_enabled, max_stay")
       .eq("slug", slug)
       .maybeSingle();
     if (!property) return json({ error: "not_found" }, 404);
+    if (!property.booking_enabled) return json({ error: "booking_paused" }, 409);
+    if (nightsBetween(checkin, checkout).length > property.max_stay)
+      return json({ error: "too_long", maxStay: property.max_stay }, 400);
 
     const { data: unit } = await admin
       .from("units")
@@ -228,12 +254,16 @@ Deno.serve(async (req) => {
     const guests = guestsRaw;
 
     // Datumstyrda regler (opt-in): min-stay, closed, no-arrival, no-departure.
-    const { data: ruleRows } = await admin
+    const { data: ruleRows, error: ruleError } = await admin
       .from("rate_rules")
-      .select("id, unit_id, kind, date_from, date_to, fixed_price, pct_delta, min_stay, priority, active, name")
+      .select(
+        "id, unit_id, kind, date_from, date_to, fixed_price, pct_delta, min_stay, priority, active, name",
+      )
       .eq("property_id", property.id)
       .eq("active", true)
-      .gte("date_to", checkin);
+      .gte("date_to", checkin)
+      .order("created_at");
+    if (ruleError) return json({ error: "rules_unavailable" }, 503);
     const rules: RateRule[] = (ruleRows ?? []) as RateRule[];
 
     const stayNights = nightsBetween(checkin, checkout);
@@ -257,9 +287,7 @@ Deno.serve(async (req) => {
       .lt("checkin_date", checkout)
       .gt("checkout_date", checkin);
     if (
-      (clashes ?? []).some((c) =>
-        rangesOverlap(checkin, checkout, c.checkin_date, c.checkout_date),
-      )
+      (clashes ?? []).some((c) => rangesOverlap(checkin, checkout, c.checkin_date, c.checkout_date))
     ) {
       return json({ error: "unavailable" }, 409);
     }
@@ -267,12 +295,19 @@ Deno.serve(async (req) => {
     const quote = quoteStay(unit, checkin, checkout, { rules, unitId: unit.id });
 
     const rawSelections = Array.isArray(body?.addons) ? body.addons : [];
-    const { data: availableAddons } = await admin
+    const { data: availableAddons, error: addonReadError } = await admin
       .from("addons")
-      .select("id, name, description, price, price_type, image_url, active, sort_order")
+      .select(
+        "id, name, description, price, price_type, image_url, active, sort_order, internal_only, available_from, available_to, max_quantity",
+      )
       .eq("property_id", property.id)
       .eq("active", true);
-    const pricedAddons = priceAddons(rawSelections, availableAddons ?? [], quote.nights);
+    if (addonReadError) return json({ error: "addons_unavailable" }, 503);
+    const pricedAddons = priceAddons(rawSelections, availableAddons ?? [], quote.nights, {
+      checkin,
+      checkout,
+    });
+    if (pricedAddons.length !== rawSelections.length) return json({ error: "invalid_addons" }, 400);
     const addonsTotal = sumAddons(pricedAddons);
     const grandTotal = quote.total + addonsTotal;
 
@@ -400,12 +435,20 @@ Deno.serve(async (req) => {
         if (createdSessionId) {
           try {
             await expireCheckoutSession(stripeKey, createdSessionId);
-            await admin.from("bookings").delete().eq("id", booking.id).eq("payment_status", "pending");
+            await admin
+              .from("bookings")
+              .delete()
+              .eq("id", booking.id)
+              .eq("payment_status", "pending");
           } catch {
             return json({ error: "stripe_binding_failed", detail: String(e) }, 502);
           }
         } else {
-          await admin.from("bookings").delete().eq("id", booking.id).eq("payment_status", "pending");
+          await admin
+            .from("bookings")
+            .delete()
+            .eq("id", booking.id)
+            .eq("payment_status", "pending");
         }
         return json({ error: "stripe_failed", detail: String(e) }, 502);
       }

@@ -1,12 +1,10 @@
 import { createClient, type SupabaseClient, type Session } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 
-/* StayBoost: Supabase-klient + delade typer för operatörs-UI:t (/app).
-   Kräver VITE_SUPABASE_URL och VITE_SUPABASE_ANON_KEY i miljön —
-   saknas de visar appen en konfigurationsvy i stället för att krascha. */
+import { SUPABASE_URL, SUPABASE_PUBLIC_KEY } from "./supabase-config";
 
-const url = import.meta.env.VITE_SUPABASE_URL as string | undefined;
-const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
+const url = SUPABASE_URL;
+const anonKey = SUPABASE_PUBLIC_KEY;
 
 export const supabaseConfigured = Boolean(url && anonKey);
 
@@ -21,6 +19,9 @@ export type Property = {
   owner_id: string;
   name: string;
   slug: string;
+  booking_enabled: boolean;
+  max_stay: number;
+  contact_email: string | null;
   checkin_time: string;
   checkout_time: string;
   directions: string | null;
@@ -78,7 +79,7 @@ export type Unit = {
 
 /** Publik iCal-exportlänk för en enhet (klistras in i Airbnb/Booking). */
 export const icalExportUrl = (unit: Unit) => {
-  const base = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, "");
+  const base = SUPABASE_URL.replace(/\/$/, "");
   return base ? `${base}/functions/v1/ical-export?token=${unit.ical_feed_token}` : "";
 };
 
@@ -95,6 +96,8 @@ export type Booking = {
   status: "confirmed" | "cancelled";
   guest_token: string;
   notes: string | null;
+  internal_notes: string | null;
+  stay_status: "expected" | "checked_in" | "checked_out" | "no_show";
   payment_status: "none" | "pending" | "paid" | "refund_pending" | "refunded" | "expired";
   payment_amount: number | null;
   payment_ref: string | null;
@@ -271,6 +274,10 @@ export type Addon = {
   price: number;
   price_type: "per_booking" | "per_night";
   image_url: string | null;
+  internal_only: boolean;
+  available_from: string | null;
+  available_to: string | null;
+  max_quantity: number;
   active: boolean;
   sort_order: number;
 };
