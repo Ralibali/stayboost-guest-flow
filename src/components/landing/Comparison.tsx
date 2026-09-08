@@ -72,7 +72,7 @@ export function Comparison() {
   const { stats } = useStayBoostStats();
   const perBooking =
     stats.bookings2026 > 0 ? Math.round(stats.paidAddonRevenueSek / stats.bookings2026) : 0;
-  const monthsCovered = Math.max(1, Math.floor(stats.paidAddonRevenueSek / 449));
+  const monthsCovered = Math.max(1, Math.floor(stats.paidAddonRevenueSek / 499));
   return (
     <section className="border-t border-[color:var(--line)] bg-white/50 py-16 sm:py-14 sm:py-20 md:py-28">
       <div className="mx-auto max-w-[920px] px-5 sm:px-6">
@@ -82,18 +82,16 @@ export function Comparison() {
             className="mt-3 tracking-tight"
             style={{ fontSize: "clamp(1.75rem, 6vw, 3rem)", lineHeight: 1.1 }}
           >
-            Allt BookSpot och Sirvoy gör — plus det de saknar.
+            Bokningar, gästresa och merförsäljning i samma system.
           </h2>
           <p className="mt-4 text-[0.975rem] leading-relaxed text-[color:var(--ink)]/75 sm:text-base">
-            De byggde för aktivitetsföretag och stora hotell. Vi byggde för dig med ett fåtal
-            enheter — och lade till delarna som de aldrig hann med: merförsäljningen och teamvyerna.
+            StayBoost är byggt för små boenden som vill samla bokningar, gästkommunikation,
+            merförsäljning och teamets dagliga arbete.
           </p>
           <p className="mt-5 text-[0.975rem] font-semibold leading-relaxed text-[color:var(--ink)] sm:text-base">
-            Och mot marknadsplatserna är skillnaden ännu enklare: de tar provision på varje gäst de
-            skickar.{" "}
-            <span className="text-[color:var(--brass)]">
-              Vi tar 449 kr i månaden — dina gäster är dina.
-            </span>
+            Välj enbart merförsäljning för 2 procent per genomförd transaktion, bokningssystemet för
+            449 kronor i månaden eller allt i ett för 499 kronor i månaden.{" "}
+            <span className="text-[color:var(--brass)]">Ingen bindningstid.</span>
           </p>
         </div>
 
@@ -134,7 +132,7 @@ export function Comparison() {
                 <td className="p-2 font-bold sm:p-4">Pris</td>
                 <td className="bg-[color:var(--forest)]/[0.04] p-2 text-center sm:p-4">
                   <span className="font-[Fraunces] text-base font-semibold text-[color:var(--forest)] sm:text-lg">
-                    449 kr/mån
+                    Från 2 % eller 449 kr/mån
                   </span>
                 </td>
                 <td className="p-2 text-center text-[color:var(--ink)]/55 sm:p-4">
@@ -151,30 +149,30 @@ export function Comparison() {
         <div className="card-surface mt-6 grid gap-4 sm:grid-cols-[1fr_auto] sm:items-center">
           <div>
             <p className="text-[0.68rem] font-medium uppercase tracking-[0.14em] text-[color:var(--ink)]/45">
-              Konkret exempel — Sirvoy-export (marknadsfall) + stayboost-stats · Bergs 2026
+              Verkligt exempel från Bergs Slussar Glamping 2026
             </p>
             <p className="mt-2 text-[0.95rem] leading-relaxed text-[color:var(--ink)]/80">
               <strong className="font-semibold text-[color:var(--ink)]">
                 {formatSek(perBooking)} i snitt per bokning
               </strong>{" "}
-              i rena tillvalsintäkter × {formatInt(stats.bookings2026)} bokningar ={" "}
+              i merförsäljning per bokning × {formatInt(stats.bookings2026)} bokningar ={" "}
               <strong className="font-semibold text-[color:var(--ink)]">
                 {formatSek(stats.paidAddonRevenueSek)}
               </strong>{" "}
-              extra. På ren automatik, utan en enda extra arbetsminut.
+              i sammanlagd merförsäljning. Utfallet gäller Bergs och är ingen garanti för andra
+              boenden.
             </p>
           </div>
           <p className="rounded-xl bg-[color:var(--forest)]/[0.06] px-4 py-3 text-center text-[0.85rem] font-medium leading-snug text-[color:var(--forest)]">
             ≈ {formatInt(monthsCovered)} månaders
             <br />
-            StayBoost-abonnemang
+            månader med Allt i ett
           </p>
         </div>
 
         <p className="mt-4 text-center text-[12px] leading-relaxed text-[color:var(--ink)]/50">
-          *BookSpot riktar sig till större aktivitetsbolag med pris efter volym. **Sirvoy är
-          kanalhanteraren — StayBoost ersätter den inte. iCal är bara datum, inte kanalhantering.
-          Jämförelsen bygger på publika funktionslistor, juli 2026.
+          *BookSpot har pris efter verksamhetens behov. **Sirvoys pris varierar med valda funktioner
+          och antal rum. Jämförelsen bygger på publika funktionslistor från juli 2026.
         </p>
       </div>
     </section>

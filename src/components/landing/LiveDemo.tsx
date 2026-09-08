@@ -40,14 +40,14 @@ const CARDS = [
     title: "Frukostvyn",
     path: "/produkten/frukost",
     view: "frukost",
-    body: "Det frukostansvarig ser: portioner, allergier i rött, leveranser.",
+    body: "Det frukostansvariga teamet ser: portioner, allergier och leveranser.",
   },
   {
     icon: "🧺",
     title: "Städvyn",
     path: "/produkten/stad",
     view: "stad",
-    body: "Det städteamet ser: exakta checklistor, status i realtid.",
+    body: "Det städteamet ser: tydliga checklistor och aktuell status.",
   },
   {
     icon: "📈",
@@ -61,7 +61,7 @@ const CARDS = [
     title: "Bokningskalendern",
     path: "/produkten/bokningar",
     view: "bokningar",
-    body: "Beläggning per enhet och alla bokningar — synkat mot Sirvoy och Booking.com.",
+    body: "Beläggning per enhet och alla bokningar samlade i en tydlig kalender.",
   },
   {
     icon: "☀️",
@@ -100,11 +100,11 @@ export function LiveDemo() {
             className="mt-3 tracking-tight"
             style={{ fontSize: "clamp(1.75rem, 6vw, 3rem)", lineHeight: 1.1 }}
           >
-            Klicka runt i det riktiga systemet.
+            Utforska hur StayBoost fungerar.
           </h2>
           <p className="mt-4 text-[0.975rem] leading-relaxed text-[color:var(--ink)]/75 sm:mt-5 sm:text-base">
-            Det här är inte skärmdumpar. Det är samma system som driver Bergs Slussar Glamping vid
-            Göta kanal — öppnat för dig med exempeldata. Ingen inloggning, inget konto.
+            Prova samma flöden som används på Bergs Slussar Glamping vid Göta kanal. Demon
+            innehåller exempeldata och kräver varken konto eller inloggning.
           </p>
         </div>
 

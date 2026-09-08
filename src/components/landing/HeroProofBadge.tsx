@@ -2,7 +2,7 @@ import { useStayBoostStats } from "@/hooks/useStayBoostStats";
 import { formatInt, formatSek } from "@/lib/stats";
 
 /**
- * Hero-bevisbadge med verifierade totalsiffror från 2026 års bokningsexport.
+ * Visar verifierade resultat från Bergs Slussar Glamping under 2026.
  */
 export function HeroProofBadge() {
   const { stats } = useStayBoostStats();
@@ -17,10 +17,9 @@ export function HeroProofBadge() {
       </span>
       <span className="min-w-0 tabular-nums sm:truncate">
         <span className="font-medium text-white">
-          {formatSek(stats.paidAddonRevenueSek)} i tillval
+          {formatSek(stats.paidAddonRevenueSek)} i merförsäljning
         </span>{" "}
-        på {formatInt(stats.bookings2026)} bokningar — Sirvoy-export (marknadsfall) +
-        stayboost-stats · Bergs
+        från {formatInt(stats.paidAddonOrders)} tillvalsbeställningar på Bergs
       </span>
       <span aria-hidden className="shrink-0 transition-transform group-hover:translate-x-0.5">
         →
