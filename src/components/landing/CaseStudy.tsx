@@ -71,7 +71,7 @@ function buildEngagementStats(stats: StayBoostStats) {
 }
 
 function formatAddonSubtitle(orders: number, units: number): string {
-  const orderLabel = orders === 1 ? "order" : "ordrar";
+  const orderLabel = orders === 1 ? "beställning" : "beställningar";
   if (units > orders) return `${orders} ${orderLabel} · ${units} st`;
   return `${orders} ${orderLabel}`;
 }
@@ -145,14 +145,14 @@ export function CaseStudy() {
                 <strong className="text-[color:var(--ink)] tabular-nums">
                   ≈ {formatPercent(derived.breakfastShareOfAddons)}
                 </strong>{" "}
-                 av merförsäljningen kom från frukost på Bergs.
+                av merförsäljningen kom från frukost på Bergs.
               </li>
               <li>
                 <strong className="text-[color:var(--ink)] tabular-nums">
                   ≈ {formatPercent(derived.addonShareOfBookings)}
                 </strong>{" "}
-                 av bokningarna ledde till en tillvalsbeställning ({formatInt(stats.paidAddonOrders)} av{" "}
-                 {formatInt(stats.bookings2026)} bokningar).
+                av bokningarna ledde till en tillvalsbeställning ({formatInt(stats.paidAddonOrders)} av{" "}
+                {formatInt(stats.bookings2026)} bokningar).
               </li>
             </ul>
           </div>
@@ -202,7 +202,7 @@ export function CaseStudy() {
         {/* Ops + engagement */}
         <div className="mt-10 grid gap-8 md:grid-cols-2">
           <div>
-            <p className="eyebrow">Drift som sköter sig själv</p>
+            <p className="eyebrow">Automatiserad gästservice</p>
             <h3 className="mt-3 text-xl">Meddelanden, incheckning och frukost</h3>
             <div className="mt-5 grid gap-4 sm:grid-cols-2">
               {opsStats.map((s) => (

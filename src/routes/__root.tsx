@@ -73,14 +73,23 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       name: "StayBoost",
       url: "https://stayboost.se/",
       description:
-        "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
+        "Bokningssystem och automatiserad merförsäljning för små boenden. Sälj tillval, skicka sms och samla den dagliga driften i StayBoost.",
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
-      offers: {
-        "@type": "Offer",
-        price: "449",
-        priceCurrency: "SEK",
-      },
+      offers: [
+        {
+          "@type": "Offer",
+          name: "Bokningssystem",
+          price: "449",
+          priceCurrency: "SEK",
+        },
+        {
+          "@type": "Offer",
+          name: "Allt i ett",
+          price: "499",
+          priceCurrency: "SEK",
+        },
+      ],
     };
 
     const faqItems = [
@@ -105,7 +114,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         "Självklart. Mallarna är en start — varje meddelande går att redigera, och du kan bygga egna flöden med dina egna ord.",
       ],
       [
-        "Vad kostar sms:en?",
+        "Kostar sms extra?",
         "Sms ingår och kostar inget extra per skickat meddelande.",
       ],
       [
@@ -149,18 +158,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         {
           property: "og:description",
           content:
-            "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
+            "Ta emot bokningar, sälj fler tillval och ge gästen rätt information i rätt tid.",
         },
         { property: "og:type", content: "website" },
         { property: "og:site_name", content: "StayBoost" },
         { property: "og:locale", content: "sv_SE" },
         { property: "og:image", content: "https://stayboost.se/og-image.png" },
         { name: "twitter:card", content: "summary_large_image" },
-        { name: "twitter:title", content: "StayBoost — Hela driften för små boenden i ett system" },
+        {
+          name: "twitter:title",
+          content: "StayBoost — Bokning och merförsäljning för små boenden",
+        },
         {
           name: "twitter:description",
           content:
-            "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system.",
+            "Ta emot bokningar, sälj fler tillval och ge gästen rätt information i rätt tid.",
         },
         { name: "twitter:image", content: "https://stayboost.se/og-image.png" },
         {

@@ -23,7 +23,7 @@ const ITEMS = [
     a: "Självklart. Mallarna är en start — varje meddelande går att redigera, och du kan bygga egna flöden med dina egna ord.",
   },
   {
-    q: "Vad kostar sms:en?",
+    q: "Kostar sms extra?",
     a: "Sms ingår och kostar inget extra per skickat meddelande.",
   },
   {
