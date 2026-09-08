@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as VillkorRouteImport } from './routes/villkor'
 import { Route as ProduktenRouteImport } from './routes/produkten'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as IntegritetspolicyRouteImport } from './routes/integritetspolicy'
 import { Route as Google810803ca6fbfceadDothtmlRouteImport } from './routes/google810803ca6fbfcead[.]html'
 import { Route as DpaRouteImport } from './routes/dpa'
@@ -58,6 +59,11 @@ const VillkorRoute = VillkorRouteImport.update({
 const ProduktenRoute = ProduktenRouteImport.update({
   id: '/produkten',
   path: '/produkten',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IntegritetspolicyRoute = IntegritetspolicyRouteImport.update({
@@ -259,6 +265,7 @@ export interface FileRoutesByFullPath {
   '/dpa': typeof DpaRoute
   '/google810803ca6fbfcead.html': typeof Google810803ca6fbfceadDothtmlRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
+  '/login': typeof LoginRoute
   '/produkten': typeof ProduktenRouteWithChildren
   '/villkor': typeof VillkorRoute
   '/app/arbete': typeof AppArbeteRoute
@@ -300,6 +307,7 @@ export interface FileRoutesByTo {
   '/dpa': typeof DpaRoute
   '/google810803ca6fbfcead.html': typeof Google810803ca6fbfceadDothtmlRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
+  '/login': typeof LoginRoute
   '/villkor': typeof VillkorRoute
   '/app/arbete': typeof AppArbeteRoute
   '/app/bokningar': typeof AppBokningarRoute
@@ -342,6 +350,7 @@ export interface FileRoutesById {
   '/dpa': typeof DpaRoute
   '/google810803ca6fbfcead.html': typeof Google810803ca6fbfceadDothtmlRoute
   '/integritetspolicy': typeof IntegritetspolicyRoute
+  '/login': typeof LoginRoute
   '/produkten': typeof ProduktenRouteWithChildren
   '/villkor': typeof VillkorRoute
   '/app/arbete': typeof AppArbeteRoute
@@ -386,6 +395,7 @@ export interface FileRouteTypes {
     | '/dpa'
     | '/google810803ca6fbfcead.html'
     | '/integritetspolicy'
+    | '/login'
     | '/produkten'
     | '/villkor'
     | '/app/arbete'
@@ -427,6 +437,7 @@ export interface FileRouteTypes {
     | '/dpa'
     | '/google810803ca6fbfcead.html'
     | '/integritetspolicy'
+    | '/login'
     | '/villkor'
     | '/app/arbete'
     | '/app/bokningar'
@@ -468,6 +479,7 @@ export interface FileRouteTypes {
     | '/dpa'
     | '/google810803ca6fbfcead.html'
     | '/integritetspolicy'
+    | '/login'
     | '/produkten'
     | '/villkor'
     | '/app/arbete'
@@ -511,6 +523,7 @@ export interface RootRouteChildren {
   DpaRoute: typeof DpaRoute
   Google810803ca6fbfceadDothtmlRoute: typeof Google810803ca6fbfceadDothtmlRoute
   IntegritetspolicyRoute: typeof IntegritetspolicyRoute
+  LoginRoute: typeof LoginRoute
   ProduktenRoute: typeof ProduktenRouteWithChildren
   VillkorRoute: typeof VillkorRoute
   BloggSlugRoute: typeof BloggSlugRoute
@@ -533,6 +546,13 @@ declare module '@tanstack/react-router' {
       path: '/produkten'
       fullPath: '/produkten'
       preLoaderRoute: typeof ProduktenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/integritetspolicy': {
@@ -885,6 +905,7 @@ const rootRouteChildren: RootRouteChildren = {
   DpaRoute: DpaRoute,
   Google810803ca6fbfceadDothtmlRoute: Google810803ca6fbfceadDothtmlRoute,
   IntegritetspolicyRoute: IntegritetspolicyRoute,
+  LoginRoute: LoginRoute,
   ProduktenRoute: ProduktenRouteWithChildren,
   VillkorRoute: VillkorRoute,
   BloggSlugRoute: BloggSlugRoute,
