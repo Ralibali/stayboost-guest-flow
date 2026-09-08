@@ -195,29 +195,25 @@ function DashboardPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-[26px] bg-[#173c2b] text-white shadow-[0_20px_60px_rgba(16,37,27,0.16)]">
-        <div className="relative px-5 py-6 sm:px-7 sm:py-7">
-          <div className="pointer-events-none absolute -right-20 -top-28 h-72 w-72 rounded-full bg-white/[0.06]" />
-          <div className="pointer-events-none absolute right-36 top-8 h-24 w-24 rounded-full bg-[#d9b85f]/10 blur-2xl" />
+    <div className="space-y-4 sm:space-y-6">
+      <section className="overflow-hidden rounded-lg bg-forest text-primary-foreground shadow-[0_16px_40px_color-mix(in_oklab,var(--forest)_16%,transparent)]">
+        <div className="relative px-5 py-5 sm:px-7 sm:py-7">
           <div className="relative flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
             <div>
-              <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.16em] text-white/45">
+              <div className="flex items-center gap-2 text-[11px] font-semibold text-primary-foreground/55">
                 <Sparkles size={13} /> {todayLabel}
               </div>
-              <h1 className="mt-3 font-[Fraunces] text-[32px] font-semibold leading-tight text-white sm:text-[38px]">
+              <h1 className="mt-2 font-display text-[30px] font-semibold leading-tight text-primary-foreground sm:text-[38px]">
                 {greeting}.
               </h1>
-              <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-white/60 sm:text-[14px]">
-                Här är läget för{" "}
-                <span className="font-semibold text-white/85">{property.name}</span> just nu —
-                bokningar, gäster, betalningar och det som faktiskt behöver din uppmärksamhet.
+              <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-primary-foreground/65 sm:text-[14px]">
+                Läget för <span className="font-semibold text-primary-foreground">{property.name}</span> just nu.
               </p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-[1fr_auto] gap-2 sm:flex sm:flex-wrap">
               <Link
                 to="/app/bokningar"
-                className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[12px] font-bold text-[#173c2b] shadow-sm transition hover:-translate-y-0.5"
+                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md bg-card px-4 py-2.5 text-[12px] font-bold text-forest shadow-sm transition hover:-translate-y-0.5"
               >
                 <CalendarDays size={15} /> Hantera bokningar
               </Link>
@@ -226,15 +222,17 @@ function DashboardPage() {
                   href={`/boka/${property.slug}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/[0.07] px-4 py-2.5 text-[12px] font-semibold text-white/80 transition hover:bg-white/[0.12] hover:text-white"
+                  aria-label="Öppna bokningssidan"
+                  title="Öppna bokningssidan"
+                  className="inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-md border border-primary-foreground/20 bg-primary-foreground/8 px-3 py-2.5 text-[12px] font-semibold text-primary-foreground/80 transition hover:bg-primary-foreground/12 hover:text-primary-foreground sm:px-4"
                 >
-                  Bokningssidan <ExternalLink size={14} />
+                  <span className="hidden sm:inline">Bokningssidan</span> <ExternalLink size={16} />
                 </a>
               )}
               <button
                 onClick={load}
                 disabled={loading}
-                className="grid h-10 w-10 place-items-center rounded-xl border border-white/15 bg-white/[0.07] text-white/70 transition hover:bg-white/[0.12] hover:text-white disabled:opacity-40"
+                className="hidden h-11 w-11 place-items-center rounded-md border border-primary-foreground/20 bg-primary-foreground/8 text-primary-foreground/70 transition hover:bg-primary-foreground/12 hover:text-primary-foreground disabled:opacity-40 sm:grid"
                 title="Uppdatera"
               >
                 <RefreshCw size={15} className={loading ? "animate-spin" : ""} />
@@ -250,7 +248,7 @@ function DashboardPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3 xl:grid-cols-4">
         <Kpi
           icon={Home}
           label="Beläggning · 30 dagar"
@@ -278,7 +276,7 @@ function DashboardPage() {
       </div>
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.45fr)_minmax(320px,0.75fr)]">
-        <section className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-[0_8px_28px_rgba(25,40,31,0.05)]">
+        <section className="overflow-hidden rounded-lg border border-line bg-card shadow-sm">
           <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-4 sm:px-6">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[color:var(--ink)]/35">
@@ -362,7 +360,7 @@ function DashboardPage() {
         </section>
 
         <div className="space-y-5">
-          <section className="rounded-[24px] border border-black/[0.07] bg-white p-5 shadow-[0_8px_28px_rgba(25,40,31,0.05)] sm:p-6">
+          <section className="rounded-lg border border-line bg-card p-5 shadow-sm sm:p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[color:var(--ink)]/35">
@@ -380,7 +378,7 @@ function DashboardPage() {
             </div>
           </section>
 
-          <section className="rounded-[24px] border border-black/[0.07] bg-white p-5 shadow-[0_8px_28px_rgba(25,40,31,0.05)] sm:p-6">
+          <section className="rounded-lg border border-line bg-card p-5 shadow-sm sm:p-6">
             <div className="flex items-center gap-2">
               <AlertTriangle
                 size={15}
@@ -423,7 +421,7 @@ function DashboardPage() {
             </div>
           </section>
 
-          <section className="rounded-[24px] border border-black/[0.07] bg-white p-5 shadow-[0_8px_28px_rgba(25,40,31,0.05)] sm:p-6">
+          <section className="rounded-lg border border-line bg-card p-5 shadow-sm sm:p-6">
             <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[color:var(--ink)]/35">
               Snabbt vidare
             </p>
@@ -455,20 +453,23 @@ function Kpi({
   sub: string;
 }) {
   return (
-    <div className="rounded-[20px] border border-black/[0.065] bg-white p-4 shadow-[0_6px_24px_rgba(25,40,31,0.04)] sm:p-5">
-      <div className="flex items-start justify-between gap-2">
-        <span className="grid h-8 w-8 place-items-center rounded-xl bg-[#eef2ed] text-[#2d684c]">
+    <div className="flex items-center gap-4 rounded-lg border border-line bg-card p-4 shadow-sm sm:block sm:p-5">
+      <div className="flex shrink-0 items-start justify-between gap-2">
+        <span className="grid h-10 w-10 place-items-center rounded-md bg-forest/8 text-forest sm:h-8 sm:w-8">
           <Icon size={15} />
         </span>
-        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500/70" />
       </div>
-      <p className="mt-4 font-[Fraunces] text-[25px] font-semibold leading-none text-[#173c2b] sm:text-[29px]">
-        {value}
-      </p>
-      <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.11em] text-[color:var(--ink)]/40">
-        {label}
-      </p>
-      <p className="mt-1 text-[10px] text-[color:var(--ink)]/38">{sub}</p>
+      <div className="min-w-0 flex-1 sm:mt-4">
+        <div className="flex items-baseline justify-between gap-3 sm:block">
+          <p className="text-[11px] font-semibold text-ink/50 sm:mt-2 sm:text-[10px] sm:font-bold sm:uppercase">
+            {label}
+          </p>
+          <p className="font-display text-[25px] font-semibold leading-none text-forest sm:mt-2 sm:text-[29px]">
+            {value}
+          </p>
+        </div>
+        <p className="mt-1 text-[10px] text-ink/42">{sub}</p>
+      </div>
     </div>
   );
 }
