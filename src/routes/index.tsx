@@ -697,10 +697,7 @@ function Pricing() {
           </div>
 
           <div className="mx-auto mt-10 max-w-md">
-            <SignupCta
-              location="pricing"
-              plan={PLANS.find((p) => p.key === selected)!.plan}
-            />
+            <SignupCta location="pricing" plan={PLANS.find((p) => p.key === selected)!.plan} />
             <p className="mt-4 text-center text-xs text-[color:var(--ink)]/55">
               Betalar det inte för sig själv första månaden gör det inte sitt jobb.
             </p>
@@ -710,7 +707,6 @@ function Pricing() {
     </section>
   );
 }
-
 
 /* ---------- Final CTA ---------- */
 function FinalCTA() {
