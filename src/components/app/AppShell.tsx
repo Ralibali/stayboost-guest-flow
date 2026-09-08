@@ -10,15 +10,18 @@ import {
   Link2,
   LogOut,
   Mail,
+  Menu,
   PackagePlus,
   Settings,
   Sparkles,
   SunMedium,
   Tag,
+  X,
 } from "lucide-react";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { BillingPanel } from "@/components/app/BillingPanel";
 import { PlatformOwnerPanel } from "@/components/app/PlatformOwnerPanel";
+import { Button } from "@/components/ui/button";
 
 const NAV = [
   { to: "/app", label: "Översikt", icon: LayoutDashboard, group: "Drift" },
@@ -35,6 +38,9 @@ const NAV = [
 ] as const;
 
 const GROUPS = ["Drift", "Försäljning", "Gästresa", "System"] as const;
+const MOBILE_NAV = NAV.filter((item) =>
+  ["/app", "/app/idag", "/app/bokningar", "/app/kalender"].includes(item.to),
+);
 
 export function AppShell({
   children,
@@ -48,6 +54,7 @@ export function AppShell({
   onLogout: () => void;
 }) {
   const { pathname } = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const isActive = (to: (typeof NAV)[number]["to"]) =>
     to === "/app" ? pathname === "/app" || pathname === "/app/" : pathname.startsWith(to);
@@ -130,35 +137,133 @@ export function AppShell({
       </aside>
 
       <div className="min-w-0">
-        <header className="sticky top-0 z-40 border-b border-black/[0.06] bg-white/90 backdrop-blur-xl lg:hidden">
-          <div className="flex items-center gap-3 px-4 py-3">
-            <Link to="/app" className="font-[Fraunces] text-[20px] font-semibold text-[#173c2b]">
-              StayBoost
-            </Link>
-            {propertyName && (
-              <span className="min-w-0 flex-1 truncate text-right text-[11px] font-semibold text-[color:var(--ink)]/45">
-                {propertyName}
+        <header className="sticky top-0 z-40 border-b border-line bg-card/95 backdrop-blur-xl lg:hidden">
+          <div className="flex h-16 items-center gap-3 px-4">
+            <Link to="/app" className="flex min-w-0 items-center gap-2.5">
+              <span className="grid h-8 w-8 shrink-0 place-items-center rounded-md bg-forest text-primary-foreground">
+                <Sparkles size={15} strokeWidth={2.2} />
               </span>
-            )}
+              <span className="min-w-0">
+                <span className="block font-display text-[18px] font-semibold leading-none text-forest">
+                  StayBoost
+                </span>
+                {propertyName ? (
+                  <span className="mt-1 block max-w-[220px] truncate text-[10px] font-medium text-ink/45">
+                    {propertyName}
+                  </span>
+                ) : null}
+              </span>
+            </Link>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={menuOpen ? "Stäng meny" : "Öppna meny"}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((open) => !open)}
+              className="ml-auto h-10 w-10 text-forest"
+            >
+              {menuOpen ? <X size={20} /> : <Menu size={20} />}
+            </Button>
           </div>
-          <nav className="scrollbar-none flex gap-1 overflow-x-auto px-3 pb-2.5">
-            {NAV.map((item) => {
-              const active = isActive(item.to);
-              return (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`flex shrink-0 items-center gap-1.5 rounded-full px-3 py-2 text-[11px] font-semibold transition ${active ? "bg-[#173c2b] text-white" : "bg-[#f0f2ee] text-[color:var(--ink)]/60"}`}
-                >
-                  <item.icon size={13} /> {item.label}
-                </Link>
-              );
-            })}
-          </nav>
-          {pathname.startsWith("/app/installningar") ? <BillingPanel mobile /> : null}
         </header>
 
-        <main className="mx-auto w-full max-w-[1500px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 xl:px-10">
+        {menuOpen ? (
+          <div className="fixed inset-0 z-50 bg-forest/35 backdrop-blur-sm lg:hidden" role="presentation">
+            <div className="absolute inset-x-0 top-0 max-h-[calc(100dvh-72px)] overflow-y-auto rounded-b-lg bg-card shadow-2xl">
+              <div className="flex h-16 items-center border-b border-line px-4">
+                <p className="font-display text-xl font-semibold text-forest">Meny</p>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  aria-label="Stäng meny"
+                  onClick={() => setMenuOpen(false)}
+                  className="ml-auto h-10 w-10 text-forest"
+                >
+                  <X size={20} />
+                </Button>
+              </div>
+
+              {propertyName ? (
+                <div className="border-b border-line bg-bg/55 px-4 py-3">
+                  <p className="text-[10px] font-semibold uppercase text-ink/40">Anläggning</p>
+                  <div className="mt-1 flex items-center justify-between gap-3">
+                    <p className="truncate text-sm font-semibold text-ink">{propertyName}</p>
+                    {propertySlug ? (
+                      <a
+                        href={`/boka/${propertySlug}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex shrink-0 items-center gap-1.5 text-xs font-semibold text-forest"
+                      >
+                        Bokningssida <ExternalLink size={13} />
+                      </a>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+
+              <nav className="grid grid-cols-2 gap-px bg-line p-px" aria-label="Alla sidor">
+                {NAV.map((item) => {
+                  const active = isActive(item.to);
+                  return (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      onClick={() => setMenuOpen(false)}
+                      className={`flex min-h-16 items-center gap-3 bg-card px-4 py-3 text-xs font-semibold ${active ? "text-forest" : "text-ink/60"}`}
+                    >
+                      <item.icon size={17} strokeWidth={active ? 2.3 : 1.8} />
+                      <span>{item.label}</span>
+                    </Link>
+                  );
+                })}
+              </nav>
+              <div className="border-t border-line p-3">
+                {pathname.startsWith("/app/installningar") ? <BillingPanel mobile /> : null}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={onLogout}
+                  className="h-11 w-full justify-start text-ink/55"
+                >
+                  <LogOut size={16} /> Logga ut
+                </Button>
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        <nav
+          className="demo-safe-bottom fixed inset-x-0 bottom-0 z-40 grid grid-cols-5 border-t border-line bg-card/95 px-1 pt-1.5 backdrop-blur-xl lg:hidden"
+          aria-label="Huvudnavigation"
+        >
+          {MOBILE_NAV.map((item) => {
+            const active = isActive(item.to);
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                className={`flex min-h-12 flex-col items-center justify-center gap-1 rounded-md text-[9px] font-semibold ${active ? "bg-forest/8 text-forest" : "text-ink/45"}`}
+              >
+                <item.icon size={18} strokeWidth={active ? 2.4 : 1.8} />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+          <button
+            type="button"
+            aria-label="Öppna alla sidor"
+            onClick={() => setMenuOpen(true)}
+            className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-md text-[9px] font-semibold text-ink/45"
+          >
+            <Menu size={18} />
+            <span>Mer</span>
+          </button>
+        </nav>
+
+        <main className="mx-auto w-full max-w-[1500px] px-4 pb-24 pt-5 sm:px-6 sm:py-8 lg:px-8 xl:px-10">
           {pathname.startsWith("/app/installningar") ? <PlatformOwnerPanel /> : null}
           {children}
         </main>
