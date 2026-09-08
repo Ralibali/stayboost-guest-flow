@@ -91,9 +91,7 @@ export function Comparison() {
           <p className="mt-5 text-[0.975rem] font-semibold leading-relaxed text-[color:var(--ink)] sm:text-base">
             Välj enbart merförsäljning för 2 procent per genomförd transaktion, bokningssystemet för
             449 kronor i månaden eller allt i ett för 499 kronor i månaden.{" "}
-            <span className="text-[color:var(--brass)]">
-              Ingen bindningstid.
-            </span>
+            <span className="text-[color:var(--brass)]">Ingen bindningstid.</span>
           </p>
         </div>
 

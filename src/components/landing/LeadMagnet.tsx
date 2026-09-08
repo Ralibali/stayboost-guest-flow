@@ -68,9 +68,9 @@ export function LeadMagnet() {
             <em className="italic text-[color:var(--brass)]">våra egna</em> gäster.
           </h2>
           <p className="mt-5 max-w-lg text-[color:var(--ink)]/75">
-            Mallar för välkomstmeddelanden, portkod, tillvalserbjudanden och omdömesfrågor —
-            använda i en riktig verksamhet. Kopiera, anpassa och skicka, eller låt
-            StayBoost skicka dem automatiskt.
+            Mallar för välkomstmeddelanden, portkod, tillvalserbjudanden och omdömesfrågor — använda
+            i en riktig verksamhet. Kopiera, anpassa och skicka, eller låt StayBoost skicka dem
+            automatiskt.
           </p>
 
           <form onSubmit={submit} className="mt-8 flex flex-col gap-3 sm:flex-row" noValidate>

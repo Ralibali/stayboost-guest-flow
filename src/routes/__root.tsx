@@ -113,10 +113,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         "Kan jag skriva mina egna meddelanden?",
         "Självklart. Mallarna är en start — varje meddelande går att redigera, och du kan bygga egna flöden med dina egna ord.",
       ],
-      [
-        "Kostar sms extra?",
-        "Sms ingår och kostar inget extra per skickat meddelande.",
-      ],
+      ["Kostar sms extra?", "Sms ingår och kostar inget extra per skickat meddelande."],
       [
         "Funkar det för min personal?",
         "Ja — det är halva poängen. Frukost- och städvyerna har egna enkla inloggningar, funkar i mobilen och finns på flera språk. Personalen ser exakt vad som ska göras: antal portioner, allergier, handdukar per tält.",

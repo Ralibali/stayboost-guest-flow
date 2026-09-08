@@ -42,8 +42,7 @@ export const Route = createFileRoute("/")({
       },
       {
         property: "og:description",
-        content:
-          "Ta emot bokningar, sälj fler tillval och ge gästen rätt information i rätt tid.",
+        content: "Ta emot bokningar, sälj fler tillval och ge gästen rätt information i rätt tid.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

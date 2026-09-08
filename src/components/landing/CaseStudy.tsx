@@ -26,10 +26,7 @@ function StatCard({ value, label }: { value: string; label: string }) {
 function StatusPill() {
   return (
     <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--brass)]/40 bg-[color:var(--brass)]/10 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[color:var(--brass)]">
-      <span
-        className="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--brass)]"
-        aria-hidden
-      />
+      <span className="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--brass)]" aria-hidden />
       Verkliga resultat · Bergs Slussar Glamping
     </span>
   );
@@ -151,8 +148,8 @@ export function CaseStudy() {
                 <strong className="text-[color:var(--ink)] tabular-nums">
                   ≈ {formatPercent(derived.addonShareOfBookings)}
                 </strong>{" "}
-                av bokningarna ledde till en tillvalsbeställning ({formatInt(stats.paidAddonOrders)} av{" "}
-                {formatInt(stats.bookings2026)} bokningar).
+                av bokningarna ledde till en tillvalsbeställning ({formatInt(stats.paidAddonOrders)}{" "}
+                av {formatInt(stats.bookings2026)} bokningar).
               </li>
             </ul>
           </div>

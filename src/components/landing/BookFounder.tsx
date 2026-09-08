@@ -153,7 +153,8 @@ export function BookFounder() {
                   Mejla {CONTACT_EMAIL}
                 </a>
                 <p className="mt-4 text-[0.85rem] text-[color:var(--ink)]/55">
-                  Föredrar du att titta själv? Öppna produktdemon och utforska flödet med exempeldata.
+                  Föredrar du att titta själv? Öppna produktdemon och utforska flödet med
+                  exempeldata.
                 </p>
               </div>
             )}

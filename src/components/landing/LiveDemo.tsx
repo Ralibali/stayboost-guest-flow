@@ -103,8 +103,8 @@ export function LiveDemo() {
             Utforska hur StayBoost fungerar.
           </h2>
           <p className="mt-4 text-[0.975rem] leading-relaxed text-[color:var(--ink)]/75 sm:mt-5 sm:text-base">
-            Prova samma flöden som används på Bergs Slussar Glamping vid Göta kanal. Demon innehåller
-            exempeldata och kräver varken konto eller inloggning.
+            Prova samma flöden som används på Bergs Slussar Glamping vid Göta kanal. Demon
+            innehåller exempeldata och kräver varken konto eller inloggning.
           </p>
         </div>
 

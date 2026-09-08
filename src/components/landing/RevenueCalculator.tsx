@@ -103,8 +103,9 @@ export function RevenueCalculator() {
               <span className="ml-2 text-base font-normal text-white/70">i merförsäljning</span>
             </p>
             <p className="mt-3 text-white/80">
-              Det motsvarar <strong className="text-white">{formatKr(displayedYear)} kr per år</strong>{" "}
-              i uppskattad merförsäljning.
+              Det motsvarar{" "}
+              <strong className="text-white">{formatKr(displayedYear)} kr per år</strong> i
+              uppskattad merförsäljning.
             </p>
             <p className="mt-3 text-white/80">
               Med automatiska meddelanden och samlade beställningar kan du dessutom minska det
