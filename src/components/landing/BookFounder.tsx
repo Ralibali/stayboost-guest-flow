@@ -54,12 +54,12 @@ export function BookFounder() {
               className="mt-3 tracking-tight"
               style={{ fontSize: "clamp(1.85rem, 4.5vw, 2.75rem)", lineHeight: 1.1 }}
             >
-              Boka 20 min med grundaren.
+              Boka en kostnadsfri demo.
             </h2>
             <p className="mt-4 text-[color:var(--ink)]/75 sm:mt-5">
-              Berätta hur din drift ser ut i dag — jag visar var{" "}
+              Berätta hur din drift ser ut i dag — vi visar var{" "}
               <span className="font-semibold text-[color:var(--ink)]">StayBoost</span> hade satt in
-              stöten hos dig. Om det inte passar säger jag det. Enkelt så.
+              stöten hos dig. Om det inte passar säger vi det. Enkelt så.
             </p>
             <ul className="mt-6 space-y-2.5 text-[0.95rem] text-[color:var(--ink)]/80">
               <li className="flex gap-3">

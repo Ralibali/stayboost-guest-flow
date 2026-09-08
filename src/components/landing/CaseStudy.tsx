@@ -104,7 +104,7 @@ export function CaseStudy() {
             </p>
           </div>
           <p className="mt-5 max-w-2xl text-[color:var(--ink)]/75">
-            StayBoost är utvecklat och används i den dagliga driften på Bergs Slussar Glamping vid
+            StayBoost används i den dagliga driften på Bergs Slussar Glamping vid
             Göta kanal. Här visas anläggningens samlade resultat för 2026. Siffrorna visar vad som
             har hänt på Bergs och är ingen garanti för andra boenden.
           </p>
