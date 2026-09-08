@@ -63,8 +63,8 @@ export function StickyMobileCTA() {
     >
       <div className="mx-3 mb-3 flex items-center justify-between gap-3 rounded-2xl bg-[color:var(--forest)] px-4 py-3 shadow-[0_20px_50px_-10px_rgba(20,36,28,0.5)]">
         <div className="text-[0.82rem] leading-tight text-white">
-          <div className="font-semibold">449 kr/mån</div>
-          <div className="text-white/70">Ingen bindningstid</div>
+          <div className="font-semibold">Från 2 % per köp</div>
+          <div className="text-white/70">Sms ingår</div>
         </div>
         <Link
           to="/produkten"

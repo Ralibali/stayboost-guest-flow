@@ -64,12 +64,12 @@ export function LeadMagnet() {
         <div>
           <p className="eyebrow">Gratis mallar</p>
           <h2 className="mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
-            De exakta sms:en vi skickar till{" "}
+            De sms vi använder för att hjälpa{" "}
             <em className="italic text-[color:var(--brass)]">våra egna</em> gäster.
           </h2>
           <p className="mt-5 max-w-lg text-[color:var(--ink)]/75">
-            Beprövade på en riktig anläggning en hel säsong: välkomst, portkod, tillvalserbjudanden
-            och omdömesfrågan som faktiskt får svar. Kopiera, klistra in, skicka — eller låt
+            Mallar för välkomstmeddelanden, portkod, tillvalserbjudanden och omdömesfrågor —
+            använda i en riktig verksamhet. Kopiera, anpassa och skicka, eller låt
             StayBoost skicka dem automatiskt.
           </p>
 
@@ -150,7 +150,7 @@ export function LeadMagnet() {
                 className="mt-6 font-[Fraunces] font-semibold text-white"
                 style={{ fontSize: "clamp(1.5rem, 3.5vw, 2rem)", lineHeight: 1.05 }}
               >
-                12 gäst-sms som säljer
+                12 sms för en bättre gästresa
               </h3>
               <p className="mt-3 text-[0.72rem] leading-relaxed text-white/70">
                 Kopiera-och-skicka-mallar för hela gästresan — från bokningsbekräftelse till

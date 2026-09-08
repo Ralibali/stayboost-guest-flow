@@ -30,6 +30,23 @@ export const Route = createFileRoute("/")({
   component: Index,
   head: () => ({
     meta: [
+      { title: "StayBoost — Bokning och merförsäljning för små boenden" },
+      {
+        name: "description",
+        content:
+          "Bokningssystem och automatiserad merförsäljning för små boenden. Sälj tillval, skicka sms och samla den dagliga driften i StayBoost.",
+      },
+      {
+        property: "og:title",
+        content: "StayBoost — Bokning och merförsäljning för små boenden",
+      },
+      {
+        property: "og:description",
+        content:
+          "Ta emot bokningar, sälj fler tillval och ge gästen rätt information i rätt tid.",
+      },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
       {
         name: "google-site-verification",
         content: "qQp-5rS0NEPk0bognvzXuH7kaRD1etXS99sMYZKbq_Y",
@@ -199,10 +216,9 @@ function Hero() {
             </em>
           </h1>
           <p className="mt-5 max-w-xl text-[0.95rem] leading-relaxed text-white/85 sm:mt-6 sm:text-base">
-            {BRAND_NAME} lägger sig ovanpå bokningarna du redan har — egen provisionsfri
-            bokningsmotor, automatiserad merförsäljning, gäst-sms, digital incheckning och
-            arbetsvyer för frukost och städning. Ett lager driftautomation för små boenden. Utan
-            app. Titta på /produkten — exempeldata. Sirvoy är kvar.
+            Välj det du behöver: ett komplett bokningssystem, automatiserad merförsäljning eller
+            båda tillsammans. {BRAND_NAME} samlar gästmeddelanden, digital incheckning och dagens
+            arbete för frukost och städning. Gästen behöver inte ladda ner någon app.
           </p>
           <div className="mt-6 max-w-md sm:mt-8">
             <SignupCta location="hero" variant="dark" />
@@ -219,7 +235,7 @@ function Hero() {
               }
               className="underline decoration-white/40 underline-offset-2 hover:text-white hover:decoration-white"
             >
-              eller känn på gästflödet via sms
+              eller prova ett gästmeddelande via sms
             </a>
           </p>
         </div>
@@ -320,17 +336,17 @@ function HowItWorks() {
     {
       n: 1,
       title: "Koppla dina bokningar",
-      body: "StayBoost körs parallellt med Sirvoy — gästflöde efter bokning. iCal är bara datum. Booking.com hämtas inte automatiskt.",
+      body: "Använd StayBoost som komplett bokningssystem eller koppla det till bokningarna du redan har.",
     },
     {
       n: 2,
-      title: "Välj dina meddelanden",
-      body: "Beprövade mallar för före, under och efter vistelsen. Redigera fritt eller kör som de är.",
+      title: "Välj meddelanden och tillval",
+      body: "Anpassa vad gästen ska få före, under och efter vistelsen — från praktisk information till relevanta erbjudanden.",
     },
     {
       n: 3,
-      title: "Se tillvalen ticka in",
-      body: "Gästen bokar med ett tryck i sms:et, betalar direkt. Du får en notis och pengarna.",
+      title: "Ta emot tillvalsbeställningar",
+      body: "Gästen beställer från mobilen och betalar direkt. Du ser beställningen och kan planera leveransen med en gång.",
     },
   ];
   return (
@@ -342,7 +358,7 @@ function HowItWorks() {
         <div className="max-w-2xl">
           <p className="eyebrow">Tre steg</p>
           <h2 className="mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
-            Titta på /produkten först.
+            Från bokning till merförsäljning på tre steg.
           </h2>
         </div>
 
@@ -376,13 +392,13 @@ function Features() {
     {
       title: "Rätt ord, rätt sekund — utan att du lyfter ett finger.",
       body: "Välkomstinfo två dagar före ankomst, portkod på incheckningsdagen, tips på middagsställen kväll ett, omdömesfråga dagen efter utcheckning. Allt tajmat mot bokningen, automatiskt.",
-      fact: "Räknar med ca 5 timmar per vecka — observerat på Bergs, inte en garanti.",
+      fact: "Mindre tid på upprepade frågor och manuella påminnelser.",
       mock: <TimelineMock />,
     },
     {
       title: "Din meny av extraintäkter.",
       body: "Frukost, sen utcheckning, SUP-uthyrning, fikapåse, tidig incheckning — även från lokala partners som du tar provision på. StayBoost erbjuder rätt tillval vid rätt tidpunkt, gästen betalar med ett tryck.",
-      fact: "Kalkylatorn räknar med 15–25 % — observerat på Bergs, inte ett löfte.",
+      fact: "Rätt erbjudande når gästen när det är som mest relevant.",
       mock: <AddonsMock />,
     },
     {
@@ -458,7 +474,7 @@ function AddonsMock() {
     .filter((a) => a.units > 0)
     .map((a) => ({
       name: a.name,
-      price: a.revenue > 0 ? `${Math.round(a.revenue / a.units)} kr i snitt` : "0 kr i exporten",
+      price: a.revenue > 0 ? `${Math.round(a.revenue / a.units)} kr i genomsnitt` : "Utan kostnad",
       orders: a.orders,
     }));
 
@@ -475,15 +491,14 @@ function AddonsMock() {
             <div className="font-semibold">{a.name}</div>
             <div className="mt-1 text-[color:var(--brass)]">{a.price}</div>
             <div className="mt-1 text-xs text-[color:var(--ink)]/55">
-              {a.orders} {a.orders === 1 ? "bokning" : "bokningar"} i år
+              {a.orders} {a.orders === 1 ? "beställning" : "beställningar"} i år
             </div>
           </div>
         ))}
       </div>
       <p className="mt-3 text-xs text-[color:var(--ink)]/55">
-        Samtliga tillval och snittbelopp från den kompletta bokningsexporten 2026 —{" "}
-        {stats.paidAddonOrders} betalda tillvalsordrar, totalt{" "}
-        {stats.paidAddonRevenueSek.toLocaleString("sv-SE")} kr.
+        Tillvalsbeställningar på Bergs under 2026: {stats.paidAddonOrders} beställningar och{" "}
+        {stats.paidAddonRevenueSek.toLocaleString("sv-SE")} kr i merförsäljning.
       </p>
     </div>
   );
@@ -535,8 +550,8 @@ function Testimonial() {
             className="font-[Fraunces] italic text-[color:var(--ink)]"
             style={{ fontSize: "clamp(1.5rem, 3vw, 2.25rem)", lineHeight: 1.3 }}
           >
-            "Det betalar sig självt — varje månad. Första säsongen med StayBoost sålde vi tillval
-            för mer än hela årskostnaden, första veckan."
+            StayBoost byggdes i en riktig glampingverksamhet, där varje gästfråga,
+            tillvalsbeställning och arbetsuppgift måste fungera i vardagen.
           </p>
         </FadeUp>
         <FadeUp delay={0.1}>
@@ -550,7 +565,7 @@ function Testimonial() {
             <div className="text-left text-sm">
               <div className="font-semibold">Bergs Slussar Glamping</div>
               <div className="text-[color:var(--ink)]/60">
-                Glamping vid Göta kanal — kör StayBoost i skarp drift
+                Glamping vid Göta kanal — använder StayBoost i den dagliga driften
               </div>
             </div>
           </div>
@@ -579,7 +594,7 @@ function Testimonial() {
 const PLANS = [
   {
     key: "upsell",
-    eyebrow: "Bara merförsäljning",
+    eyebrow: "För dig som redan har bokningar",
     name: "Merförsäljning",
     price: "2 %",
     unit: "per transaktion",
@@ -595,7 +610,7 @@ const PLANS = [
   },
   {
     key: "booking",
-    eyebrow: "Bara bokning",
+    eyebrow: "För dig som vill samla bokningarna",
     name: "Bokningssystem",
     price: "449",
     unit: "kr/mån",
@@ -629,6 +644,7 @@ const PLANS = [
 
 function Pricing() {
   const [selected, setSelected] = useState<(typeof PLANS)[number]["key"]>("all");
+  const selectedPlan = PLANS.find((plan) => plan.key === selected);
   return (
     <section
       id="pris"
@@ -697,9 +713,9 @@ function Pricing() {
           </div>
 
           <div className="mx-auto mt-10 max-w-md">
-            <SignupCta location="pricing" plan={PLANS.find((p) => p.key === selected)!.plan} />
+            <SignupCta location="pricing" plan={selectedPlan?.plan} />
             <p className="mt-4 text-center text-xs text-[color:var(--ink)]/55">
-              Betalar det inte för sig själv första månaden gör det inte sitt jobb.
+              Välj den del som passar verksamheten i dag och bygg vidare när behovet växer.
             </p>
           </div>
         </FadeUp>

@@ -56,7 +56,7 @@ export function RevenueCalculator() {
         <div className="mx-auto max-w-2xl text-center">
           <p className="eyebrow">Räkna själv</p>
           <h2 className="mt-3 text-white" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
-            Vad är StayBoost värt för dig?
+            Hur mycket kan dina tillval sälja?
           </h2>
         </div>
 
@@ -103,16 +103,16 @@ export function RevenueCalculator() {
               <span className="ml-2 text-base font-normal text-white/70">i merförsäljning</span>
             </p>
             <p className="mt-3 text-white/80">
-              Det är <strong className="text-white">{formatKr(displayedYear)} kr per år</strong> —
-              mot en kostnad på 449 kr/mån.
+              Det motsvarar <strong className="text-white">{formatKr(displayedYear)} kr per år</strong>{" "}
+              i uppskattad merförsäljning.
             </p>
             <p className="mt-3 text-white/80">
-              + cirka <strong className="text-white">5 timmar i veckan</strong> i sparad drifttid —
-              kalkylantagande från Bergs, inte en garanti.
+              Med automatiska meddelanden och samlade beställningar kan du dessutom minska det
+              manuella arbetet kring varje vistelse.
             </p>
             <p className="mt-4 text-[0.8rem] leading-relaxed text-white/50">
-              Kalkylatorn räknar med att 15–25 % av gästerna bokar tillval för i snitt 200 kr —
-              observerat på Bergs, inte ett löfte. Konservativt räknat med 20 %.
+              Exemplet räknar med att 20 procent av bokningarna leder till tillval för i genomsnitt
+              200 kronor. Det är ett räkneexempel, inte en garanti.
             </p>
           </div>
         </motion.div>

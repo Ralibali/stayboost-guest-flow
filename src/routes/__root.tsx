@@ -85,8 +85,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
     const faqItems = [
       [
-        "Fungerar det med Sirvoy och Booking.com?",
-        "Sirvoy är channel manager. StayBoost körs parallellt — gästflöde efter bokning. iCal är bara datum. StayBoost hämtar inte Booking.com automatiskt.",
+        "Kan jag använda StayBoost med mitt nuvarande bokningssystem?",
+        "Ja. Du kan börja med merförsäljningen och behålla din nuvarande bokningslösning, eller välja StayBoosts kompletta bokningssystem.",
       ],
       [
         "Behöver mina gäster ladda ner en app?",
@@ -94,7 +94,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
       [
         "Hur lång tid tar det att komma igång?",
-        'Titta på /produkten — det är exempeldata. Ingen cutover. Sirvoy är kvar. "En kväll" är inte ett driftpåstående.',
+        "Du kan utforska produktdemon direkt utan konto. När du vill börja på riktigt hjälper vi dig att lägga in boenden, tillval och meddelanden i den takt som passar verksamheten.",
       ],
       [
         "Vad händer om en gäst svarar på ett sms?",
@@ -106,7 +106,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
       [
         "Vad kostar sms:en?",
-        "Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms.",
+        "Sms ingår och kostar inget extra per skickat meddelande.",
       ],
       [
         "Funkar det för min personal?",
@@ -117,8 +117,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         "Ja. Skapa ett tillval med kodlås: gästen betalar i mobilen och får koden direkt. Perfekt för SUP, bastu, cyklar och annat som inte kräver att du är på plats.",
       ],
       [
-        "Vi använder inte Sirvoy — funkar det ändå?",
-        "CORE är dogfoodad bredvid Sirvoy. Andra setupar är ett samtal, inte ett påstående. Vi säljer inte Booking.com utan Sirvoy.",
+        "Kan jag köpa enbart merförsäljningsdelen?",
+        "Ja. Merförsäljning kostar 2 procent per genomförd transaktion, utan månadsavgift. Sms ingår. Du kan också välja enbart bokningssystemet eller samla allt i ett paket.",
       ],
     ];
 
@@ -136,15 +136,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       meta: [
         { charSet: "utf-8" },
         { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
-        { title: "StayBoost — Hela driften för små boenden i ett system" },
+        { title: "StayBoost — Bokning och merförsäljning för små boenden" },
         {
           name: "description",
           content:
-            "Gästresa, tillval, incheckning, frukost och städ — hela driften för små boenden i ett system. 449 kr/mån. Titta på /produkten — exempeldata.",
+            "Bokningssystem och automatiserad merförsäljning för små boenden. Sälj tillval, skicka sms och samla den dagliga driften i StayBoost.",
         },
         {
           property: "og:title",
-          content: "StayBoost — Hela driften för små boenden i ett system",
+          content: "StayBoost — Bokning och merförsäljning för små boenden",
         },
         {
           property: "og:description",

@@ -71,11 +71,11 @@ export function DemoSms() {
           className="mt-3 tracking-tight"
           style={{ fontSize: "clamp(1.85rem, 5vw, 3rem)", lineHeight: 1.1 }}
         >
-          Skicka ett gäst-sms till dig själv.
+          Skicka ett gästmeddelande till dig själv.
         </h2>
         <p className="mt-4 text-[color:var(--ink)]/75 sm:mt-5">
-          Välj vilket meddelande i gästresan du vill känna på — vi skickar det till ditt nummer med
-          exempeldata. Tar 30 sekunder.
+          Välj ett meddelande i gästresan så skickar vi det till ditt nummer med exempeldata. Det
+          tar ungefär 30 sekunder.
         </p>
 
         {/* Scenario picker */}
