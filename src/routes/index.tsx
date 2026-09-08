@@ -576,8 +576,59 @@ function Testimonial() {
 }
 
 /* ---------- Pricing ---------- */
+const PLANS = [
+  {
+    key: "upsell",
+    eyebrow: "Bara merförsäljning",
+    name: "Merförsäljning",
+    price: "2 %",
+    unit: "per transaktion",
+    note: "Ingen månadsavgift. Sms ingår. Du betalar bara när gästen köper.",
+    features: [
+      "Gästhubb där gästen köper tillval själv",
+      "Tillval, paket och lokala partnerupplevelser",
+      "Sms och e-post till gästen — ingår",
+      "Betalning med Swish och kort",
+      "Statistik på vad som faktiskt säljer",
+    ],
+    plan: ANALYTICS_PLANS.MONTHLY,
+  },
+  {
+    key: "booking",
+    eyebrow: "Bara bokning",
+    name: "Bokningssystem",
+    price: "449",
+    unit: "kr/mån",
+    note: "Allt du behöver för att ta emot och sköta bokningar.",
+    features: [
+      "Komplett bokningsmotor — kalender, betalning & kampanjkoder",
+      "Säsongspriser, prisregler och minsta vistelse",
+      "Personalresurser, veckoscheman & dagsöversikt",
+      "Digital incheckning, frukost- och städvyer",
+      "Sirvoy-, Airbnb- och Booking.com-kalendrar",
+    ],
+    plan: ANALYTICS_PLANS.MONTHLY,
+  },
+  {
+    key: "all",
+    eyebrow: "Populärast",
+    name: "Allt i ett",
+    price: "499",
+    unit: "kr/mån",
+    note: "Bokning och merförsäljning tillsammans — ingen transaktionsavgift.",
+    features: [
+      "Allt i Bokningssystem",
+      "Allt i Merförsäljning — utan 2 % avgift",
+      "Sms och e-post ingår",
+      "Obegränsade meddelanden och gäster",
+      "Svensk support, ingen bindningstid",
+    ],
+    plan: ANALYTICS_PLANS.ANNUAL,
+  },
+] as const;
+
 function Pricing() {
-  const [annual, setAnnual] = useState(false);
+  const [selected, setSelected] = useState<(typeof PLANS)[number]["key"]>("all");
   return (
     <section
       id="pris"
@@ -585,110 +636,68 @@ function Pricing() {
     >
       <div className="mx-auto max-w-[1120px] px-6">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="eyebrow">Ett pris. Allt ingår.</p>
+          <p className="eyebrow">Välj det du behöver</p>
           <h2 className="mt-3" style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}>
-            Enkel prissättning, utan förbehåll.
+            Bokning, merförsäljning — eller båda.
           </h2>
+          <p className="mt-4 text-[color:var(--ink)]/70">
+            Vill du bara sälja mer till gästerna du redan har betalar du 2 % per transaktion, och då
+            ingår sms. Ingen startavgift och ingen bindningstid i något av alternativen.
+          </p>
         </div>
 
         <FadeUp>
-          <div className="mx-auto mt-12 max-w-[520px] border-y border-[color:var(--line)] px-0 py-10 md:border md:px-10">
-            <div className="mb-8 flex items-center justify-center gap-6 text-sm">
-              <button
-                onClick={() => {
-                  setAnnual(false);
-                  trackCtaClicked({
-                    surface: ANALYTICS_SURFACES.LANDING,
-                    cta: ANALYTICS_CTAS.PRICING_PLAN,
-                    location: "pricing",
-                    plan: ANALYTICS_PLANS.MONTHLY,
-                  });
-                }}
-                className={`pb-1 transition ${
-                  !annual
-                    ? "border-b border-[color:var(--ink)] font-medium"
-                    : "text-[color:var(--ink)]/50 hover:text-[color:var(--ink)]"
-                }`}
-              >
-                Månadsvis
-              </button>
-              <button
-                onClick={() => {
-                  setAnnual(true);
-                  trackCtaClicked({
-                    surface: ANALYTICS_SURFACES.LANDING,
-                    cta: ANALYTICS_CTAS.PRICING_PLAN,
-                    location: "pricing",
-                    plan: ANALYTICS_PLANS.ANNUAL,
-                  });
-                }}
-                className={`pb-1 transition ${
-                  annual
-                    ? "border-b border-[color:var(--ink)] font-medium"
-                    : "text-[color:var(--ink)]/50 hover:text-[color:var(--ink)]"
-                }`}
-              >
-                Årsvis <span className="italic text-[color:var(--ink)]/50">(2 mån gratis)</span>
-              </button>
-            </div>
-
-            <div className="text-center">
-              {annual ? (
-                <>
-                  <div className="flex items-baseline justify-center gap-2">
-                    <span className="text-lg text-[color:var(--ink)]/40 line-through">449</span>
-                    <span
-                      className="font-[Fraunces] font-normal text-[color:var(--ink)]"
-                      style={{ fontSize: "4rem", lineHeight: 1 }}
-                    >
-                      374
-                    </span>
-                    <span className="text-[color:var(--ink)]/70">kr/mån</span>
-                  </div>
-                  <p className="mt-2 text-sm text-[color:var(--ink)]/60">Faktureras 4 490 kr/år</p>
-                </>
-              ) : (
-                <div className="flex items-baseline justify-center gap-2">
-                  <span
-                    className="font-[Fraunces] font-normal"
-                    style={{ fontSize: "4rem", lineHeight: 1 }}
-                  >
-                    449
-                  </span>
-                  <span className="text-[color:var(--ink)]/70">kr/mån</span>
-                </div>
-              )}
-            </div>
-
-            <ul className="mt-8 space-y-3 text-[0.95rem]">
-              {[
-                "Komplett bokningsmotor — kalender, betalning & kampanjkoder",
-                "Säsongspriser, paket, presentkort & ombokningsgaranti",
-                "Min sida — gästen bokar om & köper tillval själv",
-                "Personalresurser, veckoscheman & dagsöversikt",
-                "Obegränsade meddelanden och gäster",
-                "Tillvalsmarknadsplats — sälj lokala partners upplevelser mot provision",
-                "Gästhubb + digital incheckning",
-                "Frukost- och städvyer med rollinloggning",
-                "Sirvoy-koppling (Booking.com via Sirvoy)",
-                "Svensk support",
-                "Ingen startavgift, ingen bindningstid",
-              ].map((f) => (
-                <li
-                  key={f}
-                  className="border-b border-[color:var(--line)] pb-3 text-[color:var(--ink)]/80 last:border-b-0"
+          <div className="mt-12 grid gap-6 md:grid-cols-3">
+            {PLANS.map((p) => {
+              const active = selected === p.key;
+              return (
+                <button
+                  key={p.key}
+                  type="button"
+                  onClick={() => {
+                    setSelected(p.key);
+                    trackCtaClicked({
+                      surface: ANALYTICS_SURFACES.LANDING,
+                      cta: ANALYTICS_CTAS.PRICING_PLAN,
+                      location: "pricing",
+                      plan: p.plan,
+                    });
+                  }}
+                  className={`flex h-full flex-col border p-6 text-left transition md:p-8 ${
+                    active
+                      ? "border-[color:var(--ink)] bg-white"
+                      : "border-[color:var(--line)] bg-white/60 hover:border-[color:var(--ink)]/40"
+                  }`}
                 >
-                  {f}
-                </li>
-              ))}
-            </ul>
+                  <p className="eyebrow">{p.eyebrow}</p>
+                  <h3 className="mt-2 font-[Fraunces] text-xl font-semibold">{p.name}</h3>
+                  <div className="mt-4 flex items-baseline gap-2">
+                    <span
+                      className="font-[Fraunces] font-normal"
+                      style={{ fontSize: "3rem", lineHeight: 1 }}
+                    >
+                      {p.price}
+                    </span>
+                    <span className="text-[color:var(--ink)]/70">{p.unit}</span>
+                  </div>
+                  <p className="mt-3 text-sm text-[color:var(--ink)]/65">{p.note}</p>
+                  <ul className="mt-6 space-y-3 text-[0.95rem]">
+                    {p.features.map((f) => (
+                      <li
+                        key={f}
+                        className="border-b border-[color:var(--line)] pb-3 text-[color:var(--ink)]/80 last:border-b-0"
+                      >
+                        {f}
+                      </li>
+                    ))}
+                  </ul>
+                </button>
+              );
+            })}
+          </div>
 
-            <div className="mt-8">
-              <SignupCta
-                location="pricing"
-                plan={annual ? ANALYTICS_PLANS.ANNUAL : ANALYTICS_PLANS.MONTHLY}
-              />
-            </div>
+          <div className="mx-auto mt-10 max-w-md">
+            <SignupCta location="pricing" plan={PLANS.find((p) => p.key === selected)!.plan} />
             <p className="mt-4 text-center text-xs text-[color:var(--ink)]/55">
               Betalar det inte för sig själv första månaden gör det inte sitt jobb.
             </p>
