@@ -258,7 +258,7 @@ function SocialProof() {
         <p className="text-center text-sm text-[color:var(--ink)]/70">
           I skarp drift på{" "}
           <strong className="font-semibold text-[color:var(--ink)]">Bergs Slussar Glamping</strong>{" "}
-          — byggd av ägaren, beprövad på riktiga gäster.{" "}
+          — ett av våra kundexempel.{" "}
           <a href="#case-study" className="text-[color:var(--brass)] underline underline-offset-2">
             Se siffrorna →
           </a>
@@ -579,8 +579,7 @@ function Testimonial() {
               BS
             </div>
             <span>
-              Byggt av ägaren till <strong>Bergs Slussar Glamping</strong> — för att jag behövde det
-              själv.
+              StayBoost används i daglig drift på <strong>Bergs Slussar Glamping</strong>.
             </span>
           </div>
         </div>
