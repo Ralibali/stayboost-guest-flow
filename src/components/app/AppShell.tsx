@@ -252,15 +252,16 @@ export function AppShell({
               </Link>
             );
           })}
-          <button
+          <Button
             type="button"
+            variant="ghost"
             aria-label="Öppna alla sidor"
             onClick={() => setMenuOpen(true)}
-            className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-md text-[9px] font-semibold text-ink/45"
+            className="flex h-auto min-h-12 flex-col items-center justify-center gap-1 rounded-md px-1 text-[9px] font-semibold text-ink/45"
           >
             <Menu size={18} />
             <span>Mer</span>
-          </button>
+          </Button>
         </nav>
 
         <main className="mx-auto w-full max-w-[1500px] px-4 pb-24 pt-5 sm:px-6 sm:py-8 lg:px-8 xl:px-10">
