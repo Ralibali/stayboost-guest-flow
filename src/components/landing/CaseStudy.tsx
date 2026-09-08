@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { useStayBoostStats, type StatsSource } from "@/hooks/useStayBoostStats";
+import { useStayBoostStats } from "@/hooks/useStayBoostStats";
 import {
   computeDerived,
   formatInt,
@@ -23,20 +23,14 @@ function StatCard({ value, label }: { value: string; label: string }) {
   );
 }
 
-function StatusPill({ source }: { source: StatsSource }) {
-  const label =
-    source === "combined"
-      ? "Sirvoy-export (marknadsfall) + stayboost-stats (live) · Bergs"
-      : "Sirvoy-export · marknadsfall · Bergs";
+function StatusPill() {
   return (
     <span className="inline-flex items-center gap-2 rounded-full border border-[color:var(--brass)]/40 bg-[color:var(--brass)]/10 px-3 py-1 text-[0.72rem] font-semibold uppercase tracking-[0.14em] text-[color:var(--brass)]">
       <span
-        className={`inline-block h-1.5 w-1.5 rounded-full ${
-          source === "combined" ? "bg-[color:var(--brass)]" : "bg-[color:var(--brass)]/60"
-        }`}
+        className="inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--brass)]"
         aria-hidden
       />
-      {label}
+      Verkliga resultat · Bergs Slussar Glamping
     </span>
   );
 }
@@ -63,7 +57,7 @@ function buildOpsStats(stats: StayBoostStats) {
     },
     {
       value: `${formatInt(stats.sms.sent)} / ${formatInt(stats.sms.total)}`,
-      label: "Sms levererade från utkorgen",
+      label: "skickade sms",
     },
   ];
 }
@@ -72,7 +66,7 @@ function buildEngagementStats(stats: StayBoostStats) {
   return [
     { value: formatInt(stats.traffic.pageViews), label: "sidvisningar" },
     { value: formatInt(stats.traffic.sessions), label: "sessioner" },
-    { value: formatInt(stats.traffic.clickEvents), label: "klickhändelser" },
+    { value: formatInt(stats.traffic.clickEvents), label: "interaktioner" },
   ];
 }
 
@@ -83,7 +77,7 @@ function formatAddonSubtitle(orders: number, units: number): string {
 }
 
 export function CaseStudy() {
-  const { stats, source, updatedAt } = useStayBoostStats();
+  const { stats, updatedAt } = useStayBoostStats();
   const derived = computeDerived(stats);
 
   const headlineStats = buildHeadlineStats(stats);
@@ -104,18 +98,18 @@ export function CaseStudy() {
             className="mt-3"
             style={{ fontSize: "clamp(2rem, 4vw, 3rem)" }}
           >
-            Riktiga siffror från en riktig anläggning.
+            Så används StayBoost i verkligheten.
           </h2>
           <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2">
-            <StatusPill source={source} />
+            <StatusPill />
             <p className="text-xs text-[color:var(--ink)]/55">
-              Uppdaterad {formatUpdatedAt(updatedAt)}
+              Senast sammanställd {formatUpdatedAt(updatedAt)}
             </p>
           </div>
           <p className="mt-5 max-w-2xl text-[color:var(--ink)]/75">
-            StayBoost är byggt ovanpå en befintlig glampingverksamhet vid Göta kanal. Siffrorna
-            beskriver Bergs — inte ett löfte för andra boenden. Marknadsfallet är Sirvoy-exportens
-            summering. Live-siffror kommer från stayboost-stats-API:t. Det är två olika flöden.
+            StayBoost är utvecklat och används i den dagliga driften på Bergs Slussar Glamping vid
+            Göta kanal. Här visas anläggningens samlade resultat för 2026. Siffrorna visar vad som
+            har hänt på Bergs och är ingen garanti för andra boenden.
           </p>
         </div>
 
@@ -137,10 +131,10 @@ export function CaseStudy() {
           <div>
             <p className="eyebrow">Merförsäljning</p>
             <h3 className="mt-3 tabular-nums" style={{ fontSize: "clamp(1.5rem, 2.5vw, 2rem)" }}>
-              {formatSek(stats.paidAddonRevenueSek)} i betalda tillval
+              {formatSek(stats.paidAddonRevenueSek)} i merförsäljning
             </h3>
             <p className="mt-4 text-[color:var(--ink)]/75">
-              {formatInt(stats.paidAddonOrders)} betalda tillvalsordrar, ett snittköp på{" "}
+              {formatInt(stats.paidAddonOrders)} tillvalsbeställningar med ett genomsnittligt köp på{" "}
               <strong className="text-[color:var(--ink)] tabular-nums">
                 {formatSek(derived.avgPaidAddonSek)}
               </strong>
@@ -151,15 +145,14 @@ export function CaseStudy() {
                 <strong className="text-[color:var(--ink)] tabular-nums">
                   ≈ {formatPercent(derived.breakfastShareOfAddons)}
                 </strong>{" "}
-                av den betalda merförsäljningen kom från frukost — observerat i denna drift, inte
-                ett generellt löfte.
+                 av merförsäljningen kom från frukost på Bergs.
               </li>
               <li>
                 <strong className="text-[color:var(--ink)] tabular-nums">
                   ≈ {formatPercent(derived.addonShareOfBookings)}
                 </strong>{" "}
-                av bokningarna gav ett betalt tillvalsköp ({formatInt(stats.paidAddonOrders)} /{" "}
-                {formatInt(stats.bookings2026)}) — observerat i denna drift, inte en garanti.
+                 av bokningarna ledde till en tillvalsbeställning ({formatInt(stats.paidAddonOrders)} av{" "}
+                 {formatInt(stats.bookings2026)} bokningar).
               </li>
             </ul>
           </div>
@@ -200,8 +193,8 @@ export function CaseStudy() {
               })}
             </div>
             <p className="mt-6 text-xs text-[color:var(--ink)]/55 tabular-nums">
-              Summan av betalda tillval: {formatSek(stats.paidAddonRevenueSek)}. Belopp avrundade
-              från källdata.
+              Sammanlagd merförsäljning: {formatSek(stats.paidAddonRevenueSek)}. Beloppen är
+              avrundade till hela kronor.
             </p>
           </div>
         </motion.div>
@@ -229,11 +222,9 @@ export function CaseStudy() {
         </div>
 
         <p className="mt-10 max-w-3xl text-xs leading-relaxed text-[color:var(--ink)]/55">
-          Källa: komplett Sirvoy-bokningsexport från Bergs Slussar Glamping (323 rader: boende,
-          tillval och betalningar, exporterad 3 september 2026) summerad med StayBoosts egen drift i
-          samma anläggnings admin, som hämtas löpande. Ingen gäst-, personal- eller betalningsdata
-          visas. Siffrorna beskriver den här anläggningen och är inte ett löfte om samma resultat
-          för andra boenden.
+          Resultaten kommer från den faktiska driften på Bergs Slussar Glamping under 2026. Ingen
+          information om enskilda gäster, medarbetare eller betalningar visas. Utfallet gäller den
+          här anläggningen och är inte ett löfte om samma resultat för andra boenden.
         </p>
       </div>
     </section>

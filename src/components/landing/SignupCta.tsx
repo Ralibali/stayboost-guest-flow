@@ -49,7 +49,7 @@ export function SignupCta({
         {buttonLabel}
       </Link>
       <p className={`mt-2 text-xs ${dark ? "text-white/60" : "text-[color:var(--ink)]/55"}`}>
-        449 kr/mån. Titta på /produkten — exempeldata. Sirvoy är kvar.{" "}
+        Välj merförsäljning, bokningssystem eller allt i ett. Produktdemon visar exempeldata.{" "}
         <Link
           to="/app/login"
           className={

@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const ITEMS = [
   {
-    q: "Fungerar det med Sirvoy och Booking.com?",
-    a: "Sirvoy är channel manager. StayBoost körs parallellt — gästflöde efter bokning. iCal är bara datum. StayBoost hämtar inte Booking.com automatiskt.",
+    q: "Kan jag använda StayBoost med mitt nuvarande bokningssystem?",
+    a: "Ja. Du kan börja med merförsäljningen och behålla din nuvarande bokningslösning, eller välja StayBoosts kompletta bokningssystem. Vi går igenom den bästa lösningen för din anläggning när du kommer igång.",
   },
   {
     q: "Behöver mina gäster ladda ner en app?",
@@ -12,7 +12,7 @@ const ITEMS = [
   },
   {
     q: "Hur lång tid tar det att komma igång?",
-    a: 'Titta på /produkten — det är exempeldata. Ingen cutover. Sirvoy är kvar. "En kväll" är inte ett driftpåstående.',
+    a: "Du kan utforska produktdemon direkt utan konto. När du vill börja på riktigt hjälper vi dig att lägga in boenden, tillval och meddelanden i den takt som passar verksamheten.",
   },
   {
     q: "Vad händer om en gäst svarar på ett sms?",
@@ -24,7 +24,7 @@ const ITEMS = [
   },
   {
     q: "Vad kostar sms:en?",
-    a: "Sms ingår i StayBoost-abonnemanget och debiteras inte separat. Det finns ingen sms-pott, inga credits och ingen extra kostnad per skickat sms.",
+    a: "Sms ingår och kostar inget extra per skickat meddelande.",
   },
   {
     q: "Funkar det för min personal?",
@@ -35,8 +35,8 @@ const ITEMS = [
     a: "Ja. Skapa ett tillval med kodlås: gästen betalar i mobilen och får koden direkt. Perfekt för SUP, bastu, cyklar och annat som inte kräver att du är på plats.",
   },
   {
-    q: "Vi använder inte Sirvoy — funkar det ändå?",
-    a: "CORE är dogfoodad bredvid Sirvoy. Andra setupar är ett samtal, inte ett påstående. Vi säljer inte Booking.com utan Sirvoy.",
+    q: "Kan jag köpa enbart merförsäljningsdelen?",
+    a: "Ja. Merförsäljning kostar 2 procent per genomförd transaktion, utan månadsavgift. Sms ingår. Du kan också välja enbart bokningssystemet eller samla allt i ett paket.",
   },
 ];
 

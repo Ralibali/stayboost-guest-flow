@@ -1,8 +1,8 @@
 const ITEMS = [
   {
     icon: "🔗",
-    title: "Sirvoy-koppling",
-    body: "StayBoost körs parallellt med Sirvoy — gästflöde efter bokning. iCal är bara datum. Booking.com hämtas inte automatiskt.",
+    title: "Bokningarna samlade",
+    body: "Använd StayBoost som bokningssystem eller tillsammans med din nuvarande lösning. Gästresan börjar automatiskt när bokningen finns på plats.",
   },
   {
     icon: "💳",
@@ -16,13 +16,13 @@ const ITEMS = [
   },
   {
     icon: "🔐",
-    title: "Rollinloggningar",
-    body: "Frukost och städ har egna enkla inloggningar. Personalen ser sitt, inget annat.",
+    title: "Rätt vy för varje roll",
+    body: "Frukost- och städpersonalen får enkla mobilvyer och ser bara det de behöver för dagens arbete.",
   },
   {
     icon: "✉",
     title: "E-post som sköter sig",
-    body: "Kö, kvitton och avregistrering enligt konstens alla regler — inget hamnar i limbo.",
+    body: "Bekräftelser, kvitton och avregistreringar skickas automatiskt och hålls samlade.",
   },
   {
     icon: "📊",

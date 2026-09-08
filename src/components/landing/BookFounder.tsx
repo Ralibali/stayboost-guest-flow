@@ -72,13 +72,13 @@ export function BookFounder() {
                 <span aria-hidden className="text-[color:var(--brass)]">
                   ✓
                 </span>
-                Konkret siffra på trolig merförsäljning
+                En tydlig uppskattning av möjlig merförsäljning
               </li>
               <li className="flex gap-3">
                 <span aria-hidden className="text-[color:var(--brass)]">
                   ✓
                 </span>
-                Inga eftersnack, inga uppföljningsmejl om du säger nej
+                Inga påträngande uppföljningar om du tackar nej
               </li>
             </ul>
             <p className="mt-6 text-[0.85rem] text-[color:var(--ink)]/55">
@@ -153,14 +153,13 @@ export function BookFounder() {
                   Mejla {CONTACT_EMAIL}
                 </a>
                 <p className="mt-4 text-[0.85rem] text-[color:var(--ink)]/55">
-                  Föredrar du att titta själv? Öppna produktdemon — exempeldata, Sirvoy är kvar.
+                  Föredrar du att titta själv? Öppna produktdemon och utforska flödet med exempeldata.
                 </p>
               </div>
             )}
             {!BOOKING_URL && !booked && (
               <p className="mt-3 text-[0.8rem] text-[color:var(--ink)]/55">
-                Ingen kalenderintegration än — bokning sker via mejl så inga cookies från tredje
-                part laddas.
+                Samtalet bokas via mejl. Inga externa bokningstjänster laddas på sidan.
               </p>
             )}
           </div>
