@@ -90,7 +90,7 @@ export function BookFounder() {
                   trackCtaClicked({
                     surface: ANALYTICS_SURFACES.LANDING,
                     cta: ANALYTICS_CTAS.OPPN_A_PRODUKTDEMON,
-                    location: "founder",
+                    location: "demo",
                   })
                 }
               >
@@ -132,7 +132,7 @@ export function BookFounder() {
                 style={{ height: "min(680px, 78vh)" }}
               >
                 <iframe
-                  title="Boka 20 min med grundaren"
+                  title="Boka en kostnadsfri demo"
                   src={BOOKING_URL}
                   className="h-full w-full"
                   loading="lazy"
