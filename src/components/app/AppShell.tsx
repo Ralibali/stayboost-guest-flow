@@ -169,7 +169,10 @@ export function AppShell({
         </header>
 
         {menuOpen ? (
-          <div className="fixed inset-0 z-50 bg-forest/35 backdrop-blur-sm lg:hidden" role="presentation">
+          <div
+            className="fixed inset-0 z-50 bg-forest/35 backdrop-blur-sm lg:hidden"
+            role="presentation"
+          >
             <div className="absolute inset-x-0 top-0 max-h-[calc(100dvh-72px)] overflow-y-auto rounded-b-lg bg-card shadow-2xl">
               <div className="flex h-16 items-center border-b border-line px-4">
                 <p className="font-display text-xl font-semibold text-forest">Meny</p>

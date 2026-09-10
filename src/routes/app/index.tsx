@@ -207,7 +207,9 @@ function DashboardPage() {
                 {greeting}.
               </h1>
               <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-primary-foreground/65 sm:text-[14px]">
-                Läget för <span className="font-semibold text-primary-foreground">{property.name}</span> just nu.
+                Läget för{" "}
+                <span className="font-semibold text-primary-foreground">{property.name}</span> just
+                nu.
               </p>
             </div>
             <div className="grid grid-cols-[1fr_auto] gap-2 sm:flex sm:flex-wrap">
