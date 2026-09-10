@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "status": "draft",
+  "writtenAt": "2026-09-10T18:29:08Z",
+  "repository": "Ralibali/stayboost-guest-flow",
+  "publicationGate": "Recheck current main and all published content; complete previous live article and product/source-link browser checks before promotion. Set actual publication dates only at publication.",
+  "sourceReview": {
+    "checkedAt": "2026-09-10T18:29:08Z",
+    "status": "product_html_and_repository_reviewed_browser_pending",
+    "note": "Original editorial work template. Recheck the live product and links before publishing; no human review or measured outcomes claimed."
+  },
+  "article": {
+    "slug": "felanmalan-litet-boende-arbetsmall",
+    "title": "Ta emot felanmälningar på ett litet boende: en arbetsmall",
+    "metaDescription": "Ge varje felanmälan ett tydligt nästa steg. En mall för plats, observation, ansvar, återkoppling och kontroll efter åtgärd på små boenden.",
+    "intro": "En gäst berättar att något inte fungerar. Informationen behöver nå rätt person, och nästa arbetspass behöver förstå vad som återstår. En enkel ärendelogg hjälper er att samla observation, ansvar och återkoppling utan att varje fråga blir en ny lös anteckning.",
+    "sections": [
+      {
+        "heading": "Beskriv platsen och det som observerats",
+        "content": "Skriv vilken del av boendet ärendet gäller och vad personen faktiskt har märkt. Skilj observationen från en föreslagen orsak. ”Belysningen tänds inte vid entrén” är ett tydligare underlag än en säker teknisk diagnos utan undersökning.\n\nSamla bara den information som behövs för att hitta och bedöma ärendet. Ett foto kan förklara platsen, men en lång konversation med privata gästuppgifter behöver inte kopieras till en delad lista."
+      },
+      {
+        "heading": "Använd verksamhetens rutiner för brådskande situationer",
+        "content": "En ärendelogg är inte en instruktion för hur akuta eller farliga situationer ska hanteras. Sådant ska följa verksamhetens aktuella rutiner och ansvar. Bestäm vilka situationer som behöver en annan kontaktväg än den vanliga kön.\n\nFör vardagsärenden kan ni beskriva vilken påverkan som har rapporterats och vem som ska bedöma nästa steg. Undvik att lova en åtgärdstid innan den ansvariga personen har kunnat bekräfta vad som behöver göras."
+      },
+      {
+        "heading": "Ge ärendet en tydlig rad",
+        "content": "Kopiera följande fält:\n\n- Ärende-ID, datum och rapporterad plats.\n- Observation med eventuell bild eller hänvisning.\n- Påverkan som behöver bedömas.\n- Ansvarig för nästa steg.\n- Status: mottaget, bedöms, åtgärdas eller kontrollerat.\n- Nästa återkoppling och vem som lämnar den.\n- Utförd åtgärd och hur resultatet kontrollerades.\n\nSkilj mellan att någon har sett ärendet och att personen har tagit över ansvaret. Om den vanliga ansvariga är frånvarande behöver det finnas en begriplig överlämning."
+      },
+      {
+        "heading": "Håll återkopplingen kopplad till ärendet",
+        "content": "Notera vilket besked gästen fått och vad som fortfarande är osäkert. Nästa person ska kunna ge en uppdatering utan att uppfinna en ny tidsplan eller be gästen berätta hela historien igen.\n\nSkriv hellre ett tydligt nästa besked än ett obekräftat löfte om att allt snart är klart. Om ni måste ändra planen, spara vad som ändrades och vem som ansvarar för att berörda får informationen."
+      },
+      {
+        "heading": "Kontrollera innan ni markerar klart",
+        "content": "Låt loggen skilja mellan ”åtgärd utförd” och ”resultat kontrollerat”. Ange vem som gjort kontrollen och vad den omfattade. Det blir då lättare att förstå varför ett ärende stängdes om samma observation kommer tillbaka.\n\nOm ärendet kräver vidare bedömning ska nästa steg stå kvar. Mallen avgör inte vem som får göra en teknisk åtgärd. Den hjälper verksamheten att dokumentera ansvar och faktiska besked enligt de rutiner som gäller."
+      },
+      {
+        "heading": "Använd återkommande frågor för att förbättra underlaget",
+        "content": "Gå igenom vilka frågor som återkommer och varför nästa person behöver be om komplettering. Det kan handla om otydliga platsnamn eller att en återkoppling inte dokumenterats. Förtydliga en sådan del i taget och följ hur rutinen fungerar.\n\n[StayBoosts produktdemo](/produkten) visar exempel på gästresa och drift. Använd er ärendemall när ni granskar vilken lösning som passar er verksamhet; den här texten påstår inte att demon innehåller ett färdigt felanmälningssystem. Läs även [mallen för ankomstinformation](/blogg/ankomstinformation-gaster-mall). AI-assisterad originalguide utan uppmätta effektpåståenden."
+      }
+    ],
+    "ctaHref": "/produkten",
+    "ctaLabel": "Öppna produktdemon",
+    "editorial": {
+      "createdWith": "ChatGPT",
+      "aiAssisted": true,
+      "searchIntent": "Små boenden som vill dokumentera mottagning, ansvar och kontroll av felanmälningar, separat från ankomstinformationen.",
+      "sourceUrls": [
+        "https://stayboost.se/produkten"
+      ]
+    }
+  }
+}
