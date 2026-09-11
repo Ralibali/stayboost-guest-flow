@@ -498,10 +498,11 @@ describe("Fas 1-migration mot Postgres", () => {
     expect(Number(u.rows[0].monthly_mult[6])).toBe(100); // juli = högsäsong
     expect(Number(u.rows[0].monthly_mult[0])).toBe(70); // januari = lågsäsong
 
-    // Direktbokningar är en giltig källa och schemalägger meddelanden som vanligt
+    // Direktbokningar är en giltig källa och schemalägger meddelanden som vanligt.
+    // Använd databasens aktuella datum så inga av de fyra utskicken hamnar i det förflutna.
     const b = await db.query<{ id: string }>(
       `insert into bookings (property_id, unit_id, source, guest_name, guest_email, checkin_date, checkout_date)
-       values ($1, $2, 'direct', 'Direktgäst', 'direkt@example.se', '2026-09-10', '2026-09-12') returning id`,
+       values ($1, $2, 'direct', 'Direktgäst', 'direkt@example.se', current_date + 60, current_date + 62) returning id`,
       [p1.rows[0].id, u.rows[0].id],
     );
     const msgs = await db.query<{ n: number }>(
