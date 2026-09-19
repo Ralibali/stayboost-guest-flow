@@ -1,12 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  ExternalLink,
-  Mail,
-  MailOpen,
-  MessageSquareText,
-  RefreshCw,
-  Search,
-} from "lucide-react";
+import { ExternalLink, Mail, MailOpen, MessageSquareText, RefreshCw, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase, useProperty, useSession } from "@/lib/supabase";
 
@@ -68,22 +61,14 @@ function InboxPage() {
     load();
   }, [load]);
 
-  const unread = useMemo(
-    () => messages.filter((message) => !message.read_at).length,
-    [messages],
-  );
+  const unread = useMemo(() => messages.filter((message) => !message.read_at).length, [messages]);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("sv-SE");
     if (!needle) return messages;
 
     return messages.filter((message) =>
-      [
-        message.visitor_name ?? "",
-        message.visitor_email,
-        message.message,
-        message.page_url ?? "",
-      ]
+      [message.visitor_name ?? "", message.visitor_email, message.message, message.page_url ?? ""]
         .join(" ")
         .toLocaleLowerCase("sv-SE")
         .includes(needle),
@@ -105,9 +90,7 @@ function InboxPage() {
     }
 
     setMessages((current) =>
-      current.map((message) =>
-        message.id === id ? { ...message, read_at: readAt } : message,
-      ),
+      current.map((message) => (message.id === id ? { ...message, read_at: readAt } : message)),
     );
   };
 
@@ -125,9 +108,7 @@ function InboxPage() {
     }
 
     setMessages((current) =>
-      current.map((message) =>
-        message.id === id ? { ...message, read_at: null } : message,
-      ),
+      current.map((message) => (message.id === id ? { ...message, read_at: null } : message)),
     );
   };
 
@@ -140,9 +121,7 @@ function InboxPage() {
           <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#2d684c]">
             <MessageSquareText size={13} /> StayBoost Inbox
           </div>
-          <h1 className="mt-2 font-[Fraunces] text-[34px] font-semibold leading-tight">
-            Inkorg
-          </h1>
+          <h1 className="mt-2 font-[Fraunces] text-[34px] font-semibold leading-tight">Inkorg</h1>
           <p className="mt-1 text-[13px] text-[color:var(--ink)]/50">
             Gästfrågor från webbchatten samlade på ett ställe.
             {unread > 0 ? ` ${unread} olästa.` : " Allt är läst."}
@@ -203,18 +182,14 @@ function InboxPage() {
       <div className="space-y-3">
         {filtered.map((message) => {
           const isUnread = !message.read_at;
-          const subject = encodeURIComponent(
-            `Svar från ${property.name}`,
-          );
+          const subject = encodeURIComponent(`Svar från ${property.name}`);
           const mailto = `mailto:${encodeURIComponent(message.visitor_email)}?subject=${subject}`;
 
           return (
             <article
               key={message.id}
               className={`rounded-[22px] border bg-white p-5 shadow-sm transition sm:p-6 ${
-                isUnread
-                  ? "border-[#2d684c]/30 ring-1 ring-[#2d684c]/10"
-                  : "border-black/[0.07]"
+                isUnread ? "border-[#2d684c]/30 ring-1 ring-[#2d684c]/10" : "border-black/[0.07]"
               }`}
             >
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -257,9 +232,7 @@ function InboxPage() {
                   </a>
                   <button
                     type="button"
-                    onClick={() =>
-                      void (isUnread ? markRead(message.id) : markUnread(message.id))
-                    }
+                    onClick={() => void (isUnread ? markRead(message.id) : markUnread(message.id))}
                     className="inline-flex items-center gap-2 rounded-xl border border-black/[0.08] px-3.5 py-2 text-[11px] font-bold text-[color:var(--ink)]/60 hover:text-[color:var(--ink)]"
                   >
                     {isUnread ? <MailOpen size={14} /> : <Mail size={14} />}
@@ -302,9 +275,7 @@ function Stat({
   return (
     <div
       className={`rounded-2xl border px-4 py-4 ${
-        attention
-          ? "border-[#2d684c]/20 bg-[#edf6f1]"
-          : "border-black/[0.07] bg-white"
+        attention ? "border-[#2d684c]/20 bg-[#edf6f1]" : "border-black/[0.07] bg-white"
       }`}
     >
       <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[color:var(--ink)]/40">
