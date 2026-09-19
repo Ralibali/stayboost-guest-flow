@@ -11,6 +11,7 @@ import {
   LogOut,
   Mail,
   Menu,
+  MessageSquareText,
   PackagePlus,
   Settings,
   Sparkles,
@@ -33,6 +34,7 @@ const NAV = [
   { to: "/app/prisregler", label: "Pris & regler", icon: Tag, group: "Försäljning" },
   { to: "/app/tillval", label: "Tillval", icon: PackagePlus, group: "Försäljning" },
   { to: "/app/mallar", label: "Gästkommunikation", icon: Mail, group: "Gästresa" },
+  { to: "/app/inkorg", label: "Inkorg", icon: MessageSquareText, group: "Gästresa" },
   { to: "/app/kallor", label: "Kalenderkopplingar", icon: Link2, group: "System" },
   { to: "/app/installningar", label: "Inställningar", icon: Settings, group: "System" },
 ] as const;
