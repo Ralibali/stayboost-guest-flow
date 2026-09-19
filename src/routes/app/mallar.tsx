@@ -131,7 +131,10 @@ function TemplatesPage() {
             },
           ];
         }),
-      ) as Record<MessageTemplate["trigger_type"], { sent: number; pending: number; failed: number }>,
+      ) as Record<
+        MessageTemplate["trigger_type"],
+        { sent: number; pending: number; failed: number }
+      >,
     [queue],
   );
 
@@ -178,8 +181,8 @@ function TemplatesPage() {
         <div>
           <h1 className="font-[Fraunces] text-3xl font-semibold">Automatiserad gästresa</h1>
           <p className="mt-1 max-w-2xl text-[14px] text-[color:var(--ink)]/65">
-            En sammanhängande resa från bokning till återbesök. StayBoost använder samma kö och mallar som
-            dina riktiga utskick – ingen separat automationsmotor att hålla synkad.
+            En sammanhängande resa från bokning till återbesök. StayBoost använder samma kö och
+            mallar som dina riktiga utskick – ingen separat automationsmotor att hålla synkad.
           </p>
         </div>
         <button onClick={load} className="btn-secondary !rounded-xl !px-3 !py-2 text-[12px]">
@@ -192,15 +195,31 @@ function TemplatesPage() {
       )}
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Metric icon={Send} label="Skickade" value={String(metrics.sent)} hint="Senaste 500 köhändelser" />
-        <Metric icon={Clock3} label="Kommande" value={String(metrics.upcoming)} hint={`${metrics.pending} väntar totalt`} />
+        <Metric
+          icon={Send}
+          label="Skickade"
+          value={String(metrics.sent)}
+          hint="Senaste 500 köhändelser"
+        />
+        <Metric
+          icon={Clock3}
+          label="Kommande"
+          value={String(metrics.upcoming)}
+          hint={`${metrics.pending} väntar totalt`}
+        />
         <Metric
           icon={CheckCircle2}
           label="Leveransgrad"
           value={metrics.deliveryRate === null ? "—" : `${metrics.deliveryRate}%`}
           hint="Skickade av skickade + misslyckade"
         />
-        <Metric icon={AlertTriangle} label="Misslyckade" value={String(metrics.failed)} hint="Behöver åtgärd" danger={metrics.failed > 0} />
+        <Metric
+          icon={AlertTriangle}
+          label="Misslyckade"
+          value={String(metrics.failed)}
+          hint="Behöver åtgärd"
+          danger={metrics.failed > 0}
+        />
       </div>
 
       <section className="card-surface mt-5 p-5">
@@ -213,7 +232,10 @@ function TemplatesPage() {
             const template = templates.find((item) => item.trigger_type === trigger);
             const stage = stageMetrics[trigger];
             return (
-              <div key={trigger} className="relative rounded-xl border border-[color:var(--line)] bg-white p-3.5">
+              <div
+                key={trigger}
+                className="relative rounded-xl border border-[color:var(--line)] bg-white p-3.5"
+              >
                 <div className="flex items-center justify-between gap-2">
                   <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[color:var(--ink)]/45">
                     Steg {index + 1}
@@ -248,7 +270,9 @@ function TemplatesPage() {
       <div className="mt-6 space-y-4">
         {templates
           .slice()
-          .sort((a, b) => JOURNEY_ORDER.indexOf(a.trigger_type) - JOURNEY_ORDER.indexOf(b.trigger_type))
+          .sort(
+            (a, b) => JOURNEY_ORDER.indexOf(a.trigger_type) - JOURNEY_ORDER.indexOf(b.trigger_type),
+          )
           .map((template) => {
             const dirty = dirtyIds.has(template.id);
             const saving = savingId === template.id;
@@ -259,11 +283,20 @@ function TemplatesPage() {
               >
                 <div className="flex items-center gap-3">
                   <div className="min-w-0 flex-1">
-                    <h2 className="text-[15px] font-bold">{TRIGGER_LABELS[template.trigger_type]}</h2>
+                    <h2 className="text-[15px] font-bold">
+                      {TRIGGER_LABELS[template.trigger_type]}
+                    </h2>
                     <p className="text-[12px] text-[color:var(--ink)]/55">
                       {TRIGGER_HINTS[template.trigger_type]}
-                      {dirty && <span className="font-semibold text-amber-700"> · Osparade ändringar</span>}
-                      {savedId === template.id && <span className="font-semibold text-[color:var(--success)]"> · ✓ Sparat och kön uppdaterad</span>}
+                      {dirty && (
+                        <span className="font-semibold text-amber-700"> · Osparade ändringar</span>
+                      )}
+                      {savedId === template.id && (
+                        <span className="font-semibold text-[color:var(--success)]">
+                          {" "}
+                          · ✓ Sparat och kön uppdaterad
+                        </span>
+                      )}
                     </p>
                   </div>
                   <button
@@ -281,10 +314,16 @@ function TemplatesPage() {
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
                   <label className="block">
-                    <span className="text-[12px] font-medium text-[color:var(--ink)]/55">Kanal</span>
+                    <span className="text-[12px] font-medium text-[color:var(--ink)]/55">
+                      Kanal
+                    </span>
                     <select
                       value={template.channel}
-                      onChange={(event) => edit(template.id, { channel: event.target.value as MessageTemplate["channel"] })}
+                      onChange={(event) =>
+                        edit(template.id, {
+                          channel: event.target.value as MessageTemplate["channel"],
+                        })
+                      }
                       className="inp mt-1"
                     >
                       <option value="email">E-post</option>
@@ -293,18 +332,26 @@ function TemplatesPage() {
                     </select>
                   </label>
                   <label className="block">
-                    <span className="text-[12px] font-medium text-[color:var(--ink)]/55">Förskjutning, dagar</span>
+                    <span className="text-[12px] font-medium text-[color:var(--ink)]/55">
+                      Förskjutning, dagar
+                    </span>
                     <input
                       type="number"
                       min={-30}
                       max={30}
                       value={template.offset_days}
-                      onChange={(event) => edit(template.id, { offset_days: Math.min(30, Math.max(-30, Number(event.target.value) || 0)) })}
+                      onChange={(event) =>
+                        edit(template.id, {
+                          offset_days: Math.min(30, Math.max(-30, Number(event.target.value) || 0)),
+                        })
+                      }
                       className="inp mt-1"
                     />
                   </label>
                   <label className="block">
-                    <span className="text-[12px] font-medium text-[color:var(--ink)]/55">Klockslag</span>
+                    <span className="text-[12px] font-medium text-[color:var(--ink)]/55">
+                      Klockslag
+                    </span>
                     <input
                       type="time"
                       value={template.send_time}
@@ -317,12 +364,23 @@ function TemplatesPage() {
                 {template.channel !== "sms" && (
                   <label className="mt-3 block">
                     <span className="text-[12px] font-medium text-[color:var(--ink)]/55">Ämne</span>
-                    <input value={template.subject ?? ""} onChange={(event) => edit(template.id, { subject: event.target.value })} className="inp mt-1" />
+                    <input
+                      value={template.subject ?? ""}
+                      onChange={(event) => edit(template.id, { subject: event.target.value })}
+                      className="inp mt-1"
+                    />
                   </label>
                 )}
                 <label className="mt-3 block">
-                  <span className="text-[12px] font-medium text-[color:var(--ink)]/55">Meddelande</span>
-                  <textarea value={template.body} rows={6} onChange={(event) => edit(template.id, { body: event.target.value })} className="inp mt-1 resize-y" />
+                  <span className="text-[12px] font-medium text-[color:var(--ink)]/55">
+                    Meddelande
+                  </span>
+                  <textarea
+                    value={template.body}
+                    rows={6}
+                    onChange={(event) => edit(template.id, { body: event.target.value })}
+                    className="inp mt-1 resize-y"
+                  />
                 </label>
 
                 <div className="mt-4 flex justify-end">
