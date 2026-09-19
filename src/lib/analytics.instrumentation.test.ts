@@ -127,12 +127,14 @@ describe("instrumented surfaces", () => {
     expect(signup).not.toContain("useNavigate");
   });
 
-  it("tracks pricing plan toggles and pricing produktdemon with plan", () => {
+  it("tracks pricing package selection and forwards the selected plan", () => {
     const landing = read(LANDING);
     expect(landing).toContain("ANALYTICS_CTAS.PRICING_PLAN");
+    expect(landing).toContain("plan: p.plan");
+    expect(landing).toContain("setSelected(p.key)");
     expect(landing).toContain("ANALYTICS_PLANS.MONTHLY");
     expect(landing).toContain("ANALYTICS_PLANS.ANNUAL");
-    expect(landing).toContain("plan={annual ? ANALYTICS_PLANS.ANNUAL : ANALYTICS_PLANS.MONTHLY}");
+    expect(landing).toContain("plan={selectedPlan?.plan}");
   });
 
   it("tracks /produkten demo CTAs from landing and produkten index", () => {

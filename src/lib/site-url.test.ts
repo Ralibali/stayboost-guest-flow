@@ -98,9 +98,13 @@ describe("public sitemap", () => {
     "https://stayboost.se/villkor",
     "https://stayboost.se/integritetspolicy",
     "https://stayboost.se/dpa",
-  ] as const;
+    "https://stayboost.se/blogg",
+    ...JSON.parse(read("src/content/editorial/articles.json")).map(
+      (article: { slug: string }) => `https://stayboost.se/blogg/${article.slug}`,
+    ),
+  ];
 
-  it("urlset is exactly the HQ live-200 allowlist", () => {
+  it("urlset contains only public pages and published editorial articles", () => {
     const xml = read("public/sitemap.xml");
     expect(xml).not.toMatch(/lovable\.app/i);
     expect(xml).not.toMatch(/\/app(?:\/|"|'|\s|<|$)/);

@@ -13,11 +13,11 @@ const customerFacing = [
 ];
 
 describe("StayBoost commercial policy", () => {
-  it("treats SMS as included in the subscription, never a separate usage charge", () => {
+  it("treats SMS as included, never a separate usage charge", () => {
     const faq = read("src/components/landing/FAQ.tsx");
     const terms = read("src/routes/villkor.tsx");
 
-    expect(faq).toContain("Sms ingår i StayBoost-abonnemanget och debiteras inte separat");
+    expect(faq).toContain("Sms ingår och kostar inget extra per skickat meddelande.");
     expect(terms).toContain("Sms ingår i abonnemangsavgiften och debiteras inte separat");
   });
 
@@ -55,10 +55,8 @@ describe("StayBoost commercial policy", () => {
     expect(root).not.toContain("igång på en kväll");
 
     for (const source of [faq, root]) {
-      expect(source).toContain("Sirvoy är channel manager");
-      expect(source).toContain("StayBoost hämtar inte Booking.com automatiskt");
-      expect(source).toContain("Titta på /produkten — det är exempeldata");
-      expect(source).toContain("Vi säljer inte Booking.com utan Sirvoy");
+      expect(source).toContain("StayBoost är inte en kanalhanterare för Booking.com eller Airbnb.");
+      expect(source).toContain("Produktdemon visar exempeldata.");
       expect(source).not.toContain("hämtar dina bokningar automatiskt");
       expect(source).not.toContain("En kväll. Koppla bokningarna");
     }
@@ -67,6 +65,8 @@ describe("StayBoost commercial policy", () => {
       /label:\s*"Kanalhanterare \(Booking\.com, Airbnb\)"[\s\S]*stayboost:\s*"nej"/,
     );
     expect(homepage).toMatch(/449/);
-    expect(homepage).not.toMatch(/\b399\b|\b499\b|\b549\b/);
+    expect(homepage).toMatch(/499/);
+    expect(homepage).toContain("2 %");
+    expect(homepage).not.toMatch(/\b399\b|\b549\b/);
   });
 });
