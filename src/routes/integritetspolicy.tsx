@@ -28,7 +28,7 @@ export const Route = createFileRoute("/integritetspolicy")({
 
 function PrivacyPolicy() {
   return (
-    <LegalLayout title="Integritetspolicy" updated="12 juli 2026">
+    <LegalLayout title="Integritetspolicy" updated="20 september 2026">
       <p>
         Denna integritetspolicy beskriver hur <strong>Aurora Media AB</strong> (”StayBoost”, ”vi”)
         behandlar personuppgifter i tjänsten StayBoost och på webbplatsen <code>stayboost.se</code>.
@@ -125,7 +125,9 @@ function PrivacyPolicy() {
           <strong>46elks</strong> — sms-utskick (Sverige/EU).
         </li>
         <li>
-          <strong>Plausible Analytics</strong> — cookiefri, aggregerad besöksstatistik (EU).
+          <strong>Google Analytics 4 (Google)</strong> — besöksstatistik med cookies efter ditt
+          samtycke. Du kan återkalla valet via Cookieinställningar. Läs mer på{" "}
+          <a href="https://policies.google.com/privacy">Googles integritetspolicy</a>.
         </li>
       </ul>
       <p>

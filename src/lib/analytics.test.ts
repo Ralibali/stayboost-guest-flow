@@ -5,7 +5,7 @@ import {
   ANALYTICS_FORMS,
   ANALYTICS_PLANS,
   ANALYTICS_SURFACES,
-  PLAUSIBLE_DOMAIN,
+  ANALYTICS_DOMAIN,
   __setAnalyticsSinkForTests,
   demoLocationFromPath,
   initAnalytics,
@@ -54,8 +54,8 @@ describe("canonical event names", () => {
     ]);
   });
 
-  it("uses stayboost.se as the Plausible domain", () => {
-    expect(PLAUSIBLE_DOMAIN).toBe("stayboost.se");
+  it("uses stayboost.se as the analytics domain", () => {
+    expect(ANALYTICS_DOMAIN).toBe("stayboost.se");
   });
 
   it("exposes honesty primary CTA and keeps kom_igang as secondary", () => {
@@ -66,7 +66,7 @@ describe("canonical event names", () => {
 });
 
 describe("initAnalytics", () => {
-  it("initialises the official SPA tracker once with stayboost.se", () => {
+  it("initialises the consent-gated SPA tracker once with stayboost.se", () => {
     const { inits } = mockSink();
     initAnalytics();
     initAnalytics();
@@ -82,10 +82,10 @@ describe("initAnalytics", () => {
   it("fails silently when init throws", () => {
     __setAnalyticsSinkForTests({
       init: () => {
-        throw new Error("no plausible");
+        throw new Error("no analytics");
       },
       track: () => {
-        throw new Error("no plausible");
+        throw new Error("no analytics");
       },
     });
     expect(() => initAnalytics()).not.toThrow();
