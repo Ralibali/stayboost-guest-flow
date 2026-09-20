@@ -92,52 +92,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       ],
     };
 
-    const faqItems = [
-      [
-        "Kan jag använda StayBoost med mitt nuvarande bokningssystem?",
-        "Ja. Du kan börja med merförsäljningen och behålla din nuvarande bokningslösning, eller välja StayBoosts kompletta bokningssystem. StayBoost är inte en kanalhanterare för Booking.com eller Airbnb.",
-      ],
-      [
-        "Behöver mina gäster ladda ner en app?",
-        "Nej. Allt sker via vanliga sms och en webblänk som öppnas direkt i mobilen. Inget konto, ingen inloggning.",
-      ],
-      [
-        "Hur lång tid tar det att komma igång?",
-        "Du kan utforska produktdemon direkt utan konto. Produktdemon visar exempeldata. När du vill börja på riktigt hjälper vi dig att lägga in boenden, tillval och meddelanden i den takt som passar verksamheten.",
-      ],
-      [
-        "Vad händer om en gäst svarar på ett sms?",
-        'Du får svaret direkt i din inkorg i StayBoost och kan svara därifrån — eller låta automatiken hantera vanliga svar som "JA" på ett tillval.',
-      ],
-      [
-        "Kan jag skriva mina egna meddelanden?",
-        "Självklart. Mallarna är en start — varje meddelande går att redigera, och du kan bygga egna flöden med dina egna ord.",
-      ],
-      ["Kostar sms extra?", "Sms ingår och kostar inget extra per skickat meddelande."],
-      [
-        "Funkar det för min personal?",
-        "Ja — det är halva poängen. Frukost- och städvyerna har egna enkla inloggningar, funkar i mobilen och finns på flera språk. Personalen ser exakt vad som ska göras: antal portioner, allergier, handdukar per tält.",
-      ],
-      [
-        "Kan gäster hyra saker själva, som SUP eller bastu?",
-        "Ja. Skapa ett tillval med kodlås: gästen betalar i mobilen och får koden direkt. Perfekt för SUP, bastu, cyklar och annat som inte kräver att du är på plats.",
-      ],
-      [
-        "Kan jag köpa enbart merförsäljningsdelen?",
-        "Ja. Merförsäljning kostar 2 procent per genomförd transaktion, utan månadsavgift. Sms ingår. Du kan också välja enbart bokningssystemet eller samla allt i ett paket.",
-      ],
-    ];
-
-    const faqLd = {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: faqItems.map(([q, a]) => ({
-        "@type": "Question",
-        name: q,
-        acceptedAnswer: { "@type": "Answer", text: a },
-      })),
-    };
-
     return {
       meta: [
         { charSet: "utf-8" },
@@ -191,10 +145,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         {
           type: "application/ld+json",
           children: JSON.stringify(softwareLd),
-        },
-        {
-          type: "application/ld+json",
-          children: JSON.stringify(faqLd),
         },
       ],
     };

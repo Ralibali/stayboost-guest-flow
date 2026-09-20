@@ -54,9 +54,10 @@ describe("StayBoost commercial policy", () => {
     expect(homepage).not.toContain("Igång på en kväll");
     expect(root).not.toContain("igång på en kväll");
 
+    expect(faq).toContain("StayBoost är inte en kanalhanterare för Booking.com eller Airbnb.");
+    expect(faq).toContain("Produktdemon visar exempeldata.");
+
     for (const source of [faq, root]) {
-      expect(source).toContain("StayBoost är inte en kanalhanterare för Booking.com eller Airbnb.");
-      expect(source).toContain("Produktdemon visar exempeldata.");
       expect(source).not.toContain("hämtar dina bokningar automatiskt");
       expect(source).not.toContain("En kväll. Koppla bokningarna");
     }
