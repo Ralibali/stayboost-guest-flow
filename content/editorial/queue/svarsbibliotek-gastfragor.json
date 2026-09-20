@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "status": "draft",
+  "writtenAt": "2026-09-20T13:58:28.424302+00:00",
+  "repository": "Ralibali/stayboost-guest-flow",
+  "publicationGate": "Earliest 2026-09-22 Europe/Stockholm. Recheck previous live article, current main, complete inventory, sources and all reader links. Set true dates only when publishing.",
+  "sourceReview": {
+    "checkedAt": "2026-09-20T13:58:28.424302+00:00",
+    "status": "product_entry_and_inventory_reviewed_recheck_before_publication",
+    "note": "Original editorial template. Product entry read in browser; no unverified integration, capacity, price or result claimed."
+  },
+  "article": {
+    "slug": "svarsbibliotek-gastfragor",
+    "title": "Samla svar på gästfrågor utan att tappa det aktuella beskedet",
+    "metaDescription": "Bygg ett litet svarsbibliotek för boendets återkommande gästfrågor. Håll källan, ansvarig person och kontrollbehov nära varje svar innan det används.",
+    "intro": "Samma gästfråga kan få olika svar beroende på vem som arbetar. Ett gemensamt svarsbibliotek hjälper ett litet boende att samla bekräftad information och hitta de frågor som behöver redas ut. Börja med några verkliga frågor och gör varje svar lätt att kontrollera.",
+    "sections": [
+      {
+        "heading": "Samla frågorna utan att kopiera hela samtal",
+        "content": "Skriv frågan med egna ord och ta bort sådant som bara gäller en viss persons privata bokning. Behåll den praktiska kärnan: vad behövde gästen veta för att kunna gå vidare? Samla liknande frågor under samma rubrik när de efterfrågar samma besked.\n\nSkilj allmänna frågor från ärenden som kräver individuell hantering. En fråga om den information som boendet redan publicerar kan ofta ha en gemensam svarstext. En fråga om en viss bokning, ett undantag eller en pågående felanmälan behöver fortfarande tas om hand av rätt person."
+      },
+      {
+        "heading": "Låt varje svar ha en kontrollerbar källa",
+        "content": "Skriv var det gällande beskedet finns. Det kan vara en aktuell sida som verksamheten ansvarar för eller ett dokumenterat internt beslut. Utse någon som kan bekräfta innebörden. Om två underlag säger olika saker ska skillnaden redas ut innan en gemensam text används.\n\nKopiera inte ett gammalt svar enbart för att det låter tydligt. Kontrollera att det fortfarande gäller för rätt boende, enhet och situation. Ett tidigare besked till en enskild gäst kan ha varit ett undantag och passar då inte som generell information."
+      },
+      {
+        "heading": "Skriv ett litet svarskort",
+        "content": "Använd följande fält för varje återkommande fråga:\n\n- Frågan med gästens vanliga ord.\n- Kort svar med de uppgifter som är bekräftade.\n- När svaret gäller och vilka avgränsningar det har.\n- Källan till informationen.\n- Ansvarig person och senaste kontroll.\n- Vad som gör att svaret behöver kontrolleras igen.\n- Vart frågan lämnas när standardtexten inte räcker.\n\nSkriv ”behöver bekräftas” där ett besked saknas. Ett ofärdigt svarskort ska vara lätt att skilja från ett som personalen kan använda i den vanliga kommunikationen."
+      },
+      {
+        "heading": "Gör svaret användbart i ett vanligt samtal",
+        "content": "Börja med det gästen behöver veta och lägg en eventuell förklaring efteråt. Undvik att samla flera olika regler i samma stycke om frågan bara gäller en sak. Låt en kollega läsa texten och beskriva vilket nästa steg den föreslår.\n\nEtt konstruerat exempel på form är: ”Den aktuella beskrivningen hittar du här. Om din bokning gäller ett annat alternativ behöver vi kontrollera det separat.” Byt ut formuleringen mot verksamhetens faktiska besked. Exemplet utlovar ingen viss tjänst eller möjlighet att göra undantag."
+      },
+      {
+        "heading": "Följ upp svar som inte räckte",
+        "content": "När en gäst behöver ställa samma följdfråga kan svarskortet behöva förtydligas. Anteckna vilken uppgift som saknades och låt den ansvariga personen kontrollera tillägget. Behåll en hänvisning till det tidigare svaret när innehållet ändras.\n\nOm frågan i stället gäller något som inte fungerar, använd [arbetsmallen för felanmälningar](/blogg/felanmalan-litet-boende-arbetsmall). Ett informationssvar och ett ärende som behöver åtgärdas är olika saker och bör gå att följa på varsitt sätt."
+      },
+      {
+        "heading": "Använd biblioteket när gästinformationen ses över",
+        "content": "Gå igenom de vanligaste frågorna tillsammans med [mallen för ankomstinformation](/blogg/ankomstinformation-gaster-mall). Lägg bara till det som hjälper gästen i just det skedet. Resten kan finnas tillgängligt där det är lätt att hitta vid behov.\n\nÖppna [StayBoosts produktdemo](/produkten) för att undersöka exemplen på gästresa och drift. Ta med era svarskort som underlag i diskussionen om vad ni behöver. AI-assisterad originalguide; svarsbiblioteket är ett förslag till arbetsrutin och ingen utfästelse om en automatisk svarsfunktion."
+      }
+    ],
+    "ctaHref": "/produkten",
+    "ctaLabel": "Öppna produktdemon",
+    "editorial": {
+      "createdWith": "ChatGPT",
+      "aiAssisted": true,
+      "searchIntent": "Personal som behöver förvalta en gemensam källa för återkommande gästfrågor; skilt från ankomstmeddelandet och hantering av felärenden.",
+      "sourceUrls": [
+        "https://stayboost.se/produkten"
+      ]
+    }
+  }
+}
