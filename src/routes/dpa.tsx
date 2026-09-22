@@ -89,9 +89,6 @@ function DPA() {
         <li>
           <strong>46elks AB</strong> — sms-utskick. Sverige.
         </li>
-        <li>
-          <strong>Plausible Insights OÜ</strong> — cookiefri besöksstatistik. Estland/EU.
-        </li>
       </ul>
       <p>
         Vi meddelar minst 30 dagar innan nya eller utbytta underbiträden tas i drift. Kunden kan
