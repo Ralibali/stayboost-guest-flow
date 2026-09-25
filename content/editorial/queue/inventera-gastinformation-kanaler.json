@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "status": "draft",
+  "writtenAt": "2026-09-25T10:06:46.303229+00:00",
+  "repository": "Ralibali/stayboost-guest-flow",
+  "publicationGate": "Earliest 2026-09-27, and only after a fresh previous-publication reader check, current main, complete published inventory and current primary-source review. Keep unpublished until all checks pass; assign actual publication dates at release.",
+  "sourceReview": {
+    "checkedAt": "2026-09-25T10:06:46.303229+00:00",
+    "publishedInventoryReviewed": 4,
+    "distinctIntent": "Inventera distribuerade kopior av gästinformation över webb, mejl och tryckt material; skilt från att skriva standardsvar och överlämna ett arbetspass.",
+    "note": "Owned product entry reviewed; article is an original procedural template. No invented outcomes, prices or automatic product features. Fresh source review required before publication."
+  },
+  "article": {
+    "slug": "inventera-gastinformation-kanaler",
+    "title": "Hitta motstridiga gästbesked i boendets olika kanaler",
+    "metaDescription": "Hitta var boendets gästinformation finns och jämför beskeden mellan kanaler. En inventeringsmall för tydligt ansvar när gamla texter behöver ses över.",
+    "intro": "Ett litet boende kan ha samma praktiska information på flera ställen: i ett mejl, på webbplatsen, i ett utskrivet blad och i ett svar som personalen brukar kopiera. När ett besked ändras är det lätt att någon äldre version finns kvar. En enkel inventering visar var gästen kan möta uppgiften och vem som behöver granska den.\n\nBörja med ett avgränsat ämne, exempelvis hur gästen hittar rätt inför ankomsten. Mallen handlar om boendets eget informationsarbete. Den förutsätter ingen automatisk synkronisering mellan kanaler och avgör inte vilka villkor eller besked som ska gälla för en viss bokning.\n",
+    "sections": [
+      {
+        "heading": "Välj en uppgift att följa genom kanalerna",
+        "content": "Ta fram de texter som faktiskt används idag. Fråga personalen vilka mallar och utskrifter de brukar hänvisa till. Utgå inte från att allt ligger i den gemensamma mappen; en lokal kopia eller ett sparat standardsvar kan också vara en återkommande källa för gästens information.\n\nAnteckna var varje förekomst finns och hur den används. En intern arbetsanteckning, ett allmänt webbsvar och en bokningsspecifik bekräftelse har olika sammanhang. De behöver därför granskas utifrån vem som läser dem och vilket besked de är avsedda att ge."
+      },
+      {
+        "heading": "Jämför betydelsen, inte bara formuleringen",
+        "content": "Två texter kan uttrycka samma sak med olika ord. De kan också se nästan identiska ut men ge olika besked om en tid, plats eller kontaktväg. Läs därför varje förekomst som en gäst skulle läsa den och skriv vad personen rimligen uppfattar att den ska göra.\n\nMarkera skillnader som behöver ett beslut. Bestäm inte själv vilken text som är korrekt enbart utifrån vilket dokument som ser nyast ut. Be ansvarig person kontrollera det aktuella underlaget och beskriva när uppgiften gäller, inklusive eventuella skillnader mellan erbjudanden eller bokningar."
+      },
+      {
+        "heading": "Gör en lista över de upptäckta förekomsterna",
+        "content": "Använd följande fält:\n\n- Ämne och det besked som behöver granskas.\n- Kanal och exakt plats för texten.\n- Vilken gästgrupp eller situation den riktar sig till.\n- Nuvarande formulering eller en tydlig hänvisning.\n- Ansvarig för att bekräfta vad som ska stå.\n- Nästa åtgärd och datum för uppföljning.\n\nUndvik att kopiera personliga gästuppgifter till inventeringen. När en bokningsspecifik formulering behöver undersökas kan listan hänvisa till det behöriga systemet. Syftet är att hitta informationsskillnader, inte att skapa ännu ett register över gäster och deras ärenden."
+      },
+      {
+        "heading": "Kontrollera varje ändrad plats",
+        "content": "När ett nytt besked har beslutats behöver ansvarig gå igenom de berörda förekomsterna. Markera varje plats separat som kontrollerad. Att en webbtext är uppdaterad säger inget om vad som står i ett utskrivet blad eller i en mejlmall som någon fortfarande använder.\n\nÖppna länkarna och läs texten i sitt faktiska sammanhang efter ändringen. Be gärna en kollega följa samma hänvisning som gästen får. Om en gammal kopia behöver tas ur bruk ska det ske enligt boendets vanliga rutiner, så att personalen vet vilket underlag som gäller framåt."
+      },
+      {
+        "heading": "Ge framtida uppdateringar en tydlig ägare",
+        "content": "Spara listan över kanaler och bestäm vem som tar emot nästa förändring. Koppla gärna arbetet till ert [svarsbibliotek för gästfrågor](/blogg/svarsbibliotek-gastfragor). Vid [skiftbytet](/blogg/skiftbyte-litet-boende-overlamningsmall) kan en öppen informationsfråga få en ansvarig och ett tydligt nästa steg.\n\nDu kan [utforska StayBoosts produktdemo](/produkten) när ni ser över hur gästinformationen presenteras. AI-assisterad originalguide med en redaktionell arbetsmall. Demons exempeldata är inte verkliga kundresultat, och texten utlovar ingen automatisk kontroll eller uppdatering av boendets externa kanaler."
+      }
+    ],
+    "ctaHref": "/produkten",
+    "ctaLabel": "Öppna produktdemon",
+    "editorial": {
+      "createdWith": "ChatGPT",
+      "aiAssisted": true,
+      "searchIntent": "Inventera distribuerade kopior av gästinformation över webb, mejl och tryckt material; skilt från att skriva standardsvar och överlämna ett arbetspass.",
+      "sourceUrls": [
+        "https://stayboost.se/produkten"
+      ],
+      "sourceCheckedAt": "2026-09-25T10:06:46.303229+00:00"
+    }
+  }
+}
