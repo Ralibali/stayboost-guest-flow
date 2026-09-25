@@ -12,7 +12,7 @@ const cron = read("supabase/functions/ops-cron/index.ts");
 const cronAuth = read("supabase/functions/_shared/cron-auth.ts");
 const config = read("supabase/config.toml");
 const registerCron = read("supabase/cron/register-production-jobs.sql");
-const messages = read("supabase/functions/send-scheduled-messages/index.ts");
+const messages = read("supabase/functions/_shared/scheduled-messages.ts");
 const appLayout = read("src/routes/app.tsx");
 const alertPanel = read("src/components/OpsAlertPanel.tsx");
 
