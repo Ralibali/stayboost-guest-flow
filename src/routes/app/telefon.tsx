@@ -320,9 +320,9 @@ function VoicePilotPage() {
         </p>
         <p className="mt-2 text-[13px] leading-relaxed text-[color:var(--ink)]/65">
           När underlaget är komplett kopplas telefoni som ett separat steg. Första testet bör vara
-          inkommande samtal utanför öppettid, med tydlig AI-presentation,
-          transkript/sammanfattning och mänsklig överlämning. Direktbokning ska vara avstängd tills
-          bokningsintegrationen är verifierad.
+          inkommande samtal utanför öppettid, med tydlig AI-presentation, transkript/sammanfattning
+          och mänsklig överlämning. Direktbokning ska vara avstängd tills bokningsintegrationen är
+          verifierad.
         </p>
       </section>
     </div>
