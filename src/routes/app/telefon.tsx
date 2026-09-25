@@ -59,7 +59,11 @@ function VoicePilotPage() {
     const key = `stayboost:voice-pilot:${property.id}`;
     try {
       const stored = window.localStorage.getItem(key);
-      setConfig(stored ? { ...defaults(property.name, property.contact_phone), ...JSON.parse(stored) } : defaults(property.name, property.contact_phone));
+      setConfig(
+        stored
+          ? { ...defaults(property.name, property.contact_phone), ...JSON.parse(stored) }
+          : defaults(property.name, property.contact_phone),
+      );
     } catch {
       setConfig(defaults(property.name, property.contact_phone));
     }
@@ -89,7 +93,9 @@ function VoicePilotPage() {
     setConfig((current) => {
       if (!current) return current;
       const exists = current.languages.includes(language);
-      const next = exists ? current.languages.filter((item) => item !== language) : [...current.languages, language];
+      const next = exists
+        ? current.languages.filter((item) => item !== language)
+        : [...current.languages, language];
       return { ...current, languages: next.length ? next : ["sv"] };
     });
   };
@@ -101,7 +107,9 @@ function VoicePilotPage() {
           <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#2d684c]">
             <PhoneCall size={13} /> StayBoost Voice · pilot
           </div>
-          <h1 className="mt-2 font-[Fraunces] text-[34px] font-semibold leading-tight">Telefonagent</h1>
+          <h1 className="mt-2 font-[Fraunces] text-[34px] font-semibold leading-tight">
+            Telefonagent
+          </h1>
           <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[color:var(--ink)]/55">
             Förbered exakt vad en framtida telefonagent får svara på och när den ska lämna över.
             Sidan aktiverar inte telefoni och ringer ingen kund.
@@ -118,12 +126,20 @@ function VoicePilotPage() {
 
       <div className="grid gap-3 sm:grid-cols-4">
         {readiness.map((item) => (
-          <div key={item.label} className={`rounded-2xl border px-4 py-4 ${item.ok ? "border-[#2d684c]/20 bg-[#edf6f1]" : "border-black/[0.07] bg-white"}`}>
+          <div
+            key={item.label}
+            className={`rounded-2xl border px-4 py-4 ${item.ok ? "border-[#2d684c]/20 bg-[#edf6f1]" : "border-black/[0.07] bg-white"}`}
+          >
             <div className="flex items-center gap-2">
-              <CheckCircle2 size={15} className={item.ok ? "text-[#2d684c]" : "text-[color:var(--ink)]/25"} />
+              <CheckCircle2
+                size={15}
+                className={item.ok ? "text-[#2d684c]" : "text-[color:var(--ink)]/25"}
+              />
               <p className="text-[11px] font-bold">{item.label}</p>
             </div>
-            <p className="mt-2 text-[11px] text-[color:var(--ink)]/45">{item.ok ? "Klart" : "Behöver fyllas i"}</p>
+            <p className="mt-2 text-[11px] text-[color:var(--ink)]/45">
+              {item.ok ? "Klart" : "Behöver fyllas i"}
+            </p>
           </div>
         ))}
       </div>
@@ -131,23 +147,40 @@ function VoicePilotPage() {
       <section className="rounded-[24px] border border-black/[0.07] bg-white p-5 shadow-sm sm:p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--ink)]/40">Pilotstatus</p>
-            <h2 className="mt-1 font-[Fraunces] text-xl font-semibold">{pilotReady ? "Redo för provider-test" : `${readyCount}/${readiness.length} delar klara`}</h2>
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[color:var(--ink)]/40">
+              Pilotstatus
+            </p>
+            <h2 className="mt-1 font-[Fraunces] text-xl font-semibold">
+              {pilotReady
+                ? "Redo för provider-test"
+                : `${readyCount}/${readiness.length} delar klara`}
+            </h2>
           </div>
           <label className="flex items-center gap-2 text-[12px] font-semibold">
             <input
               type="checkbox"
               checked={config.enabled}
-              onChange={(event) => setConfig((current) => current && ({ ...current, enabled: event.target.checked }))}
+              onChange={(event) =>
+                setConfig((current) => current && { ...current, enabled: event.target.checked })
+              }
             />
             Markera pilot som aktiv internt
           </label>
         </div>
         <p className="mt-3 text-[12px] leading-relaxed text-[color:var(--ink)]/50">
-          “Aktiv” betyder bara att pilotkonfigurationen är vald. Ingen telefontjänst, röstmodell eller
-          webhook är ansluten förrän en provider uttryckligen konfigurerats och testats.
+          “Aktiv” betyder bara att pilotkonfigurationen är vald. Ingen telefontjänst, röstmodell
+          eller webhook är ansluten förrän en provider uttryckligen konfigurerats och testats.
         </p>
-        {savedAt ? <p className="mt-2 text-[11px] font-semibold text-[#2d684c]">Sparat {new Date(savedAt).toLocaleTimeString("sv-SE", { hour: "2-digit", minute: "2-digit" })} i den här webbläsaren.</p> : null}
+        {savedAt ? (
+          <p className="mt-2 text-[11px] font-semibold text-[#2d684c]">
+            Sparat{" "}
+            {new Date(savedAt).toLocaleTimeString("sv-SE", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}{" "}
+            i den här webbläsaren.
+          </p>
+        ) : null}
       </section>
 
       <div className="grid gap-6 xl:grid-cols-2">
@@ -159,20 +192,30 @@ function VoicePilotPage() {
 
           <div className="mt-5 space-y-5">
             <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-wide text-[color:var(--ink)]/45">Hälsning</span>
+              <span className="text-[11px] font-bold uppercase tracking-wide text-[color:var(--ink)]/45">
+                Hälsning
+              </span>
               <textarea
                 value={config.greeting}
-                onChange={(event) => setConfig((current) => current && ({ ...current, greeting: event.target.value }))}
+                onChange={(event) =>
+                  setConfig((current) => current && { ...current, greeting: event.target.value })
+                }
                 rows={4}
                 className="inp mt-1.5 w-full"
               />
             </label>
 
             <label className="block">
-              <span className="text-[11px] font-bold uppercase tracking-wide text-[color:var(--ink)]/45">Överlämningsnummer</span>
+              <span className="text-[11px] font-bold uppercase tracking-wide text-[color:var(--ink)]/45">
+                Överlämningsnummer
+              </span>
               <input
                 value={config.handoffPhone}
-                onChange={(event) => setConfig((current) => current && ({ ...current, handoffPhone: event.target.value }))}
+                onChange={(event) =>
+                  setConfig(
+                    (current) => current && { ...current, handoffPhone: event.target.value },
+                  )
+                }
                 className="inp mt-1.5 w-full"
                 placeholder="+46…"
               />
@@ -182,13 +225,19 @@ function VoicePilotPage() {
               <input
                 type="checkbox"
                 checked={config.afterHoursOnly}
-                onChange={(event) => setConfig((current) => current && ({ ...current, afterHoursOnly: event.target.checked }))}
+                onChange={(event) =>
+                  setConfig(
+                    (current) => current && { ...current, afterHoursOnly: event.target.checked },
+                  )
+                }
               />
               Börja med samtal utanför ordinarie öppettid
             </label>
 
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-wide text-[color:var(--ink)]/45">Språk</p>
+              <p className="text-[11px] font-bold uppercase tracking-wide text-[color:var(--ink)]/45">
+                Språk
+              </p>
               <div className="mt-2 flex gap-2">
                 {[
                   ["sv", "Svenska"],
@@ -217,19 +266,29 @@ function VoicePilotPage() {
             {(Object.keys(intentLabels) as IntentKey[]).map((key) => {
               const item = intentLabels[key];
               return (
-                <label key={key} className="flex cursor-pointer gap-3 rounded-2xl border border-black/[0.07] p-4">
+                <label
+                  key={key}
+                  className="flex cursor-pointer gap-3 rounded-2xl border border-black/[0.07] p-4"
+                >
                   <input
                     type="checkbox"
                     className="mt-1"
                     checked={config.intents[key]}
-                    onChange={(event) => setConfig((current) => current && ({
-                      ...current,
-                      intents: { ...current.intents, [key]: event.target.checked },
-                    }))}
+                    onChange={(event) =>
+                      setConfig(
+                        (current) =>
+                          current && {
+                            ...current,
+                            intents: { ...current.intents, [key]: event.target.checked },
+                          },
+                      )
+                    }
                   />
                   <span>
                     <span className="block text-[13px] font-bold">{item.title}</span>
-                    <span className="mt-1 block text-[11px] leading-relaxed text-[color:var(--ink)]/50">{item.description}</span>
+                    <span className="mt-1 block text-[11px] leading-relaxed text-[color:var(--ink)]/50">
+                      {item.description}
+                    </span>
                   </span>
                 </label>
               );
@@ -246,7 +305,9 @@ function VoicePilotPage() {
         </p>
         <textarea
           value={config.knowledge}
-          onChange={(event) => setConfig((current) => current && ({ ...current, knowledge: event.target.value }))}
+          onChange={(event) =>
+            setConfig((current) => current && { ...current, knowledge: event.target.value })
+          }
           rows={9}
           className="inp mt-4 w-full"
           placeholder="Exempel: Incheckning från 15:00. Vid akuta problem ska samtalet alltid lämnas över till personal…"
@@ -254,11 +315,14 @@ function VoicePilotPage() {
       </section>
 
       <section className="rounded-[24px] border border-[#2d684c]/15 bg-[#edf6f1] p-5 sm:p-6">
-        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#2d684c]">Första provider-testet</p>
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#2d684c]">
+          Första provider-testet
+        </p>
         <p className="mt-2 text-[13px] leading-relaxed text-[color:var(--ink)]/65">
           När underlaget är komplett kopplas telefoni som ett separat steg. Första testet bör vara
-          inkommande samtal utanför öppettid, med tydlig AI-presentation, transkript/sammanfattning
-          och mänsklig överlämning. Direktbokning ska vara avstängd tills bokningsintegrationen är verifierad.
+          inkommande samtal utanför öppettid, med tydlig AI-presentation,
+          transkript/sammanfattning och mänsklig överlämning. Direktbokning ska vara avstängd tills
+          bokningsintegrationen är verifierad.
         </p>
       </section>
     </div>
