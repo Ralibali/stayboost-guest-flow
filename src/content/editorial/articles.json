@@ -1,5 +1,50 @@
 [
   {
+    "slug": "skiftbyte-litet-boende-overlamningsmall",
+    "title": "Gör skiftbytet på ett litet boende lätt att följa",
+    "metaDescription": "Samla öppna frågor, nästa steg och ansvar inför skiftbytet på ett litet boende. En praktisk mall som hänvisar till aktuella ärenden och bekräftade gästbesked.",
+    "intro": "Vid ett skiftbyte behöver nästa person förstå vad som kräver uppmärksamhet nu. En lång berättelse om allt som hänt kan göra de öppna frågorna svåra att hitta. En kort överlämning som pekar vidare till rätt underlag hjälper teamet att skilja avslutade ärenden från sådant som fortfarande behöver ett besked.\n",
+    "sections": [
+      {
+        "heading": "Börja med det som nästa pass behöver göra",
+        "content": "Skriv vilka uppgifter som återstår och varför de behöver tas över. Ange nästa steg i stället för att bara återge händelsen. ”Fråga ansvarig om bekräftad tid” är tydligare än ”gästen ringde om tiden” när ingen ännu vet vilket svar som ska lämnas.\n\nSkilj mellan något som behöver göras under passet och information som bara ska vara tillgänglig vid en fråga. Prioriteringen ska bygga på era faktiska rutiner och besked. Mallen ersätter inte boendets instruktioner för brådskande situationer eller de kontaktvägar som redan ska användas där."
+      },
+      {
+        "heading": "Hänvisa till ett gemensamt ärende",
+        "content": "Om frågan redan finns i en felanmälan, bokningsanteckning eller annan intern notering, hänvisa dit. Kopiera inte en fullständig berättelse till varje överlämning. Flera kopior kan börja skilja sig åt när någon bara uppdaterar en av dem.\n\nAnvänd [arbetsmallen för felanmälningar](/blogg/felanmalan-litet-boende-arbetsmall) för frågor som gäller något som inte fungerar. Överlämningen ska visa vem som tar nästa steg i det befintliga ärendet. Den behöver inte bli en separat parallell historik över samma problem."
+      },
+      {
+        "heading": "Skriv en rad per öppen fråga",
+        "content": "Ett enkelt skiftunderlag kan innehålla följande:\n\n- Referens: var det samlade underlaget finns.\n- Aktuellt läge: det senaste bekräftade beskedet.\n- Nästa steg: en tydlig handling eller fråga.\n- Ansvarig roll: vem som tar vid under nästa pass.\n- Tidpunkt: när uppföljning är avtalad eller behöver planeras.\n- Gästbesked: vad som redan har kommunicerats.\n- Avslut: hur teamet ser att frågan är hanterad.\n\nSpara personuppgifter och bokningsdetaljer i den avsedda interna miljön. En överlämningslista som syns för fler personer behöver inte innehålla hela det bakomliggande materialet för att peka rätt."
+      },
+      {
+        "heading": "Låt nästa person bekräfta förståelsen",
+        "content": "Gå igenom de viktigaste öppna raderna tillsammans när arbetssättet tillåter det. Be mottagaren sammanfatta nästa steg. Då kan ni upptäcka skillnaden mellan ”någon ska undersöka frågan” och ”gästen har redan fått ett bestämt löfte”.\n\nSkriv ned det som förtydligas i det gemensamma underlaget. Ett muntligt tillägg som bara finns hos två personer kan annars tappas bort vid nästa passbyte. Om ansvarig person ännu inte är utsedd ska det stå kvar som en öppen fråga, inte döljas bakom ordet ”teamet”."
+      },
+      {
+        "heading": "Håll gästsvaren kopplade till aktuella besked",
+        "content": "Kontrollera om nästa pass kan använda ett redan bekräftat svar eller behöver fråga ansvarig först. Ett tidigare besked kan gälla ett annat datum, en annan bokning eller en situation som har ändrats. Markera den begränsningen när den är viktig.\n\nFör återkommande informationsfrågor kan [mallen för svarsbibliotek](/blogg/svarsbibliotek-gastfragor) hjälpa teamet att hålla ordning på källan. Skiftöverlämningen visar vad som händer just nu, medan svarsbiblioteket beskriver den aktuella grundinformationen och vem som håller den uppdaterad."
+      },
+      {
+        "heading": "Stäng raden när nästa steg är hanterat",
+        "content": "Anteckna när frågan har fått ett avslut och var resultatet sparades. Om ett nytt steg behövs ska det vara tydligt vad som återstår och vem som tar vid. Undvik att låta samma rad följa med oförändrad mellan många pass utan att någon omprövar den.\n\nUtforska [StayBoosts produktdemo](/produkten) när ni går igenom era behov kring gästresa och drift. Ta med ett anonymiserat skiftunderlag till dialogen. AI-assisterad originalguide med ett redaktionellt förslag till arbetsrutin."
+      }
+    ],
+    "ctaHref": "/produkten",
+    "ctaLabel": "Öppna produktdemon",
+    "editorial": {
+      "createdWith": "ChatGPT",
+      "aiAssisted": true,
+      "searchIntent": "Driftteam som behöver överföra pågående ansvar mellan arbetspass. Skilt från att registrera en felanmälan, förvalta standardsvar eller skriva ankomstinformation.",
+      "sourceUrls": [
+        "https://stayboost.se/produkten"
+      ],
+      "sourceCheckedAt": "2026-09-25T08:27:21.467864+00:00",
+      "publishedAt": "2026-09-25T08:27:21.467864+00:00"
+    },
+    "publishedDate": "2026-09-25"
+  },
+  {
     "slug": "svarsbibliotek-gastfragor",
     "title": "Samla svar på gästfrågor utan att tappa det aktuella beskedet",
     "metaDescription": "Bygg ett litet svarsbibliotek för boendets återkommande gästfrågor. Håll källan, ansvarig person och kontrollbehov nära varje svar innan det används.",
