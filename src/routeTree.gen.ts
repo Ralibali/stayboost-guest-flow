@@ -42,6 +42,7 @@ import { Route as AppTillvalRouteImport } from './routes/app/tillval'
 import { Route as AppPrisreglerRouteImport } from './routes/app/prisregler'
 import { Route as AppOnboardingRouteImport } from './routes/app/onboarding'
 import { Route as AppMallarRouteImport } from './routes/app/mallar'
+import { Route as AppTelefonRouteImport } from './routes/app/telefon'
 import { Route as AppInkorgRouteImport } from './routes/app/inkorg'
 import { Route as AppLoginRouteImport } from './routes/app/login'
 import { Route as AppKallorRouteImport } from './routes/app/kallor'
@@ -218,6 +219,11 @@ const AppMallarRoute = AppMallarRouteImport.update({
   path: '/mallar',
   getParentRoute: () => AppRoute,
 } as any)
+const AppTelefonRoute = AppTelefonRouteImport.update({
+  id: '/telefon',
+  path: '/telefon',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInkorgRoute = AppInkorgRouteImport.update({
   id: '/inkorg',
   path: '/inkorg',
@@ -283,6 +289,7 @@ export interface FileRoutesByFullPath {
   '/app/kallor': typeof AppKallorRoute
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
+  '/app/telefon': typeof AppTelefonRoute
   '/app/inkorg': typeof AppInkorgRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/prisregler': typeof AppPrisreglerRoute
@@ -325,6 +332,7 @@ export interface FileRoutesByTo {
   '/app/kallor': typeof AppKallorRoute
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
+  '/app/telefon': typeof AppTelefonRoute
   '/app/inkorg': typeof AppInkorgRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/prisregler': typeof AppPrisreglerRoute
@@ -370,6 +378,7 @@ export interface FileRoutesById {
   '/app/kallor': typeof AppKallorRoute
   '/app/login': typeof AppLoginRoute
   '/app/mallar': typeof AppMallarRoute
+  '/app/telefon': typeof AppTelefonRoute
   '/app/inkorg': typeof AppInkorgRoute
   '/app/onboarding': typeof AppOnboardingRoute
   '/app/prisregler': typeof AppPrisreglerRoute
@@ -416,6 +425,7 @@ export interface FileRouteTypes {
     | '/app/kallor'
     | '/app/login'
     | '/app/mallar'
+    | '/app/telefon'
     | '/app/inkorg'
     | '/app/onboarding'
     | '/app/prisregler'
@@ -458,6 +468,7 @@ export interface FileRouteTypes {
     | '/app/kallor'
     | '/app/login'
     | '/app/mallar'
+    | '/app/telefon'
     | '/app/inkorg'
     | '/app/onboarding'
     | '/app/prisregler'
@@ -502,6 +513,7 @@ export interface FileRouteTypes {
     | '/app/kallor'
     | '/app/login'
     | '/app/mallar'
+    | '/app/telefon'
     | '/app/inkorg'
     | '/app/onboarding'
     | '/app/prisregler'
@@ -777,6 +789,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppMallarRouteImport
       parentRoute: typeof AppRoute
     }
+    '/app/telefon': {
+      id: '/app/telefon'
+      path: '/telefon'
+      fullPath: '/app/telefon'
+      preLoaderRoute: typeof AppTelefonRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/app/inkorg': {
       id: '/app/inkorg'
       path: '/inkorg'
@@ -853,6 +872,7 @@ interface AppRouteChildren {
   AppKallorRoute: typeof AppKallorRoute
   AppLoginRoute: typeof AppLoginRoute
   AppMallarRoute: typeof AppMallarRoute
+  AppTelefonRoute: typeof AppTelefonRoute
   AppInkorgRoute: typeof AppInkorgRoute
   AppOnboardingRoute: typeof AppOnboardingRoute
   AppPrisreglerRoute: typeof AppPrisreglerRoute
@@ -870,6 +890,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppKallorRoute: AppKallorRoute,
   AppLoginRoute: AppLoginRoute,
   AppMallarRoute: AppMallarRoute,
+  AppTelefonRoute: AppTelefonRoute,
   AppInkorgRoute: AppInkorgRoute,
   AppOnboardingRoute: AppOnboardingRoute,
   AppPrisreglerRoute: AppPrisreglerRoute,
