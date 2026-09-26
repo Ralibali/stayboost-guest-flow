@@ -119,7 +119,9 @@ export function GuestAiSettings({
           <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#2d684c]">
             <Sparkles size={13} /> Guest AI · testläge
           </div>
-          <h2 className="mt-2 font-[Fraunces] text-2xl font-semibold">\n            Svarsförslag för gästfrågor\n          </h2>
+          <h2 className="mt-2 font-[Fraunces] text-2xl font-semibold">
+            Svarsförslag för gästfrågor
+          </h2>
           <p className="mt-1 max-w-2xl text-[13px] leading-relaxed text-[color:var(--ink)]/55">
             AI:n skapar bara interna utkast. Inget skickas till gästen utan att personalen granskar,
             kopierar och skickar svaret.
@@ -209,7 +211,9 @@ export function GuestAiSettings({
                       className={`mt-0.5 h-4 w-7 shrink-0 rounded-full p-0.5 transition ${item.enabled ? "bg-[#2d684c]" : "bg-black/15"}`}
                       aria-label={item.enabled ? "Inaktivera fakta" : "Aktivera fakta"}
                     >
-                      <span\n                        className={`block h-3 w-3 rounded-full bg-white transition ${item.enabled ? "translate-x-3" : ""}`}\n                      />
+                      <span
+                        className={`block h-3 w-3 rounded-full bg-white transition ${item.enabled ? "translate-x-3" : ""}`}
+                      />
                     </button>
                     <div className="min-w-0 flex-1">
                       <p className="text-xs font-bold">{item.question}</p>
