@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLink, Mail, MailOpen, MessageSquareText, RefreshCw, Search } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { GuestAiDraft } from "@/components/app/GuestAiDraft";
+import { GuestAiSettings } from "@/components/app/GuestAiSettings";
 import { supabase, useProperty, useSession } from "@/lib/supabase";
 
 export const Route = createFileRoute("/app/inkorg")({
@@ -15,6 +17,8 @@ type ChatMessage = {
   page_url: string | null;
   emailed: boolean;
   read_at: string | null;
+  ai_draft: string | null;
+  ai_draft_created_at: string | null;
   created_at: string;
 };
 
@@ -28,7 +32,7 @@ const formatDate = (value: string) =>
 
 function InboxPage() {
   const session = useSession();
-  const { property } = useProperty(session);
+  const { property, reload: reloadProperty } = useProperty(session);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
@@ -42,7 +46,9 @@ function InboxPage() {
 
     const { data, error: loadError } = await supabase
       .from("chat_messages")
-      .select("id,visitor_name,visitor_email,message,page_url,emailed,read_at,created_at")
+      .select(
+        "id,visitor_name,visitor_email,message,page_url,emailed,read_at,ai_draft,ai_draft_created_at,created_at",
+      )
       .eq("property_id", property.id)
       .order("created_at", { ascending: false })
       .limit(200);
@@ -148,6 +154,13 @@ function InboxPage() {
         />
       </div>
 
+      <GuestAiSettings
+        propertyId={property.id}
+        enabled={property.guest_ai_enabled}
+        instructions={property.guest_ai_instructions}
+        onUpdated={reloadProperty}
+      />
+
       <label className="flex items-center gap-2 rounded-2xl border border-black/[0.07] bg-white px-4 py-3 shadow-sm">
         <Search size={16} className="shrink-0 text-[color:var(--ink)]/35" />
         <span className="sr-only">Sök i inkorgen</span>
@@ -244,6 +257,13 @@ function InboxPage() {
               <p className="mt-5 whitespace-pre-wrap text-[14px] leading-7 text-[color:var(--ink)]/75">
                 {message.message}
               </p>
+
+              <GuestAiDraft
+                messageId={message.id}
+                existingDraft={message.ai_draft}
+                createdAt={message.ai_draft_created_at}
+                enabled={property.guest_ai_enabled}
+              />
 
               {message.page_url ? (
                 <a
