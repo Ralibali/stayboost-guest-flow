@@ -40,6 +40,8 @@ export type Property = {
   chat_color: string;
   chat_position: "right" | "left";
   chat_button_label: string;
+  guest_ai_enabled: boolean;
+  guest_ai_instructions: string | null;
 };
 
 export type ChatMessage = {
@@ -51,7 +53,19 @@ export type ChatMessage = {
   page_url: string | null;
   emailed: boolean;
   read_at: string | null;
+  ai_draft: string | null;
+  ai_draft_created_at: string | null;
   created_at: string;
+};
+
+export type GuestAiKnowledge = {
+  id: string;
+  property_id: string;
+  question: string;
+  answer: string;
+  enabled: boolean;
+  created_at: string;
+  updated_at: string;
 };
 
 export type Unit = {
