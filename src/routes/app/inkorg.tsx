@@ -46,7 +46,7 @@ function InboxPage() {
 
     const { data, error: loadError } = await supabase
       .from("chat_messages")
-      .select("id,visitor_name,visitor_email,message,page_url,emailed,read_at,ai_draft,ai_draft_created_at,created_at")
+      .select(\n        "id,visitor_name,visitor_email,message,page_url,emailed,read_at,ai_draft,ai_draft_created_at,created_at",\n      )
       .eq("property_id", property.id)
       .order("created_at", { ascending: false })
       .limit(200);
