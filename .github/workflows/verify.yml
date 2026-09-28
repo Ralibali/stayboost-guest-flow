@@ -44,5 +44,8 @@ jobs:
       - name: Check guest page function
         run: deno check supabase/functions/guest-page/index.ts
 
+      - name: Check Guest AI function
+        run: deno check supabase/functions/guest-ai-draft/index.ts
+
       - name: Build
         run: bun run build
