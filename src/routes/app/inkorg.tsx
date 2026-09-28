@@ -46,9 +46,8 @@ function InboxPage() {
 
     const { data, error: loadError } = await supabase
       .from("chat_messages")
-      .select(
-        "id,visitor_name,visitor_email,message,page_url,emailed,read_at,ai_draft,ai_draft_created_at,created_at",
-      )
+      // Keep the existing inbox readable while the additive AI migration rolls out.
+      .select("*")
       .eq("property_id", property.id)
       .order("created_at", { ascending: false })
       .limit(200);
