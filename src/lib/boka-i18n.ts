@@ -45,6 +45,7 @@ const STR = {
     weekendUplift: (pct: number) => `Helgpåslag +${pct}% fre/lör`,
     addonsTitle: "Gör vistelsen ännu bättre",
     perNight: " per natt",
+    perMorning: " per morgon",
     add: "Lägg till",
     decrease: "Minska",
     increase: "Öka",
@@ -73,11 +74,22 @@ const STR = {
     errContact: "Ange e-post eller telefon så vi kan skicka bekräftelsen.",
     errStripe: "Kortbetalningen kunde inte startas — försök igen eller välj Swish.",
     errGeneric: "Något gick fel — försök igen om en stund.",
+    errAddons:
+      "Ett valt tillval är inte längre tillgängligt. Ta bort tillvalet eller ladda om sidan.",
+    errPaymentMethod:
+      "Det valda betalsättet är inte tillgängligt just nu. Välj ett annat betalsätt eller kontakta boendet.",
+    errDates: "De valda datumen kan inte bokas. Välj nya in- och utcheckningsdatum.",
+    errPaused: "Onlinebokningen är pausad just nu. Kontakta boendet så hjälper vi dig.",
+    errPriceChanged: (price: string) =>
+      `Priset har uppdaterats till ${price}. Ladda om sidan och granska priset innan du bokar.`,
     thankYou: "Tack för din bokning",
+    reservationSaved: "Dina datum är reserverade",
+    confirmationAfterPayment:
+      "Bokningen bekräftas när boendet har registrerat din betalning. Spara gästlänken nedan.",
     confirmationOnWay: "Bekräftelsen är på väg till dig med all praktisk information.",
     payWithSwish: "Betala med Swish",
-    swishInstructions: (total: string) =>
-      `Swisha ${total} inom 24 timmar för att säkra din bokning.`,
+    swishInstructions: (total: string, deadline?: string) =>
+      `Swisha ${total}${deadline ? ` senast ${deadline} (svensk tid)` : " innan reservationen löper ut"} för att säkra din bokning.`,
     swishNumber: "Swish-nummer",
     messageLabel: "Meddelande",
     tapToCopy: "tryck för att kopiera",
@@ -85,6 +97,13 @@ const STR = {
     copyGuestLink: "Kopiera din gästlänk",
     openGuestPage: "Öppna din gästsida",
     notFoundTitle: "Bokningssidan hittades inte",
+    loadErrorTitle: "Bokningen kunde inte laddas just nu",
+    loadErrorBody: "Försök igen om en stund eller kontakta boendet för hjälp.",
+    channelSyncTitle: "Tillgängligheten uppdateras",
+    channelSyncRetry: "Kalendern uppdateras just nu. Vänta en kort stund och försök igen.",
+    channelSyncBody:
+      "Vi uppdaterar kalendern innan nya bokningar kan tas emot. Försök igen om en stund eller kontakta boendet för hjälp.",
+    retry: "Försök igen",
     notFoundBody: "Kontrollera länken — eller hör av dig direkt till oss så hjälper vi dig.",
     poweredBy: "Bokningsmotor av StayBoost",
     prevMonth: "Föregående månad",
@@ -102,6 +121,7 @@ const STR = {
     weekendUplift: (pct: number) => `Weekend rate +${pct}% Fri/Sat`,
     addonsTitle: "Make your stay even better",
     perNight: " per night",
+    perMorning: " per morning",
     add: "Add",
     decrease: "Decrease",
     increase: "Increase",
@@ -130,10 +150,21 @@ const STR = {
     errContact: "Please add your email or phone so we can send the confirmation.",
     errStripe: "Card payment could not be started — try again or choose Swish.",
     errGeneric: "Something went wrong — please try again in a moment.",
+    errAddons: "A selected extra is no longer available. Remove the extra or reload the page.",
+    errPaymentMethod:
+      "Your selected payment method is currently unavailable. Choose another method or contact the property.",
+    errDates: "These dates cannot be booked. Please choose new check-in and check-out dates.",
+    errPaused: "Online booking is currently paused. Please contact the property for help.",
+    errPriceChanged: (price: string) =>
+      `The price has changed to ${price}. Reload the page and review the price before booking.`,
     thankYou: "Thank you for your booking",
+    reservationSaved: "Your dates are reserved",
+    confirmationAfterPayment:
+      "Your booking is confirmed when the property records your payment. Save your guest link below.",
     confirmationOnWay: "Your confirmation is on its way with all practical information.",
     payWithSwish: "Pay with Swish",
-    swishInstructions: (total: string) => `Swish ${total} within 24 hours to secure your booking.`,
+    swishInstructions: (total: string, deadline?: string) =>
+      `Pay ${total} with Swish${deadline ? ` by ${deadline} (Swedish time)` : " before the reservation expires"} to secure your booking.`,
     swishNumber: "Swish number",
     messageLabel: "Message",
     tapToCopy: "tap to copy",
@@ -141,6 +172,13 @@ const STR = {
     copyGuestLink: "Copy your guest link",
     openGuestPage: "Open your guest page",
     notFoundTitle: "Booking page not found",
+    loadErrorTitle: "Booking could not be loaded just now",
+    loadErrorBody: "Please try again shortly or contact the property for help.",
+    channelSyncTitle: "Availability is being updated",
+    channelSyncRetry: "The calendar is being updated. Please wait a moment and try again.",
+    channelSyncBody:
+      "We are updating the calendar before accepting new bookings. Please try again shortly or contact the property for help.",
+    retry: "Try again",
     notFoundBody: "Check the link — or contact us directly and we'll help you.",
     poweredBy: "Booking engine by StayBoost",
     prevMonth: "Previous month",
@@ -158,6 +196,7 @@ const STR = {
     weekendUplift: (pct: number) => `Wochenendzuschlag +${pct}% Fr/Sa`,
     addonsTitle: "Machen Sie Ihren Aufenthalt noch schöner",
     perNight: " pro Nacht",
+    perMorning: " pro Morgen",
     add: "Hinzufügen",
     decrease: "Weniger",
     increase: "Mehr",
@@ -188,11 +227,23 @@ const STR = {
     errStripe:
       "Kartenzahlung konnte nicht gestartet werden — versuchen Sie es erneut oder wählen Sie Swish.",
     errGeneric: "Etwas ist schiefgelaufen — bitte versuchen Sie es gleich erneut.",
+    errAddons:
+      "Ein gewähltes Extra ist nicht mehr verfügbar. Entfernen Sie das Extra oder laden Sie die Seite neu.",
+    errPaymentMethod:
+      "Die gewählte Zahlungsmethode ist gerade nicht verfügbar. Wählen Sie eine andere Methode oder kontaktieren Sie die Unterkunft.",
+    errDates:
+      "Diese Daten können nicht gebucht werden. Bitte wählen Sie neue An- und Abreisedaten.",
+    errPaused: "Die Onlinebuchung ist derzeit pausiert. Bitte kontaktieren Sie die Unterkunft.",
+    errPriceChanged: (price: string) =>
+      `Der Preis wurde auf ${price} aktualisiert. Laden Sie die Seite neu und prüfen Sie den Preis vor der Buchung.`,
     thankYou: "Vielen Dank für Ihre Buchung",
+    reservationSaved: "Ihre Daten sind reserviert",
+    confirmationAfterPayment:
+      "Die Buchung wird bestätigt, sobald die Unterkunft Ihre Zahlung registriert hat. Speichern Sie Ihren Gästelink unten.",
     confirmationOnWay: "Ihre Bestätigung ist mit allen praktischen Informationen unterwegs.",
     payWithSwish: "Mit Swish bezahlen",
-    swishInstructions: (total: string) =>
-      `Swishen Sie ${total} innerhalb von 24 Stunden, um Ihre Buchung zu sichern.`,
+    swishInstructions: (total: string, deadline?: string) =>
+      `Zahlen Sie ${total} mit Swish${deadline ? ` bis ${deadline} (schwedische Zeit)` : " vor Ablauf der Reservierung"}, um Ihre Buchung zu sichern.`,
     swishNumber: "Swish-Nummer",
     messageLabel: "Nachricht",
     tapToCopy: "Tippen zum Kopieren",
@@ -200,6 +251,14 @@ const STR = {
     copyGuestLink: "Gästelink kopieren",
     openGuestPage: "Gästeseite öffnen",
     notFoundTitle: "Buchungsseite nicht gefunden",
+    loadErrorTitle: "Die Buchung konnte gerade nicht geladen werden",
+    loadErrorBody: "Bitte versuchen Sie es später erneut oder kontaktieren Sie die Unterkunft.",
+    channelSyncTitle: "Verfügbarkeit wird aktualisiert",
+    channelSyncRetry:
+      "Der Kalender wird gerade aktualisiert. Warten Sie einen Moment und versuchen Sie es erneut.",
+    channelSyncBody:
+      "Wir aktualisieren den Kalender, bevor neue Buchungen angenommen werden. Versuchen Sie es in Kürze erneut oder kontaktieren Sie die Unterkunft.",
+    retry: "Erneut versuchen",
     notFoundBody: "Prüfen Sie den Link — oder kontaktieren Sie uns direkt, wir helfen gerne.",
     poweredBy: "Buchungsmaschine von StayBoost",
     prevMonth: "Voriger Monat",

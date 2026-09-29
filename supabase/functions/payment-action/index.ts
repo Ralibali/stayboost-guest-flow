@@ -1,13 +1,16 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { expireCheckoutSession } from "../_shared/stripe.ts";
+import {
+  applyManualPaymentAction,
+  PaymentTransitionError,
+  joinedPropertyOwnerId,
+  supabasePaymentStore,
+} from "../_shared/payment-lifecycle.ts";
 
 // Serverägd manuell betalningslivscykel. Klienten får inte skriva payment_status direkt.
 
 type Action =
-  | "cancel_booking"
-  | "mark_swish_paid"
-  | "request_swish_refund"
-  | "confirm_swish_refunded";
+  "cancel_booking" | "mark_swish_paid" | "request_swish_refund" | "confirm_swish_refunded";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -64,19 +67,16 @@ Deno.serve(async (req) => {
     .eq("id", body.bookingId)
     .maybeSingle();
   if (readError) return json({ error: readError.message }, 500);
-  if (!booking || (booking.properties as { owner_id: string }).owner_id !== userData.user.id) {
+  if (!booking || joinedPropertyOwnerId(booking.properties) !== userData.user.id) {
     return json({ error: "not_found" }, 404);
   }
 
-  const now = new Date();
-  const nowIso = now.toISOString();
-
-  if (body.action === "cancel_booking") {
-    if (booking.status === "cancelled") return json({ ok: true, duplicate: true, status: "cancelled" });
-
-    // Best effort: stäng Stripe Checkout direkt. Även om Stripe-anropet fallerar
-    // gör vi DB-state expired; en sen verifierad betalning blir då refund_pending.
+  try {
+    // Close an unpaid Checkout promptly. If Stripe completed concurrently, the
+    // compare-and-set transition re-reads and preserves the verified paid state.
     if (
+      body.action === "cancel_booking" &&
+      booking.status !== "cancelled" &&
       booking.payment_method === "stripe" &&
       booking.payment_status === "pending" &&
       booking.stripe_session_id
@@ -86,70 +86,25 @@ Deno.serve(async (req) => {
         try {
           await expireCheckoutSession(stripeKey, booking.stripe_session_id);
         } catch {
-          // Webhooken hanterar en eventuell sen betalning utan att återuppliva inventory.
+          /* A verified late payment is retained as refund_pending. */
         }
       }
     }
-
-    const patch: Record<string, unknown> = { status: "cancelled" };
-    if (booking.payment_status === "pending") {
-      patch.payment_status = "expired";
-      patch.payment_expired_at = nowIso;
-      patch.payment_expires_at = null;
-    }
-    const { error } = await admin.from("bookings").update(patch).eq("id", booking.id);
-    if (error) return json({ error: error.message }, 500);
-    return json({ ok: true, status: "cancelled", paymentStatus: patch.payment_status ?? booking.payment_status });
+    const result = await applyManualPaymentAction(
+      supabasePaymentStore(admin),
+      booking.id,
+      body.action,
+      new Date().toISOString(),
+    );
+    return json({
+      ok: true,
+      duplicate: result.duplicate,
+      status:
+        body.action === "cancel_booking" ? result.booking.status : result.booking.payment_status,
+      paymentStatus: result.booking.payment_status,
+    });
+  } catch (error) {
+    if (error instanceof PaymentTransitionError) return json({ error: error.code }, error.status);
+    return json({ error: "payment_update_failed" }, 503);
   }
-
-  if (booking.payment_method !== "swish") return json({ error: "wrong_payment_method" }, 400);
-
-  if (body.action === "mark_swish_paid") {
-    if (booking.payment_status === "paid") return json({ ok: true, duplicate: true, status: "paid" });
-    if (booking.status !== "confirmed" || booking.payment_status !== "pending") {
-      return json({ error: "invalid_payment_state" }, 409);
-    }
-    if (booking.payment_expires_at && new Date(booking.payment_expires_at).getTime() <= now.getTime()) {
-      return json({ error: "payment_hold_expired" }, 409);
-    }
-    const { error } = await admin
-      .from("bookings")
-      .update({ payment_status: "paid", payment_paid_at: nowIso, payment_expires_at: null })
-      .eq("id", booking.id)
-      .eq("payment_method", "swish")
-      .eq("payment_status", "pending")
-      .eq("status", "confirmed");
-    if (error) return json({ error: error.message }, 500);
-    return json({ ok: true, status: "paid" });
-  }
-
-  if (body.action === "request_swish_refund") {
-    if (booking.payment_status === "refund_pending") {
-      return json({ ok: true, duplicate: true, status: "refund_pending" });
-    }
-    if (booking.payment_status !== "paid") return json({ error: "not_paid" }, 409);
-    const { error } = await admin
-      .from("bookings")
-      .update({ payment_status: "refund_pending", payment_refund_requested_at: nowIso })
-      .eq("id", booking.id)
-      .eq("payment_method", "swish")
-      .eq("payment_status", "paid");
-    if (error) return json({ error: error.message }, 500);
-    return json({ ok: true, status: "refund_pending" });
-  }
-
-  if (booking.payment_status === "refunded") {
-    return json({ ok: true, duplicate: true, status: "refunded" });
-  }
-  if (booking.payment_status !== "refund_pending") {
-    return json({ error: "refund_not_requested" }, 409);
-  }
-  const { error } = await admin
-    .from("bookings")
-    .update({ payment_status: "refunded", payment_refunded_at: nowIso })
-    .eq("id", booking.id)
-    .eq("payment_method", "swish")
-    .eq("payment_status", "refund_pending");
-  if (error) return json({ error: error.message }, 500);
-  return json({ ok: true, status: "refunded" });
 });

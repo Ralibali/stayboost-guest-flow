@@ -1,5 +1,11 @@
 import { SUPABASE_URL } from "@/lib/supabase-config";
 import { StaySearch } from "@/components/StaySearch";
+import { PartySelector } from "@/components/PartySelector";
+import { partyLabels } from "@/lib/party-i18n";
+import { isBookingEngineResponse } from "@/lib/public-response";
+import { normalizeGuestPhone } from "../../../supabase/functions/_shared/guest-contact";
+import { stockholmDay } from "../../../supabase/functions/_shared/guest-stay";
+import { sanitizedHttpsUrl } from "../../../supabase/functions/_shared/public-links";
 import { addonAvailableForStay } from "../../../supabase/functions/_shared/addons";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
@@ -18,13 +24,16 @@ import {
   Sparkles,
   Users,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { LOCALES, LANGS, detectLang, getStrings, persistLang, type Lang } from "@/lib/boka-i18n";
 import {
   nightlyPriceWithRules,
+  partyIssue,
+  partySize,
   quoteStay,
   rangesOverlap,
   type UnitPricing,
+  type BookingParty,
 } from "../../../supabase/functions/_shared/pricing";
 import { minStayFromRules, type RateRule } from "../../../supabase/functions/_shared/rate-rules";
 import {
@@ -53,8 +62,12 @@ const C = {
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const FUNCTIONS_BASE = SUPABASE_URL.replace(/\/$/, "");
-const isoToday = () => new Date().toISOString().slice(0, 10);
+const isoToday = () => stockholmDay();
 const isoOf = (d: Date) => d.toISOString().slice(0, 10);
+const calendarMonth = (offset = 0) => {
+  const [year, month] = isoToday().split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1 + offset, 1));
+};
 
 const EXTRA = {
   sv: {
@@ -96,7 +109,8 @@ const EXTRA = {
     remove: "Ta bort",
     errName: "Fyll i ditt namn för att fortsätta.",
     errEmail: "Ange en giltig e-postadress så vi kan skicka bokningsbekräftelsen.",
-    errPhone: "Mobilnumret ser inte ut att vara ett giltigt svenskt mobilnummer.",
+    errPhone:
+      "Ange ett svenskt mobilnummer eller ett internationellt nummer med landskod, till exempel +49.",
     errTerms: "Godkänn bokningsvillkoren för att fortsätta.",
     errSwishPhone: "Mobilnummer krävs när du väljer Swish.",
     errCapacity: (n: number) => `Boendet tar maximalt ${n} gäster.`,
@@ -149,7 +163,8 @@ const EXTRA = {
     remove: "Remove",
     errName: "Enter your name to continue.",
     errEmail: "Enter a valid email address so we can send your confirmation.",
-    errPhone: "The mobile number does not look like a valid Swedish mobile number.",
+    errPhone:
+      "Enter a Swedish mobile number or an international number with its country code, for example +49.",
     errTerms: "Accept the booking terms to continue.",
     errSwishPhone: "A mobile number is required when choosing Swish.",
     errCapacity: (n: number) => `This accommodation allows a maximum of ${n} guests.`,
@@ -201,7 +216,8 @@ const EXTRA = {
     remove: "Entfernen",
     errName: "Geben Sie Ihren Namen ein, um fortzufahren.",
     errEmail: "Geben Sie eine gültige E-Mail-Adresse für die Bestätigung ein.",
-    errPhone: "Die Mobilnummer scheint keine gültige schwedische Mobilnummer zu sein.",
+    errPhone:
+      "Geben Sie eine schwedische Mobilnummer oder eine internationale Nummer mit Landesvorwahl ein, zum Beispiel +49.",
     errTerms: "Akzeptieren Sie die Buchungsbedingungen, um fortzufahren.",
     errSwishPhone: "Für Swish ist eine Mobilnummer erforderlich.",
     errCapacity: (n: number) => `Die Unterkunft erlaubt maximal ${n} Gäste.`,
@@ -238,6 +254,11 @@ type EngineUnit = {
   monthlyMult: number[];
   booked: { from: string; to: string }[];
   rateRules: RateRule[];
+  partyPricingEnabled?: boolean;
+  adultPrices?: number[];
+  childPricePerNight?: number;
+  childFreeThroughAge?: number;
+  childMaxAge?: number;
 };
 
 type EngineAddon = {
@@ -250,6 +271,7 @@ type EngineAddon = {
   availableFrom: string | null;
   availableTo: string | null;
   maxQuantity: number;
+  fulfillmentType?: "arrival" | "each_morning" | "departure";
 };
 
 type EngineData = {
@@ -257,6 +279,7 @@ type EngineData = {
     bookingEnabled: boolean;
     maxStay: number;
     contactEmail: string | null;
+    bookingTermsUrl?: string | null;
     name: string;
     slug: string;
     checkinTime: string;
@@ -274,6 +297,11 @@ const pricingOf = (u: EngineUnit): UnitPricing => ({
   weekend_pct: u.weekendPct,
   cleaning_fee: u.cleaningFee,
   monthly_mult: (u.monthlyMult ?? []).map(Number),
+  party_pricing_enabled: u.partyPricingEnabled,
+  adult_prices: u.adultPrices,
+  child_price_per_night: u.childPricePerNight,
+  child_free_through_age: u.childFreeThroughAge,
+  child_max_age: u.childMaxAge,
 });
 
 const isBooked = (u: EngineUnit, iso: string) => u.booked.some((r) => iso >= r.from && iso < r.to);
@@ -301,6 +329,14 @@ function PublicBookingPage() {
         );
   const [lang, setLangState] = useState<Lang>(detectLang);
   useEffect(() => {
+    setUnitId(null);
+    setCheckin(null);
+    setCheckout(null);
+    setAddonQty({});
+    setDone(null);
+  }, [slug]);
+
+  useEffect(() => {
     const requested = bookingLanguage(window.location.search);
     if (requested) setLangState(requested);
   }, []);
@@ -321,8 +357,14 @@ function PublicBookingPage() {
   const fmtKr = (value: number) => `${Math.round(value).toLocaleString(locale)} kr`;
 
   const [data, setData] = useState<EngineData | null>(null);
-  const [loadError, setLoadError] = useState(false);
+  const [loadError, setLoadError] = useState<"notfound" | "temporary" | "channel" | null>(null);
+  const [loadRetries, setLoadRetries] = useState(0);
+  const [loadContact, setLoadContact] = useState<string | null>(null);
   const [unitId, setUnitId] = useState<string | null>(null);
+  const unitIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    unitIdRef.current = unitId;
+  }, [unitId]);
   const [monthOffset, setMonthOffset] = useState(0);
   const [checkin, setCheckin] = useState<string | null>(null);
   const [checkout, setCheckout] = useState<string | null>(null);
@@ -330,6 +372,7 @@ function PublicBookingPage() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [guests, setGuests] = useState(2);
+  const [party, setParty] = useState<BookingParty>({ adults: 2, childrenAges: [] });
   const [addonQty, setAddonQty] = useState<Record<string, number>>({});
   const [payChoice, setPayChoice] = useState<"stripe" | "swish" | null>(null);
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -341,6 +384,7 @@ function PublicBookingPage() {
     total: number;
     swishNumber?: string;
     paymentRef?: string;
+    paymentExpiresAt?: string;
   } | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
 
@@ -354,35 +398,78 @@ function PublicBookingPage() {
   }, [embedTarget, loadError, data]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    let cancelled = false;
+    setLoadError(null);
+    setLoadContact(null);
+    setData(null);
     if (!FUNCTIONS_BASE) {
-      setLoadError(true);
+      setLoadError("temporary");
       return;
     }
-    fetch(`${FUNCTIONS_BASE}/functions/v1/booking-engine?slug=${encodeURIComponent(slug)}`)
-      .then((response) => (response.ok ? response.json() : Promise.reject()))
+    fetch(`${FUNCTIONS_BASE}/functions/v1/booking-engine?slug=${encodeURIComponent(slug)}`, {
+      signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20000)]),
+    })
+      .then(async (response) => {
+        if (response.status === 404) throw new Error("notfound");
+        const payload = await response.json();
+        if (!response.ok && !cancelled && payload?.property?.contactEmail)
+          setLoadContact(payload.property.contactEmail);
+        if (!response.ok)
+          throw new Error(payload?.error === "channel_sync_required" ? "channel" : "temporary");
+        if (!isBookingEngineResponse(payload)) throw new Error("temporary");
+        return payload;
+      })
       .then((payload: EngineData) => {
+        if (cancelled) return;
         setData(payload);
         if (payload.units.length > 0) {
-          setUnitId(payload.units[0].id);
-          setGuests(Math.min(2, payload.units[0].maxGuests));
+          const selected =
+            payload.units.find((candidate) => candidate.id === unitIdRef.current) ??
+            payload.units[0];
+          setUnitId(selected.id);
+          setGuests((current) => Math.min(current, selected.maxGuests));
+          if (!unitIdRef.current)
+            setParty({ adults: Math.min(2, selected.maxGuests), childrenAges: [] });
         }
       })
-      .catch(() => setLoadError(true));
-  }, [slug]);
+      .catch((error) => {
+        if (!cancelled)
+          setLoadError(
+            error?.message === "notfound"
+              ? "notfound"
+              : error?.message === "channel"
+                ? "channel"
+                : "temporary",
+          );
+      });
+    return () => {
+      cancelled = true;
+      controller.abort();
+    };
+  }, [slug, loadRetries]);
 
   const unit = data?.units.find((candidate) => candidate.id === unitId) ?? null;
   const pricing = unit ? pricingOf(unit) : null;
 
-  const quote = useMemo(
-    () =>
-      pricing && unit && checkin && checkout
-        ? quoteStay(pricing, checkin, checkout, {
-            rules: unit.rateRules ?? [],
-            unitId: unit.id,
-          })
-        : null,
-    [pricing, unit, checkin, checkout],
-  );
+  const partyValidation =
+    unit?.partyPricingEnabled && pricing ? partyIssue(pricing, party, unit.maxGuests) : null;
+  const { quote, quoteError } = useMemo(() => {
+    if (!pricing || !unit || !checkin || !checkout || partyValidation)
+      return { quote: null, quoteError: null };
+    try {
+      return {
+        quote: quoteStay(pricing, checkin, checkout, {
+          rules: unit.rateRules ?? [],
+          unitId: unit.id,
+          ...(unit.partyPricingEnabled ? { party } : {}),
+        }),
+        quoteError: null,
+      };
+    } catch {
+      return { quote: null, quoteError: "pricing_unavailable" };
+    }
+  }, [pricing, unit, checkin, checkout, party, partyValidation]);
 
   const requiredMinStay = useMemo(() => {
     if (!unit || !quote) return unit?.minStay ?? 1;
@@ -402,6 +489,7 @@ function PublicBookingPage() {
         available_from: addon.availableFrom,
         available_to: addon.availableTo,
         price_type: addon.priceType,
+        fulfillment_type: addon.fulfillmentType,
       },
       checkin ?? "",
       checkout ?? "",
@@ -467,7 +555,7 @@ function PublicBookingPage() {
     if (departureBlocked(unit, iso)) return;
     if (!rangeFree(unit, checkin, iso)) return;
     const nights: string[] = [];
-    for (let current = checkin; current < iso; ) {
+    for (let current = checkin; current < iso;) {
       nights.push(current);
       const date = new Date(`${current}T00:00:00Z`);
       date.setUTCDate(date.getUTCDate() + 1);
@@ -490,6 +578,10 @@ function PublicBookingPage() {
     }
     if (payMethod === "swish" && !phone.trim()) {
       setFormError(x.errSwishPhone);
+      return false;
+    }
+    if (phone.trim() && !normalizeGuestPhone(phone.trim())) {
+      setFormError(x.errPhone);
       return false;
     }
     if (!termsAccepted) {
@@ -515,9 +607,14 @@ function PublicBookingPage() {
           guest_name: name.trim(),
           guest_email: email.trim(),
           guest_phone: phone.trim(),
-          guests,
+          guests: unit.partyPricingEnabled ? partySize(party) : guests,
+          ...(unit.partyPricingEnabled
+            ? { adults: party.adults, childrenAges: party.childrenAges }
+            : {}),
           addons: chosenAddons.map((addon) => ({ id: addon.id, quantity: addon.qty })),
           termsAccepted,
+          language: lang,
+          expectedTotal: grandTotal,
           website,
           ...(payMethod ? { paymentMethod: payMethod } : {}),
         }),
@@ -549,10 +646,27 @@ function PublicBookingPage() {
                                 ? x.errArrival
                                 : payload.error === "no_departure"
                                   ? x.errDeparture
-                                  : payload.error === "stripe_failed"
-                                    ? t.errStripe
-                                    : t.errGeneric;
+                                  : payload.error === "invalid_party"
+                                    ? partyLabels[lang].invalid
+                                    : payload.error === "pricing_unavailable"
+                                      ? partyLabels[lang].unavailable
+                                      : payload.error === "stripe_failed"
+                                        ? t.errStripe
+                                        : t.errGeneric;
         setFormError(message);
+        if (payload.error === "invalid_addons") setFormError(t.errAddons);
+        if (payload.error === "payment_method_unavailable") setFormError(t.errPaymentMethod);
+        if (
+          ["invalid_dates", "past_checkin", "outside_booking_window", "too_long"].includes(
+            payload.error,
+          )
+        )
+          setFormError(t.errDates);
+        if (payload.error === "booking_paused") setFormError(t.errPaused);
+        if (payload.error === "channel_sync_required") setFormError(t.channelSyncBody);
+        if (payload.error === "channel_sync_in_progress") setFormError(t.channelSyncRetry);
+        if (payload.error === "price_changed")
+          setFormError(t.errPriceChanged(fmtKr(payload.grandTotal)));
       } else if (payload.checkoutUrl) {
         if (!isHostedStripeCheckout(payload.checkoutUrl)) {
           setFormError(t.errGeneric);
@@ -573,6 +687,7 @@ function PublicBookingPage() {
           total: payload.grandTotal ?? payload.price.total,
           swishNumber: payload.swishNumber,
           paymentRef: payload.paymentRef,
+          paymentExpiresAt: payload.paymentExpiresAt,
         });
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
@@ -593,10 +708,33 @@ function PublicBookingPage() {
           className="max-w-md rounded-[32px] border bg-white p-10"
           style={{ borderColor: C.line }}
         >
-          <p className="font-[Fraunces] text-3xl">{t.notFoundTitle}</p>
+          <h1 className="font-[Fraunces] text-3xl">
+            {loadError === "notfound"
+              ? t.notFoundTitle
+              : loadError === "channel"
+                ? t.channelSyncTitle
+                : t.loadErrorTitle}
+          </h1>
           <p className="mt-3 text-[15px] leading-relaxed" style={{ color: C.muted }}>
-            {t.notFoundBody}
+            {loadError === "notfound"
+              ? t.notFoundBody
+              : loadError === "channel"
+                ? t.channelSyncBody
+                : t.loadErrorBody}
           </p>
+          {loadError !== "notfound" && (
+            <button
+              className="mt-5 min-h-11 rounded-xl border px-5"
+              onClick={() => setLoadRetries((value) => value + 1)}
+            >
+              {t.retry}
+            </button>
+          )}
+          {loadContact && (
+            <a href={`mailto:${loadContact}`} className="mt-4 block underline">
+              {loadContact}
+            </a>
+          )}
         </div>
       </div>
     );
@@ -631,7 +769,7 @@ function PublicBookingPage() {
       </main>
     );
 
-  const guestUrl = done ? `${window.location.origin}/g/${done.token}` : null;
+  const guestUrl = done ? `${window.location.origin}/g/${done.token}?lang=${lang}` : null;
 
   if (done) {
     return (
@@ -657,12 +795,12 @@ function PublicBookingPage() {
               {t.bookDirect}
             </p>
             <h1 className="mt-2 font-[Fraunces] text-4xl font-semibold sm:text-5xl">
-              {t.thankYou}
+              {done.swishNumber ? t.reservationSaved : t.thankYou}
             </h1>
             <p className="mt-4 text-[15px] leading-relaxed" style={{ color: C.muted }}>
               {unit?.name} · {dateLong(checkin!)} – {dateLong(checkout!)} · {fmtKr(done.total)}
               <br />
-              {t.confirmationOnWay}
+              {done.swishNumber ? t.confirmationAfterPayment : t.confirmationOnWay}
             </p>
 
             {done.swishNumber ? (
@@ -677,7 +815,18 @@ function PublicBookingPage() {
                   <div>
                     <h2 className="font-sans text-[15px] font-bold">{t.payWithSwish}</h2>
                     <p className="mt-1 text-[13px]" style={{ color: C.muted }}>
-                      {t.swishInstructions(fmtKr(done.total))}
+                      {t.swishInstructions(
+                        fmtKr(done.total),
+                        done.paymentExpiresAt
+                          ? new Date(done.paymentExpiresAt).toLocaleString(locale, {
+                              day: "numeric",
+                              month: "long",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              timeZone: "Europe/Stockholm",
+                            })
+                          : undefined,
+                      )}
                     </p>
                   </div>
                 </div>
@@ -800,11 +949,12 @@ function PublicBookingPage() {
           bookingEnabled={data.property.bookingEnabled !== false}
           availableThrough={data.property.availableThrough}
           lang={lang}
-          onChoose={(stay, party) => {
+          onChoose={(stay, guestCount, selectedParty) => {
             setUnitId(stay.unitId);
             setCheckin(stay.checkin);
             setCheckout(stay.checkout);
-            setGuests(party);
+            setGuests(guestCount);
+            setParty(selectedParty ?? { adults: guestCount, childrenAges: [] });
             setAddonQty({});
             setFormError(null);
             requestAnimationFrame(() => {
@@ -816,16 +966,16 @@ function PublicBookingPage() {
               summary?.scrollIntoView({ behavior: "smooth", block: "start" });
               summary?.focus({ preventScroll: true });
             });
-            const start = new Date(`${stay.checkin}T12:00:00`);
-            const now = new Date();
+            const start = new Date(`${stay.checkin}T12:00:00Z`);
+            const now = calendarMonth();
             setMonthOffset(
               Math.max(
                 0,
                 Math.min(
                   11,
-                  (start.getFullYear() - now.getFullYear()) * 12 +
-                    start.getMonth() -
-                    now.getMonth(),
+                  (start.getUTCFullYear() - now.getUTCFullYear()) * 12 +
+                    start.getUTCMonth() -
+                    now.getUTCMonth(),
                 ),
               ),
             );
@@ -869,6 +1019,26 @@ function PublicBookingPage() {
               style={{ borderColor: C.line }}
             >
               <SectionHeading step="01" title={x.chooseStay} description={x.chooseStayBody} />
+              {unit?.partyPricingEnabled && (
+                <div className="mt-5 rounded-2xl bg-[#E9F0EC] p-4">
+                  <PartySelector
+                    party={party}
+                    maxGuests={Math.max(...data.units.map((candidate) => candidate.maxGuests))}
+                    maxChildAge={unit.childMaxAge ?? 12}
+                    lang={lang}
+                    onChange={setParty}
+                  />
+                  {(partyValidation || quoteError) && (
+                    <p role="alert" className="mt-3 text-sm" style={{ color: C.danger }}>
+                      {partyValidation === "capacity_exceeded"
+                        ? x.errCapacity(unit.maxGuests)
+                        : partyValidation === "invalid_party"
+                          ? partyLabels[lang].invalid
+                          : partyLabels[lang].unavailable}
+                    </p>
+                  )}
+                </div>
+              )}
               <div className="mt-6 grid gap-4 sm:grid-cols-2">
                 {data.units.map((candidate) => (
                   <UnitCard
@@ -904,11 +1074,11 @@ function PublicBookingPage() {
                       <ChevronLeft size={18} />
                     </button>
                     <span className="text-[13px] font-bold capitalize">
-                      {new Date(
-                        new Date().getFullYear(),
-                        new Date().getMonth() + monthOffset,
-                        1,
-                      ).toLocaleDateString(locale, { month: "long", year: "numeric" })}
+                      {calendarMonth(monthOffset).toLocaleDateString(locale, {
+                        month: "long",
+                        year: "numeric",
+                        timeZone: "UTC",
+                      })}
                     </span>
                     <button
                       onClick={() => setMonthOffset((offset) => Math.min(11, offset + 1))}
@@ -928,6 +1098,9 @@ function PublicBookingPage() {
                     onPick={pickDate}
                     weekdays={t.weekdays}
                     locale={locale}
+                    maxStay={data.property.maxStay}
+                    availableThrough={data.property.availableThrough}
+                    party={unit.partyPricingEnabled ? party : undefined}
                   />
                   <div
                     className="mt-3 flex flex-wrap justify-between gap-2 px-1 text-[11px] font-medium"
@@ -1006,7 +1179,11 @@ function PublicBookingPage() {
                             </div>
                             <p className="shrink-0 text-[13px] font-bold">
                               {fmtKr(addon.price)}
-                              {addon.priceType === "per_night" ? t.perNight : ""}
+                              {addon.fulfillmentType === "each_morning"
+                                ? t.perMorning
+                                : addon.priceType === "per_night"
+                                  ? t.perNight
+                                  : ""}
                             </p>
                           </div>
                           <div className="mt-3 flex items-center justify-end gap-2">
@@ -1079,10 +1256,14 @@ function PublicBookingPage() {
                   email={email}
                   phone={phone}
                   guests={guests}
+                  party={unit.partyPricingEnabled ? party : undefined}
                   payMethods={payMethods}
                   payMethod={payMethod}
                   termsAccepted={termsAccepted}
-                  termsUrl={glampingProperty ? `${GLAMPING_ORIGIN}/bokningsvillkor` : undefined}
+                  termsUrl={
+                    sanitizedHttpsUrl(data.property.bookingTermsUrl) ??
+                    (glampingProperty ? `${GLAMPING_ORIGIN}/bokningsvillkor` : undefined)
+                  }
                   formError={formError}
                   sending={sending}
                   canSubmit={canSubmit}
@@ -1118,10 +1299,14 @@ function PublicBookingPage() {
                   email={email}
                   phone={phone}
                   guests={guests}
+                  party={unit.partyPricingEnabled ? party : undefined}
                   payMethods={payMethods}
                   payMethod={payMethod}
                   termsAccepted={termsAccepted}
-                  termsUrl={glampingProperty ? `${GLAMPING_ORIGIN}/bokningsvillkor` : undefined}
+                  termsUrl={
+                    sanitizedHttpsUrl(data.property.bookingTermsUrl) ??
+                    (glampingProperty ? `${GLAMPING_ORIGIN}/bokningsvillkor` : undefined)
+                  }
                   formError={formError}
                   sending={sending}
                   canSubmit={canSubmit}
@@ -1207,7 +1392,11 @@ function UnitCard({
   labels: ExtraStrings;
 }) {
   const lowestMult = Math.min(...(unit.monthlyMult?.length ? unit.monthlyMult : [100]).map(Number));
-  const fromPrice = Math.round((unit.basePrice * lowestMult) / 100);
+  const base =
+    unit.partyPricingEnabled && unit.adultPrices?.length
+      ? Math.min(...unit.adultPrices)
+      : unit.basePrice;
+  const fromPrice = Math.round((base * lowestMult) / 100);
   return (
     <button
       onClick={onSelect}
@@ -1332,6 +1521,7 @@ function CheckoutForm({
   email,
   phone,
   guests,
+  party,
   payMethods,
   payMethod,
   termsAccepted,
@@ -1360,6 +1550,7 @@ function CheckoutForm({
   email: string;
   phone: string;
   guests: number;
+  party?: BookingParty;
   payMethods: ("stripe" | "swish")[];
   payMethod: "stripe" | "swish" | null;
   termsAccepted: boolean;
@@ -1381,11 +1572,17 @@ function CheckoutForm({
   onSubmit: () => void;
 }) {
   const fmtKr = (value: number) => `${Math.round(value).toLocaleString(locale)} kr`;
+  const p = partyLabels[locale === "en-GB" ? "en" : locale === "de-DE" ? "de" : "sv"];
   const date = (value: string) =>
     new Date(`${value}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" });
 
   return (
-    <div>
+    <form
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSubmit();
+      }}
+    >
       <p className="text-[11px] font-bold uppercase tracking-[0.18em]" style={{ color: C.brass }}>
         {x.bookSummary}
       </p>
@@ -1394,6 +1591,15 @@ function CheckoutForm({
           <h2 className="font-[Fraunces] text-2xl font-semibold">{unit.name}</h2>
           <p className="mt-1 text-[12px]" style={{ color: C.muted }}>
             {date(checkin)} – {date(checkout)} · {x.nights(quote.nights)}
+            {party && (
+              <span className="mt-1 block">
+                {party.adults} {p.adults.toLowerCase()} · {party.childrenAges.length}{" "}
+                {p.children.toLowerCase()}
+                {party.childrenAges.length > 0
+                  ? ` (${party.childrenAges.join(", ")} ${p.years})`
+                  : ""}
+              </span>
+            )}
           </p>
         </div>
         <p className="font-[Fraunces] text-2xl font-semibold">{fmtKr(grandTotal)}</p>
@@ -1401,16 +1607,19 @@ function CheckoutForm({
 
       <div className="mt-5 space-y-2 border-y py-4 text-[12px]" style={{ borderColor: C.line }}>
         <PriceRow
-          label={`${x.nights(quote.nights)} · ${unit.name}`}
-          value={fmtKr(quote.subtotal)}
+          label={`${x.nights(quote.nights)} · ${party ? p.adultPrice : unit.name}`}
+          value={fmtKr(quote.adultSubtotal ?? quote.subtotal)}
         />
+        {(quote.childrenSubtotal ?? 0) > 0 && (
+          <PriceRow label={p.childrenPrice} value={fmtKr(quote.childrenSubtotal!)} />
+        )}
         {quote.cleaningFee > 0 ? (
           <PriceRow label={t.cleaning} value={fmtKr(quote.cleaningFee)} />
         ) : null}
         {addons.map((addon) => (
           <PriceRow
             key={addon.id}
-            label={`${addon.name} ×${addon.qty}`}
+            label={`${addon.name} ×${addon.qty}${addon.priceType === "per_night" ? ` ×${quote.nights}` : ""}`}
             value={fmtKr(addon.lineTotal)}
           />
         ))}
@@ -1438,23 +1647,25 @@ function CheckoutForm({
             autoComplete="email"
           />
           <Input value={phone} onChange={onPhone} label={x.phone} type="tel" autoComplete="tel" />
-          <label className="block">
-            <span className="mb-1.5 block text-[11px] font-bold" style={{ color: C.muted }}>
-              {x.guests}
-            </span>
-            <select
-              value={guests}
-              onChange={(event) => onGuests(Number(event.target.value))}
-              className="w-full rounded-xl border bg-white px-3.5 py-3 text-[13px] font-semibold outline-none"
-              style={{ borderColor: C.line }}
-            >
-              {Array.from({ length: unit.maxGuests }, (_, index) => index + 1).map((count) => (
-                <option key={count} value={count}>
-                  {t.guests(count)}
-                </option>
-              ))}
-            </select>
-          </label>
+          {!party && (
+            <label className="block">
+              <span className="mb-1.5 block text-[11px] font-bold" style={{ color: C.muted }}>
+                {x.guests}
+              </span>
+              <select
+                value={guests}
+                onChange={(event) => onGuests(Number(event.target.value))}
+                className="w-full rounded-xl border bg-white px-3.5 py-3 text-[13px] font-semibold outline-none"
+                style={{ borderColor: C.line }}
+              >
+                {Array.from({ length: unit.maxGuests }, (_, index) => index + 1).map((count) => (
+                  <option key={count} value={count}>
+                    {t.guests(count)}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )}
         </div>
       </div>
 
@@ -1543,6 +1754,7 @@ function CheckoutForm({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
             className="mt-4 rounded-2xl px-4 py-3 text-[12px] font-semibold"
+            role="alert"
             style={{ background: "#FFF0ED", color: C.danger }}
           >
             {formError}
@@ -1551,7 +1763,7 @@ function CheckoutForm({
       </AnimatePresence>
 
       <button
-        onClick={onSubmit}
+        type="submit"
         disabled={!canSubmit}
         className="mt-5 flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-4 text-[13px] font-bold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-35"
         style={{ background: C.forest }}
@@ -1570,7 +1782,7 @@ function CheckoutForm({
             ? t.swishFineprint
             : t.noPaymentFineprint}
       </p>
-    </div>
+    </form>
   );
 }
 
@@ -1633,6 +1845,9 @@ function MonthCalendar({
   onPick,
   weekdays,
   locale,
+  maxStay,
+  availableThrough,
+  party,
 }: {
   monthOffset: number;
   unit: EngineUnit;
@@ -1642,13 +1857,15 @@ function MonthCalendar({
   onPick: (iso: string) => void;
   weekdays: readonly string[];
   locale: string;
+  maxStay: number;
+  availableThrough?: string;
+  party?: BookingParty;
 }) {
-  const now = new Date();
-  const base = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
-  const year = base.getFullYear();
-  const month = base.getMonth();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const leadBlanks = (new Date(year, month, 1).getDay() + 6) % 7;
+  const base = calendarMonth(monthOffset);
+  const year = base.getUTCFullYear();
+  const month = base.getUTCMonth();
+  const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+  const leadBlanks = (new Date(Date.UTC(year, month, 1)).getUTCDay() + 6) % 7;
   const today = isoToday();
   const cells: (string | null)[] = [
     ...Array.from({ length: leadBlanks }, () => null),
@@ -1678,27 +1895,44 @@ function MonthCalendar({
           const isEnd = iso === checkout;
           const inRange = Boolean(checkin && checkout && iso > checkin && iso < checkout);
 
-          let disabled = past;
+          let disabled = past || Boolean(availableThrough && iso > availableThrough);
           if (selectingCheckout && checkin) {
             if (iso <= checkin || departureBlocked(unit, iso) || !rangeFree(unit, checkin, iso)) {
               disabled = true;
             } else {
               const nights: string[] = [];
-              for (let current = checkin; current < iso; ) {
+              for (let current = checkin; current < iso;) {
                 nights.push(current);
                 const date = new Date(`${current}T00:00:00Z`);
                 date.setUTCDate(date.getUTCDate() + 1);
                 current = date.toISOString().slice(0, 10);
               }
-              if (nights.some((night) => isClosed(unit, night))) disabled = true;
+              if (
+                nights.length > Math.min(30, maxStay) ||
+                nights.some((night) => isClosed(unit, night))
+              )
+                disabled = true;
             }
-          } else if (booked || closed || arrivalBlocked(unit, iso)) {
+          } else if (booked || closed || arrivalBlocked(unit, iso) || iso === availableThrough) {
             disabled = true;
           }
 
-          const price = disabled
-            ? null
-            : nightlyPriceWithRules(pricing, iso, unit.rateRules ?? [], unit.id).price;
+          let price: number | null = null;
+          try {
+            if (
+              !disabled &&
+              (!unit.partyPricingEnabled || (party && !partyIssue(pricing, party, unit.maxGuests)))
+            )
+              price = nightlyPriceWithRules(
+                pricing,
+                iso,
+                unit.rateRules ?? [],
+                unit.id,
+                party,
+              ).price;
+          } catch {
+            /* Missing seasonal prices are explained before checkout. */
+          }
           return (
             <button
               key={iso}

@@ -21,6 +21,7 @@ type Draft = {
   date_from: string;
   date_to: string;
   fixed_price: string;
+  adult_prices: string;
   pct_delta: string;
   min_stay: string;
   priority: string;
@@ -37,6 +38,7 @@ const EMPTY: Draft = {
   date_from: today(),
   date_to: today(),
   fixed_price: "",
+  adult_prices: "",
   pct_delta: "",
   min_stay: "",
   priority: "0",
@@ -98,8 +100,28 @@ function RateRulesPage() {
     if (draft.date_to < draft.date_from)
       return "Slutdatum måste vara samma dag eller efter startdatum.";
     if (draft.kind === "price_override") {
-      if (!draft.fixed_price || Number(draft.fixed_price) <= 0)
-        return "Ange ett fast nattpris större än 0.";
+      if (!draft.fixed_price.trim() && !draft.adult_prices.trim())
+        return "Ange ett fast nattpris eller en vuxenpristabell.";
+      if (
+        draft.fixed_price.trim() &&
+        (!Number.isSafeInteger(Number(draft.fixed_price)) ||
+          Number(draft.fixed_price) < 0 ||
+          Number(draft.fixed_price) > 1000000)
+      )
+        return "Ange ett fast nattpris i hela kronor mellan 0 och 1 000 000.";
+    }
+    if (draft.kind === "price_override" && draft.adult_prices.trim()) {
+      const prices = draft.adult_prices.split(",").map((v) => Number(v.trim()));
+      if (
+        prices.length > 20 ||
+        prices.some((p) => !Number.isSafeInteger(p) || p < 0 || p > 1000000) ||
+        draft.adult_prices.split(",").some((p) => !p.trim())
+      )
+        return "Ange hela kronor, åtskilda med kommatecken, för 1 vuxen, 2 vuxna och så vidare.";
+      const required = units
+        .filter((u) => u.party_pricing_enabled && (!draft.unit_id || u.id === draft.unit_id))
+        .reduce((n, u) => Math.max(n, u.max_guests), 0);
+      if (prices.length < required) return `Ange personpriser för minst ${required} vuxenantal.`;
     }
     if (draft.kind === "price_multiplier") {
       const n = Number(draft.pct_delta);
@@ -130,7 +152,14 @@ function RateRulesPage() {
       kind: draft.kind,
       date_from: draft.date_from,
       date_to: draft.date_to,
-      fixed_price: draft.kind === "price_override" ? Math.round(Number(draft.fixed_price)) : null,
+      fixed_price:
+        draft.kind === "price_override" && draft.fixed_price.trim()
+          ? Number(draft.fixed_price)
+          : null,
+      adult_prices:
+        draft.kind === "price_override" && draft.adult_prices.trim()
+          ? draft.adult_prices.split(",").map((v) => Number(v.trim()))
+          : null,
       pct_delta: draft.kind === "price_multiplier" ? Number(draft.pct_delta) : null,
       min_stay: draft.kind === "min_stay" ? Math.max(1, Math.round(Number(draft.min_stay))) : null,
       priority: Math.round(Number(draft.priority) || 0),
@@ -158,6 +187,7 @@ function RateRulesPage() {
       date_from: rule.date_from,
       date_to: rule.date_to,
       fixed_price: rule.fixed_price?.toString() ?? "",
+      adult_prices: rule.adult_prices?.join(", ") ?? "",
       pct_delta: rule.pct_delta?.toString() ?? "",
       min_stay: rule.min_stay?.toString() ?? "",
       priority: String(rule.priority ?? 0),
@@ -199,7 +229,9 @@ function RateRulesPage() {
   const summary = (r: RateRule) => {
     switch (r.kind) {
       case "price_override":
-        return `${(r.fixed_price ?? 0).toLocaleString("sv-SE")} kr/natt`;
+        return r.adult_prices?.length
+          ? `${r.adult_prices.join(" / ")} kr för 1, 2… vuxna`
+          : `${(r.fixed_price ?? 0).toLocaleString("sv-SE")} kr/natt`;
       case "price_multiplier":
         return `${r.pct_delta && r.pct_delta > 0 ? "+" : ""}${r.pct_delta ?? 0}%`;
       case "min_stay":
@@ -317,7 +349,7 @@ function RateRulesPage() {
 
             {draft.kind === "price_override" && (
               <label className="text-[13px] font-medium">
-                Fast nattpris (kr)
+                Fast nattpris (kr, valfritt med vuxenpristabell)
                 <input
                   inputMode="numeric"
                   value={draft.fixed_price}
@@ -326,6 +358,21 @@ function RateRulesPage() {
                   }
                   className="inp mt-1"
                 />
+              </label>
+            )}
+            {draft.kind === "price_override" && (
+              <label className="text-[13px] font-medium sm:col-span-2">
+                Personpriser för perioden (valfritt)
+                <input
+                  value={draft.adult_prices}
+                  onChange={(e) => setDraft({ ...draft, adult_prices: e.target.value })}
+                  placeholder="995, 1995, 2895, 3495"
+                  className="inp mt-1"
+                />
+                <span className="mt-1 block text-xs font-normal text-ink/60">
+                  Kr/natt för 1 vuxen, 2 vuxna och så vidare. Används bara för boenden med
+                  personpriser. Barnpris läggs till separat.
+                </span>
               </label>
             )}
             {draft.kind === "price_multiplier" && (
