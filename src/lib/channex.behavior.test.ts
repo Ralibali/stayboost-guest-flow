@@ -25,6 +25,7 @@ import {
   syncChannelAri,
 } from "../../supabase/functions/_shared/channex-runtime";
 import type { RateRule } from "../../supabase/functions/_shared/rate-rules";
+import type { AriState } from "../../supabase/functions/_shared/channex-ari";
 
 const PROPERTY = "11111111-1111-4111-8111-111111111111";
 const OTHER = "22222222-2222-4222-8222-222222222222";
@@ -723,7 +724,7 @@ function syncDatabase() {
   const rpcCalls: { name: string; args: Record<string, unknown> }[] = [];
   let completionAccepted = true;
   let busy = false;
-  let ariState: Record<string, any> | null = null;
+  let ariState: AriState | null = null;
   const admin = {
     from(table: string) {
       let patch: Record<string, unknown> | null = null;
@@ -775,15 +776,22 @@ function syncDatabase() {
       if (name === "validate_channel_sync")
         return { data: args.p_dirty_at === current.sync_dirty_at, error: null };
       if (name === "prepare_channel_ari") {
+        const prepared = args as {
+          p_snapshot: AriState["pending_snapshot"];
+          p_payload: AriState["pending_payload"];
+          p_dirty_at: string | null;
+          p_from: string;
+        };
         ariState = {
-          ...ariState,
+          acknowledged_snapshot: ariState?.acknowledged_snapshot ?? null,
+          recovery_required: ariState?.recovery_required ?? false,
           property_id: current.property_id,
           external_property_id: current.external_property_id,
           environment: current.environment,
-          pending_snapshot: args.p_snapshot,
-          pending_payload: args.p_payload,
-          pending_dirty_at: args.p_dirty_at,
-          pending_from: args.p_from,
+          pending_snapshot: prepared.p_snapshot,
+          pending_payload: prepared.p_payload,
+          pending_dirty_at: prepared.p_dirty_at,
+          pending_from: prepared.p_from,
         };
         return { data: true, error: null };
       }

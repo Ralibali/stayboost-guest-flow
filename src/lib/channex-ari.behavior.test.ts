@@ -8,7 +8,11 @@ import {
   ChannexError,
   type ChannelConnection,
 } from "../../supabase/functions/_shared/channex";
-import { channexAriChanges, sameAriSnapshot } from "../../supabase/functions/_shared/channex-ari";
+import {
+  channexAriChanges,
+  sameAriSnapshot,
+  type AriState,
+} from "../../supabase/functions/_shared/channex-ari";
 import { syncChannelAri } from "../../supabase/functions/_shared/channex-runtime";
 
 const OWNER = "00000000-0000-0000-0000-000000000001";
@@ -165,7 +169,7 @@ async function fixture() {
   const current = () =>
     one<ChannelConnection>("select * from channel_connections where id=$1", [connection]);
   const state = () =>
-    one<any>("select * from channel_ari_state where connection_id=$1", [connection]);
+    one<AriState>("select * from channel_ari_state where connection_id=$1", [connection]);
   const sync = async (options: { forceFull?: boolean; now?: Date } = {}) =>
     syncChannelAri(admin, await current(), client, { now, ...options });
   return { property, unit, connection, client, transport, current, state, sync };
@@ -343,8 +347,8 @@ describe(
       await expect(f.sync()).rejects.toThrow("channex_api_error");
       const pending = await f.state();
       expect(pending.acknowledged_snapshot).toEqual(baseline);
-      expect(pending.pending_payload.availability).toHaveLength(1);
-      expect(pending.pending_payload.restrictions).toHaveLength(0);
+      expect(pending.pending_payload?.availability).toHaveLength(1);
+      expect(pending.pending_payload?.restrictions).toHaveLength(0);
       expect(pending.recovery_required).toBe(true);
       const original = String(f.transport.mock.calls[0][1]?.body);
       await db.query("update channel_connections set next_retry_at=null where id=$1", [
@@ -379,7 +383,7 @@ describe(
         f.connection,
       ]);
       expect(await f.sync()).toMatchObject({ mode: "full", submitted: true });
-      expect((await f.state()).acknowledged_snapshot.restrictions[0].rate).toBe("1600.00");
+      expect((await f.state()).acknowledged_snapshot?.restrictions[0].rate).toBe("1600.00");
     });
     it.each(["network", "warnings", "receipt", "missing_task"])(
       "does not acknowledge an uncertain %s result and safely replays inventory changes",
@@ -459,7 +463,7 @@ describe(
           (row: { availability: number }) => row.availability === 0,
         ),
       ).toBe(true);
-      expect((await f.state()).acknowledged_snapshot.restrictions[0].rate).toBe("1750.00");
+      expect((await f.state()).acknowledged_snapshot?.restrictions[0].rate).toBe("1750.00");
       expect((await f.current()).sync_dirty_at).toBeNull();
     });
     it("forces full recovery when the source changes during an uncertain pending request", async () => {
@@ -473,7 +477,7 @@ describe(
         f.connection,
       ]);
       expect(await f.sync()).toMatchObject({ mode: "full", submitted: true });
-      expect((await f.state()).acknowledged_snapshot.restrictions[0].rate).toBe("1800.00");
+      expect((await f.state()).acknowledged_snapshot?.restrictions[0].rate).toBe("1800.00");
     });
     it("allows explicit full recovery even when no local values changed", async () => {
       const f = await fixture();
