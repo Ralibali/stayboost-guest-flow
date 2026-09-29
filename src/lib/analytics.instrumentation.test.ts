@@ -49,13 +49,29 @@ const INSTRUMENTED = [
   FOUNDER,
 ];
 
-describe("GA4 installation", () => {
-  it("uses the consent-gated transport and removes the Plausible dependency", () => {
-    expect(read("package.json")).not.toContain('"@plausible-analytics/tracker"');
-    expect(read(HELPER)).toContain("sendAnalyticsEvent");
-    expect(read(ROOT)).toContain("initAnalytics");
-    expect(read(ROOT)).toContain("AnalyticsConsent");
-    expect(read(ROOT)).not.toContain("plausible.io");
+describe("Plausible install (official 2026)", () => {
+  it("uses the npm tracker, not the legacy script.js snippet", () => {
+    const rootSrc = read(ROOT);
+    const helper = read(HELPER);
+    const pkg = read("package.json");
+
+    expect(pkg).toContain('"@plausible-analytics/tracker"');
+    expect(helper).toContain("@plausible-analytics/tracker");
+    expect(helper).toContain("domain: PLAUSIBLE_DOMAIN");
+    expect(helper).toContain("autoCapturePageviews: true");
+    expect(helper).toContain("formSubmissions: false");
+    expect(rootSrc).toContain("initAnalytics");
+    expect(rootSrc).not.toContain("plausible.io/js/script.js");
+    expect(rootSrc).not.toContain("data-domain");
+    expect(rootSrc).not.toContain("VITE_PUBLIC_PLAUSIBLE_DOMAIN");
+  });
+
+  it("cites current official docs", () => {
+    const helper = read(HELPER);
+    expect(helper).toContain("https://plausible.io/docs/plausible-script");
+    expect(helper).toContain("https://plausible.io/docs/spa-support");
+    expect(helper).toContain("https://plausible.io/docs/custom-event-goals");
+    expect(helper).toContain("https://plausible.io/docs/script-update-guide");
   });
 });
 
@@ -111,14 +127,12 @@ describe("instrumented surfaces", () => {
     expect(signup).not.toContain("useNavigate");
   });
 
-  it("tracks pricing package selection and forwards the selected plan", () => {
+  it("tracks pricing plan toggles and pricing produktdemon with plan", () => {
     const landing = read(LANDING);
     expect(landing).toContain("ANALYTICS_CTAS.PRICING_PLAN");
-    expect(landing).toContain("plan: p.plan");
-    expect(landing).toContain("setSelected(p.key)");
     expect(landing).toContain("ANALYTICS_PLANS.MONTHLY");
     expect(landing).toContain("ANALYTICS_PLANS.ANNUAL");
-    expect(landing).toContain("plan={selectedPlan?.plan}");
+    expect(landing).toContain("plan={annual ? ANALYTICS_PLANS.ANNUAL : ANALYTICS_PLANS.MONTHLY}");
   });
 
   it("tracks /produkten demo CTAs from landing and produkten index", () => {

@@ -1,9 +1,39 @@
-/** GA4 marketing events. Consent and SPA pageviews are handled by ga4Runtime. */
-import { sendAnalyticsEvent } from "./ga4Runtime";
-import { initializeSiteAnalytics } from "./initGa4";
-type AnalyticsPayload = { u: string; r?: string | null; [key: string]: unknown };
+/**
+ * StayBoost marketing analytics — Plausible, Aurora canonical events only.
+ *
+ * Official install (2026): `@plausible-analytics/tracker` with
+ * `init({ domain: "stayboost.se", autoCapturePageviews: true })`.
+ * SPA route changes use the tracker's History API capture — not a legacy
+ * `script.js` + `data-domain` snippet.
+ *
+ * Docs:
+ * - https://plausible.io/docs/plausible-script
+ * - https://plausible.io/docs/spa-support
+ * - https://plausible.io/docs/script-update-guide
+ * - https://plausible.io/docs/script-extensions
+ * - https://plausible.io/docs/custom-event-goals
+ * - https://plausible.io/docs/custom-props/for-custom-events
+ * - https://www.npmjs.com/package/@plausible-analytics/tracker
+ *
+ * Prerequisite (not created by this code): a Plausible site whose domain /
+ * site ID is `stayboost.se`, plus custom-event goals named exactly
+ * `CTA Clicked`, `Form Started`, `Form Submitted`.
+ *
+ * Cap-1 honesty alignment: primary landing CTA is "Öppna produktdemon"
+ * → `/produkten` (`cta=oppn_a_produktdemon`). Demo-area cards use
+ * `cta=demo` + `location=<slug>` for /produkten/* depth. `kom_igang`
+ * remains a valid secondary prop if a signup/login CTA is instrumented;
+ * it is not the primary homepage measure.
+ */
 
-export const ANALYTICS_DOMAIN = "stayboost.se";
+import {
+  init as plausibleInit,
+  track as plausibleTrack,
+  type PlausibleRequestPayload,
+  type PlausibleConfig,
+} from "@plausible-analytics/tracker";
+
+export const PLAUSIBLE_DOMAIN = "stayboost.se";
 
 export const ANALYTICS_EVENTS = {
   CTA_CLICKED: "CTA Clicked",
@@ -66,14 +96,14 @@ export type AnalyticsSink = {
     formSubmissions?: boolean;
     logging?: boolean;
     bindToWindow?: boolean;
-    transformRequest?: (payload: AnalyticsPayload) => AnalyticsPayload | null;
+    transformRequest?: PlausibleConfig["transformRequest"];
   }) => void;
   track: (eventName: string, options?: { props?: Record<string, string> }) => void;
 };
 
 const officialSink: AnalyticsSink = {
-  init: () => initializeSiteAnalytics(),
-  track: (eventName, options) => sendAnalyticsEvent(eventName, options),
+  init: (config) => plausibleInit(config),
+  track: (eventName, options) => plausibleTrack(eventName, options ?? {}),
 };
 
 let sink: AnalyticsSink | null = null;
@@ -140,7 +170,7 @@ function send(eventName: CanonicalEvent, props: Record<string, string>): void {
   try {
     activeSink().track(eventName, { props });
   } catch {
-    // Fail silently when analytics is unavailable or not initialised.
+    // Fail silently when Plausible is unavailable or not initialised.
   }
 }
 
@@ -148,7 +178,9 @@ function send(eventName: CanonicalEvent, props: Record<string, string>): void {
  * Current official SPA install: History API pageviews are automatic.
  * Safe to call more than once — later calls are ignored.
  */
-export function redactPrivateAnalytics(payload: AnalyticsPayload): AnalyticsPayload | null {
+export function redactPrivateAnalytics(
+  payload: PlausibleRequestPayload,
+): PlausibleRequestPayload | null {
   const privatePath = (path: string) => /^\/(g|app)(\/|$)/.test(path);
   try {
     const url = new URL(payload.u);
@@ -164,7 +196,7 @@ export function initAnalytics(): void {
   if (initialized) return;
   try {
     activeSink().init({
-      domain: ANALYTICS_DOMAIN,
+      domain: PLAUSIBLE_DOMAIN,
       autoCapturePageviews: true,
       formSubmissions: false,
       logging: false,

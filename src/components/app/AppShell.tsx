@@ -11,10 +11,7 @@ import {
   LogOut,
   Mail,
   Menu,
-  Network,
-  MessageSquareText,
   PackagePlus,
-  PhoneCall,
   Settings,
   Sparkles,
   SunMedium,
@@ -36,11 +33,7 @@ const NAV = [
   { to: "/app/prisregler", label: "Pris & regler", icon: Tag, group: "Försäljning" },
   { to: "/app/tillval", label: "Tillval", icon: PackagePlus, group: "Försäljning" },
   { to: "/app/mallar", label: "Gästkommunikation", icon: Mail, group: "Gästresa" },
-  { to: "/app/telefon", label: "Telefonagent", icon: PhoneCall, group: "Gästresa" },
-  { to: "/app/inkorg", label: "Inkorg", icon: MessageSquareText, group: "Gästresa" },
-  { to: "/app/startklart", label: "Flytta från Sirvoy", icon: CheckCircle2, group: "System" },
   { to: "/app/kallor", label: "Kalenderkopplingar", icon: Link2, group: "System" },
-  { to: "/app/kanaler", label: "Bokningskanaler", icon: Network, group: "System" },
   { to: "/app/installningar", label: "Inställningar", icon: Settings, group: "System" },
 ] as const;
 
@@ -176,10 +169,7 @@ export function AppShell({
         </header>
 
         {menuOpen ? (
-          <div
-            className="fixed inset-0 z-50 bg-forest/35 backdrop-blur-sm lg:hidden"
-            role="presentation"
-          >
+          <div className="fixed inset-0 z-50 bg-forest/35 backdrop-blur-sm lg:hidden" role="presentation">
             <div className="absolute inset-x-0 top-0 max-h-[calc(100dvh-72px)] overflow-y-auto rounded-b-lg bg-card shadow-2xl">
               <div className="flex h-16 items-center border-b border-line px-4">
                 <p className="font-display text-xl font-semibold text-forest">Meny</p>

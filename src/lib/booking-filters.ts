@@ -2,7 +2,6 @@
 // Ren TypeScript — enkel att enhetstesta utan Supabase.
 
 import type { Booking } from "./supabase";
-import { propertyDay } from "./property-dates";
 
 export type BookingFilters = {
   search: string; // fritext mot namn/e-post/telefon
@@ -45,11 +44,8 @@ export function filterBookings(bookings: Booking[], f: BookingFilters): Booking[
 
 /** RFC 4180-kompatibel CSV-cell. */
 function csvCell(v: unknown): string {
-  const raw = v == null ? "" : String(v);
-  // Guest-controlled strings must remain text when Excel opens the export.
-  // Numeric values retain their numeric representation, including negative amounts.
-  const s = typeof v === "string" && /^[\s\uFEFF]*[=+@-]/.test(raw) ? `'${raw}` : raw;
-  return /[",\r\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  const s = v == null ? "" : String(v);
+  return /[",\n;]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 
 /** Bygger CSV med semikolon (Excel-vänligt i sv-SE). */
@@ -88,4 +84,5 @@ export function bookingsToCsv(bookings: Booking[]): string {
 }
 
 /** Filnamn med ISO-datum för nedladdning. */
-export const csvFilename = (prefix = "bokningar") => `${prefix}-${propertyDay()}.csv`;
+export const csvFilename = (prefix = "bokningar") =>
+  `${prefix}-${new Date().toISOString().slice(0, 10)}.csv`;

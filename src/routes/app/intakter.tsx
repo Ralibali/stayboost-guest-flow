@@ -22,14 +22,13 @@ import {
   YAxis,
 } from "recharts";
 import { supabase, useProperty, useSession, type Booking } from "@/lib/supabase";
-import { bookingValueInWindow, fetchAllRows, occupiedUnitNights } from "@/lib/operator-bookings";
-import { propertyDay, propertyDateLabel, shiftPropertyDay } from "@/lib/property-dates";
 
 export const Route = createFileRoute("/app/intakter")({
   component: RevenuePage,
 });
 
 const DAY = 86400000;
+const iso = (d: Date) => d.toISOString().slice(0, 10);
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("sv-SE")} kr`;
 const fmtPct = (n: number) => `${Math.round(n)} %`;
 
@@ -60,26 +59,20 @@ function RevenuePage() {
     if (!supabase || !property) return;
     setLoading(true);
     setError(null);
-    const client = supabase;
-    const today = propertyDay();
-    try {
-      const data = await fetchAllRows<Booking>((from, to) =>
-        client
-          .from("bookings")
-          .select("*, unit:units(name,max_guests)", { count: "exact" })
-          .eq("property_id", property.id)
-          .gte("checkout_date", shiftPropertyDay(today, -120))
-          .lte("checkin_date", shiftPropertyDay(today, 180))
-          .order("checkin_date")
-          .order("id")
-          .range(from, to),
-      );
-      setBookings(data);
-    } catch (failure) {
-      setError(failure instanceof Error ? failure.message : "Bokningarna kunde inte hämtas.");
-    } finally {
-      setLoading(false);
-    }
+    const start = new Date();
+    start.setDate(start.getDate() - 120);
+    const end = new Date();
+    end.setDate(end.getDate() + 180);
+    const { data, error: loadError } = await supabase
+      .from("bookings")
+      .select("*, unit:units(name,max_guests)")
+      .eq("property_id", property.id)
+      .gte("checkout_date", iso(start))
+      .lte("checkin_date", iso(end))
+      .order("checkin_date");
+    if (loadError) setError(loadError.message);
+    setBookings((data as Booking[]) ?? []);
+    setLoading(false);
   }, [property]);
 
   useEffect(() => {
@@ -87,34 +80,31 @@ function RevenuePage() {
   }, [load]);
 
   const stats = useMemo(() => {
-    const today = propertyDay();
-    const windowEnd = shiftPropertyDay(today, windowDays);
+    const today = iso(new Date());
+    const endDate = new Date();
+    endDate.setDate(endDate.getDate() + windowDays);
+    const windowEnd = iso(endDate);
     const activeUnits = units.filter((u) => u.active);
     const confirmed = bookings.filter((b) => b.status === "confirmed");
     const relevant = confirmed.filter((b) => b.checkout_date > today && b.checkin_date < windowEnd);
-    const occupiedNights = occupiedUnitNights(relevant, units, today, windowEnd);
+    const occupiedNights = relevant.reduce(
+      (sum, b) => sum + overlapNights(b.checkin_date, b.checkout_date, today, windowEnd),
+      0,
+    );
     const capacityNights = Math.max(1, activeUnits.length * windowDays);
     const occupancy = (occupiedNights / capacityNights) * 100;
 
     const knownRevenueBookings = relevant.filter(
-      (b) =>
-        (b.payment_amount ?? 0) > 0 &&
-        !["refunded", "refund_pending", "expired"].includes(b.payment_status),
+      (b) => (b.payment_amount ?? 0) > 0 && b.payment_status !== "refunded",
     );
-    const knownRevenue = knownRevenueBookings.reduce(
-      (sum, b) => sum + bookingValueInWindow(b, today, windowEnd),
-      0,
-    );
+    const knownRevenue = knownRevenueBookings.reduce((sum, b) => sum + (b.payment_amount ?? 0), 0);
     const knownNights = knownRevenueBookings.reduce(
       (sum, b) => sum + overlapNights(b.checkin_date, b.checkout_date, today, windowEnd),
       0,
     );
     const adr = knownNights > 0 ? knownRevenue / knownNights : 0;
     const revpar = knownRevenue / capacityNights;
-    const addonRevenue = knownRevenueBookings.reduce(
-      (sum, b) => sum + bookingValueInWindow(b, today, windowEnd, b.addons_total ?? 0),
-      0,
-    );
+    const addonRevenue = knownRevenueBookings.reduce((sum, b) => sum + (b.addons_total ?? 0), 0);
     const direct = relevant.filter((b) => b.source === "direct").length;
     const directShare = relevant.length ? (direct / relevant.length) * 100 : 0;
     const avgStay = relevant.length
@@ -125,15 +115,21 @@ function RevenuePage() {
     const pendingValue = pending.reduce((sum, b) => sum + (b.payment_amount ?? 0), 0);
 
     const daily = Array.from({ length: windowDays }, (_, index) => {
-      const day = shiftPropertyDay(today, index);
-      const nextDay = shiftPropertyDay(day, 1);
+      const d = new Date();
+      d.setDate(d.getDate() + index);
+      const day = iso(d);
+      const next = new Date(d);
+      next.setDate(next.getDate() + 1);
+      const nextDay = iso(next);
       const dayBookings = relevant.filter((b) => b.checkin_date < nextDay && b.checkout_date > day);
-      const occupied = occupiedUnitNights(dayBookings, units, day, nextDay);
+      const occupied = dayBookings.length;
       const revenue = dayBookings.reduce((sum, b) => {
-        return sum + bookingValueInWindow(b, day, nextDay);
+        if (!b.payment_amount || b.payment_status === "refunded") return sum;
+        const totalNights = Math.max(1, nightsBetween(b.checkin_date, b.checkout_date));
+        return sum + b.payment_amount / totalNights;
       }, 0);
       return {
-        date: propertyDateLabel(day, { day: "numeric", month: "short" }),
+        date: d.toLocaleDateString("sv-SE", { day: "numeric", month: "short" }),
         occupancy: activeUnits.length ? Math.min(100, (occupied / activeUnits.length) * 100) : 0,
         revenue,
       };
@@ -163,7 +159,7 @@ function RevenuePage() {
   if (!property) return null;
 
   return (
-    <div className="space-y-6" data-private="true">
+    <div className="space-y-6">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
         <div>
           <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#2d684c]">
@@ -217,13 +213,13 @@ function RevenuePage() {
           icon={Banknote}
           label="Känd bokningsintäkt"
           value={fmtKr(stats.knownRevenue)}
-          sub="Fördelat per natt inom vald period"
+          sub="Exkl. bokningar utan registrerat belopp"
         />
         <Metric
           icon={Gauge}
           label="Känd ADR"
           value={fmtKr(stats.adr)}
-          sub="Bokningsvärde per natt, inklusive avgifter"
+          sub="Intäkt per bokad natt med känt belopp"
         />
         <Metric
           icon={TrendingUp}

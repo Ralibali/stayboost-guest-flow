@@ -3,16 +3,20 @@
 // och enhetstesterna. Server-side är enda sanningskälla vid faktisk bokning.
 
 export type RateRuleKind =
-  "price_override" | "price_multiplier" | "min_stay" | "closed" | "no_arrival" | "no_departure";
+  | "price_override"
+  | "price_multiplier"
+  | "min_stay"
+  | "closed"
+  | "no_arrival"
+  | "no_departure";
 
 export interface RateRule {
   id: string;
   unit_id: string | null; // null = hela anläggningen
   kind: RateRuleKind;
   date_from: string; // ISO YYYY-MM-DD, inklusive
-  date_to: string; // ISO YYYY-MM-DD, inklusive
+  date_to: string;   // ISO YYYY-MM-DD, inklusive
   fixed_price: number | null;
-  adult_prices?: number[] | null;
   pct_delta: number | null;
   min_stay: number | null;
   priority: number;
@@ -46,28 +50,13 @@ export function applyPriceRules(
   rules: RateRule[],
   unitId: string,
   iso: string,
-  adults?: number,
 ): { price: number; source: "base" | "override" | "multiplier"; ruleId?: string } {
   const relevant = rulesForUnit(rules, unitId).filter((r) => ruleCoversDate(r, iso));
-  const override = pickWinner(
-    relevant.filter(
-      (r) =>
-        r.kind === "price_override" &&
-        (r.fixed_price !== null || Boolean(adults && r.adult_prices?.length)),
-    ),
-  );
+  const override = pickWinner(relevant.filter((r) => r.kind === "price_override" && r.fixed_price !== null));
   if (override) {
-    const adultPrice =
-      adults && override.adult_prices?.length
-        ? override.adult_prices[adults - 1]
-        : override.fixed_price;
-    if (adultPrice == null || !Number.isFinite(adultPrice) || adultPrice < 0)
-      throw new Error("pricing_unavailable");
-    return { price: adultPrice, source: "override", ruleId: override.id };
+    return { price: Math.max(0, override.fixed_price!), source: "override", ruleId: override.id };
   }
-  const mult = pickWinner(
-    relevant.filter((r) => r.kind === "price_multiplier" && r.pct_delta !== null),
-  );
+  const mult = pickWinner(relevant.filter((r) => r.kind === "price_multiplier" && r.pct_delta !== null));
   if (mult) {
     const adjusted = Math.round((basePrice * (1 + mult.pct_delta! / 100)) / 5) * 5;
     return { price: Math.max(0, adjusted), source: "multiplier", ruleId: mult.id };

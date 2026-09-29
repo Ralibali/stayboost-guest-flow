@@ -1,6 +1,6 @@
 # StayBoost · Go-live-guide
 
-Driftsättning av bokningssystemet och kontroller före verkliga bokningar. Kanalbyte kräver även partneranslutning och provbokningar.
+Från noll till bokningar på riktigt. Räkna med ~45 minuter.
 Databas, edge-funktioner och cron körs i Supabase. Frontend (TanStack Start,
 SSR) körs på Lovable/valfri Node-host och har **egna** server-hemligheter (steg 8).
 
@@ -19,18 +19,17 @@ SSR) körs på Lovable/valfri Node-host och har **egna** server-hemligheter (ste
 npm i -g supabase
 supabase login
 supabase link --project-ref <DITT-PROJECT-REF>
-supabase db push        # för ett nytt projekt med matchande migrationshistorik
+supabase db push        # lägger alla 18 migrationer i supabase/migrations/
 ```
 
-Ett befintligt projekt kan ha migrationer registrerade med andra tidsstämplar.
-Jämför namnen och det faktiskt installerade schemat innan `db push`; kör inte
-äldre databasändringar igen för att tvinga historiken att matcha. Prisregler ingår
-i `operator_management` i den ordinarie migrationsmappen.
+> `supabase/pending-migrations/` (audit-logg + prisregler) körs **inte** av
+> `db push`. Klienten fungerar utan dem. Kör dem manuellt i SQL Editor när du
+> vill aktivera prisregler-vyn (`/app/prisregler`) på riktigt — se README där.
 
 ## 3. Deploya edge-funktionerna
 
 ```bash
-supabase functions deploy  # publicerar funktionerna i supabase/functions/
+supabase functions deploy  # deployar alla 14 funktioner i supabase/functions/
 ```
 
 `supabase/config.toml` styr vilka funktioner som kör utan JWT (publika
@@ -91,8 +90,7 @@ Stripe Dashboard → **Developers → Webhooks → Add endpoint** (två stycken)
 **A. Gästbetalningar**
 
 - URL: `https://<PROJECT-REF>.supabase.co/functions/v1/stripe-webhook`
-- Events: `checkout.session.completed`, `checkout.session.expired`,
-  `refund.created`, `refund.updated`, `refund.failed`
+- Events: `checkout.session.completed`, `checkout.session.expired`
 - Signing secret → `STRIPE_WEBHOOK_SECRET`
 
 **B. StayBoost-abonnemang (SaaS)**
@@ -151,7 +149,7 @@ till den).
 1. Öppna appen → skapa konto → ange anläggningsuppgifter
 2. **Inställningar → Din bokningssida**: kopiera iframe-snutten till hemsidan
 3. **Inställningar → Enheter**: lägg till tält/stugor med priser
-4. **Bokningskanaler**: anslut och certifiera Channex enligt [kanalguiden](docs/channex-setup.md). iCal är endast kalenderutbyte och ersätter inte pris- och bokningsanslutningarna.
+4. **iCal-källor**: klistra in Booking.com/Airbnbs exportlänkar
 5. **Tillval**: badtunna, ved, frukost…
 6. **Chatt**: slå på, fyll i mottagarmejl, klistra snippeten på hemsidan
 
@@ -167,7 +165,7 @@ till den).
 - [ ] Starta ett StayBoost-abonnemang från billing-vyn med testkort → status **aktiv**
 - [ ] `ops_job_state` visar `last_succeeded_at` för alla jobb
 
-Godkänn driftsättning först när betalning, meddelanden och varje avsedd kanal har klarat verkliga provflöden. Se [övertagandet från Sirvoy](docs/sirvoy-cutover.md).
+**Klart — du är live.** 🎉
 
 ---
 

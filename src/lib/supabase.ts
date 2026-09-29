@@ -22,7 +22,6 @@ export type Property = {
   booking_enabled: boolean;
   max_stay: number;
   contact_email: string | null;
-  booking_terms_url: string | null;
   checkin_time: string;
   checkout_time: string;
   directions: string | null;
@@ -41,8 +40,6 @@ export type Property = {
   chat_color: string;
   chat_position: "right" | "left";
   chat_button_label: string;
-  guest_ai_enabled: boolean;
-  guest_ai_instructions: string | null;
 };
 
 export type ChatMessage = {
@@ -54,19 +51,7 @@ export type ChatMessage = {
   page_url: string | null;
   emailed: boolean;
   read_at: string | null;
-  ai_draft: string | null;
-  ai_draft_created_at: string | null;
   created_at: string;
-};
-
-export type GuestAiKnowledge = {
-  id: string;
-  property_id: string;
-  question: string;
-  answer: string;
-  enabled: boolean;
-  created_at: string;
-  updated_at: string;
 };
 
 export type Unit = {
@@ -90,11 +75,6 @@ export type Unit = {
   cleaning_fee: number;
   monthly_mult: number[];
   external_ref: string | null;
-  party_pricing_enabled: boolean;
-  adult_prices: number[];
-  child_price_per_night: number;
-  child_free_through_age: number;
-  child_max_age: number;
 };
 
 /** Publik iCal-exportlänk för en enhet (klistras in i Airbnb/Booking). */
@@ -107,9 +87,7 @@ export type Booking = {
   id: string;
   property_id: string;
   unit_id: string | null;
-  source: "manual" | "ical" | "direct" | "sirvoy" | "channex";
-  external_id?: string | null;
-  communications_enabled?: boolean;
+  source: "manual" | "ical" | "direct" | "sirvoy";
   guest_name: string | null;
   guest_email: string | null;
   guest_phone: string | null;
@@ -134,9 +112,6 @@ export type Booking = {
   stripe_refund_id: string | null;
   addons_total: number;
   guests: number | null;
-  adults: number | null;
-  children_ages: number[];
-  quote_snapshot: Record<string, unknown> | null;
   created_at: string;
   updated_at: string;
   unit?: { name: string; max_guests?: number } | null;
@@ -254,7 +229,6 @@ export type RateRule = {
   date_from: string;
   date_to: string;
   fixed_price: number | null;
-  adult_prices: number[] | null;
   pct_delta: number | null;
   min_stay: number | null;
   priority: number;
@@ -299,7 +273,6 @@ export type Addon = {
   description: string | null;
   price: number;
   price_type: "per_booking" | "per_night";
-  fulfillment_type: "arrival" | "each_morning" | "departure";
   image_url: string | null;
   internal_only: boolean;
   available_from: string | null;
@@ -331,7 +304,6 @@ export function useProperty(session: Session | null | undefined) {
   const [property, setProperty] = useState<Property | null | undefined>(undefined);
   const [units, setUnits] = useState<Unit[]>([]);
   const [reloadTick, setReloadTick] = useState(0);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!supabase || !session) {
@@ -340,43 +312,32 @@ export function useProperty(session: Session | null | undefined) {
     }
     let alive = true;
     (async () => {
-      setError(null);
-      const { data: props, error: propertyError } = await supabase
+      const { data: props } = await supabase
         .from("properties")
         .select("*")
         .order("created_at")
         .limit(1);
       if (!alive) return;
-      if (propertyError) {
-        setError("Anläggningen kunde inte hämtas. Försök igen.");
-        return;
-      }
       const p = (props?.[0] as Property | undefined) ?? null;
       setProperty(p);
       if (p) {
-        const { data: us, error: unitsError } = await supabase
+        const { data: us } = await supabase
           .from("units")
           .select("*")
           .eq("property_id", p.id)
           .order("sort_order")
           .order("created_at");
-        if (alive) {
-          if (unitsError) setError("Boendena kunde inte hämtas. Försök igen.");
-          else setUnits((us as Unit[]) ?? []);
-        }
+        if (alive) setUnits((us as Unit[]) ?? []);
       } else {
         setUnits([]);
       }
-    })().catch(() => {
-      if (alive)
-        setError("Anläggningen kunde inte hämtas. Kontrollera anslutningen och försök igen.");
-    });
+    })();
     return () => {
       alive = false;
     };
   }, [session, reloadTick]);
 
-  return { property, units, error, reload: () => setReloadTick((t) => t + 1) };
+  return { property, units, reload: () => setReloadTick((t) => t + 1) };
 }
 
 export const guestPageUrl = (token: string) => `${window.location.origin}/g/${token}`;

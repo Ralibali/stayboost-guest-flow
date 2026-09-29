@@ -26,7 +26,10 @@ export function checkoutBody(p: CheckoutParams): string {
   params.set("payment_method_types[0]", "card");
   params.set("line_items[0][quantity]", "1");
   params.set("line_items[0][price_data][currency]", "sek");
-  params.set("line_items[0][price_data][unit_amount]", String(Math.round(p.amountSek * 100)));
+  params.set(
+    "line_items[0][price_data][unit_amount]",
+    String(Math.round(p.amountSek * 100)),
+  );
   params.set("line_items[0][price_data][product_data][name]", p.description);
   params.set("metadata[payment_ref]", p.paymentRef);
   params.set("metadata[booking_id]", p.bookingId);
@@ -84,36 +87,6 @@ export interface StripeRefund {
   status: string | null;
 }
 
-export interface StripeRefundDetails extends StripeRefund {
-  amount: number;
-  currency: string;
-  paymentIntentId: string;
-  metadata: Record<string, string>;
-}
-
-/** Retrieve current state rather than treating an old event or cached create response as final. */
-export async function retrieveRefund(
-  secretKey: string,
-  refundId: string,
-): Promise<StripeRefundDetails> {
-  const response = await fetch(
-    `https://api.stripe.com/v1/refunds/${encodeURIComponent(refundId)}`,
-    { headers: { Authorization: `Bearer ${secretKey}` } },
-  );
-  const data = await response.json();
-  if (!response.ok) throw new Error(data?.error?.message ?? `Stripe svarade ${response.status}`);
-  if (data.id !== refundId || typeof data.payment_intent !== "string")
-    throw new Error("Stripe-svar saknade refund/payment-intent");
-  return {
-    id: data.id,
-    status: data.status ?? null,
-    amount: data.amount,
-    currency: data.currency,
-    paymentIntentId: data.payment_intent,
-    metadata: data.metadata ?? {},
-  };
-}
-
 /** Full refund med stabil idempotency key så nätverks-/DB-retries inte kan dubbla utbetalningen. */
 export async function createFullRefund(params: {
   secretKey: string;
@@ -163,7 +136,11 @@ async function hmacSha256Hex(secret: string, payload: string): Promise<string> {
     false,
     ["sign"],
   );
-  const signature = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(payload));
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(payload),
+  );
   return bytesToHex(new Uint8Array(signature));
 }
 

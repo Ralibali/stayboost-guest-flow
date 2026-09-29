@@ -18,15 +18,11 @@ export interface Addon {
   available_from?: string | null;
   available_to?: string | null;
   max_quantity?: number;
-  fulfillment_type?: "arrival" | "each_morning" | "departure";
 }
 
 /** Perioden gäller vistelsens nätter, inte dagen då bokningen görs. */
 export function addonAvailableForStay(
-  addon: Pick<
-    Addon,
-    "internal_only" | "available_from" | "available_to" | "price_type" | "fulfillment_type"
-  >,
+  addon: Pick<Addon, "internal_only" | "available_from" | "available_to" | "price_type">,
   checkin: string,
   checkout: string,
 ): boolean {
@@ -34,14 +30,6 @@ export function addonAvailableForStay(
   if (!addon.available_from && !addon.available_to) return true;
   if (!addon.available_from || !addon.available_to || !checkin || !checkout || checkout <= checkin)
     return false;
-  if (addon.fulfillment_type === "each_morning") {
-    const firstMorning = new Date(Date.parse(`${checkin}T12:00:00Z`) + 86400000)
-      .toISOString()
-      .slice(0, 10);
-    return firstMorning >= addon.available_from && checkout <= addon.available_to;
-  }
-  if (addon.fulfillment_type === "departure")
-    return checkout >= addon.available_from && checkout <= addon.available_to;
   if (addon.price_type === "per_night") {
     const lastNight = new Date(Date.parse(`${checkout}T12:00:00Z`) - 86400000)
       .toISOString()

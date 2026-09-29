@@ -31,9 +31,6 @@ const mk = (over: Partial<Booking>): Booking => ({
   stripe_refund_id: null,
   addons_total: 0,
   guests: 2,
-  adults: 2,
-  children_ages: [],
-  quote_snapshot: null,
   created_at: "2026-08-01T10:00:00Z",
   updated_at: "2026-08-01T10:00:00Z",
   unit: { name: "Sjöbrisretreatet" },
@@ -94,22 +91,5 @@ describe("bookingsToCsv", () => {
   it("citerar fält med semikolon eller citattecken", () => {
     const csv = bookingsToCsv([mk({ guest_name: 'Nils "Kalle"; Persson' })]);
     expect(csv).toContain('"Nils ""Kalle""; Persson"');
-  });
-  it("exports guest-controlled formula strings as text for Excel", () => {
-    const csv = bookingsToCsv([
-      mk({
-        guest_name: '=HYPERLINK("https://example.com")',
-        guest_email: "  @danger",
-        guest_phone: "+46701234567",
-      }),
-    ]);
-    expect(csv).toContain("\"'=HYPERLINK");
-    expect(csv).toContain("'  @danger");
-    expect(csv).toContain("'+46701234567");
-  });
-  it("escapes carriage returns and preserves numeric amounts", () => {
-    const csv = bookingsToCsv([mk({ guest_name: "Anna\rAndersson", payment_amount: 2400 })]);
-    expect(csv).toContain('"Anna\rAndersson"');
-    expect(csv).toContain(";2400;");
   });
 });

@@ -1,7 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
-import { guestAccessAllowed, guestAddon, stayPhase } from "../_shared/guest-stay.ts";
-import { pendingCheckoutAllowed, resumeCheckout } from "../_shared/guest-checkout.ts";
+import { accessAvailable, guestAddon, stayPhase } from "../_shared/guest-stay.ts";
 
 // Publik gästsida. Tokenen i länken är nyckeln; endast kuraterade fält lämnar servern.
 
@@ -23,20 +22,14 @@ Deno.serve(async (req) => {
       },
     });
 
-  if (req.method !== "GET" && req.method !== "POST")
-    return json({ error: "method_not_allowed" }, 405);
   let token = new URL(req.url).searchParams.get("token") ?? "";
-  let action = "view";
-  if (req.method === "POST") {
+  if (req.method === "POST" && !token) {
     try {
-      const body = await req.json();
-      token = token || body?.token || "";
-      action = body?.action ?? "view";
+      token = (await req.json())?.token ?? "";
     } catch {
       // Tom body är okej.
     }
   }
-  if (!["view", "resume_payment"].includes(action)) return json({ error: "invalid_action" }, 400);
   if (!/^[0-9a-f]{24}$/.test(token)) return json({ error: "invalid_token" }, 400);
 
   const admin = createClient(
@@ -46,21 +39,13 @@ Deno.serve(async (req) => {
   const { data, error } = await admin
     .from("bookings")
     .select(
-      "id, external_id, unit_id, property_id, stay_status, guest_name, checkin_date, checkout_date, status, payment_method, payment_status, payment_amount, payment_ref, payment_expires_at, stripe_session_id, unit:units(name, door_code, checkin_instructions), property:properties(name, slug, checkin_time, checkout_time, directions, wifi_name, wifi_password, house_rules, contact_phone, swish_number)",
+      "id, unit_id, property_id, stay_status, guest_name, checkin_date, checkout_date, status, payment_method, payment_status, payment_amount, payment_ref, payment_expires_at, unit:units(name, door_code, checkin_instructions), property:properties(name, checkin_time, checkout_time, directions, wifi_name, wifi_password, house_rules, contact_phone, swish_number)",
     )
     .eq("guest_token", token)
     .maybeSingle();
 
   if (error) return json({ error: "server_error" }, 500);
-  if (!data) return json({ error: "not_found" }, 404);
-  if (action === "resume_payment") {
-    try {
-      const checkoutUrl = await resumeCheckout(data, Deno.env.get("STRIPE_SECRET_KEY") ?? "");
-      return checkoutUrl ? json({ checkoutUrl }) : json({ error: "checkout_not_pending" }, 409);
-    } catch {
-      return json({ error: "checkout_unavailable" }, 503);
-    }
-  }
+  if (!data || data.status !== "confirmed") return json({ error: "not_found" }, 404);
 
   const { data: operations, error: operationsError } = await admin
     .from("stay_operations")
@@ -70,7 +55,7 @@ Deno.serve(async (req) => {
     .eq("kind", "addon")
     .order("created_at");
   if (operationsError) return json({ error: "server_error" }, 500);
-  const access = guestAccessAllowed(data);
+  const access = accessAvailable(data.checkin_date, data.checkout_date, data.stay_status);
   const one = <T>(value: T | T[] | null): T | null =>
     Array.isArray(value) ? (value[0] ?? null) : value;
   const unit = one(data.unit);
@@ -78,7 +63,6 @@ Deno.serve(async (req) => {
   if (!property) return json({ error: "not_found" }, 404);
 
   return json({
-    bookingStatus: data.status,
     phase: stayPhase(data.checkin_date, data.checkout_date, data.stay_status),
     accessAvailable: access,
     addons: (operations || []).map((row) => guestAddon(row, data)).filter(Boolean),
@@ -104,7 +88,6 @@ Deno.serve(async (req) => {
           amount: data.payment_amount,
           ref: data.payment_ref,
           expiresAt: data.payment_expires_at,
-          canResume: pendingCheckoutAllowed(data),
         }
       : null,
   });

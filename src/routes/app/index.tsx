@@ -18,8 +18,6 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { supabase, useProperty, useSession, type Booking, type IcalSource } from "@/lib/supabase";
-import { fetchAllRows, occupiedUnitNights } from "@/lib/operator-bookings";
-import { propertyDay, propertyDateLabel, shiftPropertyDay } from "@/lib/property-dates";
 
 export const Route = createFileRoute("/app/")({
   component: DashboardPage,
@@ -32,8 +30,16 @@ type MessageHealth = {
   send_at: string;
 };
 
+const iso = (d: Date) => d.toISOString().slice(0, 10);
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("sv-SE")} kr`;
-const svDate = (value: string) => propertyDateLabel(value, { day: "numeric", month: "short" });
+const svDate = (value: string) =>
+  new Date(value + "T12:00:00").toLocaleDateString("sv-SE", { day: "numeric", month: "short" });
+
+function nightsOverlap(from: string, to: string, windowFrom: string, windowTo: string) {
+  const start = new Date(`${from > windowFrom ? from : windowFrom}T00:00:00Z`).getTime();
+  const end = new Date(`${to < windowTo ? to : windowTo}T00:00:00Z`).getTime();
+  return Math.max(0, Math.round((end - start) / 86400000));
+}
 
 function DashboardPage() {
   const session = useSession();
@@ -48,24 +54,18 @@ function DashboardPage() {
     if (!supabase || !property) return;
     setLoading(true);
     setLoadError(null);
-    const today = propertyDay();
-    const future = shiftPropertyDay(today, 60);
-    const client = supabase;
+    const today = iso(new Date());
+    const future = new Date();
+    future.setDate(future.getDate() + 60);
 
     const [bookingResult, messageResult, sourceResult] = await Promise.all([
-      fetchAllRows<Booking>((from, to) =>
-        client
-          .from("bookings")
-          .select("*, unit:units(name,max_guests)", { count: "exact" })
-          .eq("property_id", property.id)
-          .gte("checkout_date", today)
-          .lte("checkin_date", future)
-          .order("checkin_date")
-          .order("id")
-          .range(from, to),
-      )
-        .then((data) => ({ data, error: null }))
-        .catch((error: Error) => ({ data: null, error })),
+      supabase
+        .from("bookings")
+        .select("*, unit:units(name,max_guests)")
+        .eq("property_id", property.id)
+        .gte("checkout_date", today)
+        .lte("checkin_date", iso(future))
+        .order("checkin_date"),
       supabase
         .from("scheduled_messages")
         .select("id,status,error,send_at,booking:bookings!inner(property_id)")
@@ -92,11 +92,16 @@ function DashboardPage() {
   }, [load]);
 
   const metrics = useMemo(() => {
-    const today = propertyDay();
-    const in30 = shiftPropertyDay(today, 30);
+    const today = iso(new Date());
+    const in30Date = new Date();
+    in30Date.setDate(in30Date.getDate() + 30);
+    const in30 = iso(in30Date);
     const confirmed = bookings.filter((b) => b.status === "confirmed");
     const activeUnits = units.filter((u) => u.active);
-    const occupiedNights = occupiedUnitNights(confirmed, units, today, in30);
+    const occupiedNights = confirmed.reduce(
+      (sum, b) => sum + nightsOverlap(b.checkin_date, b.checkout_date, today, in30),
+      0,
+    );
     const capacityNights = Math.max(1, activeUnits.length * 30);
     const occupancy = Math.min(100, Math.round((occupiedNights / capacityNights) * 100));
     const arrivals = confirmed.filter((b) => b.checkin_date === today);
@@ -202,9 +207,7 @@ function DashboardPage() {
                 {greeting}.
               </h1>
               <p className="mt-2 max-w-2xl text-[13px] leading-relaxed text-primary-foreground/65 sm:text-[14px]">
-                Läget för{" "}
-                <span className="font-semibold text-primary-foreground">{property.name}</span> just
-                nu.
+                Läget för <span className="font-semibold text-primary-foreground">{property.name}</span> just nu.
               </p>
             </div>
             <div className="grid grid-cols-[1fr_auto] gap-2 sm:flex sm:flex-wrap">

@@ -12,7 +12,6 @@ type Draft = {
   description: string;
   price: string;
   price_type: "per_booking" | "per_night";
-  fulfillment_type: "arrival" | "each_morning" | "departure";
   image_url: string;
   internal_only: boolean;
   available_from: string;
@@ -25,7 +24,6 @@ const EMPTY: Draft = {
   description: "",
   price: "",
   price_type: "per_booking",
-  fulfillment_type: "arrival",
   image_url: "",
   internal_only: false,
   available_from: "",
@@ -115,24 +113,14 @@ function AddonsPage() {
       setActionError("Välj högst 1–20 stycken per bokning.");
       return;
     }
-    const price = Number(draft.price);
-    if (!draft.price.trim() || !Number.isSafeInteger(price) || price < 0 || price > 1000000) {
-      setActionError("Ange priset i hela kronor mellan 0 och 1 000 000.");
-      return;
-    }
-    if (draft.fulfillment_type === "each_morning" && draft.price_type !== "per_night") {
-      setActionError("Varje morgon kräver pris per natt. Antal betyder portioner per morgon.");
-      return;
-    }
     setSaving(true);
     setActionError(null);
     const row = {
       property_id: property.id,
       name: draft.name.trim(),
       description: draft.description.trim() || null,
-      price,
+      price: Math.max(0, Math.round(Number(draft.price) || 0)),
       price_type: draft.price_type,
-      fulfillment_type: draft.fulfillment_type,
       image_url: draft.image_url.trim() || null,
       internal_only: draft.internal_only,
       available_from: draft.available_from || null,
@@ -158,7 +146,6 @@ function AddonsPage() {
       description: addon.description ?? "",
       price: String(addon.price),
       price_type: addon.price_type,
-      fulfillment_type: addon.fulfillment_type ?? "arrival",
       image_url: addon.image_url ?? "",
       internal_only: addon.internal_only ?? false,
       available_from: addon.available_from ?? "",
@@ -276,32 +263,6 @@ function AddonsPage() {
               </select>
             </div>
 
-            <label className="block text-sm">
-              Leveransplan
-              <select
-                value={draft.fulfillment_type}
-                onChange={(e) =>
-                  setDraft({
-                    ...draft,
-                    fulfillment_type: e.target.value as Draft["fulfillment_type"],
-                    ...(e.target.value === "each_morning"
-                      ? { price_type: "per_night" as const }
-                      : {}),
-                  })
-                }
-                className="inp mt-1"
-              >
-                <option value="arrival">En gång vid ankomst</option>
-                <option value="each_morning">
-                  Varje morgon efter ankomst, inklusive avresedagen
-                </option>
-                <option value="departure">En gång vid avresa</option>
-              </select>
-              <p className="mt-2 text-xs text-[color:var(--ink)]/60">
-                För frukost: välj varje morgon och ange pris per portion. Antalet gäller per morgon.
-                Planen gäller nya köp.
-              </p>
-            </label>
             <fieldset className="space-y-3 rounded-xl border p-4">
               <legend className="px-1 text-sm font-semibold">När kan tillvalet bokas?</legend>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -325,9 +286,8 @@ function AddonsPage() {
                 </label>
               </div>
               <p className="text-xs text-[color:var(--ink)]/60">
-                Lämna datumen tomma för hela året. Alla nätter eller morgonleveranser måste ligga
-                inom perioden vid pris per natt. Ett tillval vid avresa kontrolleras mot
-                avresedagen.
+                Lämna datumen tomma för hela året. Tillvalet kan väljas när minst en natt i
+                vistelsen ligger inom perioden. Antal väljs per bokning.
               </p>
               <label className="block text-sm">
                 Högsta antal per bokning

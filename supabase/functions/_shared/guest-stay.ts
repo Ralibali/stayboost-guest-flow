@@ -33,27 +33,6 @@ export function accessAvailable(
   const day = stockholmDay(now);
   return day >= start.toISOString().slice(0, 10) && day <= checkout;
 }
-
-/** Pending/refunded direct reservations must never disclose access credentials. */
-export function guestAccessAllowed(
-  booking: {
-    status: string;
-    external_id?: string | null;
-    payment_status: string | null;
-    checkin_date: string;
-    checkout_date: string;
-    stay_status: string;
-  },
-  now = new Date(),
-): boolean {
-  return (
-    booking.status === "confirmed" &&
-    (booking.external_id?.startsWith("sirvoy-csv:")
-      ? booking.payment_status === "paid"
-      : ["none", "paid"].includes(booking.payment_status ?? "none")) &&
-    accessAvailable(booking.checkin_date, booking.checkout_date, booking.stay_status, now)
-  );
-}
 export function guestAddon(
   row: Record<string, unknown>,
   booking: { unit_id: string | null; checkin_date: string; checkout_date: string },

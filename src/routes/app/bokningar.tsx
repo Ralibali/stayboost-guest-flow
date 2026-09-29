@@ -1,15 +1,6 @@
 import { BookingEditor } from "@/components/app/BookingEditor";
-import { ImportedPaymentPanel } from "@/components/app/ImportedPaymentPanel";
 import { AdminHistory } from "@/components/app/AdminHistory";
-import {
-  STAY_STATUS,
-  bookingAdminError,
-  isCalendarDate,
-  validateBookingDraft,
-} from "@/lib/booking-admin";
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { bookingConflicts, bookingsNeedingAttention, fetchAllRows } from "@/lib/operator-bookings";
-import { PROPERTY_TIME_ZONE, propertyDay, propertyDateLabel } from "@/lib/property-dates";
+import { STAY_STATUS } from "@/lib/booking-admin";
 import { createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -28,7 +19,7 @@ import {
   Search,
   Smartphone,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   guestPageUrl,
   supabase,
@@ -47,31 +38,12 @@ import {
   type BookingFilters,
 } from "@/lib/booking-filters";
 
-type BookingPageSearch = {
-  booking?: string;
-  create?: boolean;
-  unitId?: string;
-  checkin?: string;
-  checkout?: string;
-};
 export const Route = createFileRoute("/app/bokningar")({
-  validateSearch: (search: Record<string, unknown>): BookingPageSearch => ({
-    booking: typeof search.booking === "string" ? search.booking : undefined,
-    create: search.create === true || search.create === "true" ? true : undefined,
-    unitId: typeof search.unitId === "string" ? search.unitId : undefined,
-    checkin:
-      typeof search.checkin === "string" && isCalendarDate(search.checkin)
-        ? search.checkin
-        : undefined,
-    checkout:
-      typeof search.checkout === "string" && isCalendarDate(search.checkout)
-        ? search.checkout
-        : undefined,
-  }),
   component: BookingsPage,
 });
 
-const svDate = (iso: string) => propertyDateLabel(iso, { day: "numeric", month: "short" });
+const svDate = (iso: string) =>
+  new Date(iso + "T12:00:00").toLocaleDateString("sv-SE", { day: "numeric", month: "short" });
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("sv-SE")} kr`;
 
 type PaymentAction =
@@ -98,23 +70,30 @@ async function invokeStripeRefund(bookingId: string) {
   return { error: payload?.detail ?? payload?.error ?? error?.message ?? null };
 }
 
+function overlaps(a: Booking, b: Booking) {
+  return Boolean(
+    a.unit_id &&
+    a.unit_id === b.unit_id &&
+    a.status === "confirmed" &&
+    b.status === "confirmed" &&
+    a.checkin_date < b.checkout_date &&
+    a.checkout_date > b.checkin_date,
+  );
+}
+
 type View = "upcoming" | "attention" | "history";
 
 function BookingsPage() {
-  const search = Route.useSearch();
   const session = useSession();
   const { property, units } = useProperty(session);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<BookingFilters>(emptyFilters);
   const [view, setView] = useState<View>("upcoming");
-  const [expanded, setExpanded] = useState<string | null>(search.booking ?? null);
-  const [modalOpen, setModalOpen] = useState(Boolean(search.create));
+  const [expanded, setExpanded] = useState<string | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [pageError, setPageError] = useState<string | null>(null);
-  const [historyLimit, setHistoryLimit] = useState(80);
-  const generation = useRef(0);
-  const propertyId = property?.id;
 
   const updateFilter = <K extends keyof BookingFilters>(k: K, v: BookingFilters[K]) =>
     setFilters((f) => ({ ...f, [k]: v }));
@@ -128,39 +107,24 @@ function BookingsPage() {
     (filters.to ? 1 : 0);
 
   const load = useCallback(async () => {
-    if (!supabase || !propertyId) return;
-    const client = supabase;
-    const ticket = ++generation.current;
+    if (!supabase || !property) return;
     setLoading(true);
     setPageError(null);
-    try {
-      const data = await fetchAllRows<Booking>((from, to) =>
-        client
-          .from("bookings")
-          .select("*, unit:units(name,max_guests)", { count: "exact" })
-          .eq("property_id", propertyId)
-          .order("checkin_date")
-          .order("id")
-          .range(from, to),
-      );
-      if (ticket === generation.current) setBookings(data);
-    } catch (failure) {
-      if (ticket === generation.current)
-        setPageError(failure instanceof Error ? failure.message : "Bokningarna kunde inte hämtas.");
-    } finally {
-      if (ticket === generation.current) setLoading(false);
-    }
-  }, [propertyId]);
+    const { data, error } = await supabase
+      .from("bookings")
+      .select("*, unit:units(name,max_guests)")
+      .eq("property_id", property.id)
+      .order("checkin_date", { ascending: true });
+    if (error) setPageError(error.message);
+    setBookings((data as Booking[]) ?? []);
+    setLoading(false);
+  }, [property]);
 
   useEffect(() => {
-    const currentGeneration = generation;
-    void load();
-    return () => {
-      currentGeneration.current++;
-    };
+    load();
   }, [load]);
 
-  const today = propertyDay();
+  const today = new Date().toISOString().slice(0, 10);
   const filtered = useMemo(() => filterBookings(bookings, filters), [bookings, filters]);
   const upcoming = useMemo(
     () => filtered.filter((b) => b.status === "confirmed" && b.checkout_date >= today),
@@ -170,31 +134,37 @@ function BookingsPage() {
     () =>
       filtered
         .filter((b) => !(b.status === "confirmed" && b.checkout_date >= today))
-        .slice()
+        .slice(-80)
         .reverse(),
     [filtered, today],
   );
 
-  const conflictIds = useMemo(() => bookingConflicts(bookings), [bookings]);
+  const conflictIds = useMemo(() => {
+    const ids = new Set<string>();
+    const confirmed = bookings.filter((b) => b.status === "confirmed");
+    for (let i = 0; i < confirmed.length; i++) {
+      for (let j = i + 1; j < confirmed.length; j++) {
+        if (overlaps(confirmed[i], confirmed[j])) {
+          ids.add(confirmed[i].id);
+          ids.add(confirmed[j].id);
+        }
+      }
+    }
+    return ids;
+  }, [bookings]);
 
   const attention = useMemo(
-    () => bookingsNeedingAttention(filtered, today, conflictIds),
-    [filtered, today, conflictIds],
+    () =>
+      upcoming.filter(
+        (b) =>
+          conflictIds.has(b.id) ||
+          b.payment_status === "pending" ||
+          b.payment_status === "refund_pending" ||
+          !b.guest_email ||
+          !b.guest_phone,
+      ),
+    [upcoming, conflictIds],
   );
-  useEffect(() => {
-    if (!search.booking || loading) return;
-    const booking = bookings.find((item) => item.id === search.booking);
-    if (!booking) return;
-    setExpanded(booking.id);
-    if (booking.status !== "confirmed" || booking.checkout_date < today) {
-      setView("history");
-      const index = past.findIndex((item) => item.id === booking.id);
-      if (index >= 0) setHistoryLimit((limit) => Math.max(limit, index + 1));
-    } else setView("upcoming");
-  }, [search.booking, bookings, loading, today, past]);
-  useEffect(() => {
-    if (search.create) setModalOpen(true);
-  }, [search.create, search.unitId, search.checkin, search.checkout]);
 
   const paidUpcoming = upcoming
     .filter((b) => b.payment_status === "paid")
@@ -213,10 +183,6 @@ function BookingsPage() {
   };
 
   const cancel = async (booking: Booking) => {
-    if (["ical", "sirvoy", "channex"].includes(booking.source)) {
-      setPageError("Avboka i ursprungskanalen. Bokningen uppdateras här vid nästa synkning.");
-      return;
-    }
     if (
       !window.confirm(
         `Avboka ${booking.guest_name ?? "bokningen"} ${svDate(booking.checkin_date)}–${svDate(booking.checkout_date)}?`,
@@ -228,14 +194,10 @@ function BookingsPage() {
     else load();
   };
 
-  const copyLink = async (booking: Booking) => {
-    try {
-      await navigator.clipboard.writeText(guestPageUrl(booking.guest_token));
-      setCopied(booking.id);
-      setTimeout(() => setCopied(null), 1500);
-    } catch {
-      setPageError("Gästlänken kunde inte kopieras. Öppna gästsidan och kopiera adressen där.");
-    }
+  const copyLink = (booking: Booking) => {
+    navigator.clipboard.writeText(guestPageUrl(booking.guest_token));
+    setCopied(booking.id);
+    setTimeout(() => setCopied(null), 1500);
   };
 
   if (!property) return null;
@@ -243,7 +205,7 @@ function BookingsPage() {
   const visible = view === "attention" ? attention : upcoming;
 
   return (
-    <div className="space-y-5" data-private="true">
+    <div className="space-y-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#2d684c]/60">
@@ -259,7 +221,7 @@ function BookingsPage() {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={exportCsv}
-            disabled={filtered.length === 0 || loading || Boolean(pageError)}
+            disabled={filtered.length === 0}
             className="inline-flex items-center gap-2 rounded-xl border border-black/[0.09] bg-white px-3.5 py-2.5 text-[12px] font-bold text-[color:var(--ink)]/60 shadow-sm transition hover:border-black/20 disabled:opacity-35"
           >
             <Download size={14} /> Exportera
@@ -347,7 +309,6 @@ function BookingsPage() {
               <option value="all">Alla källor</option>
               <option value="direct">Direkt</option>
               <option value="sirvoy">Sirvoy</option>
-              <option value="channex">Bokningskanaler</option>
               <option value="ical">iCal</option>
               <option value="manual">Manuell</option>
             </select>
@@ -420,7 +381,7 @@ function BookingsPage() {
           <EmptyState text="Ingen historik matchar filtren." />
         ) : (
           <div className="space-y-2">
-            {past.slice(0, historyLimit).map((booking) => (
+            {past.map((booking) => (
               <BookingCard
                 key={booking.id}
                 booking={booking}
@@ -436,14 +397,6 @@ function BookingsPage() {
                 onError={setPageError}
               />
             ))}
-            {past.length > historyLimit && (
-              <button
-                onClick={() => setHistoryLimit((limit) => limit + 80)}
-                className="w-full rounded-xl border bg-white p-3 text-sm font-semibold"
-              >
-                Visa fler ({past.length - historyLimit} återstår)
-              </button>
-            )}
           </div>
         )
       ) : visible.length === 0 ? (
@@ -478,10 +431,6 @@ function BookingsPage() {
       {modalOpen && (
         <ManualBookingModal
           propertyId={property.id}
-          maxStay={property.max_stay ?? 30}
-          initialUnitId={search.unitId}
-          initialCheckin={search.checkin}
-          initialCheckout={search.checkout}
           units={units.filter((u) => u.active)}
           onClose={() => setModalOpen(false)}
           onCreated={() => {
@@ -586,16 +535,10 @@ function BookingCard({
   onError: (message: string | null) => void;
 }) {
   const [messages, setMessages] = useState<ScheduledMessage[] | null>(null);
-  const [messagesError, setMessagesError] = useState("");
   const [editing, setEditing] = useState(false);
-  const [paymentBusy, setPaymentBusy] = useState(false);
-  const paymentLock = useRef(false);
-  const external = ["ical", "sirvoy", "channex"].includes(b.source);
 
   useEffect(() => {
     if (!expanded || !supabase) return;
-    let active = true;
-    setMessagesError("");
     supabase
       .from("scheduled_messages")
       .select(
@@ -603,50 +546,21 @@ function BookingCard({
       )
       .eq("booking_id", b.id)
       .order("send_at")
-      .then(({ data, error }) => {
-        if (!active) return;
-        if (error) setMessagesError("Meddelandekön kunde inte hämtas.");
-        else setMessages((data as unknown as ScheduledMessage[]) ?? []);
-      });
-    return () => {
-      active = false;
-    };
-  }, [expanded, b.id, b.updated_at]);
+      .then(({ data }) => setMessages((data as unknown as ScheduledMessage[]) ?? []));
+  }, [expanded, b.id]);
 
   const runPaymentAction = async (action: PaymentAction) => {
-    if (paymentLock.current) return;
-    paymentLock.current = true;
-    setPaymentBusy(true);
     onError(null);
-    try {
-      const result = await invokePaymentAction(b.id, action);
-      if (result.error) onError(result.error);
-      else onChanged();
-    } catch {
-      onError("Ingen kontakt med servern. Uppdatera bokningen innan du försöker igen.");
-    } finally {
-      paymentLock.current = false;
-      setPaymentBusy(false);
-    }
+    const result = await invokePaymentAction(b.id, action);
+    if (result.error) onError(result.error);
+    else onChanged();
   };
 
   const refundStripe = async () => {
-    if (paymentLock.current) return;
-    paymentLock.current = true;
-    setPaymentBusy(true);
     onError(null);
-    try {
-      const result = await invokeStripeRefund(b.id);
-      if (result.error) onError(`Återbetalningen misslyckades: ${result.error}`);
-      else onChanged();
-    } catch {
-      onError(
-        "Ingen kontakt med servern. Kontrollera återbetalningens status innan du försöker igen.",
-      );
-    } finally {
-      paymentLock.current = false;
-      setPaymentBusy(false);
-    }
+    const result = await invokeStripeRefund(b.id);
+    if (result.error) onError(`Återbetalningen misslyckades: ${result.error}`);
+    else onChanged();
   };
 
   const needsContact = !b.guest_email || !b.guest_phone;
@@ -663,10 +577,10 @@ function BookingCard({
           className={`w-[54px] shrink-0 rounded-xl px-2 py-2 text-center ${conflicting ? "bg-red-50 text-red-800" : "bg-[#edf2ed] text-[#173c2b]"}`}
         >
           <span className="block text-[9px] font-bold uppercase tracking-wider opacity-55">
-            {propertyDateLabel(b.checkin_date, { month: "short" })}
+            {new Date(b.checkin_date + "T12:00:00").toLocaleDateString("sv-SE", { month: "short" })}
           </span>
           <span className="block font-[Fraunces] text-[21px] font-semibold leading-none">
-            {Number(b.checkin_date.slice(8))}
+            {new Date(b.checkin_date + "T12:00:00").getDate()}
           </span>
         </div>
         <div className="min-w-0 flex-1">
@@ -685,7 +599,6 @@ function BookingCard({
             {b.payment_status === "refunded" && <Badge tone="green">Återbetald</Badge>}
             {conflicting && <Badge tone="red">Krock</Badge>}
             {needsContact && <Badge tone="amber">Kontakt saknas</Badge>}
-            {!b.unit_id && <Badge tone="red">Boende saknas</Badge>}
           </div>
           <div className="mt-0.5 truncate text-[11px] text-[color:var(--ink)]/43 sm:text-[12px]">
             {b.unit?.name ?? "Ingen enhet"} · {svDate(b.checkin_date)}–{svDate(b.checkout_date)} ·{" "}
@@ -751,7 +664,6 @@ function BookingCard({
                 </summary>
                 <AdminHistory propertyId={b.property_id} bookingId={b.id} />
               </details>
-              <ImportedPaymentPanel booking={b} onChanged={onChanged} />
 
               {b.payment_status === "pending" && b.payment_expires_at && (
                 <p className="rounded-xl border border-amber-100 bg-amber-50 px-3.5 py-2.5 text-[11px] text-amber-800">
@@ -761,7 +673,6 @@ function BookingCard({
                     month: "short",
                     hour: "2-digit",
                     minute: "2-digit",
-                    timeZone: PROPERTY_TIME_ZONE,
                   })}{" "}
                   om betalningen inte bekräftas.
                 </p>
@@ -786,11 +697,7 @@ function BookingCard({
                   Meddelandekö
                 </p>
                 <div className="mt-2 space-y-1.5">
-                  {messagesError ? (
-                    <p role="alert" className="text-xs text-red-700">
-                      {messagesError}
-                    </p>
-                  ) : !messages ? (
+                  {!messages ? (
                     <p className="text-[12px] text-[color:var(--ink)]/40">Laddar…</p>
                   ) : messages.length === 0 ? (
                     <p className="rounded-xl border border-dashed border-black/[0.09] bg-white px-3 py-3 text-[11px] text-[color:var(--ink)]/40">
@@ -820,7 +727,6 @@ function BookingCard({
                             month: "short",
                             hour: "2-digit",
                             minute: "2-digit",
-                            timeZone: PROPERTY_TIME_ZONE,
                           })}
                         </span>
                         <span
@@ -841,16 +747,7 @@ function BookingCard({
                 </div>
               </div>
 
-              {external && (
-                <p className="rounded-xl bg-amber-50 p-3 text-xs text-amber-900">
-                  Den här bokningen styrs av ursprungskanalen. Avboka där så uppdateras kalendern
-                  vid nästa synkning.
-                </p>
-              )}
-              <fieldset
-                disabled={paymentBusy}
-                className="flex flex-wrap gap-2 border-t border-black/[0.055] pt-4 disabled:opacity-50"
-              >
+              <div className="flex flex-wrap gap-2 border-t border-black/[0.055] pt-4">
                 {b.payment_status === "pending" && b.payment_method === "swish" && (
                   <button
                     onClick={() => runPaymentAction("mark_swish_paid")}
@@ -943,12 +840,12 @@ function BookingCard({
                 </a>
                 <button
                   onClick={onCancel}
-                  disabled={b.status === "cancelled" || external}
+                  disabled={b.status === "cancelled"}
                   className="ml-auto inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-[11px] font-bold text-red-600 hover:bg-red-50"
                 >
                   <Ban size={13} /> Avboka
                 </button>
-              </fieldset>
+              </div>
             </div>
           </motion.div>
         )}
@@ -973,11 +870,9 @@ function SourceBadge({ source }: { source: Booking["source"] }) {
       ? "iCal"
       : source === "direct"
         ? "Direkt"
-        : source === "channex"
-          ? "Bokningskanal"
-          : source === "sirvoy"
-            ? "Sirvoy"
-            : "Manuell";
+        : source === "sirvoy"
+          ? "Sirvoy"
+          : "Manuell";
   return (
     <span className="rounded-full bg-[#eff2ee] px-2 py-0.5 text-[9px] font-bold text-[color:var(--ink)]/45">
       {label}
@@ -988,241 +883,183 @@ function SourceBadge({ source }: { source: Booking["source"] }) {
 function ManualBookingModal({
   propertyId,
   units,
-  maxStay,
-  initialUnitId,
-  initialCheckin,
-  initialCheckout,
   onClose,
   onCreated,
 }: {
   propertyId: string;
   units: Unit[];
-  maxStay: number;
-  initialUnitId?: string;
-  initialCheckin?: string;
-  initialCheckout?: string;
   onClose: () => void;
   onCreated: () => void;
 }) {
-  const [unitId, setUnitId] = useState(
-    units.find((unit) => unit.id === initialUnitId)?.id ?? units[0]?.id ?? "",
-  );
-  const selectedUnit = units.find((unit) => unit.id === unitId);
+  const [unitId, setUnitId] = useState(units[0]?.id ?? "");
+  const selectedUnit = units.find((u) => u.id === unitId) ?? units[0];
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [notes, setNotes] = useState("");
   const [guests, setGuests] = useState(1);
-  const [checkin, setCheckin] = useState(initialCheckin ?? "");
-  const [checkout, setCheckout] = useState(initialCheckout ?? "");
+  const [checkin, setCheckin] = useState("");
+  const [checkout, setCheckout] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const lock = useRef(false);
 
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (!supabase || lock.current) return;
-    const issue = validateBookingDraft(
-      {
-        unit_id: unitId,
-        guest_name: name,
-        guest_email: email,
-        guest_phone: phone,
-        guests,
-        checkin_date: checkin,
-        checkout_date: checkout,
-        internal_notes: notes,
-        stay_status: "expected",
-      },
-      selectedUnit,
-      maxStay,
-    );
-    if (issue) {
-      setError(issue);
-      return;
-    }
-    lock.current = true;
+  useEffect(() => {
+    if (selectedUnit) setGuests((n) => Math.min(n, selectedUnit.max_guests));
+  }, [selectedUnit]);
+
+  const valid = Boolean(
+    unitId &&
+    name.trim().length >= 2 &&
+    checkin &&
+    checkout &&
+    checkout > checkin &&
+    guests >= 1 &&
+    guests <= (selectedUnit?.max_guests ?? 1),
+  );
+
+  const submit = async () => {
+    if (!supabase || !valid) return;
     setBusy(true);
     setError(null);
-    try {
-      const { error: failure } = await supabase
-        .from("bookings")
-        .insert({
-          property_id: propertyId,
-          unit_id: unitId,
-          source: "manual",
-          guest_name: name.trim(),
-          guest_email: email.trim() || null,
-          guest_phone: phone.trim() || null,
-          guests,
-          checkin_date: checkin,
-          checkout_date: checkout,
-          internal_notes: notes.trim() || null,
-        })
-        .select("id")
-        .single();
-      if (failure) setError(bookingAdminError(failure));
-      else onCreated();
-    } catch {
-      setError("Ingen kontakt med servern. Kontrollera bokningslistan innan du försöker igen.");
-    } finally {
-      lock.current = false;
-      setBusy(false);
-    }
+    const { error } = await supabase.from("bookings").insert({
+      property_id: propertyId,
+      unit_id: unitId,
+      source: "manual",
+      guest_name: name.trim(),
+      guest_email: email.trim() || null,
+      guest_phone: phone.trim() || null,
+      guests,
+      checkin_date: checkin,
+      checkout_date: checkout,
+    });
+    setBusy(false);
+    if (error) {
+      setError(
+        error.code === "23P01" || error.message.includes("booking_overlap")
+          ? "Boendet är redan bokat under hela eller delar av perioden."
+          : error.message,
+      );
+    } else onCreated();
   };
 
   return (
-    <Dialog
-      open
-      onOpenChange={(open) => {
-        if (!open && !busy) onClose();
-      }}
-    >
-      <DialogContent
-        className="max-h-[calc(100dvh-2rem)] w-[calc(100vw-2rem)] max-w-xl overflow-y-auto rounded-2xl bg-white p-5 sm:p-6"
-        data-private="true"
+    <>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        onClick={onClose}
+        className="fixed inset-0 z-40 bg-[#0b1711]/55 backdrop-blur-[2px]"
+      />
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        className="fixed left-1/2 top-1/2 z-50 max-h-[calc(100vh-2rem)] w-[min(520px,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-[26px] bg-white p-5 shadow-2xl sm:p-6"
       >
         <div className="rounded-2xl bg-[#edf2ed] p-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#2d684c]">
+          <p className="text-[9px] font-bold uppercase tracking-[0.15em] text-[#2d684c]/60">
             Manuell reservation
           </p>
-          <DialogTitle className="mt-1 font-[Fraunces] text-2xl text-[#173c2b]">
+          <h3 className="mt-1 font-[Fraunces] text-[24px] font-semibold text-[#173c2b]">
             Ny bokning
-          </DialogTitle>
-          <DialogDescription className="mt-2 text-xs text-black/60">
-            För telefonbokning, drop-in eller bokning utanför den publika motorn. Bokningen
-            reserverar boendet. Ingen betalning debiteras här.
-          </DialogDescription>
+          </h3>
+          <p className="mt-1 text-[10px] text-[color:var(--ink)]/40">
+            För telefonbokning, drop-in eller bokning utanför den publika motorn.
+          </p>
         </div>
-        <form onSubmit={submit} className="space-y-4">
-          <fieldset disabled={busy} className="space-y-3">
-            {!units.length && (
-              <p role="alert" className="rounded-xl bg-amber-50 p-3 text-sm">
-                Aktivera ett boende i Inställningar för att kunna skapa en bokning.
-              </p>
-            )}
-            <label className="block text-sm">
+        <div className="mt-5 space-y-3.5">
+          <label className="block">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink)]/35">
               Boende
-              <select
-                value={unitId}
-                onChange={(event) => setUnitId(event.target.value)}
-                className="inp mt-1"
-                required
-              >
-                {units.map((unit) => (
-                  <option key={unit.id} value={unit.id}>
-                    {unit.name} · max {unit.max_guests}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label className="block text-sm">
-              Gästens namn
-              <input
-                required
-                minLength={2}
-                maxLength={120}
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                className="inp mt-1"
-                autoComplete="name"
-              />
-            </label>
-            <div className="grid grid-cols-2 gap-3">
-              <label className="text-sm">
+            </span>
+            <select
+              value={unitId}
+              onChange={(e) => setUnitId(e.target.value)}
+              className="inp mt-1 !rounded-xl !border-black/[0.08]"
+            >
+              {units.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} · max {u.max_guests}
+                </option>
+              ))}
+            </select>
+          </label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Gästens namn *"
+            className="inp !rounded-xl !border-black/[0.08]"
+          />
+          <div className="grid grid-cols-2 gap-3">
+            <label>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink)]/35">
                 Incheckning
-                <input
-                  type="date"
-                  required
-                  value={checkin}
-                  onChange={(event) => setCheckin(event.target.value)}
-                  className="inp mt-1"
-                />
-              </label>
-              <label className="text-sm">
-                Utcheckning
-                <input
-                  type="date"
-                  required
-                  min={checkin || undefined}
-                  value={checkout}
-                  onChange={(event) => setCheckout(event.target.value)}
-                  className="inp mt-1"
-                />
-              </label>
-            </div>
-            <p className="text-xs text-black/55">Vistelsen får vara högst {maxStay} nätter.</p>
-            <label className="block text-sm">
-              Antal gäster · max {selectedUnit?.max_guests ?? "—"}
+              </span>
               <input
-                type="number"
-                required
-                min={1}
-                max={selectedUnit?.max_guests ?? 20}
-                step={1}
-                value={guests}
-                onChange={(event) => setGuests(Number(event.target.value))}
-                className="inp mt-1"
+                type="date"
+                value={checkin}
+                onChange={(e) => setCheckin(e.target.value)}
+                className="inp mt-1 !rounded-xl !border-black/[0.08]"
               />
             </label>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <label className="text-sm">
-                E-post
-                <input
-                  type="email"
-                  maxLength={254}
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  className="inp mt-1"
-                  autoComplete="email"
-                />
-              </label>
-              <label className="text-sm">
-                Mobil
-                <input
-                  type="tel"
-                  maxLength={40}
-                  value={phone}
-                  onChange={(event) => setPhone(event.target.value)}
-                  className="inp mt-1"
-                  autoComplete="tel"
-                />
-              </label>
-            </div>
-            <label className="block text-sm">
-              Interna anteckningar
-              <textarea
-                maxLength={10000}
-                rows={3}
-                value={notes}
-                onChange={(event) => setNotes(event.target.value)}
-                className="inp mt-1"
+            <label>
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink)]/35">
+                Utcheckning
+              </span>
+              <input
+                type="date"
+                value={checkout}
+                onChange={(e) => setCheckout(e.target.value)}
+                className="inp mt-1 !rounded-xl !border-black/[0.08]"
               />
             </label>
-          </fieldset>
+          </div>
+          <label>
+            <span className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--ink)]/35">
+              Antal gäster · max {selectedUnit?.max_guests ?? 1}
+            </span>
+            <input
+              type="number"
+              min={1}
+              max={selectedUnit?.max_guests ?? 1}
+              value={guests}
+              onChange={(e) => setGuests(Number(e.target.value))}
+              className="inp mt-1 !rounded-xl !border-black/[0.08]"
+            />
+          </label>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <input
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="E-post"
+              type="email"
+              className="inp !rounded-xl !border-black/[0.08]"
+            />
+            <input
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="Mobil"
+              className="inp !rounded-xl !border-black/[0.08]"
+            />
+          </div>
           {error && (
-            <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
-              {error}
-            </p>
+            <p className="rounded-xl bg-red-50 px-3.5 py-2.5 text-[12px] text-red-700">{error}</p>
           )}
-          <div className="flex gap-2">
+          <div className="flex gap-2 pt-1">
             <button
-              type="button"
-              disabled={busy}
               onClick={onClose}
-              className="flex-1 rounded-xl border px-4 py-3 text-sm font-semibold disabled:opacity-40"
+              className="flex-1 rounded-xl border border-black/[0.09] px-4 py-3 text-[12px] font-bold text-[color:var(--ink)]/55"
             >
               Avbryt
             </button>
             <button
-              disabled={!units.length || busy}
-              className="flex-1 rounded-xl bg-[#173c2b] px-4 py-3 text-sm font-semibold text-white disabled:opacity-40"
+              onClick={submit}
+              disabled={!valid || busy}
+              className="flex-[1.4] rounded-xl bg-[#173c2b] px-4 py-3 text-[12px] font-bold text-white shadow-sm disabled:opacity-35"
             >
               {busy ? "Sparar…" : "Skapa bokning"}
             </button>
           </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+        </div>
+      </motion.div>
+    </>
   );
 }
