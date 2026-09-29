@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "status": "draft",
+  "writtenAt": "2026-09-27T09:59:39.112836+00:00",
+  "repository": "Ralibali/stayboost-guest-flow",
+  "publicationGate": "Earliest 2026-10-01, and at least two calendar days after the preceding article is actually published and fully verified. Require current main, full inventory and fresh source review. Do not assign publication dates while draft. Resolve pending product deployment dependencies before any frontend release.",
+  "sourceReview": {
+    "checkedAt": "2026-09-27T09:59:39.112836+00:00",
+    "publishedInventoryReviewed": 4,
+    "distinctIntent": "Verksamhetens hantering av individuella gästönskemål från mottagande till bekräftat beslut, skilt från standardsvar och skiftöverlämning.",
+    "note": "Owned product entry reviewed; article is an original procedural template. No invented outcomes, prices or automatic product features. Fresh source review required before publication."
+  },
+  "article": {
+    "slug": "gastonskemal-bekraftat-besked",
+    "title": "Skilj gästönskemålet från det bekräftade beskedet",
+    "metaDescription": "Skilj ett gästönskemål från ett bekräftat besked. Samla ansvar, beslut och återkoppling i en enkel mall som hjälper boendet att följa varje fråga.",
+    "intro": "Ett gästönskemål kan komma i ett mejl, under ett samtal eller till en medarbetare på plats. Innan någon har kontrollerat möjligheten är det fortfarande en förfrågan. En tydlig anteckning hjälper ett litet boende att skilja vad gästen har frågat om från vad verksamheten faktiskt har lovat.\n\nUtgå från era egna villkor, ansvar och rutiner. Den här mallen beslutar inte vilka önskemål som kan tillgodoses och utlovar ingen automatisk hantering i StayBoost. Den hjälper er att hålla ihop frågan, den interna bedömningen och det besked som lämnas till gästen.\n",
+    "sections": [
+      {
+        "heading": "Skriv vad gästen faktiskt frågar efter",
+        "content": "Beskriv önskemålet konkret och koppla det till rätt ärende i boendets behöriga system. Skilj gästens egna ord från personalens tolkning. Om något behöver förtydligas ska det stå som en öppen fråga, inte förvandlas till ett antagande om vad gästen behöver.\n\nTa bara med den personliga information som behövs för att hantera kontakten. En gemensam arbetslista kan hänvisa till ärendet utan att återge alla detaljer. Särskilt personliga uppgifter behöver inte kopieras mellan flera dokument för att frågans status ska vara tydlig."
+      },
+      {
+        "heading": "Ange vem som får lämna besked",
+        "content": "Bestäm vilken person eller funktion som kan kontrollera möjligheten och fatta beslut. Den som tog emot frågan kan ha en annan uppgift än den som får bekräfta en avvikelse från ordinarie upplägg. Skriv vem som ansvarar för nästa steg.\n\nOm frågan berör flera delar av verksamheten behöver ni samla deras underlag innan ett slutligt svar lämnas. Ett internt ”det borde gå” är inte samma sak som ett beslutat gästbesked. Behåll osäkerheten synlig tills den ansvariga har tagit ställning."
+      },
+      {
+        "heading": "Följ frågan med några tydliga statusar",
+        "content": "En arbetsrad kan innehålla:\n\n- Hänvisning till rätt bokning eller gästärende.\n- Gästens önskemål och när det kom in.\n- Vad som behöver kontrolleras eller förtydligas.\n- Ansvarig för den interna bedömningen.\n- Beslut och eventuella förutsättningar för beskedet.\n- Vem som har svarat gästen och när.\n- Nästa steg om frågan fortfarande är öppen.\n\nVälj statusord som personalen använder på samma sätt, exempelvis mottaget, under kontroll och besvarat. Lägg det faktiska beskedet i en egen uppgift. En status som säger ”klart” visar annars inte om önskemålet bekräftades, avböjdes eller lämnades vidare."
+      },
+      {
+        "heading": "Kontrollera vilket besked gästen har fått",
+        "content": "Låt anteckningen hänvisa till det svar som faktiskt lämnades. Om svaret var preliminärt ska det framgå. Vid ett muntligt besked kan ansvarig anteckna innehållet enligt boendets rutiner, så att nästa medarbetare inte behöver gissa vad som sagts.\n\nOm ett tidigare besked behöver ändras ska ansvarig bestämma hur kontakten följs upp. Håll den nya uppgiften åtskild från historiken. Att en intern notering har uppdaterats betyder inte automatiskt att gästen har fått eller förstått ett nytt besked."
+      },
+      {
+        "heading": "Ta med öppna frågor mellan arbetspassen",
+        "content": "För in sådant som återstår i [överlämningen vid skiftbyte](/blogg/skiftbyte-litet-boende-overlamningsmall). Hänvisa till samma ärende och ange vad nästa person ska följa upp. Återkommande allmänna frågor kan ge underlag för ert [svarsbibliotek](/blogg/svarsbibliotek-gastfragor), men ett standardsvar ersätter inte bedömningen av det enskilda önskemålet.\n\nDu kan [utforska StayBoosts produktdemo](/produkten) när ni ser över presentationen av gästinformation. AI-assisterad originalguide med en arbetsmall. Demons exempeldata är inte kundresultat, och texten utlovar ingen automatisk bedömning, bekräftelse eller uppföljning av gästönskemål."
+      }
+    ],
+    "ctaHref": "/produkten",
+    "ctaLabel": "Öppna produktdemon",
+    "editorial": {
+      "createdWith": "ChatGPT",
+      "aiAssisted": true,
+      "searchIntent": "Verksamhetens hantering av individuella gästönskemål från mottagande till bekräftat beslut, skilt från standardsvar och skiftöverlämning.",
+      "sourceUrls": [
+        "https://stayboost.se/produkten"
+      ],
+      "sourceCheckedAt": "2026-09-27T09:59:39.112836+00:00"
+    }
+  }
+}
