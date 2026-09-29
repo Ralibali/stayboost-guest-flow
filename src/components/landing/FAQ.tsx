@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 const ITEMS = [
   {
     q: "Kan jag använda StayBoost med mitt nuvarande bokningssystem?",
-    a: "Ja. Du kan börja med merförsäljningen och behålla din nuvarande bokningslösning, eller välja StayBoosts kompletta bokningssystem. Vi går igenom den bästa lösningen för din anläggning när du kommer igång.",
+    a: "Ja. Du kan börja med merförsäljningen och behålla din nuvarande bokningslösning, eller välja StayBoosts kompletta bokningssystem. StayBoost är inte en kanalhanterare för Booking.com eller Airbnb. Vi går igenom den bästa lösningen för din anläggning när du kommer igång.",
   },
   {
     q: "Behöver mina gäster ladda ner en app?",
@@ -12,7 +12,7 @@ const ITEMS = [
   },
   {
     q: "Hur lång tid tar det att komma igång?",
-    a: "Du kan utforska produktdemon direkt utan konto. När du vill börja på riktigt hjälper vi dig att lägga in boenden, tillval och meddelanden i den takt som passar verksamheten.",
+    a: "Du kan utforska produktdemon direkt utan konto. Produktdemon visar exempeldata. När du vill börja på riktigt hjälper vi dig att lägga in boenden, tillval och meddelanden i den takt som passar verksamheten.",
   },
   {
     q: "Vad händer om en gäst svarar på ett sms?",

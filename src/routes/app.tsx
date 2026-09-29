@@ -10,7 +10,7 @@ export const Route = createFileRoute("/app")({
 
 function AppLayout() {
   const session = useSession();
-  const { property } = useProperty(session);
+  const { property, error, reload } = useProperty(session);
   const navigate = useNavigate();
   const location = useLocation();
   const onLoginPage = location.pathname === "/app/login";
@@ -52,6 +52,19 @@ function AppLayout() {
   }
 
   if (onLoginPage) return <Outlet />;
+
+  if (error && session)
+    return (
+      <div className="mx-auto max-w-lg px-5 py-24 text-center">
+        <h1 className="font-[Fraunces] text-2xl font-semibold">Kunde inte ladda anläggningen</h1>
+        <p role="alert" className="mt-4 text-sm text-ink/65">
+          {error}
+        </p>
+        <button type="button" className="btn-primary mt-6" onClick={reload}>
+          Försök igen
+        </button>
+      </div>
+    );
 
   if (session === undefined || (session && property === undefined)) {
     return (

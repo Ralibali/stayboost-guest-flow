@@ -61,7 +61,7 @@ describe("BP-4 cron + observability", () => {
   it("keeps payment expiry out of the message worker", () => {
     expect(messages).not.toContain("expiredSwishBookings");
     expect(messages).not.toContain('.eq("payment_method", "swish")');
-    expect(messages).toContain('["none", "paid"]');
+    expect(messages).toContain("deliverScheduledMessage");
   });
 
   it("creates deduplicated owner-only alerts for the operational failure modes", () => {

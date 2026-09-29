@@ -12,7 +12,7 @@ export const Route = createFileRoute("/cookies")({
       {
         name: "description",
         content:
-          "StayBoost använder cookiefri statistik (Plausible) och endast tekniskt nödvändiga cookies. Så här fungerar det enligt lagen om elektronisk kommunikation.",
+          "Så fungerar StayBoosts nödvändiga lagring och valfria statistikcookies för Google Analytics 4.",
       },
       { property: "og:title", content: "Cookies — StayBoost" },
       { property: "og:url", content: CANONICAL },
@@ -24,7 +24,7 @@ export const Route = createFileRoute("/cookies")({
 
 function Cookies() {
   return (
-    <LegalLayout title="Cookies och lokal lagring" updated="12 juli 2026">
+    <LegalLayout title="Cookies och lokal lagring" updated="20 september 2026">
       <p>
         Enligt lagen (2003:389) om elektronisk kommunikation (LEK) och EU:s ePrivacy-direktiv får vi
         endast lagra information i din webbläsare med ditt samtycke — undantaget cookies som är
@@ -57,19 +57,21 @@ function Cookies() {
             <td className="py-2">7 dagar</td>
           </tr>
           <tr>
-            <td className="py-2 pr-4">— (ingen)</td>
-            <td className="py-2 pr-4">Besöksstatistik via Plausible Analytics</td>
-            <td className="py-2 pr-4">Cookiefri, aggregerad</td>
-            <td className="py-2">—</td>
+            <td className="py-2 pr-4">_ga, _ga_*</td>
+            <td className="py-2 pr-4">Besöksstatistik via Google Analytics 4</td>
+            <td className="py-2 pr-4">Valfri statistik</td>
+            <td className="py-2">Upp till 2 år</td>
           </tr>
         </tbody>
       </table>
 
-      <h2>Ingen samtyckesbanner — varför?</h2>
+      <h2>Ditt val styr statistiken</h2>
       <p>
-        StayBoost använder inga marknadsförings- eller spårningscookies, ingen fingerprinting och
-        ingen tredjepartsannonsering. Plausible räknar besökare utan cookies och utan
-        personuppgifter — därför krävs inget samtycke enligt LEK 6 kap. 18 §.
+        Google Analytics 4 laddas först när du accepterar statistik. Google använder cookies för att
+        skilja besök åt och mäta sidvisningar och valda händelser. Vi skickar inte formulärinnehåll,
+        kunduppgifter eller privata gästlänkar till GA4. Du kan neka och återkalla ditt samtycke via
+        knappen Cookieinställningar. Valet sparas lokalt i stayboost_ga4_consent_v1 tills du ändrar
+        det eller rensar din webbläsare.
       </p>
 
       <h2>Hantera i webbläsaren</h2>

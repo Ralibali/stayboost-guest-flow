@@ -138,6 +138,26 @@ export function OperationCard({
                 </button>
               </>
             )}
+            {task.kind === "addon" &&
+              (task.context_changed || task.status === "done") &&
+              (task.details.fulfillment_type === "each_morning" ||
+                task.details.fulfillment_type === "departure") && (
+                <label className="block text-sm">
+                  Kontrollerat leveransdatum
+                  <input
+                    type="date"
+                    className={input}
+                    value={due}
+                    min={task.booking?.checkin_date}
+                    max={task.booking?.checkout_date}
+                    onChange={(e) => setDue(e.target.value)}
+                  />
+                  <span className="mt-1 block text-xs text-black/55">
+                    Kontrollera köpet med gästen om vistelsen har ändrats. Ursprungligt köp ligger
+                    kvar i historiken.
+                  </span>
+                </label>
+              )}
             <label className="block text-sm">
               Arbetsanteckning
               <textarea
@@ -154,7 +174,7 @@ export function OperationCard({
                 <button
                   className={button}
                   disabled={stale || !note.trim()}
-                  onClick={() => void act("reset", { note })}
+                  onClick={() => void act("reset", { note, due_date: due })}
                 >
                   {task.context_changed ? "Anpassa till aktuell bokning" : "Öppna uppgiften igen"}
                 </button>

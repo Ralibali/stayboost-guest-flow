@@ -1,6 +1,8 @@
+import { PartyPricing } from "@/components/app/PartyPricing";
 import { SUPABASE_URL } from "@/lib/supabase-config";
 import { BookingSettings } from "@/components/app/BookingSettings";
 import { AdminHistory } from "@/components/app/AdminHistory";
+import { sanitizedHttpsUrl } from "../../../supabase/functions/_shared/public-links";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   Check,
@@ -77,6 +79,15 @@ function SettingsPage() {
     if (!supabase) return;
     setActionError(null);
     const { id, owner_id, ...patch } = form;
+    const rawTermsUrl = (form.booking_terms_url ?? "").trim();
+    const termsUrl = sanitizedHttpsUrl(rawTermsUrl);
+    if (rawTermsUrl && !termsUrl) {
+      setActionError(
+        "Ange en giltig https-länk till boendets bokningsvillkor, utan inloggningsuppgifter i länken.",
+      );
+      return;
+    }
+    patch.booking_terms_url = termsUrl;
     const { error } = await supabase.from("properties").update(patch).eq("id", id);
     if (error) {
       setActionError(`Kunde inte spara anläggningen: ${error.message}`);
@@ -256,6 +267,29 @@ function SettingsPage() {
             rows={3}
             className="inp resize-none"
           />
+        </Field>
+        <Field label="Länk till boendets bokningsvillkor">
+          <input
+            type="url"
+            value={form.booking_terms_url ?? ""}
+            onChange={set("booking_terms_url")}
+            placeholder="https://din-hemsida.se/bokningsvillkor"
+            className="inp"
+          />
+          <p className="mt-1 text-xs text-ink/60">
+            Villkoren visas för gästen innan bokningen slutförs. Använd boendets egna villkor för
+            vistelse, betalning och avbokning.
+          </p>
+          {sanitizedHttpsUrl(form.booking_terms_url) && (
+            <a
+              href={sanitizedHttpsUrl(form.booking_terms_url)!}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-2 inline-block text-xs underline"
+            >
+              Öppna bokningsvillkoren →
+            </a>
+          )}
         </Field>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Kontakttelefon">
@@ -662,7 +696,7 @@ function SettingsPage() {
                       onSave={(n) => updateUnit(u.id, { size_sqm: n > 0 ? n : null })}
                     />
                     <NumberField
-                      label="Pris/natt"
+                      label="Baspris/natt"
                       value={u.base_price}
                       min={0}
                       max={100000}
@@ -738,6 +772,10 @@ function SettingsPage() {
                         className="inp"
                       />
                     </Field>
+                  </div>
+
+                  <div className="mt-4">
+                    <PartyPricing key={`${u.id}-${u.max_guests}`} unit={u} onSaved={reload} />
                   </div>
 
                   <Field label="Bildlänk (kan användas i stället för uppladdning)">
