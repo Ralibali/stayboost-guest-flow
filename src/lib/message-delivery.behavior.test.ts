@@ -47,6 +47,13 @@ const env = (name: string) =>
     ELKS_API_PASSWORD: "mock-password",
     GUEST_PAGE_BASE_URL: "https://stayboost.se",
   })[name];
+const resendEnv = (name: string) =>
+  ({
+    EMAIL_PROVIDER: "resend",
+    RESEND_API_KEY: "mock-resend-key",
+    RESEND_SENDER_EMAIL: "host@example.test",
+    GUEST_PAGE_BASE_URL: "https://stayboost.se",
+  })[name];
 const accepted = () =>
   vi
     .fn<typeof fetch>()
@@ -137,6 +144,117 @@ afterAll(async () => {
 });
 
 describe("atomic scheduled delivery and bounded provider uncertainty", () => {
+  it("sends one direct Resend request under competing workers and records its receipt", async () => {
+    const f = await fixture();
+    const provider = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ id: "mock-resend-receipt" }), { status: 200 }),
+      );
+    const results = await Promise.all([
+      deliverScheduledMessage(admin, f.message, resendEnv, provider),
+      deliverScheduledMessage(admin, f.message, resendEnv, provider),
+    ]);
+    expect(results.sort()).toEqual(["sent", "skipped"]);
+    expect(provider).toHaveBeenCalledTimes(1);
+    expect(provider.mock.calls[0][0]).toBe("https://api.resend.com/emails");
+    const options = provider.mock.calls[0][1]!;
+    expect(new Headers(options.headers).get("Idempotency-Key")).toBe(
+      `stayboost-scheduled/${f.message}`,
+    );
+    expect(new Headers(options.headers).get("Authorization")).toBe("Bearer mock-resend-key");
+    expect(options.redirect).toBe("error");
+    expect(options.signal).toBeInstanceOf(AbortSignal);
+    expect(JSON.parse(String(options.body))).toMatchObject({
+      from: "Bergs test <host@example.test>",
+      to: ["old@example.test"],
+      subject: "Hej First guest",
+    });
+    expect(
+      await one(
+        "select state,provider_id from scheduled_message_delivery_attempts where message_id=$1",
+        [f.message],
+      ),
+    ).toEqual({ state: "accepted", provider_id: "mock-resend-receipt" });
+  });
+  it("keeps Resend's logical key when a definite rejection is deliberately retried with a new lease", async () => {
+    const f = await fixture();
+    const provider = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response("{}", { status: 429 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ id: "resend-success" }), { status: 200 }),
+      );
+    expect(await deliverScheduledMessage(admin, f.message, resendEnv, provider)).toBe("failed");
+    await db.query("update scheduled_messages set status='pending' where id=$1", [f.message]);
+    expect(await deliverScheduledMessage(admin, f.message, resendEnv, provider)).toBe("sent");
+    const attempts = (
+      await db.query<{ id: string; state: string }>(
+        "select id,state from scheduled_message_delivery_attempts where original_message_id=$1 order by claimed_at",
+        [f.message],
+      )
+    ).rows;
+    expect(attempts.map((row) => row.state)).toEqual(["rejected", "accepted"]);
+    expect(attempts[0].id).not.toBe(attempts[1].id);
+    const keys = provider.mock.calls.map((call) =>
+      new Headers(call[1]?.headers).get("Idempotency-Key"),
+    );
+    expect(keys).toEqual([`stayboost-scheduled/${f.message}`, `stayboost-scheduled/${f.message}`]);
+  });
+  it("never falls back to Brevo when selected Resend configuration is incomplete", async () => {
+    const f = await fixture();
+    const provider = accepted();
+    const incomplete = (name: string) => (name === "EMAIL_PROVIDER" ? "resend" : env(name));
+    expect(await deliverScheduledMessage(admin, f.message, incomplete, provider)).toBe("failed");
+    expect(provider).not.toHaveBeenCalled();
+    expect(
+      await one(
+        "select state from scheduled_message_delivery_attempts where original_message_id=$1",
+        [f.message],
+      ),
+    ).toEqual({ state: "rejected" });
+  });
+  it.each([409, 503, 200])(
+    "records uncertain Resend HTTP %i or missing receipt without blind replay",
+    async (status) => {
+      const f = await fixture();
+      const provider = vi.fn<typeof fetch>().mockResolvedValue(new Response("{}", { status }));
+      expect(await deliverScheduledMessage(admin, f.message, resendEnv, provider)).toBe("failed");
+      expect(await deliverScheduledMessage(admin, f.message, resendEnv, provider)).toBe("skipped");
+      expect(provider).toHaveBeenCalledTimes(1);
+      expect(
+        await one(
+          "select state from scheduled_message_delivery_attempts where original_message_id=$1",
+          [f.message],
+        ),
+      ).toEqual({ state: "unknown" });
+    },
+  );
+  it("never replays Resend acceptance if recording its database receipt fails", async () => {
+    const f = await fixture();
+    const unavailable = {
+      async rpc(name: string, args: Record<string, unknown>) {
+        return name === "finish_scheduled_message"
+          ? { data: null, error: { message: "simulated outage" } }
+          : admin.rpc(name, args);
+      },
+    };
+    const provider = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(new Response(JSON.stringify({ id: "accepted-resend" }), { status: 200 }));
+    await expect(
+      deliverScheduledMessage(unavailable, f.message, resendEnv, provider),
+    ).rejects.toThrow("message_delivery_record_failed");
+    await expire(f.message);
+    expect(await deliverScheduledMessage(admin, f.message, resendEnv, provider)).toBe("skipped");
+    expect(provider).toHaveBeenCalledTimes(1);
+    expect(
+      await one(
+        "select state from scheduled_message_delivery_attempts where original_message_id=$1",
+        [f.message],
+      ),
+    ).toEqual({ state: "unknown" });
+  });
   it("claims once across competing workers and sends one mocked provider request", async () => {
     const f = await fixture();
     const provider = accepted();

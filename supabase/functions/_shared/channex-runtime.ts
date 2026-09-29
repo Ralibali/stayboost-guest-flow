@@ -13,6 +13,14 @@ import {
 } from "./channex.ts";
 import type { RateRule } from "./rate-rules.ts";
 import { nightsBetween } from "./pricing.ts";
+import {
+  channexAriChanges,
+  closeChangedAvailability,
+  sameAriSnapshot,
+  restrictionInventoryCovered,
+  type AriChanges,
+  type AriState,
+} from "./channex-ari.ts";
 
 export type ChannelAdmin = {
   from(table: string): any;
@@ -193,6 +201,7 @@ export async function syncChannelAri(
   admin: ChannelAdmin,
   connection: ChannelConnection,
   client: ChannexClient,
+  options: { forceFull?: boolean; now?: Date } = {},
 ) {
   const { data: lease, error: claimError } = await admin.rpc("claim_channel_sync", {
     p_connection_id: connection.id,
@@ -202,9 +211,15 @@ export async function syncChannelAri(
   const started = new Date().toISOString();
   let failure: string | null = null;
   let zeroAvailability:
-    { property_id: string; room_type_id: string; date: string; availability: number }[] | null =
-    null;
+    | { property_id: string; room_type_id: string; date: string; availability: number }[]
+    | null = null;
   let closed = false;
+  let completed = false;
+  let submitting: {
+    snapshot: ChannelConnection;
+    payload: AriChanges;
+    mappings: ChannelUnitMapping[];
+  } | null = null;
   const validVersion = async (snapshot: ChannelConnection) => {
     const { data, error } = await admin.rpc("validate_channel_sync", {
       p_connection_id: connection.id,
@@ -216,13 +231,66 @@ export async function syncChannelAri(
     if (error) throw new ChannexError("channel_version_check_failed");
     return data === true;
   };
-  const close = async () => {
-    if (!zeroAvailability) return;
-    await client.request("/availability", "POST", { values: zeroAvailability });
+  const close = async (full: boolean, changed?: AriChanges) => {
+    const { data, error } = await admin.rpc("invalidate_channel_ari", {
+      p_connection_id: connection.id,
+      p_lease_token: lease,
+      p_external_property_id: connection.external_property_id,
+      p_environment: connection.environment,
+      p_full: full,
+    });
+    const values = full ? zeroAvailability : changed ? closeChangedAvailability(changed) : [];
+    if (error || data !== true) {
+      // Without a persisted recovery marker an old baseline must never be trusted.
+      // Attempt closure anyway; the sticky fatal status forces a later full sync.
+      if (zeroAvailability)
+        await client.sendAri({ restrictions: [], availability: zeroAvailability });
+      throw new ChannexError("channel_inventory_closure_failed");
+    }
+    if (values?.length) await client.sendAri({ restrictions: [], availability: values });
     closed = true;
   };
   try {
-    const from = new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Stockholm" });
+    const from = (options.now ?? new Date()).toLocaleDateString("en-CA", {
+      timeZone: "Europe/Stockholm",
+    });
+    // Validation itself can fail after a live unit or policy edit. Recover the
+    // previously accepted, identity-bound inventory before those fallible reads.
+    const { data: previousState, error: previousError } = await admin
+      .from("channel_ari_state")
+      .select("*")
+      .eq("connection_id", connection.id)
+      .maybeSingle();
+    if (previousError) throw new ChannexError("channel_storage_error");
+    const previous = previousState as AriState | null;
+    if (
+      previous?.property_id === connection.property_id &&
+      previous.external_property_id === connection.external_property_id &&
+      previous.environment === connection.environment
+    ) {
+      const snapshot = previous.acknowledged_snapshot ?? previous.pending_snapshot;
+      if (snapshot?.availability.length) {
+        const roomDates = new Map<string, Set<string>>();
+        for (const row of snapshot.availability) {
+          const dates = roomDates.get(row.room_type_id) ?? new Set<string>();
+          dates.add(row.date);
+          roomDates.set(row.room_type_id, dates);
+        }
+        // Channex rolls its known state window forward daily. Close that same
+        // horizon from today, including the newly entered day after midnight.
+        zeroAvailability = [...roomDates].flatMap(([room, dates]) => {
+          const to = new Date(Date.parse(`${from}T12:00:00Z`) + dates.size * 86_400_000)
+            .toISOString()
+            .slice(0, 10);
+          return nightsBetween(from, to).map((date) => ({
+            property_id: connection.external_property_id,
+            room_type_id: room,
+            date,
+            availability: 0,
+          }));
+        });
+      }
+    }
     const initial = await localChannelContext(admin, connection, from, from);
     const verified = await client.verifyMappings(
       connection.external_property_id,
@@ -244,10 +312,9 @@ export async function syncChannelAri(
         availability: 0,
       })),
     );
-    if (!(await validVersion(connection))) throw new ChannexError("channel_inventory_changed");
-    // Fence remote inventory while draining revisions and writing new rates.
-    // The database lease also blocks competing local inventory reservations.
-    await close();
+    let forceFull = Boolean(
+      options.forceFull || connection.last_error === "channel_inventory_closure_failed",
+    );
     for (let attempt = 0; attempt < 3; attempt++) {
       const bookings = await pullChannelBookings(admin, connection, client);
       const { data: latest, error } = await admin
@@ -273,46 +340,116 @@ export async function syncChannelAri(
         openThrough,
       });
       if (!(await validVersion(latest))) continue;
+      const { data: saved, error: stateError } = await admin
+        .from("channel_ari_state")
+        .select("*")
+        .eq("connection_id", connection.id)
+        .maybeSingle();
+      if (stateError) throw new ChannexError("channel_storage_error");
+      const state = saved as AriState | null;
+      const bound =
+        state?.property_id === latest.property_id &&
+        state?.external_property_id === latest.external_property_id &&
+        state?.environment === latest.environment;
+      const sameDirty =
+        state?.pending_dirty_at === latest.sync_dirty_at ||
+        (state?.pending_dirty_at != null &&
+          latest.sync_dirty_at != null &&
+          Date.parse(state.pending_dirty_at) === Date.parse(latest.sync_dirty_at));
+      // A stored absolute payload is retried verbatim after provider/DB failure.
+      // A changed version or horizon invalidates that replay and requires recovery.
+      const replay =
+        !forceFull &&
+        bound &&
+        state?.pending_payload &&
+        state.pending_from === from &&
+        sameDirty &&
+        sameAriSnapshot(state.pending_snapshot, ari);
+      const baseline =
+        !forceFull && bound && !state?.recovery_required
+          ? (state?.acknowledged_snapshot ?? null)
+          : null;
+      const changes = replay ? state!.pending_payload! : channexAriChanges(ari, baseline);
+      const { data: prepared, error: prepareError } = await admin.rpc("prepare_channel_ari", {
+        p_connection_id: connection.id,
+        p_lease_token: lease,
+        p_dirty_at: latest.sync_dirty_at ?? null,
+        p_external_property_id: latest.external_property_id,
+        p_environment: latest.environment,
+        p_snapshot: ari,
+        p_payload: changes,
+        p_from: from,
+      });
+      if (prepareError) throw new ChannexError("channel_outbox_prepare_failed");
+      if (prepared !== true) continue;
       // Even a network timeout can mean the provider accepted availability.
-      // Clear closed before submission so every failure attempts safe closure.
+      // Persist the payload first; do not advance the baseline on a partial result.
       closed = false;
-      await client.sendAri(ari);
-      if (await validVersion(latest))
-        return {
-          dates: verified.inventoryDays,
-          units: context.mappings.length,
-          bookings,
-          submitted: true,
-        };
-      await close();
+      submitting = { snapshot: latest, payload: changes, mappings: context.mappings };
+      const receipts = await client.sendAri(changes);
+      if (await validVersion(latest)) {
+        const { data: acknowledged, error: ackError } = await admin.rpc("acknowledge_channel_ari", {
+          p_connection_id: connection.id,
+          p_lease_token: lease,
+          p_dirty_at: latest.sync_dirty_at ?? null,
+          p_external_property_id: latest.external_property_id,
+          p_environment: latest.environment,
+          p_receipts: receipts,
+        });
+        if (ackError) throw new ChannexError("channel_outbox_ack_failed");
+        if (acknowledged === true) {
+          completed = true;
+          return {
+            dates: verified.inventoryDays,
+            units: context.mappings.length,
+            bookings,
+            submitted: changes.availability.length > 0 || changes.restrictions.length > 0,
+            mode: replay ? "retry" : baseline ? "delta" : "full",
+            availabilitySegments: changes.availability.length,
+            restrictionSegments: changes.restrictions.length,
+            receipts,
+          };
+        }
+      }
+      // An OTA revision can invalidate a send while local writes are lease-blocked.
+      // Close the whole property and rebuild from the authoritative feed.
+      await close(true);
+      forceFull = true;
+      submitting = null;
     }
     throw new ChannexError("channel_inventory_changed");
   } catch (error) {
     failure = channelError(error);
     if (!closed && zeroAvailability) {
       try {
-        await close();
+        const stable =
+          submitting &&
+          restrictionInventoryCovered(submitting.payload, submitting.mappings) &&
+          (await validVersion(submitting.snapshot));
+        await close(!stable, stable ? submitting!.payload : undefined);
       } catch {
         failure = "channel_inventory_closure_failed";
       }
-    }
+    } else if (!closed) failure = "channel_inventory_closure_failed";
     throw new ChannexError(failure, error instanceof ChannexError ? error.status : 503);
   } finally {
-    const { data, error } = await admin.rpc("complete_channel_sync", {
-      p_connection_id: connection.id,
-      p_lease_token: lease,
-      p_started_at: started,
-      p_error: failure,
-    });
-    if (error || data !== true) {
-      if (!closed && zeroAvailability) {
-        try {
-          await close();
-        } catch {
-          throw new ChannexError("channel_inventory_closure_failed");
+    if (!completed) {
+      const { data, error } = await admin.rpc("complete_channel_sync", {
+        p_connection_id: connection.id,
+        p_lease_token: lease,
+        p_started_at: started,
+        p_error: failure,
+      });
+      if (error || data !== true) {
+        if (!closed && zeroAvailability) {
+          try {
+            await close(true);
+          } catch {
+            throw new ChannexError("channel_inventory_closure_failed");
+          }
         }
+        throw new ChannexError("channel_sync_completion_failed");
       }
-      throw new ChannexError("channel_sync_completion_failed");
     }
   }
 }

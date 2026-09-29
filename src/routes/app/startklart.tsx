@@ -4,14 +4,13 @@ import { CheckCircle2, Circle, FileUp, Loader2, RefreshCw } from "lucide-react";
 import { supabase, useProperty, useSession } from "@/lib/supabase";
 import { prepareSirvoyImport } from "@/lib/sirvoy-cutover";
 import { sanitizedHttpsUrl } from "../../../supabase/functions/_shared/public-links";
+import {
+  isLaunchReadiness,
+  smsLaunchReadiness,
+  type LaunchReadiness,
+} from "@/lib/launch-readiness";
 
 export const Route = createFileRoute("/app/startklart")({ component: LaunchPage });
-type Connections = {
-  stripeConfigured: boolean;
-  stripeWebhookConfigured: boolean;
-  emailConfigured: boolean;
-  smsConfigured: boolean;
-};
 function LaunchPage() {
   const session = useSession();
   const { property, units } = useProperty(session);
@@ -23,7 +22,7 @@ function LaunchPage() {
   const [result, setResult] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [checked, setChecked] = useState(false);
-  const [connections, setConnections] = useState<Connections | null>(null);
+  const [connections, setConnections] = useState<LaunchReadiness | null>(null);
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const propertyId = property?.id;
   const refresh = useCallback(async () => {
@@ -33,7 +32,7 @@ function LaunchPage() {
       const { data, error: loadError } = await supabase.functions.invoke("booking-import", {
         body: { propertyId, action: "readiness" },
       });
-      if (loadError || !data || typeof data.emailConfigured !== "boolean")
+      if (loadError || !isLaunchReadiness(data))
         throw new Error(
           "Startkontrollen kunde inte hämtas. Kontrollera att senaste versionen är publicerad.",
         );
@@ -115,6 +114,7 @@ function LaunchPage() {
     }
   };
   if (!property) return null;
+  const smsReadiness = smsLaunchReadiness(connections);
   const checks = [
     {
       label: "Aktiva boenden har kapacitet och pris",
@@ -147,6 +147,11 @@ function LaunchPage() {
       href: "/app/mallar" as const,
     },
     {
+      label: smsReadiness.label,
+      ok: smsReadiness.ok,
+      href: "/app/mallar" as const,
+    },
+    {
       label: "Bokningssidan är öppen",
       ok: property.booking_enabled,
       href: "/app/installningar" as const,
@@ -173,7 +178,7 @@ function LaunchPage() {
           </button>
         </div>
         <p className="mt-2 text-sm text-ink/60">
-          Kontrollen visar sparade inställningar. Betalning och mejlleverans verifieras med en
+          Kontrollen visar sparade inställningar. Betalning och meddelandeleverans verifieras med en
           genomförd provbokning.
         </p>
         {connectionError ? (
@@ -201,6 +206,13 @@ function LaunchPage() {
             </li>
           ))}
         </ul>
+        {smsReadiness.required && !smsReadiness.ok && (
+          <p role="alert" className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-950">
+            Aktiva gästmeddelanden använder SMS, men SMS-tjänsten är inte konfigurerad. Anslut
+            46elks, eller ändra dessa mallar till endast mejl under Gästresa. SMS ersätts inte
+            automatiskt med mejl.
+          </p>
+        )}
         <p className="mt-4 text-sm text-ink/65">
           Kalenderflöden blockerar upptagna datum. Pris-, kanal- och bokningssynk för Booking.com,
           Airbnb, BookVisit och Google Hotel Ads måste stämmas av separat innan deras

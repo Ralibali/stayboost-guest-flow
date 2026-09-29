@@ -54,15 +54,27 @@ supabase secrets set \
   GUEST_PAGE_BASE_URL="https://stayboost.se"
 ```
 
-| Hemlighet                    | Var hittar man den?                                                                           |
-| ---------------------------- | --------------------------------------------------------------------------------------------- |
-| `CRON_SECRET`                | Slumpa själv. **Samma värde** ska in i Vault i steg 5.                                        |
-| `BREVO_API_KEY`              | [brevo.com](https://brevo.com) → SMTP & API → API Keys (gratis nivå räcker)                   |
-| `ELKS_*`                     | [46elks.se](https://46elks.se) → API credentials (SMS; kan hoppas över, då går allt via mejl) |
-| `STRIPE_SECRET_KEY`          | Stripe Dashboard → Developers → API keys                                                      |
-| `STRIPE_WEBHOOK_SECRET`      | Gästernas bokningsbetalningar — steg 6                                                        |
-| `SAAS_STRIPE_WEBHOOK_SECRET` | StayBoost-abonnemanget — steg 6 (valfri, status synkas även utan)                             |
-| `RATE_LIMIT_SALT`            | Valfri. Faller tillbaka på service-role-nyckeln.                                              |
+| Hemlighet                    | Var hittar man den?                                                                                                |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `CRON_SECRET`                | Slumpa själv. **Samma värde** ska in i Vault i steg 5.                                                             |
+| `BREVO_API_KEY`              | [brevo.com](https://brevo.com) → SMTP & API → API Keys (gratis nivå räcker)                                        |
+| `ELKS_*`                     | [46elks.se](https://46elks.se) → API credentials. Krävs för aktiva SMS-mallar; annars välj endast mejl i mallarna. |
+| `STRIPE_SECRET_KEY`          | Stripe Dashboard → Developers → API keys                                                                           |
+| `STRIPE_WEBHOOK_SECRET`      | Gästernas bokningsbetalningar — steg 6                                                                             |
+| `SAAS_STRIPE_WEBHOOK_SECRET` | StayBoost-abonnemanget — steg 6 (valfri, status synkas även utan)                                                  |
+| `RATE_LIMIT_SALT`            | Valfri. Faller tillbaka på service-role-nyckeln.                                                                   |
+
+För gästmejl kan `EMAIL_PROVIDER=resend` användas tillsammans med
+`RESEND_API_KEY`, `RESEND_SENDER_EMAIL` och valfritt `RESEND_SENDER_NAME`.
+Utan `EMAIL_PROVIDER` används Brevo och dess befintliga `BREVO_*`-inställningar.
+Nyckel och avsändare måste tillhöra den valda leverantören; ingen automatisk
+växling sker. Verifiera avsändardomänen och faktisk leverans innan bokningar öppnas.
+
+Standardmallen för incheckningsdagen använder SMS. Om SMS inte ska användas,
+ändra den och andra aktiva mallar med SMS eller både mejl/SMS till **Mejl** under
+**Gästresa**. Utskick byter inte kanal automatiskt. Startkontrollen markerar
+saknad SMS-konfiguration när någon aktiv mall använder SMS. Konfigurationskontrollen
+visar endast att nycklar finns; verifiera avsändare och faktisk leverans med provgästen.
 
 ## 5. Schemaläggning (cron)
 

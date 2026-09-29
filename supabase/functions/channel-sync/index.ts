@@ -182,6 +182,8 @@ Deno.serve(async (req) => {
         if (!connection.enabled) throw new ChannexError("connection_disabled", 409);
         const due =
           connection.sync_dirty_at ||
+          connection.ari_horizon_date !==
+            new Date().toLocaleDateString("en-CA", { timeZone: "Europe/Stockholm" }) ||
           !connection.last_ari_sync_at ||
           Date.now() - Date.parse(connection.last_ari_sync_at) > 24 * 3_600_000;
         const backoff =
@@ -192,7 +194,9 @@ Deno.serve(async (req) => {
           results.push({
             connectionId: connection.id,
             ok: true,
-            ...(await syncChannelAri(admin, connection, client)),
+            ...(await syncChannelAri(admin, connection, client, {
+              forceFull: action === "sync_all",
+            })),
           });
         else if (!backoff || action === "pull_bookings")
           results.push({

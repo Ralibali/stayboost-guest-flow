@@ -156,7 +156,7 @@ function ChannelsPage() {
       if (result.error) throw result.error;
       setMessage(
         connection.enabled
-          ? "Kopplingen har pausats."
+          ? "Synken har pausats. Försäljningen i kanalerna stängs inte automatiskt; kontrollera att den är stängd via Channex."
           : "Kopplingen har aktiverats. Kör full synkning och kontrollera kanalerna innan försäljningen öppnas.",
       );
     });
@@ -356,7 +356,7 @@ function ChannelsPage() {
                   }
                   onClick={() => toggle(connection)}
                 >
-                  {connection.enabled ? "Pausa koppling" : "Aktivera koppling"}
+                  {connection.enabled ? "Pausa synken" : "Aktivera koppling"}
                 </button>
                 <button
                   className={`${button} bg-[#173c2b] text-white`}
@@ -368,6 +368,10 @@ function ChannelsPage() {
                     : "Synka bokningar, priser och tillgänglighet"}
                 </button>
               </div>
+              <p className="text-xs text-ink/65">
+                Stäng först försäljningen i kanalerna via Channex innan du pausar synken eller
+                ändrar rumskopplingarna.
+              </p>
               {pending.length > 0 && (
                 <div role="alert" className="rounded-xl bg-amber-50 p-4 text-sm">
                   <p className="font-semibold">{pending.length} kanalrevisioner väntar på åtgärd</p>
