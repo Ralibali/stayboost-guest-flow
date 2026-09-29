@@ -1,14 +1,26 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { nightsBetween, quoteStay, rangesOverlap } from "../_shared/pricing.ts";
+import {
+  nightsBetween,
+  partyIssue,
+  partySize,
+  quoteStay,
+  rangesOverlap,
+  type BookingParty,
+} from "../_shared/pricing.ts";
 import {
   checkAvailabilityRules,
   minStayFromRules,
   rulesForUnit,
   type RateRule,
 } from "../_shared/rate-rules.ts";
-import { priceAddons, sumAddons } from "../_shared/addons.ts";
+import { priceAddons, sumAddons, type Addon } from "../_shared/addons.ts";
 import { createCheckoutSession, expireCheckoutSession } from "../_shared/stripe.ts";
 import { appBaseUrl } from "../_shared/app-url.ts";
+import { normalizeGuestPhone } from "../_shared/guest-contact.ts";
+import { stockholmDay } from "../_shared/guest-stay.ts";
+import { collectPages } from "../_shared/pagination.ts";
+import { sanitizedHttpsUrl } from "../_shared/public-links.ts";
+import { channelInventoryFresh } from "../_shared/channel-freshness.ts";
 
 // Publik bokningsmotor. All prissättning, kapacitet och tillgänglighet
 // verifieras server-side. Databastriggern serialiserar samtidiga direktbokningar.
@@ -31,21 +43,6 @@ async function sha256(value: string) {
     .join("");
 }
 
-// Duplicerar src/lib/phone.ts — måste vara identisk med klientvalideringen.
-function normalizePhoneSE(input: string): string | null {
-  if (!input) return null;
-  let n = input.replace(/[\s().\-]/g, "");
-  if (!n) return null;
-  if (n.startsWith("+")) n = n.slice(1);
-  else if (n.startsWith("00")) n = n.slice(2);
-  else if (n.startsWith("0")) n = "46" + n.slice(1);
-  if (!/^\d+$/.test(n)) return null;
-  if (!n.startsWith("46")) return null;
-  const local = n.slice(2);
-  if (!/^7\d{8}$/.test(local)) return null;
-  return `+46${local}`;
-}
-
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
   const json = (body: unknown, status = 200) =>
@@ -60,61 +57,117 @@ Deno.serve(async (req) => {
   );
 
   const url = new URL(req.url);
+  const channelInventoryReady = async (propertyId: string) => {
+    try {
+      const { data: connections, error } = await admin
+        .from("channel_connections")
+        .select("enabled, last_booking_sync_at, last_ari_sync_at, last_error")
+        .eq("property_id", propertyId);
+      return (
+        !error &&
+        Array.isArray(connections) &&
+        connections.every((connection) => channelInventoryFresh(connection))
+      );
+    } catch {
+      return false;
+    }
+  };
+  const loadRules = (propertyId: string, fromDate: string) =>
+    collectPages<RateRule>((from, to) =>
+      admin
+        .from("rate_rules")
+        .select(
+          "id, unit_id, kind, date_from, date_to, fixed_price, adult_prices, pct_delta, min_stay, priority, active, name",
+        )
+        .eq("property_id", propertyId)
+        .eq("active", true)
+        .gte("date_to", fromDate)
+        .order("created_at")
+        .order("id")
+        .range(from, to),
+    );
+  const loadAddons = (propertyId: string) =>
+    collectPages<Addon>((from, to) =>
+      admin
+        .from("addons")
+        .select(
+          "id, name, description, price, price_type, fulfillment_type, image_url, active, sort_order, internal_only, available_from, available_to, max_quantity",
+        )
+        .eq("property_id", propertyId)
+        .eq("active", true)
+        .order("sort_order")
+        .order("id")
+        .range(from, to),
+    );
 
   // ---------------- GET: ledighet + priser + boendeprofil ----------------
   if (req.method === "GET") {
     const slug = url.searchParams.get("slug") ?? "";
-    const { data: property } = await admin
+    const { data: property, error: propertyError } = await admin
       .from("properties")
       .select(
-        "id, name, slug, checkin_time, checkout_time, swish_number, swish_hold_minutes, booking_enabled, max_stay, contact_email",
+        "id, name, slug, checkin_time, checkout_time, swish_number, swish_hold_minutes, booking_enabled, max_stay, contact_email, booking_terms_url",
       )
       .eq("slug", slug)
       .maybeSingle();
+    if (propertyError) return json({ error: "booking_unavailable" }, 503);
     if (!property) return json({ error: "not_found" }, 404);
+    const { data: unmapped, error: channelError } = await admin
+      .from("channel_booking_revisions")
+      .select("revision_id")
+      .eq("property_id", property.id)
+      .eq("status", "pending_mapping")
+      .limit(1);
+    if (channelError || unmapped?.length || !(await channelInventoryReady(property.id)))
+      return json(
+        {
+          error: "channel_sync_required",
+          property: { name: property.name, contactEmail: property.contact_email },
+        },
+        503,
+      );
 
     const { data: units, error: unitsError } = await admin
       .from("units")
       .select(
-        "id, name, description, image_url, max_guests, bed_description, size_sqm, amenities, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult, sort_order",
+        "id, name, description, image_url, max_guests, bed_description, size_sqm, amenities, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult, sort_order, party_pricing_enabled, adult_prices, child_price_per_night, child_free_through_age, child_max_age",
       )
       .eq("property_id", property.id)
       .eq("active", true)
       .order("sort_order");
     if (unitsError) return json({ error: unitsError.message }, 500);
 
-    const today = new Date().toISOString().slice(0, 10);
-    const until = new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10);
-    const { data: bookings, error: bookingsError } = await admin
-      .from("bookings")
-      .select("unit_id, checkin_date, checkout_date")
-      .eq("property_id", property.id)
-      .eq("status", "confirmed")
-      .gte("checkout_date", today)
-      .lte("checkin_date", until);
-
-    if (bookingsError) return json({ error: "availability_unavailable" }, 503);
-    const { data: addons, error: addonsError } = await admin
-      .from("addons")
-      .select(
-        "id, name, description, price, price_type, image_url, sort_order, internal_only, available_from, available_to, max_quantity",
-      )
-      .eq("property_id", property.id)
-      .eq("active", true)
-      .order("sort_order");
-
-    if (addonsError) return json({ error: "addons_unavailable" }, 503);
-    const { data: rulesData, error: rulesError } = await admin
-      .from("rate_rules")
-      .select(
-        "id, unit_id, kind, date_from, date_to, fixed_price, pct_delta, min_stay, priority, active, name",
-      )
-      .eq("property_id", property.id)
-      .eq("active", true)
-      .gte("date_to", today)
-      .order("created_at");
-    if (rulesError) return json({ error: "rules_unavailable" }, 503);
-    const rules: RateRule[] = (rulesData ?? []) as RateRule[];
+    const today = stockholmDay();
+    const until = stockholmDay(new Date(Date.now() + 365 * 86400000));
+    let bookings: { unit_id: string | null; checkin_date: string; checkout_date: string }[];
+    try {
+      bookings = await collectPages((from, to) =>
+        admin
+          .from("bookings")
+          .select("id, unit_id, checkin_date, checkout_date")
+          .eq("property_id", property.id)
+          .eq("status", "confirmed")
+          .gte("checkout_date", today)
+          .lte("checkin_date", until)
+          .order("checkin_date")
+          .order("id")
+          .range(from, to),
+      );
+    } catch {
+      return json({ error: "availability_unavailable" }, 503);
+    }
+    let addons: Addon[];
+    let rules: RateRule[];
+    try {
+      addons = await loadAddons(property.id);
+    } catch {
+      return json({ error: "addons_unavailable" }, 503);
+    }
+    try {
+      rules = await loadRules(property.id, today);
+    } catch {
+      return json({ error: "rules_unavailable" }, 503);
+    }
 
     const byUnit = new Map<string, { from: string; to: string }[]>();
     for (const b of bookings ?? []) {
@@ -131,6 +184,7 @@ Deno.serve(async (req) => {
         availableThrough: until,
         maxStay: property.max_stay,
         contactEmail: property.contact_email,
+        bookingTermsUrl: sanitizedHttpsUrl(property.booking_terms_url),
         name: property.name,
         slug: property.slug,
         checkinTime: property.checkin_time,
@@ -153,6 +207,11 @@ Deno.serve(async (req) => {
         minStay: u.min_stay,
         cleaningFee: u.cleaning_fee,
         monthlyMult: u.monthly_mult,
+        partyPricingEnabled: u.party_pricing_enabled,
+        adultPrices: u.adult_prices,
+        childPricePerNight: u.child_price_per_night,
+        childFreeThroughAge: u.child_free_through_age,
+        childMaxAge: u.child_max_age,
         booked: byUnit.get(u.id) ?? [],
         rateRules: rulesForUnit(rules, u.id),
       })),
@@ -168,6 +227,7 @@ Deno.serve(async (req) => {
           availableFrom: a.available_from,
           availableTo: a.available_to,
           maxQuantity: a.max_quantity,
+          fulfillmentType: a.fulfillment_type,
         })),
     });
   }
@@ -210,13 +270,16 @@ Deno.serve(async (req) => {
       .trim()
       .toLowerCase();
     const guestPhoneRaw = String(body?.guest_phone ?? "").trim();
-    const normalizedPhone = guestPhoneRaw ? normalizePhoneSE(guestPhoneRaw) : null;
+    const normalizedPhone = guestPhoneRaw ? normalizeGuestPhone(guestPhoneRaw) : null;
+    const language = ["sv", "en", "de"].includes(body?.language) ? body.language : "sv";
 
     if (!ISO_DATE.test(checkin ?? "") || !ISO_DATE.test(checkout ?? "") || checkout <= checkin) {
       return json({ error: "invalid_dates" }, 400);
     }
-    const today = new Date().toISOString().slice(0, 10);
+    const today = stockholmDay();
     if (checkin < today) return json({ error: "past_checkin" }, 400);
+    if (checkout > stockholmDay(new Date(Date.now() + 365 * 86400000)))
+      return json({ error: "outside_booking_window" }, 400);
     if (nightsBetween(checkin, checkout).length === 0) return json({ error: "invalid_dates" }, 400);
     if (nightsBetween(checkin, checkout).length > 30) return json({ error: "too_long" }, 400);
     if (guestName.length < 2 || guestName.length > 120)
@@ -226,45 +289,58 @@ Deno.serve(async (req) => {
     if (guestPhoneRaw && !normalizedPhone) return json({ error: "invalid_phone" }, 400);
     if (body?.termsAccepted !== true) return json({ error: "terms_required" }, 400);
 
-    const { data: property } = await admin
+    const { data: property, error: propertyError } = await admin
       .from("properties")
-      .select("id, swish_number, swish_hold_minutes, booking_enabled, max_stay")
+      .select("id, swish_number, swish_hold_minutes, booking_enabled, max_stay, booking_terms_url")
       .eq("slug", slug)
       .maybeSingle();
+    if (propertyError) return json({ error: "booking_unavailable" }, 503);
     if (!property) return json({ error: "not_found" }, 404);
     if (!property.booking_enabled) return json({ error: "booking_paused" }, 409);
+    const { data: unmapped, error: channelError } = await admin
+      .from("channel_booking_revisions")
+      .select("revision_id")
+      .eq("property_id", property.id)
+      .eq("status", "pending_mapping")
+      .limit(1);
+    if (channelError || unmapped?.length || !(await channelInventoryReady(property.id)))
+      return json({ error: "channel_sync_required" }, 503);
     if (nightsBetween(checkin, checkout).length > property.max_stay)
       return json({ error: "too_long", maxStay: property.max_stay }, 400);
 
-    const { data: unit } = await admin
+    const { data: unit, error: unitError } = await admin
       .from("units")
       .select(
-        "id, name, property_id, active, max_guests, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult",
+        "id, name, property_id, active, max_guests, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult, party_pricing_enabled, adult_prices, child_price_per_night, child_free_through_age, child_max_age",
       )
       .eq("id", unitId)
       .eq("property_id", property.id)
       .eq("active", true)
       .maybeSingle();
+    if (unitError) return json({ error: "booking_unavailable" }, 503);
     if (!unit) return json({ error: "unit_not_found" }, 404);
 
-    const guestsRaw = Number(body?.guests);
+    const party: BookingParty | null =
+      unit.party_pricing_enabled || body?.adults != null || body?.childrenAges != null
+        ? { adults: body?.adults, childrenAges: body?.childrenAges }
+        : null;
+    if (party) {
+      const issue = partyIssue(unit, party, unit.max_guests);
+      if (issue) return json({ error: issue, maxGuests: unit.max_guests }, 400);
+    }
+    const guestsRaw = party ? partySize(party) : Number(body?.guests);
     if (!Number.isInteger(guestsRaw) || guestsRaw < 1 || guestsRaw > unit.max_guests) {
       return json({ error: "capacity_exceeded", maxGuests: unit.max_guests }, 400);
     }
     const guests = guestsRaw;
 
     // Datumstyrda regler (opt-in): min-stay, closed, no-arrival, no-departure.
-    const { data: ruleRows, error: ruleError } = await admin
-      .from("rate_rules")
-      .select(
-        "id, unit_id, kind, date_from, date_to, fixed_price, pct_delta, min_stay, priority, active, name",
-      )
-      .eq("property_id", property.id)
-      .eq("active", true)
-      .gte("date_to", checkin)
-      .order("created_at");
-    if (ruleError) return json({ error: "rules_unavailable" }, 503);
-    const rules: RateRule[] = (ruleRows ?? []) as RateRule[];
+    let rules: RateRule[];
+    try {
+      rules = await loadRules(property.id, checkin);
+    } catch {
+      return json({ error: "rules_unavailable" }, 503);
+    }
 
     const stayNights = nightsBetween(checkin, checkout);
     const ruleMinStay = minStayFromRules(rules, unit.id, stayNights);
@@ -279,30 +355,38 @@ Deno.serve(async (req) => {
     }
 
     // Förkontroll för ett vänligt svar. Databastriggern gör samma kontroll atomärt.
-    const { data: clashes } = await admin
+    const { data: clashes, error: clashesError } = await admin
       .from("bookings")
       .select("checkin_date, checkout_date")
       .eq("unit_id", unit.id)
       .eq("status", "confirmed")
       .lt("checkin_date", checkout)
       .gt("checkout_date", checkin);
+    if (clashesError) return json({ error: "availability_unavailable" }, 503);
     if (
       (clashes ?? []).some((c) => rangesOverlap(checkin, checkout, c.checkin_date, c.checkout_date))
     ) {
       return json({ error: "unavailable" }, 409);
     }
 
-    const quote = quoteStay(unit, checkin, checkout, { rules, unitId: unit.id });
+    let quote;
+    try {
+      quote = quoteStay(unit, checkin, checkout, {
+        rules,
+        unitId: unit.id,
+        ...(party ? { party } : {}),
+      });
+    } catch {
+      return json({ error: "pricing_unavailable" }, 409);
+    }
 
     const rawSelections = Array.isArray(body?.addons) ? body.addons : [];
-    const { data: availableAddons, error: addonReadError } = await admin
-      .from("addons")
-      .select(
-        "id, name, description, price, price_type, image_url, active, sort_order, internal_only, available_from, available_to, max_quantity",
-      )
-      .eq("property_id", property.id)
-      .eq("active", true);
-    if (addonReadError) return json({ error: "addons_unavailable" }, 503);
+    let availableAddons: Addon[];
+    try {
+      availableAddons = await loadAddons(property.id);
+    } catch {
+      return json({ error: "addons_unavailable" }, 503);
+    }
     const pricedAddons = priceAddons(rawSelections, availableAddons ?? [], quote.nights, {
       checkin,
       checkout,
@@ -310,6 +394,14 @@ Deno.serve(async (req) => {
     if (pricedAddons.length !== rawSelections.length) return json({ error: "invalid_addons" }, 400);
     const addonsTotal = sumAddons(pricedAddons);
     const grandTotal = quote.total + addonsTotal;
+    if (!Number.isSafeInteger(grandTotal) || grandTotal < 0)
+      return json({ error: "pricing_unavailable" }, 409);
+    if (
+      body?.expectedTotal != null &&
+      (!Number.isSafeInteger(body.expectedTotal) || body.expectedTotal !== grandTotal)
+    ) {
+      return json({ error: "price_changed", grandTotal }, 409);
+    }
 
     const requested = String(body?.paymentMethod ?? "");
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
@@ -354,18 +446,49 @@ Deno.serve(async (req) => {
         checkin_date: checkin,
         checkout_date: checkout,
         guests,
+        adults: party?.adults ?? guests,
+        children_ages: party?.childrenAges ?? [],
+        quote_snapshot: {
+          version: 1,
+          currency: "SEK",
+          language,
+          terms: {
+            accepted: true,
+            url: sanitizedHttpsUrl(property.booking_terms_url),
+            acceptedAt: new Date().toISOString(),
+          },
+          party: party ?? { adults: guests, childrenAges: [] },
+          ...quote,
+          addons: pricedAddons.map((line) => ({
+            id: line.addon.id,
+            name: line.addon.name,
+            quantity: line.quantity,
+            unitPrice: line.addon.price,
+            fulfillmentType: line.addon.fulfillment_type ?? "arrival",
+            lineTotal: line.lineTotal,
+          })),
+          addonsTotal,
+          grandTotal,
+        },
         addons_total: addonsTotal,
         notes: `Direktbokning via bokningssidan · ${grandTotal} kr${addonsNote}`,
         payment_method: paymentMethod,
+        payment_amount: grandTotal,
         payment_expires_at: paymentExpiresAt,
-        ...(takesPayment
-          ? { payment_status: "pending", payment_amount: grandTotal, payment_ref: paymentRef }
-          : {}),
+        ...(takesPayment ? { payment_status: "pending", payment_ref: paymentRef } : {}),
       })
       .select("id, guest_token")
       .single();
 
     if (error) {
+      if (
+        error.message.includes("channel_sync_in_progress") ||
+        error.message.includes("channel_inventory_syncing")
+      ) {
+        return json({ error: "channel_sync_in_progress" }, 503);
+      }
+      if (error.message.includes("channel_sync_required"))
+        return json({ error: "channel_sync_required" }, 503);
       if (error.code === "23P01" || error.message.includes("booking_overlap")) {
         return json({ error: "unavailable" }, 409);
       }
@@ -397,8 +520,8 @@ Deno.serve(async (req) => {
           description: `${unit.name} · ${checkin}–${checkout}`,
           paymentRef,
           bookingId: booking.id,
-          successUrl: `${appBase}/g/${booking.guest_token}?paid=1`,
-          cancelUrl: `${appBase}/boka/${slug}`,
+          successUrl: `${appBase}/g/${booking.guest_token}?paid=1&lang=${language}`,
+          cancelUrl: `${appBase}/g/${booking.guest_token}?cancelled=1&lang=${language}`,
           customerEmail: guestEmail,
           expiresAtUnix: stripeExpiresAtUnix,
           idempotencyKey: `stayboost-checkout-${booking.id}`,

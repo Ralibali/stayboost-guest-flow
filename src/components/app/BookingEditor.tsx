@@ -34,11 +34,12 @@ export function BookingEditor({
   });
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const external = booking.source === "ical" || booking.source === "sirvoy";
+  const external = ["ical", "sirvoy", "channex"].includes(booking.source);
   const locked =
     external ||
     ["pending", "refund_pending"].includes(booking.payment_status) ||
     booking.status === "cancelled";
+  const partyLocked = booking.adults != null;
   const set = <K extends keyof BookingDraft>(key: K, value: BookingDraft[K]) =>
     setDraft((current) => ({ ...current, [key]: value }));
   const changedStay =
@@ -180,7 +181,7 @@ export function BookingEditor({
             min={1}
             max={units.find((u) => u.id === draft.unit_id)?.max_guests ?? 20}
             step={1}
-            disabled={locked}
+            disabled={locked || partyLocked}
             value={draft.guests}
             onChange={(e) => set("guests", Number(e.target.value))}
             className="inp mt-1"
@@ -202,6 +203,12 @@ export function BookingEditor({
           </select>
         </label>
       </div>
+      {partyLocked && (
+        <p className="rounded-xl bg-amber-50 p-3 text-sm text-amber-900">
+          Antalet gäster hör ihop med bokningens vuxna, barn och sparade pris. Kontakta gästen och
+          kontrollera den överenskomna prisskillnaden innan sällskapet ändras.
+        </p>
+      )}
       <label className="block text-sm">
         Interna anteckningar
         <textarea

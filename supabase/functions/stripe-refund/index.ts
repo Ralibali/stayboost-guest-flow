@@ -1,5 +1,11 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { createFullRefund } from "../_shared/stripe.ts";
+import { createFullRefund, retrieveRefund } from "../_shared/stripe.ts";
+import {
+  PaymentTransitionError,
+  joinedPropertyOwnerId,
+  persistStripeRefund,
+  supabasePaymentStore,
+} from "../_shared/payment-lifecycle.ts";
 
 // StayBoost: full Stripe-refund (verify_jwt = true — endast inloggad ägare).
 // Retry-safe: DB går först till refund_pending och Stripe-anropet använder stabil
@@ -51,14 +57,19 @@ Deno.serve(async (req) => {
     .eq("id", body.bookingId)
     .maybeSingle();
   if (readError) return json({ error: readError.message }, 500);
-  if (!booking || (booking.properties as { owner_id: string }).owner_id !== userData.user.id) {
+  if (!booking || joinedPropertyOwnerId(booking.properties) !== userData.user.id) {
     return json({ error: "not_found" }, 404);
   }
   if (booking.payment_method !== "stripe") return json({ error: "wrong_payment_method" }, 400);
   if (booking.payment_status === "refunded") {
-    return json({ ok: true, method: "stripe", duplicate: true, refundId: booking.stripe_refund_id });
+    return json({
+      ok: true,
+      method: "stripe",
+      duplicate: true,
+      refundId: booking.stripe_refund_id,
+    });
   }
-  if (!['paid', 'refund_pending'].includes(booking.payment_status)) {
+  if (!["paid", "refund_pending"].includes(booking.payment_status)) {
     return json({ error: "not_refundable" }, 409);
   }
 
@@ -66,19 +77,29 @@ Deno.serve(async (req) => {
   if (!stripeKey) return json({ error: "stripe_not_configured" }, 500);
   if (!booking.stripe_session_id) return json({ error: "missing_session" }, 400);
 
-  const nowIso = new Date().toISOString();
-  if (booking.payment_status === "paid") {
-    const { error } = await admin
-      .from("bookings")
-      .update({ payment_status: "refund_pending", payment_refund_requested_at: nowIso })
-      .eq("id", booking.id)
-      .eq("payment_status", "paid")
-      .eq("payment_method", "stripe");
-    if (error) return json({ error: error.message }, 500);
-  }
-
+  const store = supabasePaymentStore(admin);
   try {
-    let paymentIntentId = booking.stripe_payment_intent_id as string | null;
+    let current = await store.read(booking.id);
+    if (!current) return json({ error: "not_found" }, 404);
+    if (current.payment_status === "paid") {
+      const updated = await store.compareAndSet(current, {
+        payment_status: "refund_pending",
+        payment_refund_requested_at: new Date().toISOString(),
+      });
+      current = updated ?? (await store.read(booking.id));
+    }
+    if (!current || !["refund_pending", "refunded"].includes(current.payment_status)) {
+      return json({ error: "payment_state_changed", retrySafe: true }, 409);
+    }
+    if (current.payment_status === "refunded")
+      return json({
+        ok: true,
+        method: "stripe",
+        duplicate: true,
+        refundId: current.stripe_refund_id,
+      });
+
+    let paymentIntentId = current.stripe_payment_intent_id as string | null;
     if (!paymentIntentId) {
       const sessionResp = await fetch(
         `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(booking.stripe_session_id)}`,
@@ -91,37 +112,77 @@ Deno.serve(async (req) => {
       if (
         String(session.id ?? "") !== booking.stripe_session_id ||
         String(session.client_reference_id ?? session.metadata?.booking_id ?? "") !== booking.id ||
-        String(session.metadata?.payment_ref ?? "") !== String(booking.payment_ref ?? "")
+        session.metadata?.booking_id !== booking.id ||
+        String(session.metadata?.payment_ref ?? "") !== String(booking.payment_ref ?? "") ||
+        session.currency !== "sek" ||
+        session.payment_status !== "paid" ||
+        !Number.isSafeInteger(session.amount_total) ||
+        session.amount_total !== Math.round(Number(booking.payment_amount) * 100)
       ) {
         throw new Error("Stripe-session matchar inte bokningen");
       }
       paymentIntentId = String(session.payment_intent);
     }
 
-    const refund = await createFullRefund({
-      secretKey: stripeKey,
-      paymentIntentId,
-      idempotencyKey: `stayboost-refund-${booking.id}`,
-      metadata: { booking_id: booking.id, payment_ref: String(booking.payment_ref ?? "") },
-    });
-
-    const { error: updateError } = await admin
-      .from("bookings")
-      .update({
-        payment_status: "refunded",
-        payment_refunded_at: new Date().toISOString(),
-        stripe_payment_intent_id: paymentIntentId,
-        stripe_refund_id: refund.id,
-      })
-      .eq("id", booking.id)
-      .eq("payment_method", "stripe")
-      .eq("payment_status", "refund_pending");
-    if (updateError) return json({ error: updateError.message, retrySafe: true }, 500);
-
-    return json({ ok: true, method: "stripe", refundId: refund.id, refundStatus: refund.status });
+    // An accepted refund can take time to succeed. Retrieve an already-bound
+    // refund on retry instead of replaying a cached create response indefinitely.
+    const existingRefund = current.stripe_refund_id
+      ? await retrieveRefund(stripeKey, current.stripe_refund_id)
+      : null;
+    const refund =
+      existingRefund ??
+      (await createFullRefund({
+        secretKey: stripeKey,
+        paymentIntentId,
+        idempotencyKey: `stayboost-refund-${booking.id}`,
+        metadata: { booking_id: booking.id, payment_ref: String(booking.payment_ref ?? "") },
+      }));
+    if (
+      existingRefund &&
+      (existingRefund.paymentIntentId !== paymentIntentId ||
+        existingRefund.metadata.booking_id !== booking.id ||
+        existingRefund.metadata.payment_ref !== booking.payment_ref ||
+        existingRefund.currency !== "sek" ||
+        existingRefund.amount !== Math.round(Number(booking.payment_amount) * 100))
+    )
+      return json({ error: "refund_mismatch" }, 409);
+    const updated = await persistStripeRefund(
+      store,
+      booking.id,
+      { ...refund, paymentIntentId },
+      new Date().toISOString(),
+    );
+    if (["failed", "canceled"].includes(refund.status ?? "")) {
+      return json(
+        {
+          error: "refund_needs_attention",
+          refundId: refund.id,
+          refundStatus: refund.status,
+          retrySafe: true,
+        },
+        409,
+      );
+    }
+    return json(
+      {
+        ok: true,
+        method: "stripe",
+        refundId: refund.id,
+        refundStatus: refund.status,
+        paymentStatus: updated.payment_status,
+      },
+      updated.payment_status === "refunded" ? 200 : 202,
+    );
   } catch (e) {
     // refund_pending lämnas kvar med flit. Ett nytt försök använder samma Stripe
     // idempotency key och kan säkert återuppta en osäker nätverks/DB-situation.
-    return json({ error: "refund_failed", detail: String(e), retrySafe: true }, 502);
+    return json(
+      {
+        error: e instanceof PaymentTransitionError ? e.code : "refund_failed",
+        detail: String(e),
+        retrySafe: true,
+      },
+      e instanceof PaymentTransitionError ? e.status : 502,
+    );
   }
 });

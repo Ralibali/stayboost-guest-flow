@@ -70,6 +70,12 @@ export function bookingAdminError(error: { message: string; code?: string }): st
     invalid_unit: "Boendet tillhör inte den här anläggningen.",
     max_stay_exceeded: "Vistelsen överskrider anläggningens högsta antal nätter.",
     cancelled_booking_edit: "En avbokad bokning kan inte flyttas eller checkas in.",
+    invalid_party_total:
+      "Gästantalet måste stämma med bokningens vuxna och barn. Kontrollera sällskapet och det överenskomna priset innan det ändras.",
+    channel_sync_required:
+      "Mottagna kanalbokningar väntar på åtgärd. Slutför synkningen under Bokningskanaler innan en ny vistelse reserveras.",
+    channel_sync_in_progress:
+      "Kalendern uppdateras just nu. Vänta en kort stund och försök igen. Om synkningen har avbrutits kan spärren ligga kvar i högst fem minuter.",
   };
   return (
     Object.entries(known).find(([key]) => error.message.includes(key))?.[1] ??

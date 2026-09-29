@@ -1,4 +1,11 @@
-import { nightsBetween, quoteStay, rangesOverlap } from "../../supabase/functions/_shared/pricing";
+import {
+  nightsBetween,
+  partyIssue,
+  partySize,
+  quoteStay,
+  rangesOverlap,
+  type BookingParty,
+} from "../../supabase/functions/_shared/pricing";
 import {
   checkAvailabilityRules,
   minStayFromRules,
@@ -16,6 +23,11 @@ export type SearchUnit = {
   monthlyMult: number[];
   booked: { from: string; to: string }[];
   rateRules: RateRule[];
+  partyPricingEnabled?: boolean;
+  adultPrices?: number[];
+  childPricePerNight?: number;
+  childFreeThroughAge?: number;
+  childMaxAge?: number;
 };
 export type StaySearch = {
   checkin: string;
@@ -25,6 +37,7 @@ export type StaySearch = {
   availableThrough: string;
   maxStay: number;
   bookingEnabled: boolean;
+  party?: BookingParty;
 };
 export type StaySuggestion = {
   unitId: string;
@@ -65,23 +78,31 @@ export function findAvailableStays(units: SearchUnit[], search: StaySearch) {
       .flatMap((unit) => {
         const rules = unit.rateRules ?? [];
         if (
-          unit.maxGuests < search.guests ||
+          unit.maxGuests < (search.party ? partySize(search.party) : search.guests) ||
           search.nights < Math.max(unit.minStay, minStayFromRules(rules, unit.id, nights)) ||
           checkAvailabilityRules(rules, unit.id, nights, checkout) ||
           unit.booked.some((r) => rangesOverlap(checkin, checkout, r.from, r.to))
         )
           return [];
-        const quote = quoteStay(
-          {
-            base_price: unit.basePrice,
-            weekend_pct: unit.weekendPct,
-            cleaning_fee: unit.cleaningFee,
-            monthly_mult: (unit.monthlyMult ?? []).map(Number),
-          },
-          checkin,
-          checkout,
-          { rules, unitId: unit.id },
-        );
+        const pricing = {
+          base_price: unit.basePrice,
+          weekend_pct: unit.weekendPct,
+          cleaning_fee: unit.cleaningFee,
+          monthly_mult: (unit.monthlyMult ?? []).map(Number),
+          party_pricing_enabled: unit.partyPricingEnabled,
+          adult_prices: unit.adultPrices,
+          child_price_per_night: unit.childPricePerNight,
+          child_free_through_age: unit.childFreeThroughAge,
+          child_max_age: unit.childMaxAge,
+        };
+        const party = search.party ?? { adults: search.guests, childrenAges: [] };
+        if (partyIssue(pricing, party, unit.maxGuests)) return [];
+        let quote;
+        try {
+          quote = quoteStay(pricing, checkin, checkout, { rules, unitId: unit.id, party });
+        } catch {
+          return [];
+        }
         if (!Number.isFinite(quote.total) || quote.total < 0) return [];
         return [
           {

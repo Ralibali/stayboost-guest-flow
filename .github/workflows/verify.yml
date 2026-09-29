@@ -44,5 +44,21 @@ jobs:
       - name: Check guest page function
         run: deno check supabase/functions/guest-page/index.ts
 
+      - name: Check booking and channel functions
+        run: >-
+          deno check
+          supabase/functions/booking-import/index.ts
+          supabase/functions/booking-reconcile/index.ts
+          supabase/functions/booking-engine/index.ts
+          supabase/functions/payment-action/index.ts
+          supabase/functions/stripe-webhook/index.ts
+          supabase/functions/stripe-refund/index.ts
+          supabase/functions/channel-sync/index.ts
+          supabase/functions/channex-webhook/index.ts
+          supabase/functions/send-scheduled-messages/index.ts
+
+      - name: Check Guest AI function
+        run: deno check supabase/functions/guest-ai-draft/index.ts
+
       - name: Build
         run: bun run build
