@@ -25,6 +25,7 @@ import {
   syncChannelAri,
 } from "../../supabase/functions/_shared/channex-runtime";
 import type { RateRule } from "../../supabase/functions/_shared/rate-rules";
+import type { AriState } from "../../supabase/functions/_shared/channex-ari";
 
 const PROPERTY = "11111111-1111-4111-8111-111111111111";
 const OTHER = "22222222-2222-4222-8222-222222222222";
@@ -33,6 +34,11 @@ const RATE = "44444444-4444-4444-8444-444444444444";
 const REVISION = "55555555-5555-4555-8555-555555555555";
 const BOOKING = "66666666-6666-4666-8666-666666666666";
 const WEBHOOK = "77777777-7777-4777-8777-777777777777";
+const TASK = "88888888-8888-4888-8888-888888888888";
+const ariAccepted = () => ({
+  data: [{ type: "task", id: TASK, attributes: {} }],
+  meta: { message: "Success", warnings: [] },
+});
 const connection: ChannelConnection = {
   id: OTHER,
   property_id: "local-property",
@@ -147,7 +153,7 @@ describe("channel inventory and exact rates", () => {
       closed_to_arrival: true,
       closed_to_departure: true,
       min_stay_through: 4,
-      min_stay_arrival: 1,
+      min_stay_arrival: 4,
     });
   });
   it("uses canonical occupancy pricing and overrides for one through four adults", () => {
@@ -340,12 +346,13 @@ describe("verified Channex API contract", () => {
     ).rejects.toThrow("channel_child_fee_mismatch");
   });
   it("sends rates before opening inventory, using separate endpoints", async () => {
-    const transport = vi.fn<typeof fetch>(async () =>
-      reply({ meta: { message: "Success", warnings: [] } }),
-    );
+    const transport = vi.fn<typeof fetch>(async () => reply(ariAccepted()));
     const client = new ChannexClient("staging", "key", transport);
     const ari = buildChannexAri(input);
-    await client.sendAri(ari);
+    expect(await client.sendAri(ari)).toEqual({
+      restrictions: [TASK],
+      availability: [TASK],
+    });
     expect(transport.mock.calls.map(([url]) => new URL(String(url)).pathname)).toEqual([
       "/api/v1/restrictions",
       "/api/v1/availability",
@@ -356,6 +363,25 @@ describe("verified Channex API contract", () => {
     expect(JSON.parse(String(transport.mock.calls[1][1]?.body))).toEqual({
       values: ari.availability,
     });
+  });
+  it.each([
+    { data: [], meta: { message: "Success", warnings: [] } },
+    { meta: { message: "Success", warnings: [] } },
+    { data: [{ type: "task", id: "invalid-task-id" }] },
+    { data: [null] },
+  ])("rejects a missing or malformed task receipt for full and partial ARI %j", async (body) => {
+    const full = buildChannexAri(input);
+    for (const ari of [
+      full,
+      { restrictions: full.restrictions.slice(0, 1), availability: [] },
+      { restrictions: [], availability: full.availability.slice(0, 1) },
+    ]) {
+      const transport = vi.fn<typeof fetch>(async () => reply(body));
+      await expect(new ChannexClient("staging", "key", transport).sendAri(ari)).rejects.toThrow(
+        "channex_invalid_response",
+      );
+      expect(transport).toHaveBeenCalledTimes(1);
+    }
   });
   it("does not open inventory after HTTP 200 partially rejected restrictions", async () => {
     const transport = vi.fn<typeof fetch>(async () =>
@@ -698,6 +724,7 @@ function syncDatabase() {
   const rpcCalls: { name: string; args: Record<string, unknown> }[] = [];
   let completionAccepted = true;
   let busy = false;
+  let ariState: AriState | null = null;
   const admin = {
     from(table: string) {
       let patch: Record<string, unknown> | null = null;
@@ -733,6 +760,7 @@ function syncDatabase() {
           return result();
         },
         async maybeSingle() {
+          if (table === "channel_ari_state") return { data: ariState, error: null };
           return { data: table === "properties" ? { max_stay: 30 } : { ...current }, error: null };
         },
         then(onFulfilled: (value: unknown) => unknown) {
@@ -747,6 +775,37 @@ function syncDatabase() {
       if (name === "claim_channel_sync") return { data: busy ? null : "lease", error: null };
       if (name === "validate_channel_sync")
         return { data: args.p_dirty_at === current.sync_dirty_at, error: null };
+      if (name === "prepare_channel_ari") {
+        const prepared = args as {
+          p_snapshot: AriState["pending_snapshot"];
+          p_payload: AriState["pending_payload"];
+          p_dirty_at: string | null;
+          p_from: string;
+        };
+        ariState = {
+          acknowledged_snapshot: ariState?.acknowledged_snapshot ?? null,
+          recovery_required: ariState?.recovery_required ?? false,
+          property_id: current.property_id,
+          external_property_id: current.external_property_id,
+          environment: current.environment,
+          pending_snapshot: prepared.p_snapshot,
+          pending_payload: prepared.p_payload,
+          pending_dirty_at: prepared.p_dirty_at,
+          pending_from: prepared.p_from,
+        };
+        return { data: true, error: null };
+      }
+      if (name === "invalidate_channel_ari") {
+        if (ariState) {
+          ariState.recovery_required = true;
+          if (args.p_full) {
+            ariState.acknowledged_snapshot = null;
+            ariState.pending_snapshot = null;
+            ariState.pending_payload = null;
+          }
+        }
+        return { data: true, error: null };
+      }
       return { data: completionAccepted, error: null };
     },
   };
@@ -764,7 +823,7 @@ function syncDatabase() {
 }
 
 describe("outgoing synchronization races", { timeout: 20_000 }, () => {
-  it("closes inventory, drains bookings and validates a stable version before reopening", async () => {
+  it("drains bookings and validates a stable version before acknowledging the first full snapshot", async () => {
     const db = syncDatabase();
     const transport = verificationTransport();
     const client = new ChannexClient("staging", "key", transport);
@@ -777,11 +836,11 @@ describe("outgoing synchronization races", { timeout: 20_000 }, () => {
       if (path.startsWith("/availability")) {
         const values = (body as { values: { availability: number }[] }).values;
         flow.push(values.every((v) => v.availability === 0) ? "close" : "open");
-        return { meta: { message: "Success" } };
+        return ariAccepted();
       }
       if (path === "/restrictions") {
         flow.push("rates");
-        return { meta: { message: "Success" } };
+        return ariAccepted();
       }
       return (await transport(`https://staging.channex.io/api/v1${path}`)).json();
     });
@@ -789,11 +848,11 @@ describe("outgoing synchronization races", { timeout: 20_000 }, () => {
       submitted: true,
       dates: 500,
     });
-    expect(flow).toEqual(["close", "drain", "rates", "open"]);
-    expect(db.rpcCalls.filter((c) => c.name === "validate_channel_sync")).toHaveLength(3);
+    expect(flow).toEqual(["drain", "rates", "open"]);
+    expect(db.rpcCalls.filter((c) => c.name === "validate_channel_sync")).toHaveLength(2);
     expect(db.rpcCalls.at(-1)).toMatchObject({
-      name: "complete_channel_sync",
-      args: { p_error: null },
+      name: "acknowledge_channel_ari",
+      args: { p_dirty_at: "2026-09-29T12:00:00.000Z" },
     });
   });
   it("immediately closes and rebuilds after an external revision changes the snapshot during submission", async () => {
@@ -818,12 +877,12 @@ describe("outgoing synchronization races", { timeout: 20_000 }, () => {
           db.current.sync_dirty_at = "2026-09-29T12:01:00.000Z";
         }
       }
-      return { meta: { message: "Success" } };
+      return ariAccepted();
     });
     expect(await syncChannelAri(db.admin, db.current, client)).toMatchObject({
       submitted: true,
     });
-    expect(changes).toEqual(["close", "open", "close", "open"]);
+    expect(changes).toEqual(["open", "close", "open"]);
   });
   it("does not advertise success when its lease was replaced or completion failed", async () => {
     const db = syncDatabase();
@@ -835,7 +894,7 @@ describe("outgoing synchronization races", { timeout: 20_000 }, () => {
       mappedUnits: 1,
       inventoryDays: 365,
     });
-    vi.spyOn(client, "request").mockResolvedValue({ meta: { message: "Success" } });
+    vi.spyOn(client, "request").mockResolvedValue(ariAccepted());
     await expect(syncChannelAri(db.admin, db.current, client)).rejects.toThrow(
       "channel_sync_completion_failed",
     );

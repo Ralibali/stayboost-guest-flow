@@ -15,6 +15,9 @@ anslutning och verkliga provflöden innan Sirvoy stängs.
 3. Spara boendets egen HTTPS-länk till bokningsvillkor i **Inställningar**.
 4. Konfigurera Stripe och dess betalnings-/återbetalningswebhooks, eller manuell
    Swish-kontroll. Verifiera bekräftelsemejl och eventuella SMS med provgäster.
+   Standardmallen för incheckning använder SMS. Anslut SMS-tjänsten eller ändra
+   aktiva SMS-mallar till endast mejl i **Gästresa**. Det sker ingen automatisk
+   ersättning av SMS med mejl; startkontrollen visar vilka kanalanslutningar som återstår.
 5. Frukost som kostar per portion och morgon ska ha pris **Per natt** och
    leveransplan **Varje morgon**. Antalet gäller portioner per morgon. Leveranser
    skapas från dagen efter ankomst till och med avresedagen. Alla leveransdagar
@@ -58,8 +61,11 @@ Certifiera i staging innan produktionsanslutningen öppnas. Testa ny bokning,
 återhämtning. Kontrollera vuxenpriser, barn-/småbarnsgränser, avgifter, minst antal
 nätter och stängda datum på själva kanalen. Kanaldata med okänd mappning eller
 konflikt blockerar nya direktbokningar tills incidenten har lösts. Aktiverade
-kanaler måste ha en fullständig bokningssynk inom fem minuter och en fullständig
+kanaler måste ha en fullständig bokningssynk inom fem minuter och en bekräftad
 kalendersynk inom 26 timmar; annars pausas nya lokala bokningar och flyttar.
+Normalt skickas bara ändrade kalenderuppgifter och nytillkomna datum. Full synk
+används vid första anslutningen, uttrycklig avstämning eller säker återhämtning.
+Ändra kanalernas priser och tillgänglighet genom StayBoost när övertagandet är klart.
 
 Gör en sista bokningsavstämning under bytet. Samma kanal ska ha en ansvarig
 källa för tillgänglighet och priser. Stäng inte Sirvoy förrän varje avsedd kanal

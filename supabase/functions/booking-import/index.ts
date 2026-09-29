@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { emailProviderConfigured } from "../_shared/email-provider.ts";
 const cors = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
@@ -38,12 +39,21 @@ Deno.serve(async (req) => {
   if (propertyError) return json({ error: "database_unavailable" }, 503);
   if (!property) return json({ error: "not_authorized" }, 403);
   if (body.action === "readiness") {
+    const { count: enabledSmsTemplates, error: templateError } = await admin
+      .from("message_templates")
+      .select("id", { count: "exact", head: true })
+      .eq("property_id", property.id)
+      .eq("enabled", true)
+      .in("channel", ["sms", "both"]);
+    if (templateError || enabledSmsTemplates == null)
+      return json({ error: "readiness_unavailable" }, 503);
     // Configuration presence only. No key values, requests, emails or payments.
     return json({
       stripeConfigured: Boolean(Deno.env.get("STRIPE_SECRET_KEY")),
       stripeWebhookConfigured: Boolean(Deno.env.get("STRIPE_WEBHOOK_SECRET")),
-      emailConfigured: Boolean(Deno.env.get("BREVO_API_KEY") && Deno.env.get("BREVO_SENDER_EMAIL")),
+      emailConfigured: emailProviderConfigured((name) => Deno.env.get(name)),
       smsConfigured: Boolean(Deno.env.get("ELKS_API_USER") && Deno.env.get("ELKS_API_PASSWORD")),
+      enabledSmsTemplates,
     });
   }
   if (!Array.isArray(body.rows) || body.rows.length < 1 || body.rows.length > 2000)

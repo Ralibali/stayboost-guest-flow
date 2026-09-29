@@ -1,5 +1,6 @@
 import { appBaseUrl } from "./app-url.ts";
 import { formatSvDate, renderTemplate } from "./templates.ts";
+import { buildEmailRequest, getEmailProvider } from "./email-provider.ts";
 
 type Admin = {
   rpc(
@@ -23,7 +24,11 @@ export function bookingCommunicationsAllowed(booking: {
   );
 }
 export type MessageDeliveryOutcome =
-  "sent" | "failed" | "waiting_contact" | "waiting_payment" | "skipped";
+  | "sent"
+  | "failed"
+  | "waiting_contact"
+  | "waiting_payment"
+  | "skipped";
 
 /** One provider attempt per lease; uncertain results require review, never blind replay. */
 export async function deliverScheduledMessage(
@@ -102,24 +107,20 @@ export async function deliverScheduledMessage(
   let options: RequestInit;
   let provider: string;
   if (row.channel === "email") {
-    const key = env("BREVO_API_KEY");
-    const sender = env("BREVO_SENDER_EMAIL");
-    if (!key || !sender) {
-      await finish("rejected", "Brevo är inte konfigurerat.");
+    const config = getEmailProvider(env);
+    if (!config) {
+      await finish("rejected", "E-postleverantören eller avsändaren är inte konfigurerad.");
       return "failed";
     }
-    provider = "Brevo";
-    url = "https://api.brevo.com/v3/smtp/email";
-    options = {
-      method: "POST",
-      headers: { "api-key": key, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sender: { email: sender, name: env("BREVO_SENDER_NAME") ?? p.name },
-        to: [{ email: contact, name: b.guest_name ?? undefined }],
-        subject: subject || `Meddelande från ${p.name}`,
-        textContent: body,
-      }),
-    };
+    const request = buildEmailRequest(config, {
+      deliveryId: messageId,
+      recipientEmail: contact,
+      recipientName: b.guest_name ?? undefined,
+      fallbackSenderName: p.name,
+      subject: subject || `Meddelande från ${p.name}`,
+      text: body,
+    });
+    ({ provider, url, options } = request);
   } else if (row.channel === "sms") {
     const user = env("ELKS_API_USER");
     const password = env("ELKS_API_PASSWORD");
@@ -160,7 +161,9 @@ export async function deliverScheduledMessage(
     return "failed";
   }
   if (!response.ok) {
-    const uncertain = response.status >= 500;
+    // A Resend idempotency conflict can mean another request has been accepted
+    // or remains in flight. Keep the ledger's review gate instead of blind replay.
+    const uncertain = response.status >= 500 || (provider === "Resend" && response.status === 409);
     await finish(
       uncertain ? "unknown" : "rejected",
       uncertain
@@ -170,6 +173,10 @@ export async function deliverScheduledMessage(
     return "failed";
   }
   const receipt = await response.json().catch(() => null);
+  if (provider === "Resend" && (typeof receipt?.id !== "string" || !receipt.id)) {
+    await finish("unknown", "Leveranskvittot saknas. Kontrollera leverantören före nytt utskick.");
+    return "failed";
+  }
   await finish(
     "accepted",
     null,

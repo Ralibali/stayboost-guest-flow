@@ -55,25 +55,39 @@ excluded from persisted payloads and browser responses.
    capacity policies require partner/channel verification; the checkbox is an
    operational attestation, not proof supplied by the API.
 6. Verify mappings, register booking notifications, explicitly enable the
-   connection and run a full synchronization. Mapping changes require pausing and
-   invalidate verification. Registering a webhook is safe to retry.
+   connection and run a full synchronization. Before pausing synchronization or
+   changing mappings, close sales in the channels through Channex and verify the
+   closure there. Pausing the local connection stops updates and leaves OTA sales
+   unchanged. Mapping changes require pausing and invalidate verification.
+   Registering a webhook is safe to retry.
 7. Complete Channex staging certification: create, modify, cancel, multiroom,
    duplicate and delayed revisions; payment hints; unmapped rooms; overlapping
    bookings; transient API failure; retry and acknowledgement; restriction/rate
    consistency and inventory recovery. Review actual channels before cutover.
 8. Run `supabase/cron/register-channel-jobs.sql` only after credentials and
    certification are ready. It uses the existing Vault URL and cron secret and
-   schedules minute batches. The adapter retries failures with backoff, keeps
-   concurrent changes dirty and performs a daily full inventory refresh.
+   schedules minute batches. The adapter retries failures with backoff and keeps
+   concurrent changes dirty. Its server-owned outbox stores absolute pending
+   changes and a baseline that advances only after warning-free provider acceptance
+   and an atomic version/lease check. Normal changes send changed fields batched
+   into contiguous date ranges. A daily horizon rollover initializes the new dates
+   and opens the newly eligible booking date without resending the whole inventory.
+   First connection, explicit **Synka allt**, mapping changes and unsafe recovery
+   require a full sync. Uncertain requests replay the stored absolute payload if
+   the source version and horizon are unchanged and the temporary inventory
+   closure can be restored by that payload. A restriction-only failure closes the
+   whole inventory and invalidates the baseline, requiring a full recovery sync;
+   partially accepted prices or minimum stays must not remain available for sale.
+   Newer source versions also rebuild safely.
 
 During outgoing synchronization, a short database lease prevents local inventory
-writes from racing the external inventory snapshot. Remote inventory is closed
-while revisions are drained and rates are refreshed. Version checks before and
-after reopening detect concurrent revisions and retry safely. Unresolved incoming
+writes from racing the external inventory snapshot. The booking feed is drained
+before changes are submitted. Version checks before and after submission detect
+concurrent revisions and trigger safe closure and recovery. Unresolved incoming
 revisions persist as pending incidents and block new local reservations. Operator
 attention is required for conflicts, mapping failures and uncertain closure.
 Enabled connections also block local reservations and inventory changes until a
-complete booking feed has succeeded within five minutes and a full ARI update
+complete booking feed has succeeded within five minutes and an acknowledged ARI update
 within 26 hours. The initial synchronization can run while this gate is closed.
 
 ## Channel-specific cutover limitations
@@ -82,11 +96,34 @@ Channex lists `BOK` for BookVisit/Citybreak/Nozio. The iframe channel list does 
 include BOK; confirm availability and connection procedure with the partner and
 account before promising BookVisit support.
 
+Airbnb supports arrival-based minimum stays. The adapter sends the effective
+minimum in both arrival and through fields, which preserves the ordinary minimum
+for Airbnb and through restrictions for channels that support them. Varying
+minimum-stay windows crossed during a stay cannot be represented exactly by
+Airbnb's arrival model; verify them on the real channel or avoid unsupported rules
+before enabling it. Standard Airbnb listings use one included-guest count and a
+constant extra-guest fee. Arbitrary adult occupancy prices and separate child age
+fees require a verified compatible channel/rate-plan setup. General ARI mapping
+verification does not certify those channel-specific settings. Test final guest
+prices for every supported party and the minimum-stay cases before live cutover.
+See the [official Airbnb connection guide](https://help.channex.io/en/articles/8225359-how-to-connect-with-airbnb).
+
 Channex's Google Hotel Centre requires its Instant Booking Page. Using Stayboost's
 own booking engine for Google needs an approved Hotel Centre arrangement; the
 standard partner integration does not establish this permission. The Google
 Vacation Rental path has separate requirements. Resolve the appropriate product
 and agreement before activating it for glamping.
+
+Google Hotel Ads also requires fixed walls and plumbing; Google explicitly lists
+campsites where guests stay in tents as ineligible. Bergs slussar's glamping tents
+cannot therefore be promised Hotel Ads simply by connecting Channex. Google's
+outdoor-lodging category also excludes tents or simple units without climate
+control or indoor plumbing, including properties with only shared washrooms;
+choosing Vacation Rentals does not establish an exception. An eligible cabin or
+other qualifying accommodation needs a separate eligibility decision. See
+Google's [lodging categories](https://support.google.com/hotelprices/answer/9970971?hl=en),
+[hotel listing requirements](https://developers.google.com/hotels/hotel-prices/xml-reference/hotel-list-feed)
+and [Vacation Rentals onboarding](https://developers.google.com/hotels/vacation-rentals/dev-guide/onboarding).
 
 Sirvoy CSV cutover imports are owned by Stayboost after import. Existing live
 Sirvoy/iCal/Channex bookings remain controlled by their source until the explicit

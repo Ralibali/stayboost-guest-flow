@@ -1,5 +1,6 @@
 import { nightlyPriceWithRules, nightsBetween, type UnitPricing } from "./pricing.ts";
 import { minStayFromRules, ruleCoversDate, rulesForUnit, type RateRule } from "./rate-rules.ts";
+import { canonicalAriValue, type AriChanges } from "./channex-ari.ts";
 
 /** Protocol verified against docs.channex.io API v1 on 2026-09-29. */
 export type ChannexEnvironment = "staging" | "production";
@@ -17,6 +18,7 @@ export interface ChannelConnection {
   last_error?: string | null;
   sync_dirty_at?: string | null;
   next_retry_at?: string | null;
+  ari_horizon_date?: string | null;
 }
 export interface ChannelUnitMapping {
   unit_id: string;
@@ -282,11 +284,33 @@ export class ChannexClient {
     if (!validChannexId(revisionId)) throw new ChannexError("invalid_revision_id", 400);
     await this.request(`/booking_revisions/${revisionId}/ack`, "POST", {});
   }
-  async sendAri(ari: AriPayload) {
+  async sendAri(ari: AriPayload | AriChanges) {
     // Rates and restrictions first, so newly opened availability cannot expose a
     // stale price. Inventory remains in a separate priority request as required.
-    await this.request("/restrictions", "POST", { values: ari.restrictions });
-    await this.request("/availability", "POST", { values: ari.availability });
+    const receipts: Record<string, string[]> = {};
+    for (const [path, values] of [
+      ["restrictions", ari.restrictions],
+      ["availability", ari.availability],
+    ] as const) {
+      if (!values.length) continue;
+      const response = await this.request(`/${path}`, "POST", canonicalAriValue({ values }));
+      // A successful nonempty ARI batch creates tasks. A bare 200 or an empty
+      // receipt does not prove acceptance and must never advance our baseline.
+      if (
+        !Array.isArray(response.data) ||
+        !response.data.length ||
+        response.data.some(
+          (row: unknown) =>
+            !row ||
+            typeof row !== "object" ||
+            (row as { type?: unknown }).type !== "task" ||
+            !validChannexId((row as { id?: unknown }).id),
+        )
+      )
+        throw new ChannexError("channex_invalid_response");
+      receipts[path] = response.data.map((row: { id: string }) => row.id);
+    }
+    return receipts;
   }
   async registerWebhook(propertyId: string, callback: string, secret: string) {
     if (!validChannexId(propertyId) || !secret || new URL(callback).protocol !== "https:")
@@ -586,7 +610,7 @@ export function buildChannexAri(input: {
         date,
         ...(unit.party_pricing_enabled ? { rates } : { rate: rates[0].rate }),
         min_stay_through: Math.max(unit.min_stay, minStayFromRules(rules, unit.id, [date])),
-        min_stay_arrival: 1,
+        min_stay_arrival: Math.max(unit.min_stay, minStayFromRules(rules, unit.id, [date])),
         max_stay: input.maxStay,
         stop_sell: closed,
         closed_to_arrival: scoped.some(
