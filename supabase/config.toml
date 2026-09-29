@@ -60,3 +60,19 @@ verify_jwt = false
 # Endast server-till-server via x-cron-secret.
 [functions.ops-cron]
 verify_jwt = false
+
+# Owner authentication is also checked inside the import handler.
+[functions.booking-import]
+verify_jwt = true
+
+# Owner JWTs and the cron secret are validated in the handler.
+[functions.channel-sync]
+verify_jwt = false
+
+# Channex's environment-specific shared-secret header is validated in the handler.
+[functions.channex-webhook]
+verify_jwt = false
+
+# Owner attestation for historic imported payments, never a new charge.
+[functions.booking-reconcile]
+verify_jwt = true

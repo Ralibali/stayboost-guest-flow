@@ -6,6 +6,10 @@ import {
   type StaySuggestion,
 } from "@/lib/booking-search";
 import type { Lang } from "@/lib/boka-i18n";
+import { stockholmDay } from "../../supabase/functions/_shared/guest-stay";
+import { partySize, type BookingParty } from "../../supabase/functions/_shared/pricing";
+import { PartySelector } from "./PartySelector";
+import { partyLabels } from "@/lib/party-i18n";
 
 const labels = {
   sv: {
@@ -68,18 +72,25 @@ export function StaySearch({
   bookingEnabled: boolean;
   availableThrough?: string;
   lang: Lang;
-  onChoose: (stay: StaySuggestion, guests: number) => void;
+  onChoose: (stay: StaySuggestion, guests: number, party?: BookingParty) => void;
 }) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = stockholmDay();
   const through = availableThrough ?? addIsoDays(today, 364);
   const maxNights = Math.min(30, maxStay);
   const [checkin, setCheckin] = useState(today);
   const [nights, setNights] = useState(Math.min(2, maxNights));
   const [guests, setGuests] = useState(Math.min(2, Math.max(1, ...units.map((u) => u.maxGuests))));
+  const [party, setParty] = useState<BookingParty>({
+    adults: Math.min(2, Math.max(1, ...units.map((u) => u.maxGuests))),
+    childrenAges: [],
+  });
+  const partyEnabled = units.some((unit) => unit.partyPricingEnabled);
+  const [showPartyError, setShowPartyError] = useState(false);
   const [searched, setSearched] = useState<{
     checkin: string;
     nights: number;
     guests: number;
+    party?: BookingParty;
   } | null>(null);
   const t = labels[lang];
   const result = searched
@@ -100,7 +111,10 @@ export function StaySearch({
       year: "numeric",
       timeZone: "UTC",
     });
-  const change = () => setSearched(null);
+  const change = () => {
+    setSearched(null);
+    setShowPartyError(false);
+  };
   return (
     <section
       className="mb-6 rounded-3xl border border-[#DDD8CB] bg-[#E9F0EC] p-5 sm:p-7"
@@ -114,7 +128,20 @@ export function StaySearch({
             className="mt-4 grid gap-3 sm:grid-cols-3"
             onSubmit={(event) => {
               event.preventDefault();
-              setSearched({ checkin, nights, guests });
+              if (
+                partyEnabled &&
+                (party.childrenAges.some((age) => age < 0) ||
+                  partySize(party) > Math.max(1, ...units.map((unit) => unit.maxGuests)))
+              ) {
+                setShowPartyError(true);
+                return;
+              }
+              setSearched({
+                checkin,
+                nights,
+                guests: partyEnabled ? partySize(party) : guests,
+                ...(partyEnabled ? { party } : {}),
+              });
             }}
           >
             <label className="text-sm font-semibold">
@@ -147,25 +174,46 @@ export function StaySearch({
                 className="mt-1 block min-h-11 w-full rounded-xl border p-2"
               />
             </label>
-            <label className="text-sm font-semibold">
-              {t.guests}
-              <input
-                required
-                type="number"
-                min={1}
-                max={Math.max(1, ...units.map((u) => u.maxGuests))}
-                value={guests || ""}
-                onChange={(e) => {
-                  setGuests(Number(e.target.value));
-                  change();
-                }}
-                className="mt-1 block min-h-11 w-full rounded-xl border p-2"
-              />
-            </label>
+            {!partyEnabled && (
+              <label className="text-sm font-semibold">
+                {t.guests}
+                <input
+                  required
+                  type="number"
+                  min={1}
+                  max={Math.max(1, ...units.map((u) => u.maxGuests))}
+                  value={guests || ""}
+                  onChange={(e) => {
+                    setGuests(Number(e.target.value));
+                    change();
+                  }}
+                  className="mt-1 block min-h-11 w-full rounded-xl border p-2"
+                />
+              </label>
+            )}
+            {partyEnabled && (
+              <div className="sm:col-span-3">
+                <PartySelector
+                  party={party}
+                  maxGuests={Math.max(1, ...units.map((unit) => unit.maxGuests))}
+                  maxChildAge={Math.max(...units.map((unit) => unit.childMaxAge ?? 12))}
+                  lang={lang}
+                  onChange={(value) => {
+                    setParty(value);
+                    change();
+                  }}
+                />
+              </div>
+            )}
             <button className="min-h-11 rounded-xl bg-[#173D2E] px-4 py-3 text-sm font-bold text-white sm:col-span-3">
               {t.search}
             </button>
           </form>
+          {showPartyError && (
+            <p role="alert" className="mt-3 text-sm text-[#A33B2A]">
+              {partyLabels[lang].invalid}
+            </p>
+          )}
           {result && (
             <div className="mt-5" role="status" aria-live="polite">
               <h3 className="font-semibold">
@@ -189,7 +237,7 @@ export function StaySearch({
                     </div>
                     <button
                       type="button"
-                      onClick={() => onChoose(stay, searched!.guests)}
+                      onClick={() => onChoose(stay, searched!.guests, searched!.party)}
                       className="min-h-11 rounded-xl border border-[#173D2E] px-4 text-sm font-bold"
                     >
                       {t.choose}

@@ -14,6 +14,9 @@ import {
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { guestPageUrl, supabase, useProperty, useSession, type Booking } from "@/lib/supabase";
+import { fetchAllRows } from "@/lib/operator-bookings";
+import { propertyDay, propertyDateLabel, shiftPropertyDay } from "@/lib/property-dates";
+import { STAY_STATUS } from "@/lib/booking-admin";
 
 export const Route = createFileRoute("/app/idag")({
   component: TodayPage,
@@ -28,10 +31,9 @@ type OpsBooking = Booking & {
   } | null;
 };
 
-const iso = (d: Date) => d.toISOString().slice(0, 10);
 const fmtKr = (n: number) => `${Math.round(n).toLocaleString("sv-SE")} kr`;
 const dateLabel = (value: string) =>
-  new Date(`${value}T12:00:00`).toLocaleDateString("sv-SE", {
+  propertyDateLabel(value, {
     weekday: "short",
     day: "numeric",
     month: "short",
@@ -48,21 +50,29 @@ function TodayPage() {
     if (!supabase || !property) return;
     setLoading(true);
     setError(null);
-    const start = new Date();
-    start.setDate(start.getDate() - 1);
-    const end = new Date();
-    end.setDate(end.getDate() + 3);
-    const { data, error: loadError } = await supabase
-      .from("bookings")
-      .select("*, unit:units(name,max_guests,door_code,checkin_instructions)")
-      .eq("property_id", property.id)
-      .eq("status", "confirmed")
-      .gte("checkout_date", iso(start))
-      .lte("checkin_date", iso(end))
-      .order("checkin_date");
-    if (loadError) setError(loadError.message);
-    setBookings((data as OpsBooking[]) ?? []);
-    setLoading(false);
+    const client = supabase;
+    const today = propertyDay();
+    try {
+      const data = await fetchAllRows<OpsBooking>((from, to) =>
+        client
+          .from("bookings")
+          .select("*, unit:units(name,max_guests,door_code,checkin_instructions)", {
+            count: "exact",
+          })
+          .eq("property_id", property.id)
+          .eq("status", "confirmed")
+          .gte("checkout_date", shiftPropertyDay(today, -1))
+          .lte("checkin_date", shiftPropertyDay(today, 3))
+          .order("checkin_date")
+          .order("id")
+          .range(from, to),
+      );
+      setBookings(data);
+    } catch (failure) {
+      setError(failure instanceof Error ? failure.message : "Bokningar kunde inte hämtas.");
+    } finally {
+      setLoading(false);
+    }
   }, [property]);
 
   useEffect(() => {
@@ -70,14 +80,18 @@ function TodayPage() {
   }, [load]);
 
   const board = useMemo(() => {
-    const today = iso(new Date());
-    const tomorrowDate = new Date();
-    tomorrowDate.setDate(tomorrowDate.getDate() + 1);
-    const tomorrow = iso(tomorrowDate);
+    const today = propertyDay();
+    const tomorrow = shiftPropertyDay(today, 1);
     const arrivals = bookings.filter((b) => b.checkin_date === today);
     const departures = bookings.filter((b) => b.checkout_date === today);
     const tomorrowArrivals = bookings.filter((b) => b.checkin_date === tomorrow);
-    const inHouse = bookings.filter((b) => b.checkin_date <= today && b.checkout_date > today);
+    const inHouse = bookings.filter(
+      (b) =>
+        b.checkin_date <= today &&
+        b.checkout_date > today &&
+        b.stay_status !== "checked_out" &&
+        b.stay_status !== "no_show",
+    );
     const attention = bookings.filter(
       (b) =>
         (b.checkin_date === today || b.checkin_date === tomorrow) &&
@@ -100,18 +114,18 @@ function TodayPage() {
 
   if (!property) return null;
 
-  const todayLong = new Date().toLocaleDateString("sv-SE", {
+  const todayLong = propertyDateLabel(propertyDay(), {
     weekday: "long",
     day: "numeric",
     month: "long",
   });
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-private="true">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#2d684c]">
-            <Sparkles size={13} /> Operations board
+            <Sparkles size={13} /> Dagens drift
           </div>
           <h1 className="mt-2 font-[Fraunces] text-[34px] font-semibold leading-tight">Idag</h1>
           <p className="mt-1 text-[13px] capitalize text-[color:var(--ink)]/45">
@@ -140,123 +154,136 @@ function TodayPage() {
         </div>
       ) : null}
 
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        <Stat
-          icon={CalendarCheck}
-          label="Ankomster idag"
-          value={board.arrivals.length}
-          sub={`${board.tomorrowArrivals.length} imorgon`}
-        />
-        <Stat
-          icon={DoorOpen}
-          label="Avresor idag"
-          value={board.departures.length}
-          sub="Att vända efter utcheckning"
-        />
-        <Stat
-          icon={Users}
-          label="Gäster på plats"
-          value={board.inHouse.length}
-          sub="Aktiva vistelser idag"
-        />
-        <Stat
-          icon={AlertTriangle}
-          label="Kräver koll"
-          value={board.attention.length}
-          sub={board.pendingValue ? `${fmtKr(board.pendingValue)} väntar` : "Kontakt/betalning"}
-          attention={board.attention.length > 0}
-        />
-      </div>
-
-      {board.attention.length > 0 ? (
-        <section className="rounded-[24px] border border-amber-200 bg-amber-50 p-5 sm:p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-amber-700/60">
-                Prioriterat
-              </p>
-              <h2 className="mt-1 font-[Fraunces] text-[21px] font-semibold text-amber-950">
-                Det här bör lösas först
-              </h2>
+      {loading ? (
+        <p role="status" className="rounded-xl border bg-white p-5 text-sm">
+          Hämtar dagens bokningar…
+        </p>
+      ) : (
+        !error && (
+          <>
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
+              <Stat
+                icon={CalendarCheck}
+                label="Ankomster idag"
+                value={board.arrivals.length}
+                sub={`${board.tomorrowArrivals.length} imorgon`}
+              />
+              <Stat
+                icon={DoorOpen}
+                label="Avresor idag"
+                value={board.departures.length}
+                sub="Att vända efter utcheckning"
+              />
+              <Stat
+                icon={Users}
+                label="Pågående vistelser"
+                value={board.inHouse.length}
+                sub="Enligt datum och ankomststatus"
+              />
+              <Stat
+                icon={AlertTriangle}
+                label="Kräver koll"
+                value={board.attention.length}
+                sub={
+                  board.pendingValue ? `${fmtKr(board.pendingValue)} väntar` : "Kontakt/betalning"
+                }
+                attention={board.attention.length > 0}
+              />
             </div>
-            <span className="rounded-full bg-white/70 px-3 py-1 text-[10px] font-bold text-amber-800">
-              {board.attention.length} saker
-            </span>
-          </div>
-          <div className="mt-4 grid gap-2 md:grid-cols-2">
-            {board.attention.map((b) => (
-              <Link
-                key={b.id}
-                to="/app/bokningar"
-                className="rounded-2xl border border-amber-200 bg-white/75 p-4 transition hover:bg-white"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-[13px] font-bold">{b.guest_name ?? "Okänd gäst"}</p>
-                  <span className="text-[10px] font-bold text-amber-700">
-                    {dateLabel(b.checkin_date)}
+
+            {board.attention.length > 0 ? (
+              <section className="rounded-[24px] border border-amber-200 bg-amber-50 p-5 sm:p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-amber-700/60">
+                      Prioriterat
+                    </p>
+                    <h2 className="mt-1 font-[Fraunces] text-[21px] font-semibold text-amber-950">
+                      Det här bör lösas först
+                    </h2>
+                  </div>
+                  <span className="rounded-full bg-white/70 px-3 py-1 text-[10px] font-bold text-amber-800">
+                    {board.attention.length} saker
                   </span>
                 </div>
-                <p className="mt-1 text-[11px] text-amber-950/55">
-                  {b.unit?.name ?? "Ingen enhet"}
-                </p>
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {b.payment_status === "pending" ? (
-                    <Tag
-                      text={`Betalning ${b.payment_amount ? fmtKr(b.payment_amount) : "väntar"}`}
-                    />
-                  ) : null}
-                  {!b.guest_email ? <Tag text="Saknar e-post" /> : null}
-                  {!b.guest_phone ? <Tag text="Saknar mobil" /> : null}
+                <div className="mt-4 grid gap-2 md:grid-cols-2">
+                  {board.attention.map((b) => (
+                    <Link
+                      key={b.id}
+                      to="/app/bokningar"
+                      search={{ booking: b.id }}
+                      className="rounded-2xl border border-amber-200 bg-white/75 p-4 transition hover:bg-white"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[13px] font-bold">{b.guest_name ?? "Okänd gäst"}</p>
+                        <span className="text-[10px] font-bold text-amber-700">
+                          {dateLabel(b.checkin_date)}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-[11px] text-amber-950/55">
+                        {b.unit?.name ?? "Ingen enhet"}
+                      </p>
+                      <div className="mt-3 flex flex-wrap gap-1.5">
+                        {b.payment_status === "pending" ? (
+                          <Tag
+                            text={`Betalning ${b.payment_amount ? fmtKr(b.payment_amount) : "väntar"}`}
+                          />
+                        ) : null}
+                        {!b.guest_email ? <Tag text="Saknar e-post" /> : null}
+                        {!b.guest_phone ? <Tag text="Saknar mobil" /> : null}
+                      </div>
+                    </Link>
+                  ))}
                 </div>
-              </Link>
-            ))}
-          </div>
-        </section>
-      ) : (
-        <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-[12px] font-semibold text-emerald-900">
-          <CheckCircle2 size={17} /> Inga betalnings- eller kontaktproblem för dagens och
-          morgondagens ankomster.
-        </div>
+              </section>
+            ) : (
+              <div className="flex items-center gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3.5 text-[12px] font-semibold text-emerald-900">
+                <CheckCircle2 size={17} /> Inga betalnings- eller kontaktproblem för dagens och
+                morgondagens ankomster.
+              </div>
+            )}
+
+            <div className="grid gap-5 xl:grid-cols-2">
+              <StayList
+                title="Ankommer idag"
+                subtitle="Gäster som ska checka in"
+                bookings={board.arrivals}
+                empty="Inga ankomster idag."
+              />
+              <StayList
+                title="Åker idag"
+                subtitle="Utcheckningar och vändningar"
+                bookings={board.departures}
+                empty="Inga avresor idag."
+                departure
+              />
+            </div>
+
+            <section className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-[0_8px_28px_rgba(25,40,31,0.04)]">
+              <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-4 sm:px-6">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[color:var(--ink)]/35">
+                    Förbered
+                  </p>
+                  <h2 className="mt-1 font-[Fraunces] text-[20px] font-semibold">
+                    Morgondagens ankomster
+                  </h2>
+                </div>
+                <span className="text-[11px] font-bold text-[color:var(--ink)]/40">
+                  {board.tomorrowArrivals.length} gäster
+                </span>
+              </div>
+              <div className="divide-y divide-black/[0.055]">
+                {board.tomorrowArrivals.length ? (
+                  board.tomorrowArrivals.map((b) => <BookingRow key={b.id} booking={b} />)
+                ) : (
+                  <Empty text="Inga ankomster imorgon." />
+                )}
+              </div>
+            </section>
+          </>
+        )
       )}
-
-      <div className="grid gap-5 xl:grid-cols-2">
-        <StayList
-          title="Ankommer idag"
-          subtitle="Gäster som ska checka in"
-          bookings={board.arrivals}
-          empty="Inga ankomster idag."
-        />
-        <StayList
-          title="Åker idag"
-          subtitle="Utcheckningar och vändningar"
-          bookings={board.departures}
-          empty="Inga avresor idag."
-          departure
-        />
-      </div>
-
-      <section className="overflow-hidden rounded-[24px] border border-black/[0.07] bg-white shadow-[0_8px_28px_rgba(25,40,31,0.04)]">
-        <div className="flex items-center justify-between border-b border-black/[0.06] px-5 py-4 sm:px-6">
-          <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-[color:var(--ink)]/35">
-              Förbered
-            </p>
-            <h2 className="mt-1 font-[Fraunces] text-[20px] font-semibold">
-              Morgondagens ankomster
-            </h2>
-          </div>
-          <span className="text-[11px] font-bold text-[color:var(--ink)]/40">
-            {board.tomorrowArrivals.length} gäster
-          </span>
-        </div>
-        <div className="divide-y divide-black/[0.055]">
-          {board.tomorrowArrivals.length ? (
-            board.tomorrowArrivals.map((b) => <BookingRow key={b.id} booking={b} />)
-          ) : (
-            <Empty text="Inga ankomster imorgon." />
-          )}
-        </div>
-      </section>
     </div>
   );
 }
@@ -308,7 +335,16 @@ function BookingRow({
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-[13px] font-bold">{b.guest_name ?? "Okänd gäst"}</p>
+            <Link
+              to="/app/bokningar"
+              search={{ booking: b.id }}
+              className="text-[13px] font-bold hover:underline"
+            >
+              {b.guest_name ?? "Okänd gäst"}
+            </Link>
+            <span className="rounded-full bg-[#edf3ef] px-2 py-0.5 text-[9px] font-semibold text-[#2d684c]">
+              {STAY_STATUS[b.stay_status ?? "expected"]}
+            </span>
             {b.payment_status === "pending" ? (
               <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[9px] font-bold text-amber-700">
                 Betalning väntar

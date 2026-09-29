@@ -11,6 +11,7 @@ import {
   LogOut,
   Mail,
   Menu,
+  Network,
   MessageSquareText,
   PackagePlus,
   PhoneCall,
@@ -37,7 +38,9 @@ const NAV = [
   { to: "/app/mallar", label: "Gästkommunikation", icon: Mail, group: "Gästresa" },
   { to: "/app/telefon", label: "Telefonagent", icon: PhoneCall, group: "Gästresa" },
   { to: "/app/inkorg", label: "Inkorg", icon: MessageSquareText, group: "Gästresa" },
+  { to: "/app/startklart", label: "Flytta från Sirvoy", icon: CheckCircle2, group: "System" },
   { to: "/app/kallor", label: "Kalenderkopplingar", icon: Link2, group: "System" },
+  { to: "/app/kanaler", label: "Bokningskanaler", icon: Network, group: "System" },
   { to: "/app/installningar", label: "Inställningar", icon: Settings, group: "System" },
 ] as const;
 
