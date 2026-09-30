@@ -1,6 +1,7 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import {
   BarChart3,
+  Bot,
   CalendarDays,
   CalendarRange,
   CheckCircle2,
@@ -36,6 +37,7 @@ const NAV = [
   { to: "/app/prisregler", label: "Pris & regler", icon: Tag, group: "Försäljning" },
   { to: "/app/tillval", label: "Tillval", icon: PackagePlus, group: "Försäljning" },
   { to: "/app/mallar", label: "Gästkommunikation", icon: Mail, group: "Gästresa" },
+  { to: "/app/concierge", label: "Concierge Lite", icon: Bot, group: "Gästresa" },
   { to: "/app/telefon", label: "Telefonagent", icon: PhoneCall, group: "Gästresa" },
   { to: "/app/inkorg", label: "Inkorg", icon: MessageSquareText, group: "Gästresa" },
   { to: "/app/startklart", label: "Flytta från Sirvoy", icon: CheckCircle2, group: "System" },
