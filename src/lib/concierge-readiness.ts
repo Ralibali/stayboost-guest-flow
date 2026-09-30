@@ -11,9 +11,7 @@ export type ConciergeReadiness = {
   nextActions: string[];
 };
 
-export function conciergeReadiness(
-  input: ConciergeReadinessInput,
-): ConciergeReadiness {
+export function conciergeReadiness(input: ConciergeReadinessInput): ConciergeReadiness {
   let score = 0;
   const nextActions: string[] = [];
 
