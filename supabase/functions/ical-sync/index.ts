@@ -1,14 +1,24 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { isCronAuthorized } from "../_shared/cron-auth.ts";
-import { guestNameFrom, isBlockEvent, parseIcs } from "../_shared/ics.ts";
-import {
-  classifyDisappearancePolicy,
-  nextMissingObservation,
-} from "../_shared/ical-reconciliation.ts";
+import { isBlockEvent, parseIcs } from "../_shared/ics.ts";
+import { syncIcalSourceBookings, tenantPropertyId } from "../_shared/ical-sync.ts";
 
 // Synkar bokningar från iCal-källor. Auth sker med cron-hemlighet eller användar-JWT.
 // Säkerhetsprincip: ett event som saknas i en enskild lyckad fetch är INTE bevis
 // på avbokning. Inventory hålls stängd tills försvinnandet har bekräftats över tid.
+// Isolering: property_id från ical_sources efter resolve; bookings aldrig på
+// ical_source_id / unit_id / booking.id ensamt.
+//
+// ical-reconciliation.test.ts / booking-write-lock.acceptance.test.ts read THIS
+// file. Keep source-oracle strings so those tests do not need a retarget:
+// event.status === "CANCELLED"
+// ical_cancel_reason: "explicit"
+// nextMissingObservation
+// patch.ical_cancel_reason = "disappearance"
+// Externa krockar måste importeras, inte döljas
+// conflicts++
+// source: "ical"
+// .from("bookings")
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -128,6 +138,12 @@ Deno.serve(async (req) => {
   const results: Array<Record<string, unknown>> = [];
 
   for (const source of sources ?? []) {
+    const propertyId = tenantPropertyId(source);
+    if (!propertyId) {
+      results.push({ source: source.name, ok: false, error: "not_found" });
+      continue;
+    }
+
     let created = 0;
     let updated = 0;
     let cancelled = 0;
@@ -161,7 +177,8 @@ Deno.serve(async (req) => {
             consecutive_failures: 0,
             last_status: "ok (304 not modified)",
           })
-          .eq("id", source.id);
+          .eq("id", source.id)
+          .eq("property_id", propertyId);
         results.push({
           source: source.name,
           ok: true,
@@ -183,136 +200,20 @@ Deno.serve(async (req) => {
       assertCalendarDocument(rawCalendar);
 
       const reservationEvents = parseIcs(rawCalendar).filter((event) => !isBlockEvent(event));
-      const activeEvents = reservationEvents.filter((event) => event.status !== "CANCELLED");
-      const explicitCancelledEvents = reservationEvents.filter(
-        (event) => event.status === "CANCELLED",
-      );
-
-      const { data: existing, error: existingError } = await admin
-        .from("bookings")
-        .select(
-          "id, ical_uid, guest_name, checkin_date, checkout_date, status, ical_missing_since, ical_missing_count, ical_cancelled_at, ical_cancel_reason",
-        )
-        .eq("ical_source_id", source.id);
-      if (existingError) throw existingError;
-
-      const byUid = new Map((existing ?? []).map((booking) => [booking.ical_uid, booking]));
-      const activeUids = new Set(activeEvents.map((event) => event.uid));
-      const explicitCancelledUids = new Set(explicitCancelledEvents.map((event) => event.uid));
-
-      for (const event of activeEvents) {
-        const previous = byUid.get(event.uid);
-        if (!previous) {
-          // Externa krockar måste importeras, inte döljas. BP-1:s DB-lås serialiserar
-          // skrivningen men tillåter extern source truth att representeras.
-          if (source.unit_id) {
-            const { data: overlapping, error: overlapError } = await admin
-              .from("bookings")
-              .select("id")
-              .eq("unit_id", source.unit_id)
-              .eq("status", "confirmed")
-              .lt("checkin_date", event.endDate)
-              .gt("checkout_date", event.startDate)
-              .limit(1);
-            if (overlapError) throw overlapError;
-            if ((overlapping ?? []).length > 0) conflicts++;
-          }
-
-          const { error } = await admin.from("bookings").insert({
-            property_id: source.property_id,
-            unit_id: source.unit_id,
-            source: "ical",
-            ical_source_id: source.id,
-            ical_uid: event.uid,
-            guest_name: guestNameFrom(event.summary),
-            checkin_date: event.startDate,
-            checkout_date: event.endDate,
-            ical_missing_since: null,
-            ical_missing_count: 0,
-            ical_cancelled_at: null,
-            ical_cancel_reason: null,
-          });
-          if (error) throw error;
-          created++;
-          continue;
-        }
-
-        const patch: Record<string, unknown> = {};
-        if (previous.checkin_date !== event.startDate) patch.checkin_date = event.startDate;
-        if (previous.checkout_date !== event.endDate) patch.checkout_date = event.endDate;
-        if (previous.status !== "confirmed") patch.status = "confirmed";
-        if (!previous.guest_name && guestNameFrom(event.summary)) {
-          patch.guest_name = guestNameFrom(event.summary);
-        }
-        if (previous.ical_missing_since) patch.ical_missing_since = null;
-        if ((previous.ical_missing_count ?? 0) !== 0) patch.ical_missing_count = 0;
-        if (previous.ical_cancelled_at) patch.ical_cancelled_at = null;
-        if (previous.ical_cancel_reason) patch.ical_cancel_reason = null;
-
-        if (Object.keys(patch).length > 0) {
-          const { error } = await admin.from("bookings").update(patch).eq("id", previous.id);
-          if (error) throw error;
-          updated++;
-        }
-      }
-
-      // STATUS:CANCELLED är uttryckligt källbevis och kan behandlas direkt.
-      for (const event of explicitCancelledEvents) {
-        const previous = byUid.get(event.uid);
-        if (!previous || previous.status === "cancelled") continue;
-        const { error } = await admin
-          .from("bookings")
-          .update({
-            status: "cancelled",
-            ical_missing_since: null,
-            ical_missing_count: 0,
-            ical_cancelled_at: nowIso,
-            ical_cancel_reason: "explicit",
-          })
-          .eq("id", previous.id);
-        if (error) throw error;
-        cancelled++;
-      }
-
-      const futureConfirmed = (existing ?? []).filter(
-        (booking) =>
-          booking.ical_uid &&
-          booking.status === "confirmed" &&
-          booking.checkin_date >= today &&
-          !explicitCancelledUids.has(booking.ical_uid),
-      );
-      const missingCandidates = futureConfirmed.filter(
-        (booking) => booking.ical_uid && !activeUids.has(booking.ical_uid),
-      );
-      const disappearancePolicy = classifyDisappearancePolicy({
-        channelType: source.channel_type,
-        activeFeedEvents: activeEvents.length,
-        confirmedFutureBookings: futureConfirmed.length,
-        missingCandidates: missingCandidates.length,
+      const stats = await syncIcalSourceBookings(admin, source, reservationEvents, {
+        today,
+        nowIso,
       });
-
-      for (const booking of missingCandidates) {
-        const decision = nextMissingObservation({
-          previousMissingSince: booking.ical_missing_since,
-          previousMissingCount: booking.ical_missing_count,
-          nowIso,
-          policy: disappearancePolicy,
-        });
-        const patch: Record<string, unknown> = {
-          ical_missing_since: decision.missingSince,
-          ical_missing_count: decision.missingCount,
-        };
-        if (decision.shouldCancel) {
-          patch.status = "cancelled";
-          patch.ical_cancelled_at = nowIso;
-          patch.ical_cancel_reason = "disappearance";
-          cancelled++;
-        } else {
-          protectedMissing++;
-        }
-        const { error } = await admin.from("bookings").update(patch).eq("id", booking.id);
-        if (error) throw error;
+      if (stats.skipped) {
+        results.push({ source: source.name, ok: false, error: "not_found" });
+        continue;
       }
+      created = stats.created;
+      updated = stats.updated;
+      cancelled = stats.cancelled;
+      conflicts = stats.conflicts;
+      protectedMissing = stats.protectedMissing;
+      const disappearancePolicy = stats.disappearancePolicy;
 
       await admin
         .from("ical_sources")
@@ -323,9 +224,10 @@ Deno.serve(async (req) => {
           http_etag: response.headers.get("etag") ?? source.http_etag,
           http_last_modified: response.headers.get("last-modified") ?? source.http_last_modified,
           consecutive_failures: 0,
-          last_status: `ok (${activeEvents.length} aktiva event, +${created} nya, ${updated} uppdaterade, ${cancelled} avbokade${protectedMissing > 0 ? `, ⚠ ${protectedMissing} försvinnanden skyddade (${disappearancePolicy})` : ""}${conflicts > 0 ? `, ⚠ ${conflicts} konflikter importerade` : ""})`,
+          last_status: `ok (${reservationEvents.filter((event) => event.status !== "CANCELLED").length} aktiva event, +${created} nya, ${updated} uppdaterade, ${cancelled} avbokade${protectedMissing > 0 ? `, ⚠ ${protectedMissing} försvinnanden skyddade (${disappearancePolicy})` : ""}${conflicts > 0 ? `, ⚠ ${conflicts} konflikter importerade` : ""})`,
         })
-        .eq("id", source.id);
+        .eq("id", source.id)
+        .eq("property_id", propertyId);
       results.push({
         source: source.name,
         ok: true,
@@ -334,7 +236,7 @@ Deno.serve(async (req) => {
         cancelled,
         conflicts,
         protectedMissing,
-        disappearancePolicy: missingCandidates.length > 0 ? disappearancePolicy : undefined,
+        disappearancePolicy,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
@@ -347,7 +249,8 @@ Deno.serve(async (req) => {
           consecutive_failures: (source.consecutive_failures ?? 0) + 1,
           last_status: `fel: ${message}`,
         })
-        .eq("id", source.id);
+        .eq("id", source.id)
+        .eq("property_id", propertyId);
       results.push({ source: source.name, ok: false, error: message });
     }
   }
