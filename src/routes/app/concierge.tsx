@@ -111,8 +111,8 @@ function ConciergePage() {
               AI-concierge med personalen i kontroll
             </h1>
             <p className="mt-2 max-w-3xl text-sm text-black/60">
-              Kunskapsbas, gästfrågor och merförsäljning i ett arbetsflöde. AI:n
-              förbereder svar; personalen granskar innan något skickas.
+              Kunskapsbas, gästfrågor och merförsäljning i ett arbetsflöde. AI:n förbereder svar;
+              personalen granskar innan något skickas.
             </p>
           </div>
           <span className="rounded-full bg-[#173c2b] px-3 py-1.5 text-xs font-semibold text-white">
@@ -122,27 +122,15 @@ function ConciergePage() {
       </header>
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <Stat
-          icon={Sparkles}
-          label="Guest AI"
-          value={property.guest_ai_enabled ? "Aktiv" : "Av"}
-        />
-        <Stat
-          icon={BookOpenText}
-          label="Verifierade FAQ"
-          value={String(stats.knowledgeCount)}
-        />
+        <Stat icon={Sparkles} label="Guest AI" value={property.guest_ai_enabled ? "Aktiv" : "Av"} />
+        <Stat icon={BookOpenText} label="Verifierade FAQ" value={String(stats.knowledgeCount)} />
         <Stat
           icon={MessageSquareText}
           label="Olästa frågor"
           value={String(stats.unreadCount)}
           attention={stats.unreadCount > 0}
         />
-        <Stat
-          icon={PackagePlus}
-          label="Aktiva tillval"
-          value={String(stats.activeAddonCount)}
-        />
+        <Stat icon={PackagePlus} label="Aktiva tillval" value={String(stats.activeAddonCount)} />
       </section>
 
       <section className="rounded-2xl border border-[#2d684c]/20 bg-[#edf6f1] p-5">
@@ -151,9 +139,9 @@ function ConciergePage() {
           <div>
             <h2 className="font-semibold">Human-review är standard</h2>
             <p className="mt-1 text-sm leading-relaxed text-black/65">
-              Gästens fråga kan bli ett internt AI-utkast från verifierad kunskapsbas.
-              Personal justerar och skickar via rätt kanal. Bokningsändringar och betalningar
-              görs inte automatiskt här.
+              Gästens fråga kan bli ett internt AI-utkast från verifierad kunskapsbas. Personal
+              justerar och skickar via rätt kanal. Bokningsändringar och betalningar görs inte
+              automatiskt här.
             </p>
           </div>
         </div>
@@ -173,10 +161,7 @@ function ConciergePage() {
           ) : readiness.nextActions.length ? (
             <div className="mt-4 space-y-3">
               {readiness.nextActions.map((action) => (
-                <div
-                  key={action}
-                  className="flex gap-3 rounded-xl bg-[#f5f6f3] p-3 text-sm"
-                >
+                <div key={action} className="flex gap-3 rounded-xl bg-[#f5f6f3] p-3 text-sm">
                   <TriangleAlert className="mt-0.5 size-4 shrink-0 text-amber-700" />
                   <span>{action}</span>
                 </div>
@@ -185,9 +170,7 @@ function ConciergePage() {
           ) : (
             <div className="mt-4 flex gap-3 rounded-xl bg-emerald-50 p-4 text-sm text-emerald-900">
               <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
-              <span>
-                Grundsetupen är komplett. Förbättra FAQ:n utifrån riktiga gästfrågor.
-              </span>
+              <span>Grundsetupen är komplett. Förbättra FAQ:n utifrån riktiga gästfrågor.</span>
             </div>
           )}
         </div>
@@ -197,18 +180,11 @@ function ConciergePage() {
           <div className="mt-4 space-y-2 text-sm">
             {[
               ["1", "Gästen skriver", "Webbinkorgen tar emot frågan."],
-              [
-                "2",
-                "AI förbereder",
-                "Utkast byggs från verifierad FAQ och instruktioner.",
-              ],
+              ["2", "AI förbereder", "Utkast byggs från verifierad FAQ och instruktioner."],
               ["3", "Personal granskar", "Utkastet kan ändras innan det används."],
               ["4", "Merförsäljning", "Aktiva tillval finns redo när de passar."],
             ].map(([number, title, body]) => (
-              <div
-                key={number}
-                className="grid grid-cols-[28px_1fr] gap-2 rounded-xl border p-3"
-              >
+              <div key={number} className="grid grid-cols-[28px_1fr] gap-2 rounded-xl border p-3">
                 <span className="grid h-7 w-7 place-items-center rounded-full bg-[#173c2b] text-xs font-bold text-white">
                   {number}
                 </span>
@@ -225,11 +201,7 @@ function ConciergePage() {
       <section className="rounded-2xl border bg-white p-5">
         <h2 className="font-[Fraunces] text-xl font-semibold">Snabbvägar</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          <QuickLink
-            to="/app/inkorg"
-            title="Inkorg"
-            body="Gästfrågor och AI-utkast."
-          />
+          <QuickLink to="/app/inkorg" title="Inkorg" body="Gästfrågor och AI-utkast." />
           <QuickLink
             to="/app/tillval"
             title="Tillval"
@@ -251,12 +223,10 @@ function ConciergePage() {
       <section className="rounded-2xl border bg-white p-5">
         <div className="mb-5">
           <p className="eyebrow">Kunskapsbas & guardrails</p>
-          <h2 className="mt-2 font-[Fraunces] text-2xl font-semibold">
-            Vad får AI:n svara på?
-          </h2>
+          <h2 className="mt-2 font-[Fraunces] text-2xl font-semibold">Vad får AI:n svara på?</h2>
           <p className="mt-1 text-sm text-black/60">
-            Använd verifierade svar och tydliga instruktioner. Osäkra frågor ska lämnas
-            till personal.
+            Använd verifierade svar och tydliga instruktioner. Osäkra frågor ska lämnas till
+            personal.
           </p>
         </div>
         <GuestAiSettings
