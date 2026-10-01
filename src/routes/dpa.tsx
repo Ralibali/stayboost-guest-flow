@@ -24,12 +24,19 @@ export const Route = createFileRoute("/dpa")({
 
 function DPA() {
   return (
-    <LegalLayout title="Personuppgiftsbiträdesavtal (DPA)" updated="12 juli 2026">
+    <LegalLayout title="Personuppgiftsbiträdesavtal (DPA)" updated="1 oktober 2026">
       <p>
-        Detta biträdesavtal (”DPA”) ingås mellan kunden (”Personuppgiftsansvarig”) och{" "}
-        <strong>Aurora Media AB</strong> (”Personuppgiftsbiträde”) och gäller när StayBoost
-        behandlar personuppgifter för kundens räkning enligt art. 28 GDPR. Avtalet utgör en del av
+        Detta underlag för biträdesavtal (”DPA”) avser kunden (”Personuppgiftsansvarig”) och{" "}
+        <strong>Aurora Media AB</strong> (”Personuppgiftsbiträde”) och behandling av personuppgifter
+        för kundens räkning enligt art. 28 GDPR. Underlaget kompletterar
         <a href="/villkor"> användarvillkoren</a>.
+      </p>
+
+      <p>
+        Detta är ett avtalsunderlag. Att läsa sidan innebär inte att parterna har ingått eller
+        accepterat ett avtal. Kundens behandling, godkända underbiträden, överföringsskydd och
+        säkerhetsåtgärder behöver dokumenteras i det avtal som faktiskt ingås. Kraven nedan är
+        avtalskrav, inte en verifiering av att varje organisatorisk åtgärd redan är genomförd.
       </p>
 
       <h2>1. Föremål och varaktighet</h2>
@@ -64,7 +71,7 @@ function DPA() {
         tystnadsplikt.
       </p>
 
-      <h2>5. Säkerhetsåtgärder (art. 32)</h2>
+      <h2>5. Säkerhetsåtgärder att dokumentera (art. 32)</h2>
       <ul>
         <li>TLS-kryptering i transit; kryptering i vila för databaser.</li>
         <li>Rollbaserad åtkomst, MFA för administratörer.</li>
@@ -74,20 +81,31 @@ function DPA() {
       </ul>
 
       <h2>6. Underbiträden</h2>
-      <p>Kunden godkänner följande underbiträden:</p>
+      <p>
+        Följande tjänster kan ingå i behandlingen. Den aktuella konfigurationen och kundens
+        godkännande ska dokumenteras i avtalet:
+      </p>
       <ul>
         <li>
-          <strong>Supabase (via Lovable Cloud)</strong> — databas, autentisering, storage. EU
-          (Frankfurt / Irland).
+          <strong>Supabase</strong> — databas, autentisering och lagring. Den anslutna databasens
+          projektregion är Frankfurt; övrig leverantörsbehandling behöver bedömas separat.
         </li>
         <li>
-          <strong>Cloudflare, Inc.</strong> — hosting, edge-nätverk. EU + globalt CDN (SCC).
+          <strong>Cloudflare, Inc.</strong> — hosting och globalt edge-nätverk.
         </li>
         <li>
-          <strong>Brevo (Sendinblue SAS)</strong> — e-postutskick. Frankrike/EU.
+          <strong>Resend eller Brevo (Sendinblue SAS)</strong> — e-postutskick, enligt det aktuella
+          flödet.
         </li>
         <li>
-          <strong>46elks AB</strong> — sms-utskick. Sverige.
+          <strong>46elks AB</strong> — SMS-leverans.
+        </li>
+        <li>
+          <strong>Stripe</strong> — betalningsbehandling.
+        </li>
+        <li>
+          <strong>Lovable AI och dess modellleverantör</strong> — AI-funktioner när de används;
+          tillåtna uppgifter och ändamål ska dokumenteras.
         </li>
       </ul>
       <p>
@@ -97,9 +115,10 @@ function DPA() {
 
       <h2>7. Överföring till tredje land</h2>
       <p>
-        Personuppgifter behandlas som huvudregel inom EU/EES. Sker överföring till tredje land
-        används EU-kommissionens standardavtalsklausuler (SCC 2021/914) samt vid behov
-        kompletterande skyddsåtgärder.
+        Överföring till tredje land kräver dokumenterat giltigt stöd, exempelvis ett tillämpligt
+        beslut om adekvat skyddsnivå eller korrekt ingångna standardavtalsklausuler, och vid behov
+        kompletterande skyddsåtgärder. Leverantör, mottagare, stöd och bedömning ska verifieras för
+        den aktuella behandlingen innan överföringen sker.
       </p>
 
       <h2>8. Bistånd till kunden</h2>

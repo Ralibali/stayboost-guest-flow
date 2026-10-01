@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
 import { setAnalyticsConsent } from "@/lib/ga4Runtime";
+import { parseStatisticsConsent, storeStatisticsConsent } from "@/lib/statisticsConsent";
 const KEY = "stayboost_ga4_consent_v1";
 export default function AnalyticsConsent() {
   const [open, setOpen] = useState(false);
   useEffect(() => {
     try {
-      setOpen(!localStorage.getItem(KEY));
+      setOpen(!parseStatisticsConsent(localStorage.getItem(KEY)));
     } catch {
       setOpen(true);
     }
   }, []);
   const choose = (accepted: boolean) => {
     try {
-      localStorage.setItem(KEY, accepted ? "accepted" : "declined");
+      storeStatisticsConsent(KEY, accepted);
     } catch {
       /* session choice remains valid */
     }

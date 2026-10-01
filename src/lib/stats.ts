@@ -2,7 +2,7 @@
 // Live-siffror hämtas via same-origin server function (stats.functions.ts)
 // så webbläsaren aldrig korsar till edge-funktionen (CORS på stayboost.se
 // tillåter bara Lovable-preview-originen). 5 min cache klient-side +
-// localStorage för graceful fallback.
+// sessionStorage för fallback under den öppna fliken.
 
 export const STATS_STORAGE_KEY = "stayboost:stats:v1";
 export const STATS_REFRESH_MS = 5 * 60 * 1000;
@@ -302,7 +302,7 @@ export function parseStatsResponse(input: unknown): StayBoostStats | null {
   };
 }
 
-// ---------- LocalStorage cache ----------
+// ---------- Session cache: public presentation data, cleared when the tab closes ----------
 
 interface CachedStats {
   savedAt: number;
@@ -312,7 +312,7 @@ interface CachedStats {
 export function readCachedStats(): StayBoostStats | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem(STATS_STORAGE_KEY);
+    const raw = window.sessionStorage.getItem(STATS_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as unknown;
     if (!isRecord(parsed) || !("data" in parsed)) return null;
@@ -325,7 +325,7 @@ export function readCachedStats(): StayBoostStats | null {
 export function readCachedSavedAt(): number | null {
   if (typeof window === "undefined") return null;
   try {
-    const raw = window.localStorage.getItem(STATS_STORAGE_KEY);
+    const raw = window.sessionStorage.getItem(STATS_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as unknown;
     if (!isRecord(parsed) || !isFiniteNumber(parsed.savedAt)) return null;
@@ -339,7 +339,7 @@ export function writeCachedStats(data: StayBoostStats): void {
   if (typeof window === "undefined") return;
   try {
     const payload: CachedStats = { savedAt: Date.now(), data };
-    window.localStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(payload));
+    window.sessionStorage.setItem(STATS_STORAGE_KEY, JSON.stringify(payload));
   } catch {
     // Quota/private-mode etc — ignorera tyst.
   }

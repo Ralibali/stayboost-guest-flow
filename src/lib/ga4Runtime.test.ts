@@ -60,5 +60,14 @@ describe("acquisition and interaction context", () => {
     gtag.mockClear();
     sendAnalyticsEvent("Form Submitted");
     expect(gtag).not.toHaveBeenCalled();
+    setAnalyticsConsent(true);
+    const storageListener = (window.addEventListener as ReturnType<typeof vi.fn>).mock.calls.find(
+      ([type]) => type === "storage",
+    )?.[1];
+    expect(storageListener).toBeTypeOf("function");
+    storageListener({ key: null, newValue: null });
+    gtag.mockClear();
+    sendAnalyticsEvent("Form Submitted");
+    expect(gtag).not.toHaveBeenCalled();
   });
 });

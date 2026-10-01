@@ -24,9 +24,9 @@ export const Route = createFileRoute("/cookies")({
 
 function Cookies() {
   return (
-    <LegalLayout title="Cookies och lokal lagring" updated="20 september 2026">
+    <LegalLayout title="Cookies och lokal lagring" updated="30 september 2026">
       <p>
-        Enligt lagen (2003:389) om elektronisk kommunikation (LEK) och EU:s ePrivacy-direktiv får vi
+        Enligt lagen (2022:482) om elektronisk kommunikation (LEK) och EU:s ePrivacy-direktiv får vi
         endast lagra information i din webbläsare med ditt samtycke — undantaget cookies som är
         strikt nödvändiga för att leverera tjänsten.
       </p>
@@ -43,18 +43,18 @@ function Cookies() {
         </thead>
         <tbody className="align-top">
           <tr className="border-b border-[color:var(--line)]/60">
-            <td className="py-2 pr-4">sb-auth-token</td>
+            <td className="py-2 pr-4">sb-*-auth-token</td>
             <td className="py-2 pr-4">Inloggad session i tjänsten</td>
             <td className="py-2 pr-4">Nödvändig</td>
-            <td className="py-2">Session</td>
+            <td className="py-2">Tills du loggar ut eller rensar lokal lagring</td>
           </tr>
           <tr className="border-b border-[color:var(--line)]/60">
-            <td className="py-2 pr-4">stayboost-stats-cache</td>
+            <td className="py-2 pr-4">stayboost:stats:v1 (sessionStorage)</td>
             <td className="py-2 pr-4">
               Mellanlagrar publik statistik lokalt så att sidan inte visar nollor vid nätfel
             </td>
             <td className="py-2 pr-4">Nödvändig</td>
-            <td className="py-2">7 dagar</td>
+            <td className="py-2">Tills fliken stängs</td>
           </tr>
           <tr>
             <td className="py-2 pr-4">_ga, _ga_*</td>
@@ -67,17 +67,19 @@ function Cookies() {
 
       <h2>Ditt val styr statistiken</h2>
       <p>
-        Google Analytics 4 laddas först när du accepterar statistik. Google använder cookies för att
-        skilja besök åt och mäta sidvisningar och valda händelser. Vi skickar inte formulärinnehåll,
+        Google Analytics 4 laddas först när du accepterar statistik. Google Ireland Limited använder
+        _ga och _ga_* för pseudonyma besöksidentifierare och information om besök och händelser.
+        Statistik kan behandlas av Google även utanför EU/EES. Cookies används för att skilja besök
+        åt och mäta sidvisningar och valda händelser. Vi skickar inte formulärinnehåll,
         kunduppgifter eller privata gästlänkar till GA4. Du kan neka och återkalla ditt samtycke via
-        knappen Cookieinställningar. Valet sparas lokalt i stayboost_ga4_consent_v1 tills du ändrar
-        det eller rensar din webbläsare.
+        knappen Cookieinställningar. Valet sparas lokalt i stayboost_ga4_consent_v1 i högst 12
+        månader. Därefter frågar vi igen. Du kan när som helst ändra eller rensa valet.
       </p>
 
       <h2>Hantera i webbläsaren</h2>
       <p>
         Du kan alltid rensa cookies och lokal lagring via webbläsarens inställningar. Om du rensar{" "}
-        <code>sb-auth-token</code> loggas du ut ur tjänsten.
+        <code>sb-*-auth-token</code> loggas du ut ur tjänsten.
       </p>
 
       <h2>Frågor</h2>

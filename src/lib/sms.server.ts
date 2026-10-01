@@ -9,6 +9,16 @@ const perIpDay = new Map<string, Bucket>();
 const perNumberDay = new Map<string, Bucket>();
 let totalDay: Bucket = { count: 0, resetAt: Date.now() + DAY };
 
+function purgeExpiredBuckets(now: number): void {
+  for (const map of [perIpDay, perNumberDay]) {
+    for (const [key, bucket] of map) if (bucket.resetAt <= now) map.delete(key);
+  }
+}
+
+// Bound identifier retention even when a particular caller never returns.
+const retentionSweep = setInterval(() => purgeExpiredBuckets(Date.now()), 60_000);
+retentionSweep.unref?.();
+
 export function normalizeSwedishMobile(input: string): string | null {
   const digits = input.replace(/[\s\-()+.]/g, "");
   // 07XXXXXXXX (10 digits)
@@ -30,6 +40,7 @@ export function checkLimits(
   ip: string,
   e164: string,
 ): { ok: true } | { ok: false; reason: "number_used" | "ip_limit" | "global_limit" } {
+  purgeExpiredBuckets(Date.now());
   const hash = createHash("sha256").update(e164).digest("hex");
 
   totalDay = rollDaily(totalDay);
@@ -69,8 +80,7 @@ export async function send46elks(to: string, text: string): Promise<boolean> {
     body: form.toString(),
   });
   if (!res.ok) {
-    const body = await res.text().catch(() => "");
-    console.error("[46elks] send failed", res.status, body);
+    console.error("[46elks] send failed", res.status);
     return false;
   }
   return true;
