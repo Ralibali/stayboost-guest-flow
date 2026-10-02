@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "status": "draft",
+  "writtenAt": "2026-10-02T07:35:18.542602+00:00",
+  "repository": "Ralibali/stayboost-guest-flow",
+  "publicationGate": "Earliest 2026-10-04, at least two Stockholm calendar days after the preceding original is actually published and fully verified. Require fresh current main, full inventory and source review. No publication dates while draft.",
+  "sourceReview": {
+    "checkedAt": "2026-10-02T07:35:18.542602+00:00",
+    "publishedInventoryReviewed": 6,
+    "distinctIntent": "Hantera livslängden för ett tillfälligt allmänt gästbesked: start, kontroll, ändring och borttagning. Skilt från individuella gästönskemål, kanalöversikt och skiftöverlämning.",
+    "note": "Original practical communication template. Product demo and related original guides checked on the true domain. No claimed automation, customer results, prices or legal requirements."
+  },
+  "article": {
+    "slug": "tillfalligt-gastbesked-giltighetstid",
+    "title": "Ge tillfälliga gästbesked ett tydligt slutdatum",
+    "metaDescription": "Samla ansvar, giltighetstid och platser där ett tillfälligt gästbesked visas. En arbetsmall för att ändra och ta bort information vid rätt tillfälle.",
+    "intro": "Ett tillfälligt besked kan bli kvar långt efter att det slutat gälla. En instruktion i ett ankomstmejl, en lapp i gemensamma utrymmen och en notis i en digital guide behöver därför ha någon som ansvarar för hela livslängden. Den här mallen hjälper ett litet boende att följa beskedet från första publicering till borttagning.\n\nUtgå från en konkret förändring som verksamheten redan har beslutat om. Artikeln beskriver en manuell arbetsrutin, inte en automatisk funktion i StayBoost. Verksamhetens ansvariga avgör vilken information som behöver lämnas och hur gästerna ska nås.",
+    "sections": [
+      {
+        "heading": "Avgränsa förändringen innan ni skriver",
+        "content": "Skriv vad som tillfälligt är annorlunda, vilka gäster som berörs och vilket handlingsalternativ de behöver känna till. Ett besked om en ändrad praktisk rutin behöver vara begripligt utan att gästen känner till personalens interna planering. Ta bort förklaringar som inte hjälper gästen att förstå nästa steg.\n\nSkilj bekräftade uppgifter från sådant som fortfarande utreds. Om slutpunkten är osäker ska ni inte hitta på ett datum. Skriv i arbetsunderlaget när ansvarig senast ska kontrollera läget igen och vem som kan lämna ett nytt besked."
+      },
+      {
+        "heading": "Skilj giltighetstid från kontrolltid",
+        "content": "Giltighetstiden beskriver när informationen gäller för gästen. Kontrolltiden beskriver när personalen ska bedöma om texten fortfarande är riktig. Det kan behövas en kontroll innan giltighetstiden löper ut, exempelvis för att upptäcka att förändringen har förlängts eller avslutats tidigare.\n\nAnge datum och vid behov klockslag så att nästa arbetspass inte behöver tolka uttryck som ”i morgon” eller ”under helgen”. Kontrollera också om ett besked som skickas före ankomst fortfarande kommer att stämma under gästens faktiska vistelse."
+      },
+      {
+        "heading": "Gör ett beskedskort med ansvar och placering",
+        "content": "Samla följande uppgifter på ett ställe som den berörda personalen använder:\n\n- Vad förändringen gäller och var det beslutade underlaget finns.\n- Vilka gäster eller vistelser som berörs.\n- Den text som har godkänts för publicering.\n- När beskedet börjar och slutar gälla, om det är känt.\n- När uppgifterna ska kontrolleras nästa gång.\n- Var beskedet har publicerats eller lagts in.\n- Vem som uppdaterar och avslutar informationen.\n\nHänvisa till rätt ärende i boendets behöriga system om uppföljningen berör enskilda gäster. En gemensam lista över informationsplatser behöver normalt inte innehålla deras personliga uppgifter. Håll listan tillräckligt kort för att faktiskt kunna användas vid ändringen."
+      },
+      {
+        "heading": "Kontrollera alla platser när något ändras",
+        "content": "Utgå från [inventeringen av gästinformation i olika kanaler](/blogg/inventera-gastinformation-kanaler). Markera vilka platser som behöver det tillfälliga beskedet och vilka som inte berörs. Om ni ändrar en huvudtext måste någon ändå kontrollera eventuella kopior, utskrifter och planerade utskick.\n\nSkilj information som går att uppdatera från ett meddelande som redan har skickats. En ändring i guiden förändrar inte automatiskt det tidigare mejlet. Låt ansvarig bedöma vilka mottagare som behöver ett nytt besked och använd boendets överenskomna kontaktväg."
+      },
+      {
+        "heading": "Avsluta beskedet och kontrollera läsflödet",
+        "content": "När förändringen upphör, gå igenom listan över placeringar och markera vad som tagits bort eller återställts. Öppna den information gästen möter och läs den som en sammanhängande instruktion. Finns det kvar en hänvisning till en lapp eller notis som inte längre gäller?\n\nLämna kvar en kort intern notering om när beskedet avslutades. Om någon kontroll återstår ska den följa med i [överlämningen vid skiftbyte](/blogg/skiftbyte-litet-boende-overlamningsmall). Du kan [utforska StayBoosts produktdemo](/produkten) när ni ser över gästinformationens presentation. AI-assisterad originalguide med en redaktionell arbetsmall; texten utlovar ingen automatisk tidsstyrning eller spridning av besked."
+      }
+    ],
+    "ctaHref": "/produkten",
+    "ctaLabel": "Öppna produktdemon",
+    "editorial": {
+      "createdWith": "ChatGPT",
+      "aiAssisted": true,
+      "searchIntent": "Hantera livslängden för ett tillfälligt allmänt gästbesked: start, kontroll, ändring och borttagning. Skilt från individuella gästönskemål, kanalöversikt och skiftöverlämning.",
+      "sourceUrls": [
+        "https://stayboost.se/produkten"
+      ],
+      "sourceCheckedAt": "2026-10-02T07:35:18.542602+00:00"
+    }
+  }
+}
