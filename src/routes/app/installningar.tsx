@@ -1,4 +1,6 @@
 import { PartyPricing } from "@/components/app/PartyPricing";
+import { UnitContentEditor } from "@/components/app/UnitContentEditor";
+import { projectUnitContent } from "../../../supabase/functions/_shared/unit-content";
 import { SUPABASE_URL } from "@/lib/supabase-config";
 import { BookingSettings } from "@/components/app/BookingSettings";
 import { AdminHistory } from "@/components/app/AdminHistory";
@@ -10,13 +12,12 @@ import {
   Eye,
   EyeOff,
   ImagePlus,
-  Loader2,
   MailOpen,
   MessageSquare,
   Plus,
   Trash2,
 } from "lucide-react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   icalExportUrl,
   supabase,
@@ -39,8 +40,6 @@ function SettingsPage() {
   const [newUnit, setNewUnit] = useState("");
   const [copiedFeed, setCopiedFeed] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [uploadingUnit, setUploadingUnit] = useState<string | null>(null);
-  const imageInputs = useRef<Record<string, HTMLInputElement | null>>({});
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
   useEffect(() => {
@@ -146,37 +145,6 @@ function SettingsPage() {
       return;
     }
     reload();
-  };
-
-  const uploadUnitImage = async (unit: Unit, file: File) => {
-    if (!supabase) return;
-    setActionError(null);
-    if (!file.type.startsWith("image/")) {
-      setActionError("Välj en bildfil.");
-      return;
-    }
-    if (file.size > 6 * 1024 * 1024) {
-      setActionError("Bilden får vara högst 6 MB.");
-      return;
-    }
-
-    setUploadingUnit(unit.id);
-    const ext = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
-    const path = `${property.id}/${unit.id}-${crypto.randomUUID()}.${ext}`;
-    const { error: uploadError } = await supabase.storage
-      .from("unit-images")
-      .upload(path, file, { cacheControl: "31536000", upsert: false });
-
-    if (uploadError) {
-      setUploadingUnit(null);
-      setActionError(`Kunde inte ladda upp bilden: ${uploadError.message}`);
-      return;
-    }
-
-    const { data } = supabase.storage.from("unit-images").getPublicUrl(path);
-    const ok = await updateUnit(unit.id, { image_url: data.publicUrl });
-    setUploadingUnit(null);
-    if (!ok) await supabase.storage.from("unit-images").remove([path]);
   };
 
   const copyFeed = (id: string, url: string) => {
@@ -581,9 +549,14 @@ function SettingsPage() {
             >
               <div className="grid gap-0 md:grid-cols-[220px_1fr]">
                 <div className="relative min-h-48 bg-[color:var(--bg)]">
-                  {u.image_url ? (
+                  {(projectUnitContent(u, property.id, SUPABASE_URL).gallery[0]?.url ??
+                  u.image_url) ? (
                     <img
-                      src={u.image_url}
+                      src={
+                        projectUnitContent(u, property.id, SUPABASE_URL).gallery[0]?.url ??
+                        u.image_url ??
+                        undefined
+                      }
                       alt={u.name}
                       className="h-full min-h-48 w-full object-cover"
                     />
@@ -592,48 +565,12 @@ function SettingsPage() {
                       <ImagePlus size={30} />
                     </div>
                   )}
-                  <button
-                    type="button"
-                    onClick={() => imageInputs.current[u.id]?.click()}
-                    disabled={uploadingUnit === u.id}
-                    className="absolute bottom-3 left-3 flex items-center gap-2 rounded-full bg-white/95 px-3 py-2 text-[12px] font-semibold shadow-sm disabled:opacity-60"
-                  >
-                    {uploadingUnit === u.id ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <ImagePlus size={14} />
-                    )}
-                    {uploadingUnit === u.id ? "Laddar upp" : "Byt bild"}
-                  </button>
-                  <input
-                    ref={(node) => {
-                      imageInputs.current[u.id] = node;
-                    }}
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp,image/avif"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) uploadUnitImage(u, file);
-                      e.target.value = "";
-                    }}
-                  />
                 </div>
 
                 <div className="p-5">
                   <div className="flex items-start gap-3">
                     <div className="min-w-0 flex-1">
-                      <Field label="Namn">
-                        <input
-                          defaultValue={u.name}
-                          onBlur={(e) =>
-                            e.target.value.trim() &&
-                            e.target.value !== u.name &&
-                            updateUnit(u.id, { name: e.target.value.trim() })
-                          }
-                          className="inp text-[16px] font-semibold"
-                        />
-                      </Field>
+                      <h3 className="text-[16px] font-semibold">{u.name}</h3>
                     </div>
                     <button
                       onClick={() => updateUnit(u.id, { active: !u.active })}
@@ -653,18 +590,6 @@ function SettingsPage() {
                   </div>
 
                   <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                    <Field label="Kort beskrivning">
-                      <textarea
-                        defaultValue={u.description ?? ""}
-                        rows={3}
-                        onBlur={(e) =>
-                          e.target.value !== (u.description ?? "") &&
-                          updateUnit(u.id, { description: e.target.value.trim() || null })
-                        }
-                        placeholder="Vad gör just detta boende unikt?"
-                        className="inp resize-none"
-                      />
-                    </Field>
                     <Field label="Egen incheckningsinstruktion">
                       <textarea
                         defaultValue={u.checkin_instructions ?? ""}
@@ -778,17 +703,7 @@ function SettingsPage() {
                     <PartyPricing key={`${u.id}-${u.max_guests}`} unit={u} onSaved={reload} />
                   </div>
 
-                  <Field label="Bildlänk (kan användas i stället för uppladdning)">
-                    <input
-                      defaultValue={u.image_url ?? ""}
-                      onBlur={(e) =>
-                        e.target.value !== (u.image_url ?? "") &&
-                        updateUnit(u.id, { image_url: e.target.value.trim() || null })
-                      }
-                      placeholder="https://…"
-                      className="inp"
-                    />
-                  </Field>
+                  <UnitContentEditor unit={u} onSaved={reload} />
 
                   <button
                     onClick={() => copyFeed(u.id, icalExportUrl(u))}
