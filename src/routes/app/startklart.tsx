@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { CheckCircle2, Circle, FileUp, Loader2, RefreshCw } from "lucide-react";
 import { supabase, useProperty, useSession } from "@/lib/supabase";
 import { prepareSirvoyImport } from "@/lib/sirvoy-cutover";
+import { SirvoyArchive } from "@/components/app/SirvoyArchive";
 import { sanitizedHttpsUrl } from "../../../supabase/functions/_shared/public-links";
 import {
   isLaunchReadiness,
@@ -219,6 +220,7 @@ function LaunchPage() {
           Sirvoy-kopplingar stängs.
         </p>
       </section>
+      <SirvoyArchive propertyId={property.id} />
       <section className="card-surface space-y-5 p-5 sm:p-6">
         <div>
           <h2 className="flex items-center gap-2 font-semibold">

@@ -76,3 +76,7 @@ verify_jwt = false
 # Owner attestation for historic imported payments, never a new charge.
 [functions.booking-reconcile]
 verify_jwt = true
+
+# Original exports: owner authentication is checked again by the handler.
+[functions.sirvoy-archive]
+verify_jwt = true

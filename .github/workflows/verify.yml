@@ -49,6 +49,7 @@ jobs:
           deno check
           supabase/functions/booking-import/index.ts
           supabase/functions/booking-reconcile/index.ts
+          supabase/functions/sirvoy-archive/index.ts
           supabase/functions/booking-engine/index.ts
           supabase/functions/payment-action/index.ts
           supabase/functions/stripe-webhook/index.ts
