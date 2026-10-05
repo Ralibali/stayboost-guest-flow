@@ -46,42 +46,38 @@ function InboxPage() {
     setLoading(true);
     setError(null);
 
-    const { data, error: loadError } = await supabase
-      .from("chat_messages")
-      // Keep the existing inbox readable while the additive AI migration rolls out.
-      .select("*")
-      .eq("property_id", property.id)
-      .order("created_at", { ascending: false })
-      .limit(200);
-
+    const [messageResult, bookingResult] = await Promise.all([
+      supabase
+        .from("chat_messages")
+        .select("*")
+        .eq("property_id", property.id)
+        .order("created_at", { ascending: false })
+        .limit(200),
+      supabase
+        .from("bookings")
+        .select("id,guest_name,guest_email,checkin_date,checkout_date,status")
+        .eq("property_id", property.id)
+        .order("checkin_date", { ascending: false })
+        .limit(1000),
+    ]);
     if (ticket !== generation.current) return;
-    if (loadError) {
-      setError(loadError.message);
-      setMessages([]);
-    } else {
-      setMessages((data as InboxMessage[]) ?? []);
-    }
-
-    const { data: bookingData, error: bookingError } = await supabase
-      .from("bookings")
-      .select("id,guest_name,guest_email,checkin_date,checkout_date,status")
-      .eq("property_id", property.id)
-      .order("checkin_date", { ascending: false })
-      .limit(1000);
-    if (ticket !== generation.current) return;
-    setBookings((bookingData as InboxBooking[]) ?? []);
-    if (bookingError) setError("Bokningslistan kunde inte hämtas.");
+    setMessages((messageResult.data as InboxMessage[]) ?? []);
+    setBookings((bookingResult.data as InboxBooking[]) ?? []);
+    if (messageResult.error) setError("Inkorgen kunde inte hämtas. Försök igen.");
+    else if (bookingResult.error) setError("Bokningslistan kunde inte hämtas.");
     setLoading(false);
   }, [property]);
+
+  const invalidateLoad = useCallback(() => {
+    generation.current++;
+  }, []);
 
   useEffect(() => {
     setMessages([]);
     setBookings([]);
     void load();
-    return () => {
-      generation.current++;
-    };
-  }, [load]);
+    return invalidateLoad;
+  }, [load, invalidateLoad]);
 
   const unread = useMemo(() => messages.filter((message) => !message.read_at).length, [messages]);
 
