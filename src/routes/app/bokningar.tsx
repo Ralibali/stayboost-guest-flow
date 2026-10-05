@@ -1,5 +1,12 @@
 import { BookingEditor } from "@/components/app/BookingEditor";
 import { ImportedPaymentPanel } from "@/components/app/ImportedPaymentPanel";
+import { SirvoyCalendarPanel } from "@/components/app/SirvoyCalendarPanel";
+import {
+  formatSirvoyDecimal,
+  isSirvoyCalendarBooking,
+  matchingSirvoyValues,
+  type SirvoyCalendarValues,
+} from "@/lib/sirvoy-calendar";
 import { AdminHistory } from "@/components/app/AdminHistory";
 import {
   STAY_STATUS,
@@ -105,6 +112,7 @@ function BookingsPage() {
   const session = useSession();
   const { property, units } = useProperty(session);
   const [bookings, setBookings] = useState<Booking[]>([]);
+  const [sourceValues, setSourceValues] = useState<Record<string, SirvoyCalendarValues>>({});
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<BookingFilters>(emptyFilters);
   const [view, setView] = useState<View>("upcoming");
@@ -133,6 +141,7 @@ function BookingsPage() {
     const ticket = ++generation.current;
     setLoading(true);
     setPageError(null);
+    setSourceValues({});
     try {
       const data = await fetchAllRows<Booking>((from, to) =>
         client
@@ -143,7 +152,25 @@ function BookingsPage() {
           .order("id")
           .range(from, to),
       );
-      if (ticket === generation.current) setBookings(data);
+      if (ticket !== generation.current) return;
+      setBookings(data);
+      if (data.some(isSirvoyCalendarBooking)) {
+        try {
+          const values = await fetchAllRows<SirvoyCalendarValues>((from, to) =>
+            client
+              .from("sirvoy_calendar_documentary_values")
+              .select("*", { count: "exact" })
+              .eq("property_id", propertyId)
+              .order("booking_id")
+              .range(from, to),
+          );
+          if (ticket === generation.current)
+            setSourceValues(Object.fromEntries(values.map((value) => [value.booking_id, value])));
+        } catch {
+          // The permanent booking markers keep controls closed even if the source read fails.
+          if (ticket === generation.current) setSourceValues({});
+        }
+      }
     } catch (failure) {
       if (ticket === generation.current)
         setPageError(failure instanceof Error ? failure.message : "Bokningarna kunde inte hämtas.");
@@ -197,7 +224,7 @@ function BookingsPage() {
   }, [search.create, search.unitId, search.checkin, search.checkout]);
 
   const paidUpcoming = upcoming
-    .filter((b) => b.payment_status === "paid")
+    .filter((b) => !isSirvoyCalendarBooking(b) && b.payment_status === "paid")
     .reduce((sum, b) => sum + (b.payment_amount ?? 0), 0);
   const arrivingToday = upcoming.filter((b) => b.checkin_date === today).length;
 
@@ -424,6 +451,7 @@ function BookingsPage() {
               <BookingCard
                 key={booking.id}
                 booking={booking}
+                sourceValues={sourceValues[booking.id]}
                 units={units}
                 maxStay={property.max_stay ?? 30}
                 conflicting={conflictIds.has(booking.id)}
@@ -460,6 +488,7 @@ function BookingsPage() {
             <BookingCard
               key={booking.id}
               booking={booking}
+              sourceValues={sourceValues[booking.id]}
               units={units}
               maxStay={property.max_stay ?? 30}
               conflicting={conflictIds.has(booking.id)}
@@ -562,6 +591,7 @@ function EmptyState({ text }: { text: string }) {
 
 function BookingCard({
   booking: b,
+  sourceValues,
   units,
   maxStay,
   conflicting,
@@ -574,6 +604,7 @@ function BookingCard({
   onError,
 }: {
   booking: Booking;
+  sourceValues?: SirvoyCalendarValues;
   units: Unit[];
   maxStay: number;
   conflicting: boolean;
@@ -591,6 +622,8 @@ function BookingCard({
   const [paymentBusy, setPaymentBusy] = useState(false);
   const paymentLock = useRef(false);
   const external = ["ical", "sirvoy", "channex"].includes(b.source);
+  const sourceCalendar = isSirvoyCalendarBooking(b);
+  const documentary = matchingSirvoyValues(b, sourceValues);
 
   useEffect(() => {
     if (!expanded || !supabase) return;
@@ -614,7 +647,7 @@ function BookingCard({
   }, [expanded, b.id, b.updated_at]);
 
   const runPaymentAction = async (action: PaymentAction) => {
-    if (paymentLock.current) return;
+    if (paymentLock.current || sourceCalendar) return;
     paymentLock.current = true;
     setPaymentBusy(true);
     onError(null);
@@ -631,7 +664,7 @@ function BookingCard({
   };
 
   const refundStripe = async () => {
-    if (paymentLock.current) return;
+    if (paymentLock.current || sourceCalendar) return;
     paymentLock.current = true;
     setPaymentBusy(true);
     onError(null);
@@ -674,15 +707,25 @@ function BookingCard({
             <span className="truncate text-[13px] font-bold sm:text-[14px]">
               {b.guest_name ?? "Okänd gäst"}
             </span>
-            <SourceBadge source={b.source} />
+            {sourceCalendar ? (
+              <Badge tone="amber">Sirvoy · kalender</Badge>
+            ) : (
+              <SourceBadge source={b.source} />
+            )}
             {b.status === "cancelled" && <Badge tone="red">Avbokad</Badge>}
             {b.stay_status && b.stay_status !== "expected" && (
               <Badge tone="green">{STAY_STATUS[b.stay_status]}</Badge>
             )}
-            {b.payment_status === "pending" && <Badge tone="amber">Betalning väntar</Badge>}
-            {b.payment_status === "paid" && <Badge tone="green">Betald</Badge>}
-            {b.payment_status === "refund_pending" && <Badge tone="red">Återbetalning krävs</Badge>}
-            {b.payment_status === "refunded" && <Badge tone="green">Återbetald</Badge>}
+            {!sourceCalendar && b.payment_status === "pending" && (
+              <Badge tone="amber">Betalning väntar</Badge>
+            )}
+            {!sourceCalendar && b.payment_status === "paid" && <Badge tone="green">Betald</Badge>}
+            {!sourceCalendar && b.payment_status === "refund_pending" && (
+              <Badge tone="red">Återbetalning krävs</Badge>
+            )}
+            {!sourceCalendar && b.payment_status === "refunded" && (
+              <Badge tone="green">Återbetald</Badge>
+            )}
             {conflicting && <Badge tone="red">Krock</Badge>}
             {needsContact && <Badge tone="amber">Kontakt saknas</Badge>}
             {!b.unit_id && <Badge tone="red">Boende saknas</Badge>}
@@ -694,10 +737,16 @@ function BookingCard({
         </div>
         <div className="hidden shrink-0 text-right md:block">
           <p className="text-[12px] font-bold text-[#173c2b]">
-            {b.payment_amount ? fmtKr(b.payment_amount) : "—"}
+            {sourceCalendar
+              ? formatSirvoyDecimal(documentary?.accommodation_amount)
+              : b.payment_amount
+                ? fmtKr(b.payment_amount)
+                : "—"}
           </p>
           <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider text-[color:var(--ink)]/28">
-            {b.payment_method ?? b.source}
+            {sourceCalendar
+              ? `Sirvoy-underlag · ${documentary?.currency ?? "valuta ej verifierad"}`
+              : (b.payment_method ?? b.source)}
           </p>
         </div>
         <ChevronDown
@@ -752,8 +801,9 @@ function BookingCard({
                 <AdminHistory propertyId={b.property_id} bookingId={b.id} />
               </details>
               <ImportedPaymentPanel booking={b} onChanged={onChanged} />
+              {sourceCalendar && <SirvoyCalendarPanel booking={b} values={documentary} />}
 
-              {b.payment_status === "pending" && b.payment_expires_at && (
+              {!sourceCalendar && b.payment_status === "pending" && b.payment_expires_at && (
                 <p className="rounded-xl border border-amber-100 bg-amber-50 px-3.5 py-2.5 text-[11px] text-amber-800">
                   Reservationen löper ut{" "}
                   {new Date(b.payment_expires_at).toLocaleString("sv-SE", {
@@ -767,19 +817,23 @@ function BookingCard({
                 </p>
               )}
 
-              {b.payment_status === "pending" && b.payment_method === "stripe" && (
-                <p className="rounded-xl border border-sky-100 bg-sky-50 px-3.5 py-2.5 text-[11px] text-sky-800">
-                  Stripe-betalningar kan inte markeras betalda manuellt. Status uppdateras endast av
-                  en verifierad Stripe-webhook.
-                </p>
-              )}
+              {!sourceCalendar &&
+                b.payment_status === "pending" &&
+                b.payment_method === "stripe" && (
+                  <p className="rounded-xl border border-sky-100 bg-sky-50 px-3.5 py-2.5 text-[11px] text-sky-800">
+                    Stripe-betalningar kan inte markeras betalda manuellt. Status uppdateras endast
+                    av en verifierad Stripe-webhook.
+                  </p>
+                )}
 
-              {b.payment_status === "refund_pending" && b.payment_method === "swish" && (
-                <p className="rounded-xl border border-red-100 bg-red-50 px-3.5 py-2.5 text-[11px] text-red-800">
-                  Återbetalning väntar. Swisha tillbaka beloppet först och bekräfta därefter i
-                  systemet.
-                </p>
-              )}
+              {!sourceCalendar &&
+                b.payment_status === "refund_pending" &&
+                b.payment_method === "swish" && (
+                  <p className="rounded-xl border border-red-100 bg-red-50 px-3.5 py-2.5 text-[11px] text-red-800">
+                    Återbetalning väntar. Swisha tillbaka beloppet först och bekräfta därefter i
+                    systemet.
+                  </p>
+                )}
 
               <div>
                 <p className="text-[9px] font-bold uppercase tracking-[0.14em] text-[color:var(--ink)]/35">
@@ -851,37 +905,41 @@ function BookingCard({
                 disabled={paymentBusy}
                 className="flex flex-wrap gap-2 border-t border-black/[0.055] pt-4 disabled:opacity-50"
               >
-                {b.payment_status === "pending" && b.payment_method === "swish" && (
-                  <button
-                    onClick={() => runPaymentAction("mark_swish_paid")}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3.5 py-2 text-[11px] font-bold text-white hover:bg-emerald-800"
-                  >
-                    <CreditCard size={13} /> Markera Swish betald
-                    {b.payment_amount ? ` · ${fmtKr(b.payment_amount)}` : ""}
-                  </button>
-                )}
+                {!sourceCalendar &&
+                  b.payment_status === "pending" &&
+                  b.payment_method === "swish" && (
+                    <button
+                      onClick={() => runPaymentAction("mark_swish_paid")}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3.5 py-2 text-[11px] font-bold text-white hover:bg-emerald-800"
+                    >
+                      <CreditCard size={13} /> Markera Swish betald
+                      {b.payment_amount ? ` · ${fmtKr(b.payment_amount)}` : ""}
+                    </button>
+                  )}
 
-                {b.payment_status === "paid" && b.payment_method === "stripe" && (
-                  <button
-                    onClick={async () => {
-                      const amount = b.payment_amount
-                        ? ` ${b.payment_amount.toLocaleString("sv-SE")} kr`
-                        : "";
-                      if (
-                        !window.confirm(
-                          `Återbetala${amount} till ${b.guest_name ?? "gästen"}? Pengarna skickas tillbaka automatiskt via Stripe.`,
+                {!sourceCalendar &&
+                  b.payment_status === "paid" &&
+                  b.payment_method === "stripe" && (
+                    <button
+                      onClick={async () => {
+                        const amount = b.payment_amount
+                          ? ` ${b.payment_amount.toLocaleString("sv-SE")} kr`
+                          : "";
+                        if (
+                          !window.confirm(
+                            `Återbetala${amount} till ${b.guest_name ?? "gästen"}? Pengarna skickas tillbaka automatiskt via Stripe.`,
+                          )
                         )
-                      )
-                        return;
-                      await refundStripe();
-                    }}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-black/[0.09] bg-white px-3.5 py-2 text-[11px] font-bold text-[color:var(--ink)]/65 hover:border-black/20"
-                  >
-                    <RotateCcw size={13} /> Återbetala via Stripe
-                  </button>
-                )}
+                          return;
+                        await refundStripe();
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-black/[0.09] bg-white px-3.5 py-2 text-[11px] font-bold text-[color:var(--ink)]/65 hover:border-black/20"
+                    >
+                      <RotateCcw size={13} /> Återbetala via Stripe
+                    </button>
+                  )}
 
-                {b.payment_status === "paid" && b.payment_method === "swish" && (
+                {!sourceCalendar && b.payment_status === "paid" && b.payment_method === "swish" && (
                   <button
                     onClick={async () => {
                       const amount = b.payment_amount
@@ -901,31 +959,35 @@ function BookingCard({
                   </button>
                 )}
 
-                {b.payment_status === "refund_pending" && b.payment_method === "stripe" && (
-                  <button
-                    onClick={refundStripe}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-red-700 px-3.5 py-2 text-[11px] font-bold text-white hover:bg-red-800"
-                  >
-                    <RotateCcw size={13} /> Slutför Stripe-återbetalning
-                  </button>
-                )}
+                {!sourceCalendar &&
+                  b.payment_status === "refund_pending" &&
+                  b.payment_method === "stripe" && (
+                    <button
+                      onClick={refundStripe}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-red-700 px-3.5 py-2 text-[11px] font-bold text-white hover:bg-red-800"
+                    >
+                      <RotateCcw size={13} /> Slutför Stripe-återbetalning
+                    </button>
+                  )}
 
-                {b.payment_status === "refund_pending" && b.payment_method === "swish" && (
-                  <button
-                    onClick={async () => {
-                      if (
-                        !window.confirm(
-                          `Bekräfta endast om du redan har swishat tillbaka pengarna till ${b.guest_name ?? "gästen"}.`,
+                {!sourceCalendar &&
+                  b.payment_status === "refund_pending" &&
+                  b.payment_method === "swish" && (
+                    <button
+                      onClick={async () => {
+                        if (
+                          !window.confirm(
+                            `Bekräfta endast om du redan har swishat tillbaka pengarna till ${b.guest_name ?? "gästen"}.`,
+                          )
                         )
-                      )
-                        return;
-                      await runPaymentAction("confirm_swish_refunded");
-                    }}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-red-700 px-3.5 py-2 text-[11px] font-bold text-white hover:bg-red-800"
-                  >
-                    <Check size={13} /> Jag har swishat tillbaka
-                  </button>
-                )}
+                          return;
+                        await runPaymentAction("confirm_swish_refunded");
+                      }}
+                      className="inline-flex items-center gap-1.5 rounded-xl bg-red-700 px-3.5 py-2 text-[11px] font-bold text-white hover:bg-red-800"
+                    >
+                      <Check size={13} /> Jag har swishat tillbaka
+                    </button>
+                  )}
 
                 <button
                   onClick={onCopy}
