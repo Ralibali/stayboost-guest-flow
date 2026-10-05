@@ -1,26 +1,23 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ExternalLink, Mail, MailOpen, MessageSquareText, RefreshCw, Search } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { GuestAiDraft } from "@/components/app/GuestAiDraft";
 import { GuestAiSettings } from "@/components/app/GuestAiSettings";
 import { supabase, useProperty, useSession } from "@/lib/supabase";
+import { InboxWorkflow, ManualInboxMessage } from "@/components/app/InboxWorkflow";
+import {
+  channelLabels,
+  isOverdue,
+  replyLink,
+  safePageUrl,
+  type InboxMessage,
+  type InboxBooking,
+} from "@/lib/inbox";
+import { localDay } from "@/lib/stayOperations";
 
 export const Route = createFileRoute("/app/inkorg")({
   component: InboxPage,
 });
-
-type ChatMessage = {
-  id: string;
-  visitor_name: string | null;
-  visitor_email: string;
-  message: string;
-  page_url: string | null;
-  emailed: boolean;
-  read_at: string | null;
-  ai_draft: string | null;
-  ai_draft_created_at: string | null;
-  created_at: string;
-};
 
 const formatDate = (value: string) =>
   new Date(value).toLocaleString("sv-SE", {
@@ -33,7 +30,11 @@ const formatDate = (value: string) =>
 function InboxPage() {
   const session = useSession();
   const { property, reload: reloadProperty } = useProperty(session);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<InboxMessage[]>([]);
+  const [bookings, setBookings] = useState<InboxBooking[]>([]);
+  const [filter, setFilter] = useState("active");
+  const [channel, setChannel] = useState("all");
+  const generation = useRef(0);
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -41,6 +42,7 @@ function InboxPage() {
   const load = useCallback(async () => {
     if (!supabase || !property) return;
 
+    const ticket = ++generation.current;
     setLoading(true);
     setError(null);
 
@@ -52,33 +54,60 @@ function InboxPage() {
       .order("created_at", { ascending: false })
       .limit(200);
 
+    if (ticket !== generation.current) return;
     if (loadError) {
       setError(loadError.message);
       setMessages([]);
     } else {
-      setMessages((data as ChatMessage[]) ?? []);
+      setMessages((data as InboxMessage[]) ?? []);
     }
 
+    const { data: bookingData, error: bookingError } = await supabase
+      .from("bookings")
+      .select("id,guest_name,guest_email,checkin_date,checkout_date,status")
+      .eq("property_id", property.id)
+      .order("checkin_date", { ascending: false })
+      .limit(1000);
+    if (ticket !== generation.current) return;
+    setBookings((bookingData as InboxBooking[]) ?? []);
+    if (bookingError) setError("Bokningslistan kunde inte hämtas.");
     setLoading(false);
   }, [property]);
 
   useEffect(() => {
-    load();
+    setMessages([]);
+    setBookings([]);
+    void load();
+    return () => {
+      generation.current++;
+    };
   }, [load]);
 
   const unread = useMemo(() => messages.filter((message) => !message.read_at).length, [messages]);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("sv-SE");
-    if (!needle) return messages;
-
-    return messages.filter((message) =>
-      [message.visitor_name ?? "", message.visitor_email, message.message, message.page_url ?? ""]
-        .join(" ")
-        .toLocaleLowerCase("sv-SE")
-        .includes(needle),
+    return messages.filter(
+      (message) =>
+        (filter === "all" ||
+          (filter === "active" && message.inbox_status !== "resolved") ||
+          (filter === "overdue" && isOverdue(message, localDay())) ||
+          filter === message.inbox_status) &&
+        (channel === "all" || channel === message.channel) &&
+        [
+          message.visitor_name ?? "",
+          message.visitor_email,
+          message.message,
+          message.page_url ?? "",
+          message.assigned_to,
+          message.internal_note,
+          message.visitor_phone ?? "",
+        ]
+          .join(" ")
+          .toLocaleLowerCase("sv-SE")
+          .includes(needle),
     );
-  }, [messages, query]);
+  }, [messages, query, filter, channel]);
 
   const markRead = async (id: string) => {
     if (!supabase) return;
@@ -120,7 +149,7 @@ function InboxPage() {
   if (!property) return null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" data-private="true">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.16em] text-[#2d684c]">
@@ -128,7 +157,7 @@ function InboxPage() {
           </div>
           <h1 className="mt-2 font-[Fraunces] text-[34px] font-semibold leading-tight">Inkorg</h1>
           <p className="mt-1 text-[13px] text-[color:var(--ink)]/50">
-            Gästfrågor från webbchatten samlade på ett ställe.
+            Webbchatt och manuellt registrerade gästfrågor med ansvarig, bokning och uppföljning.
             {unread > 0 ? ` ${unread} olästa.` : " Allt är läst."}
           </p>
         </div>
@@ -145,14 +174,47 @@ function InboxPage() {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-3">
-        <Stat label="Totalt" value={messages.length} />
+        <Stat label="Senaste 200" value={messages.length} />
         <Stat label="Olästa" value={unread} attention={unread > 0} />
         <Stat
-          label="Mejlnotifierade"
-          value={messages.filter((message) => message.emailed).length}
+          label="Försenade uppföljningar"
+          value={messages.filter((message) => isOverdue(message, localDay())).length}
         />
       </div>
 
+      <ManualInboxMessage propertyId={property.id} onSaved={() => void load()} />
+      <div className="flex flex-wrap gap-3">
+        <label className="text-xs">
+          Visa
+          <select
+            aria-label="Filtrera status"
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            className="ml-2 rounded-lg border bg-white p-2"
+          >
+            <option value="active">Öppna och väntande</option>
+            <option value="overdue">Försenade</option>
+            <option value="resolved">Klara</option>
+            <option value="all">Alla</option>
+          </select>
+        </label>
+        <label className="text-xs">
+          Kanal
+          <select
+            aria-label="Filtrera kanal"
+            value={channel}
+            onChange={(e) => setChannel(e.target.value)}
+            className="ml-2 rounded-lg border bg-white p-2"
+          >
+            <option value="all">Alla kanaler</option>
+            {Object.entries(channelLabels).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
       <GuestAiSettings
         propertyId={property.id}
         enabled={property.guest_ai_enabled}
@@ -166,7 +228,7 @@ function InboxPage() {
         <input
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          placeholder="Sök namn, e-post eller meddelande"
+          placeholder="Sök gäst, telefon, ansvarig eller anteckning"
           className="w-full bg-transparent text-sm outline-none placeholder:text-[color:var(--ink)]/35"
         />
       </label>
@@ -194,12 +256,12 @@ function InboxPage() {
       <div className="space-y-3">
         {filtered.map((message) => {
           const isUnread = !message.read_at;
-          const subject = encodeURIComponent(`Svar från ${property.name}`);
-          const mailto = `mailto:${encodeURIComponent(message.visitor_email)}?subject=${subject}`;
+          const mailto = replyLink(message, property.name);
+          const pageUrl = safePageUrl(message.page_url);
 
           return (
             <article
-              key={message.id}
+              key={`${message.id}:${message.inbox_version}`}
               className={`rounded-[22px] border bg-white p-5 shadow-sm transition sm:p-6 ${
                 isUnread ? "border-[#2d684c]/30 ring-1 ring-[#2d684c]/10" : "border-black/[0.07]"
               }`}
@@ -215,17 +277,24 @@ function InboxPage() {
                         Nytt
                       </span>
                     ) : null}
-                    {!message.emailed ? (
+                    <span className="rounded-full bg-gray-100 px-2 py-1 text-[10px]">
+                      {channelLabels[message.channel]}
+                      {message.logged_manually ? " · Registrerat manuellt" : ""}
+                    </span>
+                    {isOverdue(message, localDay()) && (
+                      <span className="text-xs text-amber-800">Uppföljning försenad</span>
+                    )}
+                    {!message.emailed && !message.logged_manually ? (
                       <span className="rounded-full bg-amber-50 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-amber-700">
                         Ej mejlaviserad
                       </span>
                     ) : null}
                   </div>
                   <a
-                    href={mailto}
+                    href={mailto ?? undefined}
                     className="mt-1 inline-block text-xs font-medium text-[#2d684c] hover:underline"
                   >
-                    {message.visitor_email}
+                    {message.visitor_email || message.visitor_phone}
                   </a>
                   <p className="mt-1 text-[11px] text-[color:var(--ink)]/40">
                     {formatDate(message.created_at)}
@@ -233,15 +302,16 @@ function InboxPage() {
                 </div>
 
                 <div className="flex flex-wrap gap-2">
-                  <a
-                    href={mailto}
-                    onClick={() => {
-                      if (isUnread) void markRead(message.id);
-                    }}
-                    className="inline-flex items-center gap-2 rounded-xl bg-[#173c2b] px-3.5 py-2 text-[11px] font-bold text-white transition hover:bg-[#214e39]"
-                  >
-                    <Mail size={14} /> Svara
-                  </a>
+                  {mailto && (
+                    <a
+                      href={mailto}
+                      target={message.channel === "whatsapp" ? "_blank" : undefined}
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#173c2b] px-3.5 py-2 text-[11px] font-bold text-white transition hover:bg-[#214e39]"
+                    >
+                      <Mail size={14} /> Öppna svarsapp
+                    </a>
+                  )}
                   <button
                     type="button"
                     onClick={() => void (isUnread ? markRead(message.id) : markUnread(message.id))}
@@ -257,6 +327,7 @@ function InboxPage() {
                 {message.message}
               </p>
 
+              <InboxWorkflow message={message} bookings={bookings} onSaved={() => void load()} />
               <GuestAiDraft
                 messageId={message.id}
                 existingDraft={message.ai_draft}
@@ -264,9 +335,9 @@ function InboxPage() {
                 enabled={property.guest_ai_enabled}
               />
 
-              {message.page_url ? (
+              {pageUrl ? (
                 <a
-                  href={message.page_url}
+                  href={pageUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="mt-4 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[color:var(--ink)]/45 hover:text-[#2d684c]"
