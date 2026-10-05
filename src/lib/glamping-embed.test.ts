@@ -1,12 +1,32 @@
 import { describe, expect, it } from "vitest";
 import {
   bookingLanguage,
+  GOGLAMPING_PROPERTY_SLUG,
   glampingEmbedTarget,
   isGlampingProperty,
   isHostedStripeCheckout,
 } from "./glamping-embed";
 
 describe("Glamping embed contract", () => {
+  it("connects the canonical glamping property when no build-time override is supplied", () => {
+    expect(GOGLAMPING_PROPERTY_SLUG).toBe("anlaggning-c96440");
+    expect(
+      glampingEmbedTarget(
+        GOGLAMPING_PROPERTY_SLUG,
+        GOGLAMPING_PROPERTY_SLUG,
+        "?embed=goglamping",
+        "https://goglampingsweden.se/boka",
+      ),
+    ).toBe("https://goglampingsweden.se");
+    expect(
+      glampingEmbedTarget(
+        "another-property",
+        GOGLAMPING_PROPERTY_SLUG,
+        "?embed=goglamping",
+        "https://goglampingsweden.se/boka",
+      ),
+    ).toBeNull();
+  });
   it("requires a configured property, explicit embed mode and the correct parent", () => {
     expect(
       glampingEmbedTarget(

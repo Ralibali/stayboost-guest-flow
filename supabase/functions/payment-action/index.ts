@@ -10,7 +10,10 @@ import {
 // Serverägd manuell betalningslivscykel. Klienten får inte skriva payment_status direkt.
 
 type Action =
-  "cancel_booking" | "mark_swish_paid" | "request_swish_refund" | "confirm_swish_refunded";
+  | "cancel_booking"
+  | "mark_swish_paid"
+  | "request_swish_refund"
+  | "confirm_swish_refunded";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -72,6 +75,7 @@ Deno.serve(async (req) => {
   }
 
   try {
+    let expiredSessionId: string | null = null;
     // Close an unpaid Checkout promptly. If Stripe completed concurrently, the
     // compare-and-set transition re-reads and preserves the verified paid state.
     if (
@@ -85,6 +89,7 @@ Deno.serve(async (req) => {
       if (stripeKey) {
         try {
           await expireCheckoutSession(stripeKey, booking.stripe_session_id);
+          expiredSessionId = booking.stripe_session_id;
         } catch {
           /* A verified late payment is retained as refund_pending. */
         }
@@ -96,6 +101,26 @@ Deno.serve(async (req) => {
       body.action,
       new Date().toISOString(),
     );
+    // Binding can win after the ownership read above. The atomic transition
+    // returns the session it actually cancelled; close that session as well.
+    // A retry also gets another chance to close an already-cancelled Checkout.
+    if (
+      body.action === "cancel_booking" &&
+      result.booking.status === "cancelled" &&
+      result.booking.payment_method === "stripe" &&
+      ["pending", "expired"].includes(result.booking.payment_status) &&
+      result.booking.stripe_session_id &&
+      result.booking.stripe_session_id !== expiredSessionId
+    ) {
+      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+      if (stripeKey) {
+        try {
+          await expireCheckoutSession(stripeKey, result.booking.stripe_session_id);
+        } catch {
+          /* A verified late payment is retained as refund_pending. */
+        }
+      }
+    }
     return json({
       ok: true,
       duplicate: result.duplicate,
