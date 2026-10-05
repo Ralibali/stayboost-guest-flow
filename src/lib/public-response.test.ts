@@ -71,6 +71,27 @@ describe("public API response resilience", () => {
     expect(isBookingEngineResponse(engine)).toBe(true);
     expect(isBookingEngineResponse({ ...engine, units: [] })).toBe(true);
   });
+  it("validates optional localized content and the public gallery without accepting source metadata", () => {
+    const content = { en: { name: " Tent ", description: " Full text\n\nSecond paragraph. " } };
+    const gallery = [
+      { id: "photo", url: "https://project.supabase.co/photo.jpg", altText: "View" },
+    ];
+    const response = (patch: object) => ({ ...engine, units: [{ ...engine.units[0], ...patch }] });
+    expect(isBookingEngineResponse(response({ contentTranslations: content, gallery }))).toBe(true);
+    expect(
+      isBookingEngineResponse(
+        response({ contentTranslations: { en: { ...content.en, private: "secret" } } }),
+      ),
+    ).toBe(false);
+    expect(
+      isBookingEngineResponse(response({ gallery: [{ ...gallery[0], source_url: "secret" }] })),
+    ).toBe(false);
+    expect(
+      isBookingEngineResponse(
+        response({ gallery: [{ ...gallery[0], url: "javascript:alert(1)" }] }),
+      ),
+    ).toBe(false);
+  });
   it("rejects malformed availability and catalog arrays before rendering", () => {
     expect(isBookingEngineResponse({ ...engine, addons: null })).toBe(false);
     for (const field of ["booked", "rateRules", "monthlyMult", "amenities"])

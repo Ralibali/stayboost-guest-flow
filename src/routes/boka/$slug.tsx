@@ -1,6 +1,11 @@
 import { SUPABASE_URL } from "@/lib/supabase-config";
 import { StaySearch } from "@/components/StaySearch";
 import { PartySelector } from "@/components/PartySelector";
+import { UnitDetails } from "@/components/UnitDetails";
+import {
+  localizedUnitText,
+  unitDisplayImages,
+} from "../../../supabase/functions/_shared/unit-content";
 import { partyLabels } from "@/lib/party-i18n";
 import {
   BookingOfferError,
@@ -312,7 +317,20 @@ function PublicBookingPage() {
     });
   const fmtKr = (value: number) => `${Math.round(value).toLocaleString(locale)} kr`;
 
-  const [data, setData] = useState<EngineData | null>(null);
+  const [sourceData, setData] = useState<EngineData | null>(null);
+  const data = useMemo(
+    () =>
+      sourceData
+        ? {
+            ...sourceData,
+            units: sourceData.units.map((candidate) => ({
+              ...candidate,
+              ...localizedUnitText(candidate, lang),
+            })),
+          }
+        : null,
+    [sourceData, lang],
+  );
   const [loadError, setLoadError] = useState<"notfound" | "temporary" | "channel" | null>(null);
   const [loadRetries, setLoadRetries] = useState(0);
   const [loadContact, setLoadContact] = useState<string | null>(null);
@@ -1019,6 +1037,7 @@ function PublicBookingPage() {
                     unit={candidate}
                     selected={candidate.id === unitId}
                     locale={locale}
+                    lang={lang}
                     onSelect={() => selectUnit(candidate)}
                     labels={x}
                   />
@@ -1355,12 +1374,14 @@ function UnitCard({
   unit,
   selected,
   locale,
+  lang,
   onSelect,
   labels,
 }: {
   unit: EngineUnit;
   selected: boolean;
   locale: string;
+  lang: Lang;
   onSelect: () => void;
   labels: ExtraStrings;
 }) {
@@ -1370,77 +1391,85 @@ function UnitCard({
       ? Math.min(...unit.adultPrices)
       : unit.basePrice;
   const fromPrice = Math.round((base * lowestMult) / 100);
+  const cover = unitDisplayImages(unit)[0];
   return (
-    <button
-      onClick={onSelect}
+    <article
       className="group overflow-hidden rounded-[24px] border text-left transition hover:-translate-y-0.5 hover:shadow-[0_14px_35px_rgba(23,35,29,0.08)]"
       style={{
         borderColor: selected ? C.forest : C.line,
         background: selected ? C.forestSoft : "white",
       }}
     >
-      <div className="relative aspect-[16/9] overflow-hidden" style={{ background: C.page }}>
-        {unit.imageUrl ? (
-          <img
-            src={unit.imageUrl}
-            alt={unit.name}
-            className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
-          />
-        ) : (
-          <div className="grid h-full place-items-center" style={{ color: C.muted }}>
-            <BedDouble size={28} />
-          </div>
-        )}
-        {selected ? (
-          <span
-            className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold text-white"
-            style={{ background: C.forest }}
-          >
-            <Check size={12} /> {labels.selected}
-          </span>
-        ) : null}
-      </div>
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="font-sans text-[15px] font-bold">{unit.name}</h3>
-          <span className="shrink-0 text-[12px] font-bold">
-            {labels.from} {fromPrice.toLocaleString(locale)} kr
-          </span>
-        </div>
-        {unit.description ? (
-          <p className="mt-2 line-clamp-2 text-[12px] leading-relaxed" style={{ color: C.muted }}>
-            {unit.description}
-          </p>
-        ) : null}
-        <div
-          className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold"
-          style={{ color: C.muted }}
-        >
-          <span className="inline-flex items-center gap-1">
-            <Users size={13} /> {labels.sleeps(unit.maxGuests)}
-          </span>
-          {unit.bedDescription ? (
-            <span className="inline-flex items-center gap-1">
-              <BedDouble size={13} /> {unit.bedDescription}
+      <button
+        type="button"
+        onClick={onSelect}
+        aria-pressed={selected}
+        className="block w-full text-left"
+      >
+        <div className="relative aspect-[16/9] overflow-hidden" style={{ background: C.page }}>
+          {cover ? (
+            <img
+              src={cover.url}
+              alt={cover.altText || unit.name}
+              className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.025]"
+            />
+          ) : (
+            <div className="grid h-full place-items-center" style={{ color: C.muted }}>
+              <BedDouble size={28} />
+            </div>
+          )}
+          {selected ? (
+            <span
+              className="absolute right-3 top-3 flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[10px] font-bold text-white"
+              style={{ background: C.forest }}
+            >
+              <Check size={12} /> {labels.selected}
             </span>
           ) : null}
-          {unit.sizeSqm ? <span>{labels.size(unit.sizeSqm)}</span> : null}
         </div>
-        {unit.amenities?.length ? (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {unit.amenities.slice(0, 4).map((amenity) => (
-              <span
-                key={amenity}
-                className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold"
-                style={{ color: C.muted }}
-              >
-                {amenity}
-              </span>
-            ))}
+        <div className="p-4">
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="font-sans text-[15px] font-bold">{unit.name}</h3>
+            <span className="shrink-0 text-[12px] font-bold">
+              {labels.from} {fromPrice.toLocaleString(locale)} kr
+            </span>
           </div>
-        ) : null}
-      </div>
-    </button>
+          {unit.description ? (
+            <p className="mt-2 line-clamp-2 text-[12px] leading-relaxed" style={{ color: C.muted }}>
+              {unit.description}
+            </p>
+          ) : null}
+          <div
+            className="mt-3 flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-semibold"
+            style={{ color: C.muted }}
+          >
+            <span className="inline-flex items-center gap-1">
+              <Users size={13} /> {labels.sleeps(unit.maxGuests)}
+            </span>
+            {unit.bedDescription ? (
+              <span className="inline-flex items-center gap-1">
+                <BedDouble size={13} /> {unit.bedDescription}
+              </span>
+            ) : null}
+            {unit.sizeSqm ? <span>{labels.size(unit.sizeSqm)}</span> : null}
+          </div>
+          {unit.amenities?.length ? (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {unit.amenities.slice(0, 4).map((amenity) => (
+                <span
+                  key={amenity}
+                  className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold"
+                  style={{ color: C.muted }}
+                >
+                  {amenity}
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      </button>
+      <UnitDetails unit={unit} lang={lang} />
+    </article>
   );
 }
 
