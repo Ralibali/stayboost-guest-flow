@@ -80,3 +80,7 @@ verify_jwt = true
 # Original exports: owner authentication is checked again by the handler.
 [functions.sirvoy-archive]
 verify_jwt = true
+
+# Searchable source evidence; handler checks the authenticated property owner.
+[functions.sirvoy-records]
+verify_jwt = true
