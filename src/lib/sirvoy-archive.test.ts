@@ -1,3 +1,4 @@
+import { Buffer } from "node:buffer";
 import { describe, expect, it, vi } from "vitest";
 import { createSirvoyArchiveHandler } from "../../supabase/functions/_shared/sirvoy-archive-handler";
 import {
@@ -141,7 +142,8 @@ const upload = (content = bytes, filename = "sirvoy.csv", propertyId = PROPERTY)
 describe("original export bytes", () => {
   it("roundtrips a large binary export without string argument or regex stack limits", () => {
     const large = new Uint8Array(1024 * 1024).map((_, index) => index % 256);
-    expect(archiveHexToBytes(archiveBytesToHex(large))).toEqual(large);
+    const restored = archiveHexToBytes(archiveBytesToHex(large));
+    expect(Buffer.compare(restored, large)).toBe(0);
   });
   it("retains BOM, CRLF, quoted newlines and empty trailing CSV fields", () => {
     expect(archiveHexToBytes(archiveBytesToHex(bytes))).toEqual(bytes);
