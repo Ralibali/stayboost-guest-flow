@@ -1,5 +1,9 @@
 import { createClient, type SupabaseClient, type Session } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
+import type {
+  UnitGalleryImage,
+  UnitTranslations,
+} from "../../supabase/functions/_shared/unit-content";
 
 import { SUPABASE_URL, SUPABASE_PUBLIC_KEY } from "./supabase-config";
 
@@ -75,6 +79,8 @@ export type Unit = {
   name: string;
   description: string | null;
   image_url: string | null;
+  content_translations?: UnitTranslations;
+  gallery?: UnitGalleryImage[];
   max_guests: number;
   bed_description: string | null;
   size_sqm: number | null;

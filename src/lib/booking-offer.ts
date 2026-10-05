@@ -1,4 +1,8 @@
 import { isBookingEngineResponse } from "./public-response";
+import type {
+  PublicUnitImage,
+  UnitTranslations,
+} from "../../supabase/functions/_shared/unit-content";
 import { rangesOverlap } from "../../supabase/functions/_shared/pricing";
 import { checkAvailabilityRules, type RateRule } from "../../supabase/functions/_shared/rate-rules";
 import { nightsBetween } from "../../supabase/functions/_shared/pricing";
@@ -9,6 +13,8 @@ export type EngineUnit = {
   name: string;
   description: string | null;
   imageUrl: string | null;
+  contentTranslations?: UnitTranslations;
+  gallery?: PublicUnitImage[];
   maxGuests: number;
   bedDescription: string | null;
   sizeSqm: number | null;

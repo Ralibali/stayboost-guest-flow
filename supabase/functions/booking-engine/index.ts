@@ -21,6 +21,7 @@ import { stockholmDay } from "../_shared/guest-stay.ts";
 import { collectPages } from "../_shared/pagination.ts";
 import { sanitizedHttpsUrl } from "../_shared/public-links.ts";
 import { channelInventoryFresh } from "../_shared/channel-freshness.ts";
+import { projectUnitContent } from "../_shared/unit-content.ts";
 
 // Publik bokningsmotor. All prissättning, kapacitet och tillgänglighet
 // verifieras server-side. Databastriggern serialiserar samtidiga direktbokningar.
@@ -130,7 +131,7 @@ Deno.serve(async (req) => {
     const { data: units, error: unitsError } = await admin
       .from("units")
       .select(
-        "id, name, description, image_url, max_guests, bed_description, size_sqm, amenities, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult, sort_order, party_pricing_enabled, adult_prices, child_price_per_night, child_free_through_age, child_max_age",
+        "id, name, description, image_url, content_translations, gallery, max_guests, bed_description, size_sqm, amenities, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult, sort_order, party_pricing_enabled, adult_prices, child_price_per_night, child_free_through_age, child_max_age",
       )
       .eq("property_id", property.id)
       .eq("active", true)
@@ -197,7 +198,8 @@ Deno.serve(async (req) => {
         id: u.id,
         name: u.name,
         description: u.description,
-        imageUrl: u.image_url,
+        imageUrl: sanitizedHttpsUrl(u.image_url),
+        ...projectUnitContent(u, property.id, Deno.env.get("SUPABASE_URL")!),
         maxGuests: u.max_guests,
         bedDescription: u.bed_description,
         sizeSqm: u.size_sqm,

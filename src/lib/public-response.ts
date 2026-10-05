@@ -1,3 +1,6 @@
+import { isUnitTranslations } from "../../supabase/functions/_shared/unit-content";
+import { sanitizedHttpsUrl } from "../../supabase/functions/_shared/public-links";
+
 const record = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 const text = (value: unknown): value is string => typeof value === "string";
@@ -95,6 +98,16 @@ export function isBookingEngineResponse(value: unknown): boolean {
         text(unit.name) &&
         optionalText(unit.description) &&
         optionalText(unit.imageUrl) &&
+        (unit.contentTranslations == null || isUnitTranslations(unit.contentTranslations)) &&
+        optionalArray(
+          unit.gallery,
+          (image) =>
+            record(image) &&
+            text(image.id) &&
+            text(image.altText) &&
+            Boolean(sanitizedHttpsUrl(image.url)) &&
+            Object.keys(image).every((key) => ["id", "url", "altText"].includes(key)),
+        ) &&
         optionalText(unit.bedDescription) &&
         finite(unit.maxGuests) &&
         unit.maxGuests >= 1 &&
