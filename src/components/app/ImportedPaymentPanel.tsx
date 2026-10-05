@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase, type Booking } from "@/lib/supabase";
 import { propertyDay, propertyMidnight } from "@/lib/property-dates";
+import { isSirvoyCalendarBooking } from "@/lib/sirvoy-calendar";
 export function ImportedPaymentPanel({
   booking,
   onChanged,
@@ -29,7 +30,8 @@ export function ImportedPaymentPanel({
     }>
   >([]);
   const [historyError, setHistoryError] = useState("");
-  const imported = booking.external_id?.startsWith("sirvoy-csv:") ?? false;
+  const sourceCalendar = isSirvoyCalendarBooking(booking);
+  const imported = !sourceCalendar && (booking.external_id?.startsWith("sirvoy-csv:") ?? false);
   useEffect(() => {
     if (!imported || !supabase) return;
     let active = true;
@@ -47,7 +49,7 @@ export function ImportedPaymentPanel({
       active = false;
     };
   }, [imported, booking.id, booking.payment_status]);
-  if (!booking.external_id?.startsWith("sirvoy-csv:")) return null;
+  if (!imported) return null;
   const payment = booking.payment_status === "none";
   const refund =
     booking.status === "cancelled" &&
@@ -69,7 +71,7 @@ export function ImportedPaymentPanel({
   };
   const reconcile = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!supabase || busy) return;
+    if (!supabase || busy || sourceCalendar) return;
     setBusy(true);
     setError("");
     try {
@@ -101,7 +103,7 @@ export function ImportedPaymentPanel({
     }
   };
   const enableMessages = async () => {
-    if (!supabase || busy) return;
+    if (!supabase || busy || sourceCalendar) return;
     setBusy(true);
     setError("");
     try {

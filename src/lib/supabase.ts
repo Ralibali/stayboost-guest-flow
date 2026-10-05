@@ -109,6 +109,8 @@ export type Booking = {
   unit_id: string | null;
   source: "manual" | "ical" | "direct" | "sirvoy" | "channex";
   external_id?: string | null;
+  source_accommodation_record_id?: string | null;
+  source_booking_record_id?: string | null;
   communications_enabled?: boolean;
   guest_name: string | null;
   guest_email: string | null;
