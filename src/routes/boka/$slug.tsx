@@ -2,7 +2,16 @@ import { SUPABASE_URL } from "@/lib/supabase-config";
 import { StaySearch } from "@/components/StaySearch";
 import { PartySelector } from "@/components/PartySelector";
 import { partyLabels } from "@/lib/party-i18n";
-import { isBookingEngineResponse } from "@/lib/public-response";
+import {
+  BookingOfferError,
+  bookingDatesAvailable,
+  bookingOfferNeedsRefresh,
+  fetchBookingOffer,
+  reconcileBookingAddonQuantities,
+  type EngineAddon,
+  type EngineData,
+  type EngineUnit,
+} from "@/lib/booking-offer";
 import { normalizeGuestPhone } from "../../../supabase/functions/_shared/guest-contact";
 import { stockholmDay } from "../../../supabase/functions/_shared/guest-stay";
 import { sanitizedHttpsUrl } from "../../../supabase/functions/_shared/public-links";
@@ -39,6 +48,7 @@ import { minStayFromRules, type RateRule } from "../../../supabase/functions/_sh
 import {
   bookingLanguage,
   GLAMPING_ORIGIN,
+  GOGLAMPING_PROPERTY_SLUG,
   glampingEmbedTarget,
   isGlampingProperty,
   isHostedStripeCheckout,
@@ -238,60 +248,6 @@ type ExtraStrings = {
     : string;
 };
 
-type EngineUnit = {
-  id: string;
-  name: string;
-  description: string | null;
-  imageUrl: string | null;
-  maxGuests: number;
-  bedDescription: string | null;
-  sizeSqm: number | null;
-  amenities: string[];
-  basePrice: number;
-  weekendPct: number;
-  minStay: number;
-  cleaningFee: number;
-  monthlyMult: number[];
-  booked: { from: string; to: string }[];
-  rateRules: RateRule[];
-  partyPricingEnabled?: boolean;
-  adultPrices?: number[];
-  childPricePerNight?: number;
-  childFreeThroughAge?: number;
-  childMaxAge?: number;
-};
-
-type EngineAddon = {
-  id: string;
-  name: string;
-  description: string | null;
-  price: number;
-  priceType: "per_booking" | "per_night";
-  imageUrl: string | null;
-  availableFrom: string | null;
-  availableTo: string | null;
-  maxQuantity: number;
-  fulfillmentType?: "arrival" | "each_morning" | "departure";
-};
-
-type EngineData = {
-  property: {
-    bookingEnabled: boolean;
-    maxStay: number;
-    contactEmail: string | null;
-    bookingTermsUrl?: string | null;
-    name: string;
-    slug: string;
-    checkinTime: string;
-    checkoutTime: string;
-    swishNumber: string | null;
-    stripeAvailable: boolean;
-    availableThrough?: string;
-  };
-  units: EngineUnit[];
-  addons: EngineAddon[];
-};
-
 const pricingOf = (u: EngineUnit): UnitPricing => ({
   base_price: u.basePrice,
   weekend_pct: u.weekendPct,
@@ -317,13 +273,13 @@ const departureBlocked = (u: EngineUnit, iso: string) =>
 
 function PublicBookingPage() {
   const { slug } = Route.useParams();
-  const glampingProperty = isGlampingProperty(slug, import.meta.env.VITE_GOGLAMPING_PROPERTY_SLUG);
+  const glampingProperty = isGlampingProperty(slug, GOGLAMPING_PROPERTY_SLUG);
   const embedTarget =
     typeof document === "undefined"
       ? null
       : glampingEmbedTarget(
           slug,
-          import.meta.env.VITE_GOGLAMPING_PROPERTY_SLUG,
+          GOGLAMPING_PROPERTY_SLUG,
           window.location.search,
           document.referrer,
         );
@@ -390,7 +346,7 @@ function PublicBookingPage() {
 
   useEffect(() => {
     if (!embedTarget || window.parent === window) return;
-    if (loadError || (data && data.units.length === 0)) {
+    if (loadError || (data && (!data.property.bookingEnabled || data.units.length === 0))) {
       window.parent.postMessage({ type: "stayboost:error" }, embedTarget);
     } else if (data && data.units.length > 0) {
       window.parent.postMessage({ type: "stayboost:ready" }, embedTarget);
@@ -407,19 +363,7 @@ function PublicBookingPage() {
       setLoadError("temporary");
       return;
     }
-    fetch(`${FUNCTIONS_BASE}/functions/v1/booking-engine?slug=${encodeURIComponent(slug)}`, {
-      signal: AbortSignal.any([controller.signal, AbortSignal.timeout(20000)]),
-    })
-      .then(async (response) => {
-        if (response.status === 404) throw new Error("notfound");
-        const payload = await response.json();
-        if (!response.ok && !cancelled && payload?.property?.contactEmail)
-          setLoadContact(payload.property.contactEmail);
-        if (!response.ok)
-          throw new Error(payload?.error === "channel_sync_required" ? "channel" : "temporary");
-        if (!isBookingEngineResponse(payload)) throw new Error("temporary");
-        return payload;
-      })
+    fetchBookingOffer(FUNCTIONS_BASE, slug, controller.signal)
       .then((payload: EngineData) => {
         if (cancelled) return;
         setData(payload);
@@ -434,14 +378,10 @@ function PublicBookingPage() {
         }
       })
       .catch((error) => {
-        if (!cancelled)
-          setLoadError(
-            error?.message === "notfound"
-              ? "notfound"
-              : error?.message === "channel"
-                ? "channel"
-                : "temporary",
-          );
+        if (!cancelled) {
+          setLoadError(error instanceof BookingOfferError ? error.kind : "temporary");
+          setLoadContact(error instanceof BookingOfferError ? error.contactEmail : null);
+        }
       });
     return () => {
       cancelled = true;
@@ -525,7 +465,17 @@ function PublicBookingPage() {
   const emailValid = EMAIL.test(email.trim());
   const maxStayOk = !quote || quote.nights <= (data?.property.maxStay ?? 30);
   const canSubmit = Boolean(
-    unit && quote && minStayOk && maxStayOk && data?.property.bookingEnabled !== false && !sending,
+    unit &&
+    quote &&
+    checkin &&
+    checkout &&
+    minStayOk &&
+    maxStayOk &&
+    checkin >= isoToday() &&
+    (!data?.property.availableThrough || checkout <= data.property.availableThrough) &&
+    bookingDatesAvailable(unit, checkin, checkout) &&
+    data?.property.bookingEnabled !== false &&
+    !sending,
   );
 
   const resetDates = () => {
@@ -667,6 +617,29 @@ function PublicBookingPage() {
         if (payload.error === "channel_sync_in_progress") setFormError(t.channelSyncRetry);
         if (payload.error === "price_changed")
           setFormError(t.errPriceChanged(fmtKr(payload.grandTotal)));
+        if (bookingOfferNeedsRefresh(payload.error)) {
+          // Keep contact details and dates while replacing all price/inventory inputs.
+          // The guest reviews the fresh total before submitting another request.
+          setTermsAccepted(false);
+          try {
+            const fresh = await fetchBookingOffer(FUNCTIONS_BASE, slug);
+            setData(fresh);
+            setAddonQty((current) =>
+              reconcileBookingAddonQuantities(fresh.addons, current, checkin, checkout),
+            );
+            const refreshedUnit = fresh.units.find((candidate) => candidate.id === unit.id);
+            if (refreshedUnit) {
+              setGuests((current) => Math.min(current, refreshedUnit.maxGuests));
+            } else {
+              setUnitId(fresh.units[0]?.id ?? null);
+              setCheckin(null);
+              setCheckout(null);
+            }
+          } catch (error) {
+            setLoadError(error instanceof BookingOfferError ? error.kind : "temporary");
+            setLoadContact(error instanceof BookingOfferError ? error.contactEmail : null);
+          }
+        }
       } else if (payload.checkoutUrl) {
         if (!isHostedStripeCheckout(payload.checkoutUrl)) {
           setFormError(t.errGeneric);

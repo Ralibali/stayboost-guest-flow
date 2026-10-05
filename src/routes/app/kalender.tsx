@@ -34,16 +34,30 @@ function CalendarPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const generation = useRef(0);
+  const inFlight = useRef<Promise<CalendarBooking[]> | null>(null);
+  const requestController = useRef<AbortController | null>(null);
   const { monthStart, nextMonth, label } = useMemo(() => propertyMonth(monthOffset), [monthOffset]);
   const propertyId = property?.id;
-  const load = useCallback(async () => {
-    if (!supabase || !propertyId) return;
-    const client = supabase;
-    const ticket = ++generation.current;
-    setLoading(true);
-    setError("");
-    try {
-      const data = await fetchAllRows<CalendarBooking>((from, to) =>
+  const load = useCallback(
+    async (silent = false) => {
+      if (!supabase || !propertyId) return;
+      const client = supabase;
+      const ticket = generation.current;
+      if (silent && inFlight.current) return;
+      if (!silent) {
+        setLoading(true);
+        setError("");
+      }
+      // Month changes wait for the previous request; background refreshes never queue.
+      while (inFlight.current) {
+        await inFlight.current.catch(() => undefined);
+        if (ticket !== generation.current) return;
+      }
+      if (ticket !== generation.current) return;
+      if (!silent) setLoading(true);
+      const controller = new AbortController();
+      requestController.current = controller;
+      const request = fetchAllRows<CalendarBooking>((from, to) =>
         client
           .from("bookings")
           .select(
@@ -56,21 +70,43 @@ function CalendarPage() {
           .gt("checkout_date", monthStart)
           .order("checkin_date")
           .order("id")
-          .range(from, to),
+          .range(from, to)
+          .abortSignal(controller.signal),
       );
-      if (ticket === generation.current) setBookings(data);
-    } catch (failure) {
-      if (ticket === generation.current)
-        setError(failure instanceof Error ? failure.message : "Kalendern kunde inte hämtas.");
-    } finally {
-      if (ticket === generation.current) setLoading(false);
-    }
-  }, [propertyId, monthStart, nextMonth]);
+      inFlight.current = request;
+      try {
+        const data = await request;
+        if (ticket === generation.current) {
+          setBookings(data);
+          setError("");
+        }
+      } catch (failure) {
+        if (ticket === generation.current)
+          setError(failure instanceof Error ? failure.message : "Kalendern kunde inte hämtas.");
+      } finally {
+        if (inFlight.current === request) inFlight.current = null;
+        if (requestController.current === controller) requestController.current = null;
+        if (ticket === generation.current) setLoading(false);
+      }
+    },
+    [propertyId, monthStart, nextMonth],
+  );
   useEffect(() => {
     const currentGeneration = generation;
+    const activeController = requestController;
+    const refreshVisible = () => {
+      if (document.visibilityState === "visible") void load(true);
+    };
     void load();
+    const timer = window.setInterval(refreshVisible, 60_000);
+    window.addEventListener("focus", refreshVisible);
+    document.addEventListener("visibilitychange", refreshVisible);
     return () => {
       currentGeneration.current++;
+      activeController.current?.abort();
+      window.clearInterval(timer);
+      window.removeEventListener("focus", refreshVisible);
+      document.removeEventListener("visibilitychange", refreshVisible);
     };
   }, [load]);
   const conflicts = useMemo(() => bookingConflicts(bookings), [bookings]);

@@ -1,4 +1,7 @@
 export const GLAMPING_ORIGIN = "https://goglampingsweden.se";
+// This public property identifier must work in published builds without a host override.
+export const GOGLAMPING_PROPERTY_SLUG =
+  import.meta.env.VITE_GOGLAMPING_PROPERTY_SLUG?.trim() || "anlaggning-c96440";
 
 export function isGlampingProperty(slug: string, configuredSlug?: string) {
   return Boolean(configuredSlug && slug === configuredSlug);

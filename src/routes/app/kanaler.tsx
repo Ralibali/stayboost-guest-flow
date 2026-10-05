@@ -168,7 +168,7 @@ function ChannelsPage() {
           <p className="eyebrow">Distribution</p>
           <h1 className="mt-2 font-[Fraunces] text-3xl font-semibold">Bokningskanaler</h1>
           <p className="mt-2 text-sm text-black/60">
-            Anslut Channex för att utbyta bokningar, priser och tillgänglighet med bokningskanaler.
+            Hämta externa bokningar till kalendern eller anslut en fullständig kanalsynk.
           </p>
         </div>
         <button className={button} disabled={loading || Boolean(busy)} onClick={() => void load()}>
@@ -176,10 +176,25 @@ function ChannelsPage() {
           Uppdatera
         </button>
       </header>
+      <section className="rounded-2xl border bg-white p-5">
+        <h2 className="font-semibold">Booking.com och Airbnb till kalendern</h2>
+        <p className="mt-2 text-sm text-black/60">
+          Lägg till kanalens iCal-exportlänk för varje tält. Bokade datum hämtas automatiskt till
+          Stayboosts kalender. Du kan också hämta dem direkt med Synka nu.
+        </p>
+        <p className="mt-2 text-sm text-black/60">
+          Kalenderimporten kräver ingen Channex-anslutning. Priser, betalningar och fullständiga
+          gästuppgifter ingår inte i kalendersynken.
+        </p>
+        <Link to="/app/kallor" className={`${button} mt-4 inline-flex items-center gap-2`}>
+          <Link2 size={14} />
+          Anslut kalendrar
+        </Link>
+      </section>
       <div className="rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-950">
         <p className="flex items-center gap-2 font-semibold">
           <AlertTriangle size={17} />
-          Verifiera hela kedjan före byte från Sirvoy
+          Verifiera hela kedjan om du ansluter Channex
         </p>
         <p className="mt-2">
           Anslut Booking.com och Airbnb hos Channex och bekräfta partnerbehörighet där. Varje

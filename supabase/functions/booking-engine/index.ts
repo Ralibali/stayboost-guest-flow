@@ -528,13 +528,17 @@ Deno.serve(async (req) => {
         });
         createdSessionId = session.id;
 
-        const { error: bindError } = await admin
+        const { data: boundBooking, error: bindError } = await admin
           .from("bookings")
           .update({ stripe_session_id: session.id })
           .eq("id", booking.id)
+          .eq("status", "confirmed")
           .eq("payment_method", "stripe")
-          .eq("payment_status", "pending");
+          .eq("payment_status", "pending")
+          .select("id")
+          .maybeSingle();
         if (bindError) throw new Error(`kunde inte binda Stripe-session: ${bindError.message}`);
+        if (!boundBooking) throw new Error("bokningen ändrades innan Stripe-sessionen bands");
 
         return json({
           ok: true,
@@ -562,6 +566,7 @@ Deno.serve(async (req) => {
               .from("bookings")
               .delete()
               .eq("id", booking.id)
+              .eq("status", "confirmed")
               .eq("payment_status", "pending");
           } catch {
             return json({ error: "stripe_binding_failed", detail: String(e) }, 502);
@@ -571,6 +576,7 @@ Deno.serve(async (req) => {
             .from("bookings")
             .delete()
             .eq("id", booking.id)
+            .eq("status", "confirmed")
             .eq("payment_status", "pending");
         }
         return json({ error: "stripe_failed", detail: String(e) }, 502);
