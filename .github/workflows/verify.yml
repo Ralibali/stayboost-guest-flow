@@ -48,6 +48,7 @@ jobs:
         run: >-
           deno check
           supabase/functions/booking-import/index.ts
+          supabase/functions/ical-export/index.ts
           supabase/functions/booking-reconcile/index.ts
           supabase/functions/sirvoy-archive/index.ts
           supabase/functions/sirvoy-records/index.ts
