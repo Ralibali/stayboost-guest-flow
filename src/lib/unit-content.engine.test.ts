@@ -1,3 +1,4 @@
+import { stripeConfigForProperty } from "../../supabase/functions/_shared/stripe-config";
 import { readFileSync } from "node:fs";
 import { ScriptTarget, transpileModule } from "typescript";
 import { expect, it } from "vitest";
@@ -95,6 +96,7 @@ it("the actual booking GET publishes complete content only through its explicit 
     compilerOptions: { target: ScriptTarget.ES2022 },
   }).outputText;
   const bindings = {
+    stripeConfigForProperty,
     createClient: () => client,
     collectPages,
     stockholmDay,

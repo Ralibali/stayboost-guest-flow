@@ -1,3 +1,4 @@
+import { stripeReadiness } from "../_shared/stripe-config.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { emailProviderConfigured } from "../_shared/email-provider.ts";
 const cors = {
@@ -49,8 +50,7 @@ Deno.serve(async (req) => {
       return json({ error: "readiness_unavailable" }, 503);
     // Configuration presence only. No key values, requests, emails or payments.
     return json({
-      stripeConfigured: Boolean(Deno.env.get("STRIPE_SECRET_KEY")),
-      stripeWebhookConfigured: Boolean(Deno.env.get("STRIPE_WEBHOOK_SECRET")),
+      ...stripeReadiness(property.id, (name) => Deno.env.get(name)),
       emailConfigured: emailProviderConfigured((name) => Deno.env.get(name)),
       smsConfigured: Boolean(Deno.env.get("ELKS_API_USER") && Deno.env.get("ELKS_API_PASSWORD")),
       enabledSmsTemplates,

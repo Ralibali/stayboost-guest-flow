@@ -1,3 +1,4 @@
+import { stripeConfigForProperty } from "../_shared/stripe-config.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { expireCheckoutSession } from "../_shared/stripe.ts";
 import {
@@ -65,7 +66,7 @@ Deno.serve(async (req) => {
   const { data: booking, error: readError } = await admin
     .from("bookings")
     .select(
-      "id, status, payment_method, payment_status, payment_expires_at, stripe_session_id, properties!inner(owner_id)",
+      "id, property_id, status, payment_method, payment_status, payment_expires_at, stripe_session_id, properties!inner(owner_id)",
     )
     .eq("id", body.bookingId)
     .maybeSingle();
@@ -73,6 +74,10 @@ Deno.serve(async (req) => {
   if (!booking || joinedPropertyOwnerId(booking.properties) !== userData.user.id) {
     return json({ error: "not_found" }, 404);
   }
+
+  const stripeConfig = stripeConfigForProperty(booking.property_id, (name) => Deno.env.get(name));
+  if (booking.payment_method === "stripe" && !stripeConfig)
+    return json({ error: "stripe_not_configured" }, 503);
 
   try {
     let expiredSessionId: string | null = null;
@@ -85,7 +90,7 @@ Deno.serve(async (req) => {
       booking.payment_status === "pending" &&
       booking.stripe_session_id
     ) {
-      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+      const stripeKey = stripeConfig?.secretKey ?? "";
       if (stripeKey) {
         try {
           await expireCheckoutSession(stripeKey, booking.stripe_session_id);
@@ -96,7 +101,7 @@ Deno.serve(async (req) => {
       }
     }
     const result = await applyManualPaymentAction(
-      supabasePaymentStore(admin),
+      supabasePaymentStore(admin, booking.property_id),
       booking.id,
       body.action,
       new Date().toISOString(),
@@ -112,7 +117,7 @@ Deno.serve(async (req) => {
       result.booking.stripe_session_id &&
       result.booking.stripe_session_id !== expiredSessionId
     ) {
-      const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
+      const stripeKey = stripeConfig?.secretKey ?? "";
       if (stripeKey) {
         try {
           await expireCheckoutSession(stripeKey, result.booking.stripe_session_id);
