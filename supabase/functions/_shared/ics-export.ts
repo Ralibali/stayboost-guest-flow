@@ -9,6 +9,52 @@ export interface IcsOutEvent {
   summary: string;
 }
 
+export interface IcsClosedRule {
+  id: string;
+  unit_id: string | null;
+  kind: string;
+  active: boolean;
+  date_from: string;
+  date_to: string;
+}
+
+/** Only closed nights can be represented by an opaque iCal event, not CTA/CTD. */
+export function closedRuleEvents(rules: IcsClosedRule[], unitId: string): IcsOutEvent[] {
+  const events = new Map<string, IcsOutEvent>();
+  for (const rule of rules) {
+    if (
+      !rule.active ||
+      rule.kind !== "closed" ||
+      (rule.unit_id !== null && rule.unit_id !== unitId)
+    )
+      continue;
+    const start = new Date(`${rule.date_from}T00:00:00Z`);
+    const end = new Date(`${rule.date_to}T00:00:00Z`);
+    if (
+      !/^\d{4}-\d{2}-\d{2}$/.test(rule.date_from) ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(rule.date_to) ||
+      !Number.isFinite(start.getTime()) ||
+      !Number.isFinite(end.getTime()) ||
+      start.toISOString().slice(0, 10) !== rule.date_from ||
+      end.toISOString().slice(0, 10) !== rule.date_to ||
+      end < start
+    )
+      throw new Error("invalid_closed_range");
+    // rate_rules.date_to is inclusive; RFC 5545 DTEND is exclusive. UTC avoids DST shifts.
+    end.setUTCDate(end.getUTCDate() + 1);
+    const endDate = end.toISOString().slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) throw new Error("invalid_closed_range");
+    const uid = `closed-${rule.id}-${unitId}@stayboost`;
+    const previous = events.get(uid);
+    if (previous && (previous.startDate !== rule.date_from || previous.endDate !== endDate)) {
+      throw new Error("conflicting_closed_range");
+    }
+    // Stable identity survives renames/date edits; never expose rule names or private notes.
+    events.set(uid, { uid, startDate: rule.date_from, endDate, summary: "Closed" });
+  }
+  return [...events.values()];
+}
+
 /** Escapar textvärden enligt RFC 5545 (kommatecken, semikolon, radbryt). */
 export function icsEscape(text: string): string {
   return text
@@ -47,7 +93,7 @@ export function buildIcs(events: IcsOutEvent[], calendarName: string): string {
       foldLine(`SUMMARY:${icsEscape(e.summary)}`),
       "STATUS:CONFIRMED",
       "TRANSP:OPAQUE",
-      "END:VEVENT"
+      "END:VEVENT",
     );
   }
   lines.push("END:VCALENDAR");
