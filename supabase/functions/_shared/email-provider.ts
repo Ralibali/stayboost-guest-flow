@@ -34,6 +34,7 @@ export function buildEmailRequest(
     recipientName?: string;
     subject: string;
     text: string;
+    html?: string;
     fallbackSenderName?: string;
   },
 ): { provider: "Brevo" | "Resend"; url: string; options: RequestInit } {
@@ -59,6 +60,7 @@ export function buildEmailRequest(
           to: [message.recipientEmail],
           subject: message.subject,
           text: message.text,
+          ...(message.html === undefined ? {} : { html: message.html }),
         }),
       },
     };
@@ -74,6 +76,7 @@ export function buildEmailRequest(
         to: [{ email: message.recipientEmail, name: message.recipientName }],
         subject: message.subject,
         textContent: message.text,
+        ...(message.html === undefined ? {} : { htmlContent: message.html }),
       }),
     },
   };

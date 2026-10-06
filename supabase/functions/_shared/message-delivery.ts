@@ -1,5 +1,4 @@
-import { appBaseUrl } from "./app-url.ts";
-import { formatSvDate, renderTemplate } from "./templates.ts";
+import { renderMessageContent } from "./message-content.ts";
 import { buildEmailRequest, getEmailProvider } from "./email-provider.ts";
 
 type Admin = {
@@ -87,22 +86,18 @@ export async function deliverScheduledMessage(
     await finish("aborted");
     return "waiting_contact";
   }
-  const vars: Record<string, string> = {
-    gäst_namn: b.guest_name || "gäst",
-    anläggning: p.name ?? "",
-    enhet: b.unit?.name ?? "",
-    incheckning: formatSvDate(b.checkin_date),
-    utcheckning: formatSvDate(b.checkout_date),
-    incheckningstid: p.checkin_time ?? "",
-    utcheckningstid: p.checkout_time ?? "",
-    gästsida_länk: `${appBaseUrl(env("GUEST_PAGE_BASE_URL"))}/g/${b.guest_token}`,
-    wifi_namn: p.wifi_name ?? "",
-    wifi_lösenord: p.wifi_password ?? "",
-    vägbeskrivning: p.directions ?? "",
-    recensionslänk: p.review_url ?? "",
-  };
-  const body = renderTemplate(tpl.body ?? "", vars);
-  const subject = renderTemplate(tpl.subject ?? "", vars);
+  let body: string;
+  let subject: string;
+  let html: string | undefined;
+  try {
+    const rendered = renderMessageContent(tpl, b, p, env("GUEST_PAGE_BASE_URL"));
+    body = rendered.text;
+    subject = rendered.subject;
+    html = row.channel === "email" ? rendered.html : undefined;
+  } catch {
+    await finish("rejected", "Mallens innehåll behöver granskas innan utskick.");
+    return "failed";
+  }
   let url: string;
   let options: RequestInit;
   let provider: string;
@@ -119,6 +114,7 @@ export async function deliverScheduledMessage(
       fallbackSenderName: p.name,
       subject: subject || `Meddelande från ${p.name}`,
       text: body,
+      ...(html === undefined ? {} : { html }),
     });
     ({ provider, url, options } = request);
   } else if (row.channel === "sms") {

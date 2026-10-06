@@ -1,0 +1,3 @@
+{
+  "imports": { "parse5": "npm:parse5@8.0.1" }
+}

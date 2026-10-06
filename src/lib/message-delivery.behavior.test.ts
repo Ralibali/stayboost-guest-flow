@@ -129,6 +129,9 @@ beforeAll(async () => {
     "20260929192056_imported_payment_reconciliation.sql",
     "20260929192153_property_booking_terms.sql",
     "20260929200000_scheduled_message_delivery.sql",
+    "20261005160835_sirvoy_source_archive.sql",
+    "20261005172512_sirvoy_searchable_source_records.sql",
+    "20261006204009_message_source_content.sql",
   ]) {
     await db.exec(
       readFileSync(new URL(`../../supabase/migrations/${name}`, import.meta.url), "utf8"),
@@ -144,6 +147,30 @@ afterAll(async () => {
 });
 
 describe("atomic scheduled delivery and bounded provider uncertainty", () => {
+  it("queues one direct confirmation at checkout and sends it only after payment becomes paid", async () => {
+    const f = await fixture();
+    const booking = await one<{ id: string; status: string }>(
+      "insert into bookings(property_id,unit_id,source,guest_name,guest_email,checkin_date,checkout_date,guests,payment_amount,payment_status) values($1,$2,'direct','Paying guest','payer@example.test','2099-07-01','2099-07-03',2,4200,'pending') returning id,status",
+      [f.property, f.unit],
+    );
+    expect(booking.status).toBe("confirmed");
+    const queued = await one<{ id: string }>(
+      "select id from scheduled_messages where booking_id=$1 and template_id=$2",
+      [booking.id, f.template],
+    );
+    expect(queued).toBeTruthy();
+    const provider = accepted();
+    expect(await deliverScheduledMessage(admin, queued.id, env, provider)).toBe("skipped");
+    expect(provider).not.toHaveBeenCalled();
+    await db.query("update bookings set payment_status='paid' where id=$1", [booking.id]);
+    expect(await deliverScheduledMessage(admin, queued.id, env, provider)).toBe("sent");
+    await db.query("update bookings set payment_status='paid' where id=$1", [booking.id]);
+    expect(await deliverScheduledMessage(admin, queued.id, env, provider)).toBe("skipped");
+    expect(provider).toHaveBeenCalledTimes(1);
+    expect(
+      (await db.query("select id from scheduled_messages where booking_id=$1", [booking.id])).rows,
+    ).toHaveLength(1);
+  });
   it("sends one direct Resend request under competing workers and records its receipt", async () => {
     const f = await fixture();
     const provider = vi
@@ -485,3 +512,403 @@ describe("atomic scheduled delivery and bounded provider uncertainty", () => {
     await service();
   });
 }, 20000);
+
+const sourceTranslations = Object.fromEntries(
+  ["sv", "en", "de", "da", "no"].map((lang) => [
+    lang,
+    {
+      subject_exact: `Källa ${lang}`,
+      source_body_html_exact: `<p>${lang}: {{gäst_namn}}</p><p>%bookinginfo%</p>`,
+    },
+  ]),
+);
+async function sourceArchive(
+  property: string,
+  event = "confirmation",
+  id = "20842",
+  override = {},
+) {
+  const source = {
+    schema_version: 1,
+    source: { template_id_observed: id },
+    metadata: {
+      name: { value_exact: "Exakt namn " },
+      event: { value_exact: event },
+      days: { value_exact: "1", hidden_in_saved_dom: !["checkin", "checkout"].includes(event) },
+      timing: {
+        value_exact: "before",
+        hidden_in_saved_dom: !["checkin", "checkout"].includes(event),
+      },
+      category: { value_exact: "0" },
+      "use-footer": { checked_attribute: false },
+    },
+    translations: sourceTranslations,
+    ...override,
+  };
+  return (
+    await one<{ id: string }>(
+      "insert into sirvoy_export_archives(property_id,created_by,filename,export_kind,file_bytes) values($1,$2,'synthetic.json','settings',convert_to($3,'UTF8')) returning id",
+      [property, OWNER, JSON.stringify(source)],
+    )
+  ).id;
+}
+async function sourceImport(
+  property: string,
+  archive: string,
+  time: string | null = null,
+  clock: string | null = null,
+  actor = OWNER,
+) {
+  return (
+    await one<{ result: { id: string; duplicate: boolean; enabled: boolean } }>(
+      "select import_sirvoy_message_template($1,$2,$3,$4,$5) result",
+      [property, actor, archive, time, clock],
+    )
+  ).result;
+}
+
+describe("source templates keep archive, schedule and delivery boundaries", () => {
+  it("imports five exact drafts idempotently from archive bytes without queue writes or translated guesses", async () => {
+    const f = await fixture();
+    const archive = await sourceArchive(f.property);
+    const before = await one("select count(*) from scheduled_messages where booking_id=$1", [
+      f.booking,
+    ]);
+    const result = await sourceImport(f.property, archive);
+    expect(result).toMatchObject({ enabled: false, duplicate: false });
+    const row = await one<{
+      name: string;
+      enabled: boolean;
+      content_translations: Record<string, { subject: string; body: string }>;
+      source_reviewed_at: null;
+    }>("select * from message_templates where id=$1", [result.id]);
+    expect(row.name).toBe("Exakt namn ");
+    expect(row.enabled).toBe(false);
+    expect(row.source_reviewed_at).toBeNull();
+    expect(Object.keys(row.content_translations)).toHaveLength(5);
+    expect(row.content_translations.no).toEqual({
+      subject: "Källa no",
+      body: sourceTranslations.no.source_body_html_exact,
+    });
+    expect(await sourceImport(f.property, archive)).toEqual({ ...result, duplicate: true });
+    expect(
+      await one("select count(*) from scheduled_messages where booking_id=$1", [f.booking]),
+    ).toEqual(before);
+    await db.query("update bookings set notes='ordinary edit' where id=$1", [f.booking]);
+    expect(
+      (await db.query("select id from scheduled_messages where template_id=$1", [result.id])).rows,
+    ).toHaveLength(0);
+  });
+  it("requires same-property archives and the real owner; the import RPC is service-only", async () => {
+    const f = await fixture(),
+      other = await fixture();
+    const archive = await sourceArchive(f.property);
+    await expect(sourceImport(other.property, archive)).rejects.toThrow("invalid_message_archive");
+    await expect(sourceImport(f.property, archive, null, null, OTHER)).rejects.toThrow(
+      "not_authorized",
+    );
+    await owner();
+    await expect(sourceImport(f.property, archive)).rejects.toThrow("permission denied");
+    await service();
+  });
+  it("requires an explicit source clock for relative triggers and retains a one-calendar-day offset", async () => {
+    const f = await fixture();
+    const archive = await sourceArchive(f.property, "checkin", "26202");
+    await expect(sourceImport(f.property, archive)).rejects.toThrow(
+      "message_schedule_source_required",
+    );
+    const clock = (
+      await one<{ id: string }>(
+        'insert into sirvoy_export_archives(property_id,filename,export_kind,file_bytes) values($1,\'clock.json\',\'settings\',convert_to(\'{"source_pages":{"localization":{"automatic_messages_clock":"13:00","timezone":"Europe/Stockholm"}}}\',\'UTF8\')) returning id',
+        [f.property],
+      )
+    ).id;
+    await expect(sourceImport(f.property, archive, "14:00", clock)).rejects.toThrow(
+      "message_schedule_source_mismatch",
+    );
+    const result = await sourceImport(f.property, archive, "13:00", clock);
+    expect(
+      await one(
+        "select trigger_type,offset_days,send_time,source_schedule_archive_id,enabled from message_templates where id=$1",
+        [result.id],
+      ),
+    ).toEqual({
+      trigger_type: "pre_arrival",
+      offset_days: -1,
+      send_time: "13:00:00",
+      source_schedule_archive_id: clock,
+      enabled: false,
+    });
+    const other = await fixture();
+    const foreignClock = await sourceArchive(other.property);
+    await expect(sourceImport(f.property, archive, "13:00", foreignClock)).rejects.toThrow(
+      "message_source_conflict",
+    );
+  });
+  it("keeps none/unknown automation manual, including attempts to enable it", async () => {
+    const f = await fixture();
+    for (const [event, id] of [
+      ["none", "32166"],
+      ["unsupported", "777"],
+    ]) {
+      const imported = await sourceImport(f.property, await sourceArchive(f.property, event, id));
+      await db.query("update message_templates set enabled=true where id=$1", [imported.id]);
+      expect(
+        await one("select trigger_type,enabled from message_templates where id=$1", [imported.id]),
+      ).toEqual({ trigger_type: "manual", enabled: false });
+      await db.query("update bookings set notes='edit' where id=$1", [f.booking]);
+      expect(
+        (await db.query("select id from scheduled_messages where template_id=$1", [imported.id]))
+          .rows,
+      ).toHaveLength(0);
+    }
+  });
+  it("cannot forge, clear or reassign origin/review/cutover through authenticated updates", async () => {
+    const f = await fixture();
+    const archive = await sourceArchive(f.property);
+    const imported = await sourceImport(f.property, archive);
+    await owner();
+    for (const sql of [
+      "source_archive_id=null,source_template_id=null",
+      "source_reviewed_at=now(),activation_starts_at=now()",
+      "source_metadata='{}'",
+      "source_schedule_archive_id=source_archive_id",
+    ]) {
+      await expect(
+        db.query(`update message_templates set ${sql} where id=$1`, [imported.id]),
+      ).rejects.toThrow("message_source_server_only");
+    }
+    await expect(
+      db.query("update message_templates set enabled=true where id=$1", [imported.id]),
+    ).rejects.toThrow("message_template_source_activation");
+    await service();
+    await expect(
+      db.query(
+        "update message_templates set source_reviewed_at=now(),activation_starts_at=null,enabled=true where id=$1",
+        [imported.id],
+      ),
+    ).rejects.toThrow("message_template_source_activation");
+    await owner();
+    await expect(
+      db.query(
+        "update message_templates set source_archive_id=$1,source_template_id='999' where id=$2",
+        [archive, f.template],
+      ),
+    ).rejects.toThrow("message_source_server_only");
+    await service();
+  });
+  it("atomically saves with revision and owner scope; stale or cross-owner updates cannot win", async () => {
+    const f = await fixture();
+    await owner();
+    const saved = await one<{ result: { revision: number; name: string } }>(
+      'select save_message_template($1,$2,1,\'{"name":"Saved exact ","body_format":"text"}\') result',
+      [f.property, f.template],
+    );
+    expect(saved.result.revision).toBe(2);
+    expect(saved.result.name).toBe("Saved exact ");
+    await expect(
+      db.query('select save_message_template($1,$2,1,\'{"name":"stale"}\')', [
+        f.property,
+        f.template,
+      ]),
+    ).rejects.toThrow("message_template_changed");
+    await expect(
+      db.query('select save_message_template($1,$2,2,\'{"source_reviewed_at":"2099-01-01"}\')', [
+        f.property,
+        f.template,
+      ]),
+    ).rejects.toThrow("invalid_message_template");
+    await owner(OTHER);
+    await expect(
+      db.query("select save_message_template($1,$2,2,'{}')", [f.property, f.template]),
+    ).rejects.toThrow("not_authorized");
+    await service();
+  });
+  it("uses calendar days in Stockholm across DST and never schedules a manual template", async () => {
+    for (const [date, utc] of [
+      ["2027-03-29", "2027-03-28T11:00:00.000Z"],
+      ["2027-11-01", "2027-10-31T12:00:00.000Z"],
+    ]) {
+      const result = await one<{ at: Date }>(
+        "select message_scheduled_at('pre_arrival',-1,'13:00',$1::date,($1::date+2),now()) at",
+        [date],
+      );
+      expect(new Date(result.at).toISOString()).toBe(utc);
+    }
+    expect(
+      await one(
+        "select message_scheduled_at('manual',0,'13:00','2099-01-01','2099-01-02',now()) at",
+      ),
+    ).toEqual({ at: null });
+  });
+  it("source review with a future cutover does not backfill old or imported bookings at any gate", async () => {
+    const f = await fixture("email", true);
+    const imported = await sourceImport(f.property, await sourceArchive(f.property));
+    await db.query(
+      "update message_templates set source_reviewed_at=now(),activation_starts_at=now(),enabled=true where id=$1",
+      [imported.id],
+    );
+    await db.query("update bookings set notes='edit' where id=$1", [f.booking]);
+    const queued = await one<{ id: string }>(
+      "insert into scheduled_messages(booking_id,template_id,channel,send_at) values($1,$2,'email',now()) returning id",
+      [f.booking, imported.id],
+    );
+    const provider = accepted();
+    expect(await deliverScheduledMessage(admin, queued.id, env, provider)).toBe("skipped");
+    expect(provider).not.toHaveBeenCalled();
+    expect(
+      (
+        await db.query("select id from scheduled_message_delivery_attempts where message_id=$1", [
+          queued.id,
+        ])
+      ).rows,
+    ).toHaveLength(0);
+    const ordinary = await fixture();
+    const ordinarySource = await sourceImport(
+      ordinary.property,
+      await sourceArchive(ordinary.property),
+    );
+    await db.query(
+      "update message_templates set source_reviewed_at=now(),activation_starts_at=now(),enabled=true where id=$1",
+      [ordinarySource.id],
+    );
+    await db.query("update bookings set notes='older native booking' where id=$1", [
+      ordinary.booking,
+    ]);
+    expect(
+      (
+        await db.query("select id from scheduled_messages where template_id=$1", [
+          ordinarySource.id,
+        ])
+      ).rows,
+    ).toHaveLength(0);
+  });
+  it("returns fresh, curated language and quote and sends safe HTML through the actual delivery handler", async () => {
+    const f = await fixture();
+    const content = Object.fromEntries(
+      Object.entries(sourceTranslations).map(([lang, t]) => [
+        lang,
+        { subject: t.subject_exact, body: t.source_body_html_exact },
+      ]),
+    );
+    await db.query(
+      "update message_templates set body_format='html',content_translations=$2 where id=$1",
+      [f.template, content],
+    );
+    await db.query("update bookings set guest_name=$2,quote_snapshot=$3 where id=$1", [
+      f.booking,
+      "<script>guest</script>",
+      {
+        language: "da",
+        currency: "SEK",
+        grandTotal: 2324.5,
+        secretInternal: "must not reach delivery",
+      },
+    ]);
+    const provider = accepted();
+    expect(await deliverScheduledMessage(admin, f.message, env, provider)).toBe("sent");
+    const body = JSON.parse(String(provider.mock.calls[0][1]?.body));
+    expect(body.subject).toBe("Källa da");
+    expect(body.htmlContent).toContain("&lt;script&gt;guest&lt;/script&gt;");
+    expect(body.textContent).toContain("?lang=da");
+    expect(JSON.stringify(body)).not.toContain("must not reach delivery");
+    expect(body.htmlContent).not.toContain("%bookinginfo%");
+  });
+  it("records unsafe content as rejected before any provider call", async () => {
+    const f = await fixture();
+    await db.query(
+      "update message_templates set body_format='html',body='<script>attack()</script>' where id=$1",
+      [f.template],
+    );
+    const provider = accepted();
+    expect(await deliverScheduledMessage(admin, f.message, env, provider)).toBe("failed");
+    expect(provider).not.toHaveBeenCalled();
+    expect(
+      await one("select state from scheduled_message_delivery_attempts where message_id=$1", [
+        f.message,
+      ]),
+    ).toEqual({ state: "rejected" });
+  });
+  it("editing an approved source template pauses it and invalidates a previously claimed delivery", async () => {
+    const f = await fixture();
+    const imported = await sourceImport(f.property, await sourceArchive(f.property));
+    // Synthetic pre-cutover dates exercise the gate; no real records or provider calls.
+    await db.query(
+      "update message_templates set source_reviewed_at=now()-interval '2 days',activation_starts_at=now()-interval '1 day',enabled=true where id=$1",
+      [imported.id],
+    );
+    await db.query(
+      "insert into scheduled_messages(booking_id,template_id,channel,send_at) values($1,$2,'email',now())",
+      [f.booking, imported.id],
+    );
+    const queued = await one<{ id: string }>(
+      "select id from scheduled_messages where template_id=$1",
+      [imported.id],
+    );
+    const leased = await claim(queued.id);
+    expect(leased.error).toBeNull();
+    expect(leased.data).toBeTruthy();
+    await owner();
+    await db.query("update message_templates set name='Changed' where id=$1", [imported.id]);
+    await service();
+    expect(
+      await one(
+        "select enabled,source_reviewed_at,activation_starts_at from message_templates where id=$1",
+        [imported.id],
+      ),
+    ).toEqual({ enabled: false, source_reviewed_at: null, activation_starts_at: null });
+    expect(
+      (await begin(queued.id, (leased.data as { attempt_id: string }).attempt_id)).data,
+    ).toBeNull();
+  });
+}, 20000);
+
+describe("template trigger changes never turn an old queue into a new confirmation", () => {
+  it("removes old arrival rows on a switch to confirmation and does not backfill on later booking edits", async () => {
+    const f = await fixture();
+    await db.query(
+      "update message_templates set trigger_type='pre_arrival',offset_days=-1 where id=$1",
+      [f.template],
+    );
+    expect(
+      (
+        await db.query(
+          "select id from scheduled_messages where template_id=$1 and status='pending'",
+          [f.template],
+        )
+      ).rows,
+    ).toHaveLength(1);
+    await db.query("update message_templates set trigger_type='booking_created' where id=$1", [
+      f.template,
+    ]);
+    await db.query("update bookings set notes='edit after trigger change' where id=$1", [
+      f.booking,
+    ]);
+    expect(
+      (
+        await db.query(
+          "select id from scheduled_messages where template_id=$1 and status='pending'",
+          [f.template],
+        )
+      ).rows,
+    ).toHaveLength(0);
+  });
+  it("does not deliver an old confirmation through a changed channel", async () => {
+    const f = await fixture();
+    await db.query("update message_templates set channel='sms' where id=$1", [f.template]);
+    await db.query("update bookings set notes='edit after channel change' where id=$1", [
+      f.booking,
+    ]);
+    expect(
+      (
+        await db.query(
+          "select id from scheduled_messages where template_id=$1 and status='pending'",
+          [f.template],
+        )
+      ).rows,
+    ).toHaveLength(0);
+    const provider = accepted();
+    expect(await deliverScheduledMessage(admin, f.message, env, provider)).toBe("skipped");
+    expect(provider).not.toHaveBeenCalled();
+  });
+});
