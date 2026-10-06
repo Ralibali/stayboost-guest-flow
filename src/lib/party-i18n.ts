@@ -38,3 +38,20 @@ export const partyLabels = {
     adultPrice: "Unterkunft für Erwachsene",
   },
 };
+
+/** The displayed amount is a total, not a quoted nightly unit price. */
+export function childSupplementLabel(
+  basis: "per_night" | "per_booking" | undefined,
+  nights: number,
+  language: keyof typeof partyLabels,
+): string {
+  const period =
+    basis === "per_booking"
+      ? { sv: "en gång per vistelse", en: "once per stay", de: "einmal pro Aufenthalt" }[language]
+      : {
+          sv: `${nights} ${nights === 1 ? "natt" : "nätter"}`,
+          en: `${nights} ${nights === 1 ? "night" : "nights"}`,
+          de: `${nights} ${nights === 1 ? "Nacht" : "Nächte"}`,
+        }[language];
+  return `${partyLabels[language].childrenPrice} · ${period}`;
+}

@@ -41,6 +41,15 @@ export class ChannexError extends Error {
   }
 }
 
+function assertSupportedChildPriceBasis(unit: UnitPricing) {
+  if (
+    unit.party_pricing_enabled === true &&
+    unit.child_price_basis === "per_booking" &&
+    (unit.child_price_per_booking ?? 0) > 0
+  )
+    throw new ChannexError("channel_child_price_basis_unsupported", 409);
+}
+
 export function channexSecret(
   environment: ChannexEnvironment,
   get: (name: string) => string | undefined,
@@ -177,6 +186,9 @@ export class ChannexClient {
     feesConfigured = false,
   ) {
     if (!validChannexId(propertyId)) throw new ChannexError("invalid_property_mapping", 409);
+    units
+      .filter((unit) => mappings.some((mapping) => mapping.unit_id === unit.id))
+      .forEach(assertSupportedChildPriceBasis);
     if (!feesConfigured && units.some((unit) => unit.cleaning_fee > 0))
       throw new ChannexError("channel_fees_not_configured", 409);
     const property = await this.resource(`/properties/${propertyId}`);
@@ -232,7 +244,9 @@ export class ChannexClient {
           throw new ChannexError("channel_child_policy_not_verified", 409);
         if (
           Number(rate.attributes.children_fee) !==
-            (partyPricing ? (unit.child_price_per_night ?? 0) : 0) ||
+            (partyPricing && unit.child_price_basis !== "per_booking"
+              ? (unit.child_price_per_night ?? 0)
+              : 0) ||
           Number(rate.attributes.infant_fee) !== 0
         )
           throw new ChannexError("channel_child_fee_mismatch", 409);
@@ -566,6 +580,7 @@ export function buildChannexAri(input: {
       throw new ChannexError("channel_unit_mapping_mismatch", 409);
     seenRooms.add(mapping.room_type_id);
     seenUnits.add(mapping.unit_id);
+    assertSupportedChildPriceBasis(unit);
     if (unit.party_pricing_enabled && !connection.fees_configured)
       throw new ChannexError("channel_child_policy_not_verified", 409);
     if (unit.cleaning_fee > 0 && !connection.fees_configured)

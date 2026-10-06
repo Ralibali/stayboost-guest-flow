@@ -21,6 +21,7 @@ type Draft = {
   description: string;
   content_translations: AddonTranslations;
   vat_rate: VatRate | null;
+  pricing_role: "extra" | "manual_child_price";
   price: string;
   price_type: "per_booking" | "per_night";
   fulfillment_type: "arrival" | "each_morning" | "departure";
@@ -38,6 +39,7 @@ const EMPTY: Draft = {
   description: "",
   content_translations: { sv: { name: "", description: null } },
   vat_rate: null,
+  pricing_role: "extra",
   price: "",
   price_type: "per_booking",
   fulfillment_type: "arrival",
@@ -168,6 +170,7 @@ function AddonsPage() {
       content_translations: draft.content_translations,
       vat_rate: draft.vat_rate,
       price,
+      pricing_role: draft.pricing_role,
       price_type: draft.price_type,
       fulfillment_type: draft.fulfillment_type,
       image_url: draft.image_url.trim() || null,
@@ -209,6 +212,7 @@ function AddonsPage() {
         sv: addon.content_translations?.sv ?? { name: addon.name, description: addon.description },
       },
       vat_rate: addon.vat_rate ?? null,
+      pricing_role: addon.pricing_role ?? "extra",
       price: String(addon.price),
       price_type: addon.price_type,
       fulfillment_type: addon.fulfillment_type ?? "arrival",
@@ -244,6 +248,7 @@ function AddonsPage() {
           description: translations.sv.description,
           content_translations: translations,
           vat_rate: addon.vat_rate ?? null,
+          pricing_role: addon.pricing_role ?? "extra",
           price: addon.price,
           price_type: addon.price_type,
           fulfillment_type: addon.fulfillment_type ?? "arrival",
@@ -360,6 +365,27 @@ function AddonsPage() {
               </select>
             </div>
 
+            <label className="block text-sm">
+              Tillvalets funktion
+              <select
+                value={draft.pricing_role}
+                onChange={(event) =>
+                  setDraft((current) => ({
+                    ...current,
+                    pricing_role: event.target.value as Draft["pricing_role"],
+                  }))
+                }
+                className="inp mt-1"
+              >
+                <option value="extra">Vanligt tillval</option>
+                <option value="manual_child_price">Manuellt barnpris</option>
+              </select>
+              <p className="mt-2 text-xs text-[color:var(--ink)]/60">
+                Manuellt barnpris visas bara när boendet inte använder pris efter antal vuxna och
+                barn. När personpriser används räknas barnpriset i boendepriset och detta tillval
+                kan inte läggas till.
+              </p>
+            </label>
             <label className="block text-sm">
               Leveransplan
               <select

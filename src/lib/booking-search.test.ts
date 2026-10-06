@@ -93,3 +93,27 @@ describe("available stays", () => {
     );
   });
 });
+
+describe("search child-price basis", () => {
+  const family: SearchUnit = {
+    ...unit,
+    partyPricingEnabled: true,
+    adultPrices: [700, 1295, 2195, 2795],
+    childPricePerNight: 77,
+    childPricePerBooking: 329,
+    childPriceBasis: "per_booking",
+    childFreeThroughAge: 5,
+    childMaxAge: 15,
+  };
+  const request = { ...search, guests: 3, party: { adults: 1, childrenAges: [5, 6] } };
+  it("includes a single child supplement in exact and nearby stay totals", () => {
+    expect(findAvailableStays([family], request).exact[0].total).toBe(1929);
+    const unavailable = { ...family, booked: [{ from: search.checkin, to: "2026-09-14" }] };
+    const nearby = findAvailableStays([unavailable], request).nearby;
+    expect(nearby).toHaveLength(3);
+    expect(nearby.map((stay) => stay.total)).toEqual([1929, 1929, 1929]);
+    expect(
+      findAvailableStays([{ ...family, childPriceBasis: "per_night" }], request).exact[0].total,
+    ).toBe(1754);
+  });
+});

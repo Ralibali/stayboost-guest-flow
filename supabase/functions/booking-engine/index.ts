@@ -98,7 +98,7 @@ Deno.serve(async (req) => {
       admin
         .from("addons")
         .select(
-          "id, name, description, content_translations, vat_rate, price, price_type, fulfillment_type, image_url, active, sort_order, internal_only, available_from, available_to, max_quantity, unit_scope, addon_units(unit_id)",
+          "id, name, description, content_translations, vat_rate, pricing_role, price, price_type, fulfillment_type, image_url, active, sort_order, internal_only, available_from, available_to, max_quantity, unit_scope, addon_units(unit_id)",
         )
         .eq("property_id", propertyId)
         .eq("active", true)
@@ -145,7 +145,7 @@ Deno.serve(async (req) => {
     const { data: units, error: unitsError } = await admin
       .from("units")
       .select(
-        "id, name, description, image_url, content_translations, gallery, max_guests, bed_description, size_sqm, amenities, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult, sort_order, party_pricing_enabled, adult_prices, child_price_per_night, child_free_through_age, child_max_age",
+        "id, name, description, image_url, content_translations, gallery, max_guests, bed_description, size_sqm, amenities, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult, sort_order, party_pricing_enabled, adult_prices, child_price_per_night, child_price_basis, child_price_per_booking, child_free_through_age, child_max_age",
       )
       .eq("property_id", property.id)
       .eq("active", true)
@@ -226,6 +226,8 @@ Deno.serve(async (req) => {
         partyPricingEnabled: u.party_pricing_enabled,
         adultPrices: u.adult_prices,
         childPricePerNight: u.child_price_per_night,
+        childPriceBasis: u.child_price_basis ?? "per_night",
+        childPricePerBooking: u.child_price_per_booking ?? 0,
         childFreeThroughAge: u.child_free_through_age,
         childMaxAge: u.child_max_age,
         booked: byUnit.get(u.id) ?? [],
@@ -245,6 +247,7 @@ Deno.serve(async (req) => {
           maxQuantity: a.max_quantity,
           fulfillmentType: a.fulfillment_type,
           allowedUnitIds: a.allowed_unit_ids,
+          pricingRole: a.pricing_role ?? "extra",
           ...projectAddonContent(a),
         })),
     });
@@ -329,7 +332,7 @@ Deno.serve(async (req) => {
     const { data: unit, error: unitError } = await admin
       .from("units")
       .select(
-        "id, name, property_id, active, max_guests, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult, party_pricing_enabled, adult_prices, child_price_per_night, child_free_through_age, child_max_age",
+        "id, name, property_id, active, max_guests, base_price, weekend_pct, min_stay, cleaning_fee, monthly_mult, party_pricing_enabled, adult_prices, child_price_per_night, child_price_basis, child_price_per_booking, child_free_through_age, child_max_age",
       )
       .eq("id", unitId)
       .eq("property_id", property.id)
@@ -409,6 +412,7 @@ Deno.serve(async (req) => {
       checkin,
       checkout,
       unitId: unit.id,
+      partyPricingEnabled: unit.party_pricing_enabled === true,
     });
     if (pricedAddons.length !== rawSelections.length) return json({ error: "invalid_addons" }, 400);
     const addonsTotal = sumAddons(pricedAddons);
@@ -477,6 +481,7 @@ Deno.serve(async (req) => {
             acceptedAt: new Date().toISOString(),
           },
           party: party ?? { adults: guests, childrenAges: [] },
+          partyPricingEnabled: unit.party_pricing_enabled === true,
           ...quote,
           addons: pricedAddons.map((line) => {
             const content = projectAddonContent(line.addon);
@@ -488,6 +493,7 @@ Deno.serve(async (req) => {
               quantity: line.quantity,
               unitPrice: line.addon.price,
               priceType: line.addon.price_type,
+              pricingRole: line.addon.pricing_role ?? "extra",
               fulfillmentType: line.addon.fulfillment_type ?? "arrival",
               lineTotal: line.lineTotal,
             };

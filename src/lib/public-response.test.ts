@@ -153,3 +153,45 @@ describe("public API response resilience", () => {
     ).toBe(false);
   });
 });
+
+describe("child pricing public contract", () => {
+  const withUnit = (fields: object) => ({ ...engine, units: [{ ...engine.units[0], ...fields }] });
+  it("accepts both bases and omitted legacy fields, but rejects malformed pricing data", () => {
+    expect(isBookingEngineResponse(engine)).toBe(true);
+    for (const childPriceBasis of ["per_night", "per_booking"])
+      expect(
+        isBookingEngineResponse(
+          withUnit({
+            childPriceBasis,
+            childPricePerBooking: 329,
+            childPricePerNight: 77,
+            partyPricingEnabled: true,
+          }),
+        ),
+      ).toBe(true);
+    for (const childPriceBasis of [null, "once", {}, 1, ["per_booking"]])
+      expect(isBookingEngineResponse(withUnit({ childPriceBasis }))).toBe(false);
+    for (const childPricePerBooking of [null, "329", -1, 0.5, 1000001, Infinity])
+      expect(isBookingEngineResponse(withUnit({ childPricePerBooking }))).toBe(false);
+    expect(isBookingEngineResponse(withUnit({ partyPricingEnabled: "false" }))).toBe(false);
+  });
+  it("accepts only explicit known addon roles or the legacy omission", () => {
+    const response = (pricingRole: unknown) => ({
+      ...engine,
+      addons: [
+        {
+          id: "child",
+          name: "Child",
+          price: 329,
+          priceType: "per_booking",
+          maxQuantity: 1,
+          pricingRole,
+        },
+      ],
+    });
+    for (const role of [undefined, "extra", "manual_child_price"])
+      expect(isBookingEngineResponse(response(role))).toBe(true);
+    for (const role of [null, "child", {}, 0, ["manual_child_price"]])
+      expect(isBookingEngineResponse(response(role))).toBe(false);
+  });
+});
