@@ -78,8 +78,7 @@ export function AddonContentFields({
         </button>
       )}
       <p className="text-xs text-[color:var(--ink)]/60">
-        Hela texten sparas. Gästens språkval är svenska, engelska och tyska. Danska och norska
-        bevaras här för kommande användning.
+        Hela texten sparas. Gästen kan välja svenska, engelska, tyska, danska och norska.
       </p>
       <label className="block text-sm">
         Inkluderad momssats

@@ -7,6 +7,7 @@ import {
   localizedUnitText,
   projectUnitContent,
   unitDisplayImages,
+  unitAmenityLabel,
   unitImageUrl,
 } from "../../supabase/functions/_shared/unit-content";
 
@@ -23,6 +24,67 @@ const translations = Object.fromEntries(
 );
 
 describe("unit catalogue content", () => {
+  it("translates known amenities in every language without changing or inventing source values", () => {
+    const raw = [
+      "Wifi",
+      "Fläkt",
+      "Kylskåp",
+      "Kaffemaskin",
+      "Tvättmaskin",
+      "Dusch",
+      "Rökfritt",
+      "Husdjur tillåts",
+    ];
+    const original = [...raw];
+    expect(raw.map((value) => unitAmenityLabel(value, "sv"))).toEqual(raw);
+    expect(raw.map((value) => unitAmenityLabel(value, "en"))).toEqual([
+      "Wi-Fi",
+      "Fan",
+      "Fridge",
+      "Coffee machine",
+      "Washing machine",
+      "Shower",
+      "Non-smoking",
+      "Pets allowed",
+    ]);
+    expect(raw.map((value) => unitAmenityLabel(value, "de"))).toEqual([
+      "WLAN",
+      "Ventilator",
+      "Kühlschrank",
+      "Kaffeemaschine",
+      "Waschmaschine",
+      "Dusche",
+      "Rauchfrei",
+      "Haustiere erlaubt",
+    ]);
+    expect(raw.map((value) => unitAmenityLabel(value, "da"))).toEqual([
+      "Wifi",
+      "Ventilator",
+      "Køleskab",
+      "Kaffemaskine",
+      "Vaskemaskine",
+      "Brusebad",
+      "Røgfrit",
+      "Kæledyr tilladt",
+    ]);
+    expect(raw.map((value) => unitAmenityLabel(value, "no"))).toEqual([
+      "Wifi",
+      "Vifte",
+      "Kjøleskap",
+      "Kaffemaskin",
+      "Vaskemaskin",
+      "Dusj",
+      "Røykfritt",
+      "Kjæledyr tillatt",
+    ]);
+    for (const language of CONTENT_LANGUAGES) {
+      for (const custom of ["Egen specialtext", " Dusch ", "constructor", "__proto__", ""]) {
+        expect(unitAmenityLabel(custom, language)).toBe(custom);
+      }
+    }
+    expect(raw).toEqual(original);
+  });
+
   it("preserves every language and complete whitespace-sensitive text through the public projection", () => {
     expect(isUnitTranslations(translations)).toBe(true);
     const projected = projectUnitContent(

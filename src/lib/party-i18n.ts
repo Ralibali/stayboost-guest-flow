@@ -37,6 +37,32 @@ export const partyLabels = {
     childrenPrice: "Kinderzuschlag",
     adultPrice: "Unterkunft für Erwachsene",
   },
+  da: {
+    adults: "Voksne",
+    children: "Børn",
+    age: "Alder ved indtjekning",
+    chooseAge: "Vælg alder",
+    years: "år",
+    invalid:
+      "Vælg mindst én voksen, og angiv alle børns alder ved indtjekning. Ældre børn regnes som voksne.",
+    unavailable:
+      "Der er ingen pris for det valgte selskab. Vælg en anden overnatning, eller kontakt os.",
+    childrenPrice: "Børnetillæg",
+    adultPrice: "Overnatning for voksne",
+  },
+  no: {
+    adults: "Voksne",
+    children: "Barn",
+    age: "Alder ved innsjekking",
+    chooseAge: "Velg alder",
+    years: "år",
+    invalid:
+      "Velg minst én voksen, og oppgi alle barnas alder ved innsjekking. Eldre barn regnes som voksne.",
+    unavailable:
+      "Det finnes ingen pris for det valgte reisefølget. Velg et annet overnattingssted, eller kontakt oss.",
+    childrenPrice: "Barnetillegg",
+    adultPrice: "Overnatting for voksne",
+  },
 };
 
 /** The displayed amount is a total, not a quoted nightly unit price. */
@@ -47,11 +73,19 @@ export function childSupplementLabel(
 ): string {
   const period =
     basis === "per_booking"
-      ? { sv: "en gång per vistelse", en: "once per stay", de: "einmal pro Aufenthalt" }[language]
+      ? {
+          sv: "en gång per vistelse",
+          en: "once per stay",
+          de: "einmal pro Aufenthalt",
+          da: "én gang pr. ophold",
+          no: "én gang per opphold",
+        }[language]
       : {
           sv: `${nights} ${nights === 1 ? "natt" : "nätter"}`,
           en: `${nights} ${nights === 1 ? "night" : "nights"}`,
           de: `${nights} ${nights === 1 ? "Nacht" : "Nächte"}`,
+          da: `${nights} ${nights === 1 ? "nat" : "nætter"}`,
+          no: `${nights} ${nights === 1 ? "natt" : "netter"}`,
         }[language];
   return `${partyLabels[language].childrenPrice} · ${period}`;
 }

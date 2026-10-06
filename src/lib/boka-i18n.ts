@@ -1,26 +1,33 @@
 /**
- * Bokningssidans språk: svenska, engelska, tyska.
+ * Bokningssidans språk: svenska, engelska, tyska, danska och norska (bokmål).
  * Väljs automatiskt från webbläsaren, kan bytas manuellt (sparas lokalt).
  */
 
-export type Lang = "sv" | "en" | "de";
+export type Lang = "sv" | "en" | "de" | "da" | "no";
 
 export const LANGS: { id: Lang; label: string }[] = [
   { id: "sv", label: "SV" },
   { id: "en", label: "EN" },
   { id: "de", label: "DE" },
+  { id: "da", label: "DA" },
+  { id: "no", label: "NO" },
 ];
+
+export function isLang(value: unknown): value is Lang {
+  return LANGS.some(({ id }) => id === value);
+}
 
 export function detectLang(): Lang {
   if (typeof window === "undefined" || typeof navigator === "undefined") return "sv";
   try {
     const saved = localStorage.getItem("boka-lang");
-    if (saved === "sv" || saved === "en" || saved === "de") return saved;
+    if (isLang(saved)) return saved;
   } catch {
     /* privat läge */
   }
   const nav = (navigator.language || "sv").slice(0, 2).toLowerCase();
-  return nav === "en" || nav === "de" ? nav : "sv";
+  if (nav === "nb" || nav === "nn") return "no";
+  return isLang(nav) ? nav : "sv";
 }
 
 export function persistLang(lang: Lang) {
@@ -31,7 +38,13 @@ export function persistLang(lang: Lang) {
   }
 }
 
-export const LOCALES: Record<Lang, string> = { sv: "sv-SE", en: "en-GB", de: "de-DE" };
+export const LOCALES: Record<Lang, string> = {
+  sv: "sv-SE",
+  en: "en-GB",
+  de: "de-DE",
+  da: "da-DK",
+  no: "nb-NO",
+};
 
 const STR = {
   sv: {
@@ -265,10 +278,168 @@ const STR = {
     nextMonth: "Nächster Monat",
     weekdays: ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"],
   },
+  da: {
+    bookDirect: "Book direkte",
+    checkinFrom: (t: string) => `Indtjekning fra ${t}`,
+    checkoutAt: (t: string) => `Udtjekning ${t}`,
+    lodging: "Overnatning",
+    fromPerNight: (price: string) => `fra ${price}/nat`,
+    chooseDates: "Vælg datoer",
+    minStay: (n: number) => `Mindst ${n} ${n === 1 ? "nat" : "nætter"}`,
+    weekendUplift: (pct: number) => `Weekendtillæg +${pct}% fre/lør`,
+    addonsTitle: "Gør opholdet endnu bedre",
+    perNight: " pr. nat",
+    perMorning: " pr. morgen",
+    add: "Tilføj",
+    decrease: "Færre",
+    increase: "Flere",
+    yourBooking: "Din booking",
+    nights: (n: number) => (n === 1 ? "nat" : "nætter"),
+    cleaning: "Rengøring",
+    total: "I alt",
+    minStayWarning: (unit: string, n: number) =>
+      `Mindste ophold i ${unit} er ${n} ${n === 1 ? "nat" : "nætter"}.`,
+    name: "Navn",
+    guests: (n: number) => `${n} ${n === 1 ? "gæst" : "gæster"}`,
+    emailPlaceholder: "E-mail – bekræftelsen sendes hertil",
+    phonePlaceholder: "Telefon – SMS på ankomstdagen",
+    payment: "Betaling",
+    card: "Kort",
+    cardHint: "Visa · Mastercard · Stripe",
+    swishHint: "Direkte i appen",
+    payWithCard: (total: string) => `Betal ${total} med kort`,
+    bookFor: (total: string) => `Book · ${total}`,
+    booking: "Booker…",
+    stripeFineprint: "Sikker kortbetaling via Stripe – bookingen bekræftes med det samme.",
+    swishFineprint: "Betal nemt med Swish umiddelbart efter bookingen.",
+    noPaymentFineprint: "Betaling aftales med værten.",
+    errUnavailable: "Datoerne er netop blevet booket af en anden – vælg andre datoer.",
+    errMinStay: (n: number) => `Mindste ophold er ${n} ${n === 1 ? "nat" : "nætter"}.`,
+    errContact: "Angiv e-mail eller telefon, så vi kan sende bekræftelsen.",
+    errStripe: "Kortbetalingen kunne ikke startes – prøv igen eller vælg Swish.",
+    errGeneric: "Noget gik galt – prøv igen om lidt.",
+    errAddons:
+      "Et valgt tilvalg er ikke længere tilgængeligt. Fjern tilvalget eller genindlæs siden.",
+    errPaymentMethod:
+      "Den valgte betalingsmetode er ikke tilgængelig lige nu. Vælg en anden metode eller kontakt overnatningsstedet.",
+    errDates: "Disse datoer kan ikke bookes. Vælg nye datoer for ind- og udtjekning.",
+    errPaused: "Onlinebooking er sat på pause. Kontakt overnatningsstedet for hjælp.",
+    errPriceChanged: (price: string) =>
+      `Prisen er ændret til ${price}. Genindlæs siden, og kontrollér prisen, før du booker.`,
+    thankYou: "Tak for din booking",
+    reservationSaved: "Dine datoer er reserveret",
+    confirmationAfterPayment:
+      "Bookingen bekræftes, når overnatningsstedet har registreret din betaling. Gem gæstelinket nedenfor.",
+    confirmationOnWay: "Din bekræftelse er på vej med alle praktiske oplysninger.",
+    payWithSwish: "Betal med Swish",
+    swishInstructions: (total: string, deadline?: string) =>
+      `Betal ${total} med Swish${deadline ? ` senest ${deadline} (svensk tid)` : " inden reservationen udløber"} for at sikre din booking.`,
+    swishNumber: "Swish-nummer",
+    messageLabel: "Besked",
+    tapToCopy: "tryk for at kopiere",
+    linkCopied: "Gæstelink kopieret",
+    copyGuestLink: "Kopiér dit gæstelink",
+    openGuestPage: "Åbn din gæsteside",
+    notFoundTitle: "Bookingsiden blev ikke fundet",
+    loadErrorTitle: "Bookingen kunne ikke indlæses lige nu",
+    loadErrorBody: "Prøv igen om lidt, eller kontakt overnatningsstedet for hjælp.",
+    channelSyncTitle: "Tilgængeligheden opdateres",
+    channelSyncRetry: "Kalenderen opdateres. Vent et øjeblik, og prøv igen.",
+    channelSyncBody:
+      "Vi opdaterer kalenderen, før vi kan modtage nye bookinger. Prøv igen om lidt, eller kontakt overnatningsstedet for hjælp.",
+    retry: "Prøv igen",
+    notFoundBody: "Kontrollér linket, eller kontakt os direkte, så hjælper vi dig.",
+    poweredBy: "Bookingmotor fra StayBoost",
+    prevMonth: "Forrige måned",
+    nextMonth: "Næste måned",
+    weekdays: ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"],
+  },
+  no: {
+    bookDirect: "Bestill direkte",
+    checkinFrom: (t: string) => `Innsjekking fra ${t}`,
+    checkoutAt: (t: string) => `Utsjekking ${t}`,
+    lodging: "Overnatting",
+    fromPerNight: (price: string) => `fra ${price}/natt`,
+    chooseDates: "Velg datoer",
+    minStay: (n: number) => `Minst ${n} ${n === 1 ? "natt" : "netter"}`,
+    weekendUplift: (pct: number) => `Helgetillegg +${pct}% fre/lør`,
+    addonsTitle: "Gjør oppholdet enda bedre",
+    perNight: " per natt",
+    perMorning: " per morgen",
+    add: "Legg til",
+    decrease: "Færre",
+    increase: "Flere",
+    yourBooking: "Din bestilling",
+    nights: (n: number) => (n === 1 ? "natt" : "netter"),
+    cleaning: "Rengjøring",
+    total: "Totalt",
+    minStayWarning: (unit: string, n: number) =>
+      `Minste opphold i ${unit} er ${n} ${n === 1 ? "natt" : "netter"}.`,
+    name: "Navn",
+    guests: (n: number) => `${n} ${n === 1 ? "gjest" : "gjester"}`,
+    emailPlaceholder: "E-post – bekreftelsen sendes hit",
+    phonePlaceholder: "Telefon – SMS på ankomstdagen",
+    payment: "Betaling",
+    card: "Kort",
+    cardHint: "Visa · Mastercard · Stripe",
+    swishHint: "Direkte i appen",
+    payWithCard: (total: string) => `Betal ${total} med kort`,
+    bookFor: (total: string) => `Bestill · ${total}`,
+    booking: "Bestiller…",
+    stripeFineprint: "Sikker kortbetaling via Stripe – bestillingen bekreftes med en gang.",
+    swishFineprint: "Betal enkelt med Swish rett etter bestillingen.",
+    noPaymentFineprint: "Betaling avtales med verten.",
+    errUnavailable: "Datoene ble nettopp bestilt av noen andre – velg andre datoer.",
+    errMinStay: (n: number) => `Minste opphold er ${n} ${n === 1 ? "natt" : "netter"}.`,
+    errContact: "Oppgi e-post eller telefon, slik at vi kan sende bekreftelsen.",
+    errStripe: "Kortbetalingen kunne ikke startes – prøv igjen eller velg Swish.",
+    errGeneric: "Noe gikk galt – prøv igjen om litt.",
+    errAddons:
+      "Et valgt tillegg er ikke lenger tilgjengelig. Fjern tillegget eller last siden på nytt.",
+    errPaymentMethod:
+      "Den valgte betalingsmåten er ikke tilgjengelig akkurat nå. Velg en annen måte eller kontakt overnattingsstedet.",
+    errDates: "Disse datoene kan ikke bestilles. Velg nye datoer for inn- og utsjekking.",
+    errPaused: "Nettbestilling er satt på pause. Kontakt overnattingsstedet for hjelp.",
+    errPriceChanged: (price: string) =>
+      `Prisen er endret til ${price}. Last siden på nytt, og se over prisen før du bestiller.`,
+    thankYou: "Takk for bestillingen",
+    reservationSaved: "Datoene dine er reservert",
+    confirmationAfterPayment:
+      "Bestillingen bekreftes når overnattingsstedet har registrert betalingen din. Ta vare på gjestelenken nedenfor.",
+    confirmationOnWay: "Bekreftelsen er på vei med all praktisk informasjon.",
+    payWithSwish: "Betal med Swish",
+    swishInstructions: (total: string, deadline?: string) =>
+      `Betal ${total} med Swish${deadline ? ` senest ${deadline} (svensk tid)` : " før reservasjonen utløper"} for å sikre bestillingen din.`,
+    swishNumber: "Swish-nummer",
+    messageLabel: "Melding",
+    tapToCopy: "trykk for å kopiere",
+    linkCopied: "Gjestelenke kopiert",
+    copyGuestLink: "Kopier gjestelenken din",
+    openGuestPage: "Åpne gjestesiden din",
+    notFoundTitle: "Bestillingssiden ble ikke funnet",
+    loadErrorTitle: "Bestillingen kunne ikke lastes inn akkurat nå",
+    loadErrorBody: "Prøv igjen om litt, eller kontakt overnattingsstedet for hjelp.",
+    channelSyncTitle: "Tilgjengeligheten oppdateres",
+    channelSyncRetry: "Kalenderen oppdateres. Vent litt, og prøv igjen.",
+    channelSyncBody:
+      "Vi oppdaterer kalenderen før vi kan ta imot nye bestillinger. Prøv igjen om litt, eller kontakt overnattingsstedet for hjelp.",
+    retry: "Prøv igjen",
+    notFoundBody: "Sjekk lenken, eller kontakt oss direkte, så hjelper vi deg.",
+    poweredBy: "Bestillingsmotor fra StayBoost",
+    prevMonth: "Forrige måned",
+    nextMonth: "Neste måned",
+    weekdays: ["Man", "Tir", "Ons", "Tor", "Fre", "Lør", "Søn"],
+  },
 } as const;
 
-export type BokaStrings = (typeof STR)["sv"];
+export type BokaStrings = {
+  [K in keyof (typeof STR)["sv"]]: (typeof STR)["sv"][K] extends (...args: infer A) => string
+    ? (...args: A) => string
+    : (typeof STR)["sv"][K] extends readonly string[]
+      ? readonly string[]
+      : string;
+};
 
 export function getStrings(lang: Lang): BokaStrings {
-  return STR[lang] as BokaStrings;
+  return STR[lang];
 }

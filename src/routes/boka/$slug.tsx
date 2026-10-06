@@ -4,6 +4,7 @@ import { PartySelector } from "@/components/PartySelector";
 import { UnitDetails } from "@/components/UnitDetails";
 import {
   localizedUnitText,
+  unitAmenityLabel,
   unitDisplayImages,
 } from "../../../supabase/functions/_shared/unit-content";
 import { childSupplementLabel, partyLabels } from "@/lib/party-i18n";
@@ -250,6 +251,114 @@ const EXTRA = {
     taxesIncluded: "Preis gemäß den aktuellen Preisregeln der Unterkunft.",
     editDates: "Daten ändern",
   },
+  da: {
+    secureDirect: "Direkte og sikkert",
+    secureDirectBody: "Book direkte hos overnatningsstedet med en tydelig prisoversigt.",
+    chooseStay: "Vælg overnatning",
+    chooseStayBody: "Sammenlign mulighederne, og vælg det ophold, der passer jer bedst.",
+    sleeps: (n: number) => `Op til ${n} gæster`,
+    size: (n: number) => `${n} m²`,
+    selected: "Valgt overnatning",
+    availability: "Tilgængelighed",
+    dateHint: "Vælg først indtjekning og derefter udtjekning.",
+    selectedDates: "Valgte datoer",
+    checkin: "Indtjekning",
+    checkout: "Udtjekning",
+    from: "fra",
+    bookSummary: "Dit ophold",
+    chooseDatesPrice: "Vælg datoer for at se den præcise pris",
+    details: "Dine oplysninger",
+    detailsBody: "Vi bruger oplysningerne til din bekræftelse og information om opholdet.",
+    fullName: "For- og efternavn",
+    email: "E-mailadresse",
+    phone: "Mobilnummer",
+    guests: "Gæster",
+    payment: "Betaling",
+    payCard: "Kortbetaling",
+    payCardHint: "Sikkert via Stripe",
+    paySwish: "Swish",
+    paySwishHint: "Betal efter bookingen",
+    termsStart: "Jeg accepterer",
+    terms: "bookingbetingelserne",
+    privacy: "privatlivspolitikken",
+    and: "og har læst",
+    securePayment: "Sikker betaling",
+    directHost: "Direkte med overnatningsstedet",
+    instantConfirmation: "Bekræftelse med det samme",
+    included: "Dette er inkluderet",
+    quantity: "Antal",
+    remove: "Fjern",
+    errName: "Indtast dit navn for at fortsætte.",
+    errEmail: "Angiv en gyldig e-mailadresse, så vi kan sende din bekræftelse.",
+    errPhone:
+      "Angiv et svensk mobilnummer eller et internationalt nummer med landekode, for eksempel +45.",
+    errTerms: "Acceptér bookingbetingelserne for at fortsætte.",
+    errSwishPhone: "Et mobilnummer er påkrævet, når du vælger Swish.",
+    errCapacity: (n: number) => `Overnatningsstedet har plads til højst ${n} gæster.`,
+    errRateLimit: "Der har været mange bookingforsøg på kort tid. Prøv igen om lidt.",
+    errClosed:
+      "Overnatningsstedet er lukket under en del af den valgte periode. Vælg andre datoer.",
+    errArrival: "Indtjekning er ikke mulig på den valgte dato. Vælg en anden ankomstdato.",
+    errDeparture: "Udtjekning er ikke mulig på den valgte dato. Vælg en anden afrejsedato.",
+    nights: (n: number) => `${n} ${n === 1 ? "nat" : "nætter"}`,
+    taxesIncluded:
+      "Pris efter overnatningsstedets gældende prisregler. Alle beløb er i svenske kroner (SEK).",
+    editDates: "Skift datoer",
+  },
+  no: {
+    secureDirect: "Direkte og sikkert",
+    secureDirectBody: "Bestill direkte hos overnattingsstedet med en tydelig prisoversikt.",
+    chooseStay: "Velg overnatting",
+    chooseStayBody: "Sammenlign alternativene, og velg oppholdet som passer dere best.",
+    sleeps: (n: number) => `Opptil ${n} gjester`,
+    size: (n: number) => `${n} m²`,
+    selected: "Valgt overnatting",
+    availability: "Tilgjengelighet",
+    dateHint: "Velg først innsjekking og deretter utsjekking.",
+    selectedDates: "Valgte datoer",
+    checkin: "Innsjekking",
+    checkout: "Utsjekking",
+    from: "fra",
+    bookSummary: "Ditt opphold",
+    chooseDatesPrice: "Velg datoer for å se nøyaktig pris",
+    details: "Dine opplysninger",
+    detailsBody: "Vi bruker opplysningene til bekreftelsen og informasjon om oppholdet.",
+    fullName: "For- og etternavn",
+    email: "E-postadresse",
+    phone: "Mobilnummer",
+    guests: "Gjester",
+    payment: "Betaling",
+    payCard: "Kortbetaling",
+    payCardHint: "Sikkert via Stripe",
+    paySwish: "Swish",
+    paySwishHint: "Betal etter bestillingen",
+    termsStart: "Jeg godtar",
+    terms: "bestillingsvilkårene",
+    privacy: "personvernerklæringen",
+    and: "og har lest",
+    securePayment: "Sikker betaling",
+    directHost: "Direkte med overnattingsstedet",
+    instantConfirmation: "Bekreftelse med en gang",
+    included: "Dette er inkludert",
+    quantity: "Antall",
+    remove: "Fjern",
+    errName: "Skriv inn navnet ditt for å fortsette.",
+    errEmail: "Oppgi en gyldig e-postadresse, slik at vi kan sende bekreftelsen.",
+    errPhone:
+      "Oppgi et svensk mobilnummer eller et internasjonalt nummer med landskode, for eksempel +47.",
+    errTerms: "Godta bestillingsvilkårene for å fortsette.",
+    errSwishPhone: "Du må oppgi et mobilnummer når du velger Swish.",
+    errCapacity: (n: number) => `Overnattingsstedet har plass til maksimalt ${n} gjester.`,
+    errRateLimit: "Det har vært mange bestillingsforsøk på kort tid. Prøv igjen om litt.",
+    errClosed:
+      "Overnattingsstedet er stengt under en del av den valgte perioden. Velg andre datoer.",
+    errArrival: "Innsjekking er ikke mulig på den valgte datoen. Velg en annen ankomstdato.",
+    errDeparture: "Utsjekking er ikke mulig på den valgte datoen. Velg en annen avreisedato.",
+    nights: (n: number) => `${n} ${n === 1 ? "natt" : "netter"}`,
+    taxesIncluded:
+      "Pris etter overnattingsstedets gjeldende prisregler. Alle beløp er i svenske kroner (SEK).",
+    editDates: "Endre datoer",
+  },
 } as const;
 
 type ExtraStrings = {
@@ -257,6 +366,10 @@ type ExtraStrings = {
     ? (...args: A) => string
     : string;
 };
+
+function bookingExtraStrings(lang: Lang): ExtraStrings {
+  return EXTRA[lang];
+}
 
 const pricingOf = (u: EngineUnit): UnitPricing => ({
   base_price: u.basePrice,
@@ -309,7 +422,7 @@ function PublicBookingPage() {
     if (requested) setLangState(requested);
   }, []);
   const t = getStrings(lang);
-  const x = EXTRA[lang];
+  const x = bookingExtraStrings(lang);
   const locale = LOCALES[lang];
   const setLang = (next: Lang) => {
     setLangState(next);
@@ -775,13 +888,7 @@ function PublicBookingPage() {
       <main className="grid min-h-screen place-items-center p-6" style={{ background: C.page }}>
         <div className="max-w-md rounded-3xl border bg-white p-8 text-center">
           <h1 className="font-[Fraunces] text-3xl">{data.property.name}</h1>
-          <p className="mt-4">
-            {lang === "en"
-              ? "Online booking is currently paused. Please contact us for help."
-              : lang === "de"
-                ? "Die Onlinebuchung ist derzeit pausiert. Bitte kontaktieren Sie uns."
-                : "Onlinebokningen är pausad just nu. Kontakta oss så hjälper vi dig."}
-          </p>
+          <p className="mt-4">{t.errPaused}</p>
           {data.property.contactEmail && (
             <a className="mt-4 block underline" href={`mailto:${data.property.contactEmail}`}>
               {data.property.contactEmail}
@@ -1298,8 +1405,8 @@ function PublicBookingPage() {
                   checkin={checkin!}
                   checkout={checkout!}
                   t={t}
-                  x={x}
                   locale={locale}
+                  lang={lang}
                   onName={setName}
                   onEmail={setEmail}
                   onPhone={setPhone}
@@ -1341,8 +1448,8 @@ function PublicBookingPage() {
                   checkin={checkin}
                   checkout={checkout}
                   t={t}
-                  x={x}
                   locale={locale}
+                  lang={lang}
                   onName={setName}
                   onEmail={setEmail}
                   onPhone={setPhone}
@@ -1497,7 +1604,7 @@ function UnitCard({
                   className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold"
                   style={{ color: C.muted }}
                 >
-                  {amenity}
+                  {unitAmenityLabel(amenity, lang)}
                 </span>
               ))}
             </div>
@@ -1550,7 +1657,7 @@ function EmptyCheckout({
   );
 }
 
-function CheckoutForm({
+export function CheckoutForm({
   unit,
   quote,
   grandTotal,
@@ -1570,8 +1677,8 @@ function CheckoutForm({
   checkin,
   checkout,
   t,
-  x,
   locale,
+  lang,
   onName,
   onEmail,
   onPhone,
@@ -1599,8 +1706,8 @@ function CheckoutForm({
   checkin: string;
   checkout: string;
   t: ReturnType<typeof getStrings>;
-  x: ExtraStrings;
   locale: string;
+  lang: Lang;
   onName: (value: string) => void;
   onEmail: (value: string) => void;
   onPhone: (value: string) => void;
@@ -1610,7 +1717,8 @@ function CheckoutForm({
   onSubmit: () => void;
 }) {
   const fmtKr = (value: number) => `${Math.round(value).toLocaleString(locale)} kr`;
-  const p = partyLabels[locale === "en-GB" ? "en" : locale === "de-DE" ? "de" : "sv"];
+  const p = partyLabels[lang];
+  const x = bookingExtraStrings(lang);
   const date = (value: string) =>
     new Date(`${value}T12:00:00`).toLocaleDateString(locale, { day: "numeric", month: "short" });
 
@@ -1650,11 +1758,7 @@ function CheckoutForm({
         />
         {(quote.childrenSubtotal ?? 0) > 0 && (
           <PriceRow
-            label={childSupplementLabel(
-              quote.childrenPriceBasis,
-              quote.nights,
-              locale === "en-GB" ? "en" : locale === "de-DE" ? "de" : "sv",
-            )}
+            label={childSupplementLabel(quote.childrenPriceBasis, quote.nights, lang)}
             value={fmtKr(quote.childrenSubtotal!)}
           />
         )}

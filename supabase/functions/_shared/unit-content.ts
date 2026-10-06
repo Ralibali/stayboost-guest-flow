@@ -2,6 +2,41 @@ import { sanitizedHttpsUrl } from "./public-links.ts";
 
 export const CONTENT_LANGUAGES = ["sv", "en", "de", "da", "no"] as const;
 export type ContentLanguage = (typeof CONTENT_LANGUAGES)[number];
+
+const AMENITY_LABELS: Record<string, Record<ContentLanguage, string>> = {
+  Wifi: { sv: "Wifi", en: "Wi-Fi", de: "WLAN", da: "Wifi", no: "Wifi" },
+  Fläkt: { sv: "Fläkt", en: "Fan", de: "Ventilator", da: "Ventilator", no: "Vifte" },
+  Kylskåp: { sv: "Kylskåp", en: "Fridge", de: "Kühlschrank", da: "Køleskab", no: "Kjøleskap" },
+  Kaffemaskin: {
+    sv: "Kaffemaskin",
+    en: "Coffee machine",
+    de: "Kaffeemaschine",
+    da: "Kaffemaskine",
+    no: "Kaffemaskin",
+  },
+  Tvättmaskin: {
+    sv: "Tvättmaskin",
+    en: "Washing machine",
+    de: "Waschmaschine",
+    da: "Vaskemaskine",
+    no: "Vaskemaskin",
+  },
+  Dusch: { sv: "Dusch", en: "Shower", de: "Dusche", da: "Brusebad", no: "Dusj" },
+  Rökfritt: { sv: "Rökfritt", en: "Non-smoking", de: "Rauchfrei", da: "Røgfrit", no: "Røykfritt" },
+  "Husdjur tillåts": {
+    sv: "Husdjur tillåts",
+    en: "Pets allowed",
+    de: "Haustiere erlaubt",
+    da: "Kæledyr tilladt",
+    no: "Kjæledyr tillatt",
+  },
+};
+
+/** Translate only recognized labels for display; preserve all custom/source values. */
+export function unitAmenityLabel(value: string, language: ContentLanguage): string {
+  return Object.hasOwn(AMENITY_LABELS, value) ? AMENITY_LABELS[value][language] : value;
+}
+
 export type UnitTranslation = { name: string; description: string | null };
 export type UnitTranslations = Partial<Record<ContentLanguage, UnitTranslation>>;
 export type UnitGalleryImage = { id: string; storage_path: string; alt_text: string };
