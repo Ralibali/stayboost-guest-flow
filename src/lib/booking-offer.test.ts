@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import { quoteStay } from "../../supabase/functions/_shared/pricing";
 import {
   BookingOfferError,
+  bookingAddonAvailable,
+  bookingAddonAvailableForUnit,
   bookingDatesAvailable,
   bookingOfferNeedsRefresh,
   fetchBookingOffer,
@@ -210,4 +212,60 @@ describe("recovering an outdated booking offer", () => {
       expect(bookingOfferNeedsRefresh(error)).toBe(false);
     },
   );
+});
+
+describe("manual child-price choices", () => {
+  const addon: EngineAddon = {
+    id: "child",
+    name: "Any name",
+    description: null,
+    price: 329,
+    priceType: "per_booking",
+    imageUrl: null,
+    availableFrom: null,
+    availableTo: null,
+    maxQuantity: 10,
+    pricingRole: "manual_child_price",
+  };
+  const reconcile = (selected: Record<string, number>, enabled: boolean, catalog = [addon]) =>
+    reconcileBookingAddonQuantities(catalog, selected, "2027-07-01", "2027-07-03", "tent", enabled);
+  it("hides and removes manual child prices when switching to person pricing and does not restore a hidden selection", () => {
+    expect(bookingAddonAvailable(addon, "2027-07-01", "2027-07-03", "tent", false)).toBe(true);
+    expect(bookingAddonAvailable(addon, "2027-07-01", "2027-07-03", "tent", true)).toBe(false);
+    const previous = reconcile({ child: 2 }, false);
+    const next = reconcile(previous, true);
+    expect(next).toEqual({});
+    expect(reconcile(next, false)).toEqual({});
+  });
+  it("removes a stale selected addon when the refreshed catalog gains an explicit role, without inferring from names", () => {
+    const legacy = { ...addon, pricingRole: undefined, name: "Barnpris" };
+    expect(reconcile({ child: 1 }, true, [legacy])).toEqual({ child: 1 });
+    expect(reconcile({ child: 1 }, true)).toEqual({});
+    expect(reconcile({ child: 1 }, true, [{ ...addon, pricingRole: "extra" }])).toEqual({
+      child: 1,
+    });
+  });
+});
+
+it("keeps dated choices during offer reload scope checks, while full stay validation still enforces dates", () => {
+  const seasonal: EngineAddon = {
+    id: "breakfast",
+    name: "Breakfast",
+    description: null,
+    price: 209,
+    priceType: "per_night",
+    imageUrl: null,
+    availableFrom: "2027-06-01",
+    availableTo: "2027-08-31",
+    maxQuantity: 4,
+    allowedUnitIds: ["tent"],
+    pricingRole: "extra",
+  };
+  expect(bookingAddonAvailableForUnit(seasonal, "tent", true)).toBe(true);
+  expect(bookingAddonAvailable(seasonal, "2027-06-05", "2027-06-07", "tent", true)).toBe(true);
+  expect(bookingAddonAvailable(seasonal, "2027-05-05", "2027-05-07", "tent", true)).toBe(false);
+  expect(bookingAddonAvailableForUnit(seasonal, "other-tent", true)).toBe(false);
+  expect(
+    bookingAddonAvailableForUnit({ ...seasonal, pricingRole: "manual_child_price" }, "tent", true),
+  ).toBe(false);
 });

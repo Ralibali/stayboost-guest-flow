@@ -124,6 +124,15 @@ export function isBookingEngineResponse(value: unknown): boolean {
         unit.amenities.every(text) &&
         optionalArray(unit.monthlyMult, finite) &&
         optionalArray(unit.adultPrices, finite) &&
+        (unit.partyPricingEnabled === undefined || typeof unit.partyPricingEnabled === "boolean") &&
+        (unit.childPriceBasis === undefined ||
+          unit.childPriceBasis === "per_night" ||
+          unit.childPriceBasis === "per_booking") &&
+        [unit.childPricePerNight, unit.childPricePerBooking].every(
+          (price) =>
+            price === undefined ||
+            (finite(price) && Number.isSafeInteger(price) && price >= 0 && price <= 1000000),
+        ) &&
         Array.isArray(unit.booked) &&
         unit.booked.every((range) => record(range) && day(range.from) && day(range.to)) &&
         optionalArray(
@@ -139,6 +148,9 @@ export function isBookingEngineResponse(value: unknown): boolean {
         optionalText(addon.description) &&
         (addon.contentTranslations == null || isAddonTranslations(addon.contentTranslations)) &&
         (addon.vatRate == null || isVatRate(addon.vatRate)) &&
+        (addon.pricingRole === undefined ||
+          addon.pricingRole === "extra" ||
+          addon.pricingRole === "manual_child_price") &&
         optionalText(addon.imageUrl) &&
         optionalArray(addon.allowedUnitIds, (id) => text(id) && id.trim().length > 0) &&
         finite(addon.price) &&

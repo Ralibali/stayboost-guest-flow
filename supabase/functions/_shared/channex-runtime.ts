@@ -139,7 +139,7 @@ export async function localChannelContext(
       admin
         .from("units")
         .select(
-          "id,property_id,active,max_guests,base_price,weekend_pct,min_stay,cleaning_fee,monthly_mult,party_pricing_enabled,adult_prices,child_price_per_night,child_free_through_age,child_max_age",
+          "id,property_id,active,max_guests,base_price,weekend_pct,min_stay,cleaning_fee,monthly_mult,party_pricing_enabled,adult_prices,child_price_per_night,child_price_basis,child_price_per_booking,child_free_through_age,child_max_age",
         )
         .eq("property_id", connection.property_id)
         .order("id"),

@@ -6,13 +6,15 @@ import {
   localizedUnitText,
   unitDisplayImages,
 } from "../../../supabase/functions/_shared/unit-content";
-import { partyLabels } from "@/lib/party-i18n";
+import { childSupplementLabel, partyLabels } from "@/lib/party-i18n";
 import {
   BookingOfferError,
   bookingDatesAvailable,
   bookingOfferNeedsRefresh,
   fetchBookingOffer,
   reconcileBookingAddonQuantities,
+  bookingAddonAvailable,
+  bookingAddonAvailableForUnit,
   type EngineAddon,
   type EngineData,
   type EngineUnit,
@@ -24,10 +26,6 @@ import {
 } from "../../../supabase/functions/_shared/addon-content";
 import { stockholmDay } from "../../../supabase/functions/_shared/guest-stay";
 import { sanitizedHttpsUrl } from "../../../supabase/functions/_shared/public-links";
-import {
-  addonAvailableForStay,
-  addonAvailableForUnit,
-} from "../../../supabase/functions/_shared/addons";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -268,6 +266,8 @@ const pricingOf = (u: EngineUnit): UnitPricing => ({
   party_pricing_enabled: u.partyPricingEnabled,
   adult_prices: u.adultPrices,
   child_price_per_night: u.childPricePerNight,
+  child_price_basis: u.childPriceBasis,
+  child_price_per_booking: u.childPricePerBooking,
   child_free_through_age: u.childFreeThroughAge,
   child_max_age: u.childMaxAge,
 });
@@ -401,6 +401,17 @@ function PublicBookingPage() {
             payload.units.find((candidate) => candidate.id === unitIdRef.current) ??
             payload.units[0];
           setUnitId(selected.id);
+          setAddonQty((current) =>
+            Object.fromEntries(
+              Object.entries(current).filter(([id]) => {
+                const addon = payload.addons.find((candidate) => candidate.id === id);
+                return (
+                  addon &&
+                  bookingAddonAvailableForUnit(addon, selected.id, selected.partyPricingEnabled)
+                );
+              }),
+            ),
+          );
           setGuests((current) => Math.min(current, selected.maxGuests));
           if (!unitIdRef.current)
             setParty({ adults: Math.min(2, selected.maxGuests), childrenAges: [] });
@@ -452,19 +463,8 @@ function PublicBookingPage() {
     );
   }, [unit, quote]);
 
-  const availableAddons = (data?.addons ?? []).filter(
-    (addon) =>
-      addonAvailableForUnit({ allowed_unit_ids: addon.allowedUnitIds }, unitId) &&
-      addonAvailableForStay(
-        {
-          available_from: addon.availableFrom,
-          available_to: addon.availableTo,
-          price_type: addon.priceType,
-          fulfillment_type: addon.fulfillmentType,
-        },
-        checkin ?? "",
-        checkout ?? "",
-      ),
+  const availableAddons = (data?.addons ?? []).filter((addon) =>
+    bookingAddonAvailable(addon, checkin ?? "", checkout ?? "", unitId, unit?.partyPricingEnabled),
   );
 
   const chosenAddons = useMemo(() => {
@@ -524,6 +524,7 @@ function PublicBookingPage() {
         checkin ?? "",
         checkout ?? "",
         next.id,
+        next.partyPricingEnabled,
       ),
     );
     setGuests((current) => Math.max(1, Math.min(current, next.maxGuests)));
@@ -667,7 +668,14 @@ function PublicBookingPage() {
             const refreshedUnit = fresh.units.find((candidate) => candidate.id === unit.id);
             const nextUnitId = refreshedUnit?.id ?? fresh.units[0]?.id ?? null;
             setAddonQty((current) =>
-              reconcileBookingAddonQuantities(fresh.addons, current, checkin, checkout, nextUnitId),
+              reconcileBookingAddonQuantities(
+                fresh.addons,
+                current,
+                checkin,
+                checkout,
+                nextUnitId,
+                (refreshedUnit ?? fresh.units[0])?.partyPricingEnabled,
+              ),
             );
             if (refreshedUnit) {
               setGuests((current) => Math.min(current, refreshedUnit.maxGuests));
@@ -1641,7 +1649,14 @@ function CheckoutForm({
           value={fmtKr(quote.adultSubtotal ?? quote.subtotal)}
         />
         {(quote.childrenSubtotal ?? 0) > 0 && (
-          <PriceRow label={p.childrenPrice} value={fmtKr(quote.childrenSubtotal!)} />
+          <PriceRow
+            label={childSupplementLabel(
+              quote.childrenPriceBasis,
+              quote.nights,
+              locale === "en-GB" ? "en" : locale === "de-DE" ? "de" : "sv",
+            )}
+            value={fmtKr(quote.childrenSubtotal!)}
+          />
         )}
         {quote.cleaningFee > 0 ? (
           <PriceRow label={t.cleaning} value={fmtKr(quote.cleaningFee)} />

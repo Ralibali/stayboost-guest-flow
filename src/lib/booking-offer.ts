@@ -9,6 +9,7 @@ import { checkAvailabilityRules, type RateRule } from "../../supabase/functions/
 import { nightsBetween } from "../../supabase/functions/_shared/pricing";
 import {
   addonAvailableForStay,
+  addonAvailableForPartyPricing,
   addonAvailableForUnit,
 } from "../../supabase/functions/_shared/addons";
 
@@ -33,6 +34,8 @@ export type EngineUnit = {
   partyPricingEnabled?: boolean;
   adultPrices?: number[];
   childPricePerNight?: number;
+  childPriceBasis?: "per_night" | "per_booking";
+  childPricePerBooking?: number;
   childFreeThroughAge?: number;
   childMaxAge?: number;
 };
@@ -49,6 +52,7 @@ export type EngineAddon = {
   maxQuantity: number;
   fulfillmentType?: "arrival" | "each_morning" | "departure";
   allowedUnitIds?: string[] | null;
+  pricingRole?: "extra" | "manual_child_price";
   contentTranslations?: AddonTranslations;
   vatRate?: VatRate | null;
 };
@@ -143,29 +147,55 @@ export function bookingDatesAvailable(
   );
 }
 
+/** Unit/party scope is independent of dates, which may not be available during reload. */
+export function bookingAddonAvailableForUnit(
+  addon: EngineAddon,
+  unitId?: string | null,
+  partyPricingEnabled = false,
+): boolean {
+  return (
+    addonAvailableForPartyPricing({ pricing_role: addon.pricingRole }, partyPricingEnabled) &&
+    addonAvailableForUnit({ allowed_unit_ids: addon.allowedUnitIds }, unitId)
+  );
+}
+
+/** Shared by the visible catalog, chosen lines and stale-choice reconciliation. */
+export function bookingAddonAvailable(
+  addon: EngineAddon,
+  checkin: string,
+  checkout: string,
+  unitId?: string | null,
+  partyPricingEnabled = false,
+): boolean {
+  return (
+    bookingAddonAvailableForUnit(addon, unitId, partyPricingEnabled) &&
+    addonAvailableForStay(
+      {
+        available_from: addon.availableFrom,
+        available_to: addon.availableTo,
+        price_type: addon.priceType,
+        fulfillment_type: addon.fulfillmentType,
+      },
+      checkin,
+      checkout,
+    )
+  );
+}
+
 export function reconcileBookingAddonQuantities(
   addons: EngineAddon[],
   selected: Record<string, number>,
   checkin: string,
   checkout: string,
   unitId?: string | null,
+  partyPricingEnabled = false,
 ): Record<string, number> {
   return Object.fromEntries(
     addons.flatMap((addon) => {
       const quantity = Math.min(selected[addon.id] ?? 0, addon.maxQuantity);
       if (
         quantity <= 0 ||
-        !addonAvailableForUnit({ allowed_unit_ids: addon.allowedUnitIds }, unitId) ||
-        !addonAvailableForStay(
-          {
-            available_from: addon.availableFrom,
-            available_to: addon.availableTo,
-            price_type: addon.priceType,
-            fulfillment_type: addon.fulfillmentType,
-          },
-          checkin,
-          checkout,
-        )
+        !bookingAddonAvailable(addon, checkin, checkout, unitId, partyPricingEnabled)
       )
         return [];
       return [[addon.id, quantity]];

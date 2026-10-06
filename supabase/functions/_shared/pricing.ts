@@ -12,6 +12,8 @@ export interface UnitPricing {
   party_pricing_enabled?: boolean;
   adult_prices?: number[];
   child_price_per_night?: number;
+  child_price_basis?: "per_night" | "per_booking";
+  child_price_per_booking?: number;
   child_free_through_age?: number;
   child_max_age?: number;
 }
@@ -45,7 +47,11 @@ export function partyIssue(
   if (
     u.party_pricing_enabled &&
     (!Number.isFinite(u.adult_prices?.[party.adults - 1]) ||
-      Number(u.adult_prices?.[party.adults - 1]) < 0)
+      Number(u.adult_prices?.[party.adults - 1]) < 0 ||
+      !["per_night", "per_booking"].includes(u.child_price_basis ?? "per_night") ||
+      !Number.isSafeInteger(configuredChildPrice(u)) ||
+      configuredChildPrice(u) < 0 ||
+      configuredChildPrice(u) > 1000000)
   )
     return "pricing_unavailable";
   return null;
@@ -69,6 +75,19 @@ export interface StayQuote {
   party?: BookingParty;
   adultSubtotal?: number;
   childrenSubtotal?: number;
+  childrenPriceBasis?: "per_night" | "per_booking";
+  /** Included in subtotal, independently of the nightly accommodation lines. */
+  childrenPerBookingSubtotal?: number;
+}
+
+function configuredChildPrice(u: UnitPricing): number {
+  return u.child_price_basis === "per_booking"
+    ? (u.child_price_per_booking ?? 0)
+    : (u.child_price_per_night ?? 0);
+}
+
+function chargeableChildren(u: UnitPricing, party: BookingParty): number {
+  return party.childrenAges.filter((age) => age > (u.child_free_through_age ?? 3)).length;
 }
 
 const parseIso = (iso: string) => {
@@ -129,10 +148,10 @@ export function nightlyPriceWithRules(
   const base = baseNightlyPrice(u, iso, party);
   const enabled = Boolean(u.party_pricing_enabled && party);
   const applied = applyPriceRules(base, rules, unitId, iso, enabled ? party!.adults : undefined);
-  const childPrice = enabled
-    ? party!.childrenAges.filter((age) => age > (u.child_free_through_age ?? 3)).length *
-      (u.child_price_per_night ?? 0)
-    : 0;
+  const childPrice =
+    enabled && u.child_price_basis !== "per_booking"
+      ? chargeableChildren(u, party!) * (u.child_price_per_night ?? 0)
+      : 0;
   if (!Number.isFinite(childPrice) || childPrice < 0) throw new Error("pricing_unavailable");
   return {
     date: iso,
@@ -157,7 +176,11 @@ export function quoteStay(
   const nightly = nightsBetween(checkin, checkout).map((date) =>
     nightlyPriceWithRules(u, date, rules, unitId, party),
   );
-  const subtotal = nightly.reduce((s, n) => s + n.price, 0);
+  const childrenPerBookingSubtotal =
+    u.party_pricing_enabled && party && nightly.length > 0 && u.child_price_basis === "per_booking"
+      ? chargeableChildren(u, party) * configuredChildPrice(u)
+      : 0;
+  const subtotal = nightly.reduce((s, n) => s + n.price, 0) + childrenPerBookingSubtotal;
   return {
     nights: nightly.length,
     nightly,
@@ -168,7 +191,11 @@ export function quoteStay(
       ? {
           party: { adults: party.adults, childrenAges: [...party.childrenAges] },
           adultSubtotal: nightly.reduce((sum, night) => sum + (night.adultPrice ?? 0), 0),
-          childrenSubtotal: nightly.reduce((sum, night) => sum + (night.childPrice ?? 0), 0),
+          childrenSubtotal:
+            nightly.reduce((sum, night) => sum + (night.childPrice ?? 0), 0) +
+            childrenPerBookingSubtotal,
+          childrenPriceBasis: u.child_price_basis ?? "per_night",
+          childrenPerBookingSubtotal,
         }
       : {}),
   };

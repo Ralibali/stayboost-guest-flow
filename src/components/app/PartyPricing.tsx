@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { partyPricingUpdate } from "@/lib/party-pricing-form";
 import { supabase, type Unit } from "@/lib/supabase";
 
 export function PartyPricing({ unit, onSaved }: { unit: Unit; onSaved: () => void }) {
@@ -7,6 +8,12 @@ export function PartyPricing({ unit, onSaved }: { unit: Unit; onSaved: () => voi
     Array.from({ length: unit.max_guests }, (_, i) => String(unit.adult_prices?.[i] ?? "")),
   );
   const [childPrice, setChildPrice] = useState(String(unit.child_price_per_night ?? 0));
+  const [childPricePerBooking, setChildPricePerBooking] = useState(
+    String(unit.child_price_per_booking ?? 0),
+  );
+  const [childPriceBasis, setChildPriceBasis] = useState<"per_night" | "per_booking">(
+    unit.child_price_basis ?? "per_night",
+  );
   const [freeAge, setFreeAge] = useState(String(unit.child_free_through_age ?? 3));
   const [maxAge, setMaxAge] = useState(String(unit.child_max_age ?? 12));
   const [busy, setBusy] = useState(false);
@@ -14,49 +21,31 @@ export function PartyPricing({ unit, onSaved }: { unit: Unit; onSaved: () => voi
   const [saved, setSaved] = useState(false);
   const save = async () => {
     if (!supabase || busy) return;
-    const adults = prices.map(Number);
-    const child = Number(childPrice);
-    const free = Number(freeAge);
-    const max = Number(maxAge);
     setError(null);
     setSaved(false);
-    if (
-      enabled &&
-      (prices.some((p) => !p.trim()) ||
-        adults.some((p) => !Number.isSafeInteger(p) || p < 0 || p > 1000000))
-    ) {
-      setError("Ange ett nattpris i hela kronor för varje vuxenantal.");
-      return;
-    }
-    if (
-      !childPrice.trim() ||
-      !freeAge.trim() ||
-      !maxAge.trim() ||
-      !Number.isInteger(child) ||
-      child < 0 ||
-      child > 1000000 ||
-      !Number.isInteger(free) ||
-      !Number.isInteger(max) ||
-      free < 0 ||
-      max > 17 ||
-      free > max
-    ) {
-      setError(
-        "Kontrollera barnpris och åldersgränser. Gratisåldern får inte överstiga barnets högsta ålder.",
-      );
+    let update;
+    try {
+      update = partyPricingUpdate(unit, {
+        enabled,
+        adultPrices: prices,
+        childPriceBasis,
+        childPricePerNight: childPrice,
+        childPricePerBooking,
+        freeAge,
+        maxAge,
+      });
+    } catch (error) {
+      setError((error as Error).message);
       return;
     }
     setBusy(true);
     const { error: saveError } = await supabase
       .from("units")
-      .update({
-        party_pricing_enabled: enabled,
-        adult_prices: enabled ? adults : (unit.adult_prices ?? []),
-        child_price_per_night: child,
-        child_free_through_age: free,
-        child_max_age: max,
-      })
-      .eq("id", unit.id);
+      .update(update)
+      .eq("id", unit.id)
+      .eq("property_id", unit.property_id)
+      .select("id")
+      .single();
     setBusy(false);
     if (saveError) {
       setError(
@@ -107,12 +96,29 @@ export function PartyPricing({ unit, onSaved }: { unit: Unit; onSaved: () => voi
               </label>
             ))}
           </div>
+          <label className="block text-xs text-ink/65">
+            Barnpriset gäller
+            <select
+              value={childPriceBasis}
+              onChange={(event) => {
+                setChildPriceBasis(event.target.value as "per_night" | "per_booking");
+                setSaved(false);
+              }}
+              className="mt-1 w-full rounded-lg border border-line bg-white p-2 text-sm"
+            >
+              <option value="per_night">Per barn och natt</option>
+              <option value="per_booking">Per barn och vistelse (en gång)</option>
+            </select>
+          </label>
           <div className="grid gap-3 sm:grid-cols-3">
             {[
               {
-                label: "Barnpris · kr/barn/natt",
-                value: childPrice,
-                set: setChildPrice,
+                label:
+                  childPriceBasis === "per_booking"
+                    ? "Barnpris · kr/barn/vistelse"
+                    : "Barnpris · kr/barn/natt",
+                value: childPriceBasis === "per_booking" ? childPricePerBooking : childPrice,
+                set: childPriceBasis === "per_booking" ? setChildPricePerBooking : setChildPrice,
                 max: 1000000,
               },
               { label: "Gratis till och med ålder", value: freeAge, set: setFreeAge, max: 17 },
@@ -137,7 +143,11 @@ export function PartyPricing({ unit, onSaved }: { unit: Unit; onSaved: () => voi
           </div>
           <p className="text-xs text-ink/60">
             Månadsfaktor och helgpåslag gäller vuxenpriset. Datumregler kan ange en egen
-            vuxenpristabell. Barnpris läggs till per natt.
+            vuxenpristabell.{" "}
+            {childPriceBasis === "per_booking"
+              ? "Barnpriset läggs till en gång per vistelse för varje betalande barn."
+              : "Barnpriset läggs till för varje natt och betalande barn."}{" "}
+            Manuella barntillval kan inte läggas till när personpriser används.
           </p>
         </>
       ) : null}

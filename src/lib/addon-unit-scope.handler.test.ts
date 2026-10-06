@@ -222,6 +222,95 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+function partyFixture(basis: "per_booking" | "per_night" = "per_booking") {
+  const f = fixture("all");
+  Object.assign(f.tables.units[0], {
+    max_guests: 4,
+    party_pricing_enabled: true,
+    adult_prices: [995, 1995, 2895, 3495],
+    child_price_per_night: 329,
+    child_price_basis: basis,
+    child_price_per_booking: 329,
+    child_free_through_age: 1,
+    child_max_age: 9,
+  });
+  return f;
+}
+
+it("uses the same once-per-booking child total in the public offer, immutable quote and checkout", async () => {
+  const f = partyFixture();
+  const offer = await (await f.get()).json();
+  expect(offer.units[0]).toMatchObject({
+    childPriceBasis: "per_booking",
+    childPricePerBooking: 329,
+    childPricePerNight: 329,
+  });
+  const response = await f.post("tent1", {
+    checkin: "2027-05-31",
+    checkout: "2027-06-02",
+    adults: 2,
+    childrenAges: [6],
+    addons: [],
+    expectedTotal: 4319,
+  });
+  expect(response.status).toBe(200);
+  expect(f.tables.bookings[0]).toMatchObject({
+    guests: 3,
+    adults: 2,
+    children_ages: [6],
+    payment_amount: 4319,
+    quote_snapshot: {
+      partyPricingEnabled: true,
+      adultSubtotal: 3990,
+      childrenSubtotal: 329,
+      childrenPerBookingSubtotal: 329,
+      childrenPriceBasis: "per_booking",
+      grandTotal: 4319,
+    },
+  });
+  expect(f.createCheckoutSession).toHaveBeenCalledOnce();
+});
+
+it("retains nightly 658 pricing and rejects a stale once-only client total before any booking", async () => {
+  const f = partyFixture("per_night");
+  const args = {
+    checkin: "2027-05-31",
+    checkout: "2027-06-02",
+    adults: 2,
+    childrenAges: [6],
+    addons: [],
+  };
+  expect((await f.post("tent1", { ...args, expectedTotal: 4319 })).status).toBe(409);
+  expect(f.tables.bookings).toEqual([]);
+  expect((await f.post("tent1", { ...args, expectedTotal: 4648 })).status).toBe(200);
+  expect(f.tables.bookings[0]).toMatchObject({
+    quote_snapshot: { childrenSubtotal: 658, childrenPerBookingSubtotal: 0 },
+  });
+});
+
+it("rejects direct API attempts to buy a marked manual child price with party pricing, even without children", async () => {
+  for (const childrenAges of [[6], []]) {
+    const f = partyFixture();
+    Object.assign(f.tables.addons[0], { pricing_role: "manual_child_price", price: 329 });
+    const offer = await (await f.get()).json();
+    expect(offer.addons[0].pricingRole).toBe("manual_child_price");
+    const response = await f.post("tent1", { adults: 2, childrenAges, pricing_role: "extra" });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ error: "invalid_addons" });
+    expect(f.tables.bookings).toEqual([]);
+    expect(f.createCheckoutSession).not.toHaveBeenCalled();
+  }
+});
+
+it("counts free children against capacity before attempting payment", async () => {
+  const f = partyFixture();
+  const response = await f.post("tent1", { adults: 2, childrenAges: [0, 1, 6], addons: [] });
+  expect(response.status).toBe(400);
+  expect(await response.json()).toMatchObject({ error: "capacity_exceeded", maxGuests: 4 });
+  expect(f.tables.bookings).toEqual([]);
+  expect(f.createCheckoutSession).not.toHaveBeenCalled();
+});
+
 it("publishes the unit restriction without exposing storage joins", async () => {
   const f = fixture();
   const response = await f.get();

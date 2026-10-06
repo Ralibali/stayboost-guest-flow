@@ -100,6 +100,8 @@ export type Unit = {
   party_pricing_enabled: boolean;
   adult_prices: number[];
   child_price_per_night: number;
+  child_price_basis?: "per_night" | "per_booking";
+  child_price_per_booking?: number;
   child_free_through_age: number;
   child_max_age: number;
 };
@@ -309,6 +311,7 @@ export type Addon = {
   content_translations?: AddonTranslations;
   vat_rate?: VatRate | null;
   catalog_revision?: number;
+  pricing_role?: "extra" | "manual_child_price";
   price: number;
   price_type: "per_booking" | "per_night";
   fulfillment_type: "arrival" | "each_morning" | "departure";

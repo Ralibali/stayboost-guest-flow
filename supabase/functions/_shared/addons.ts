@@ -25,6 +25,15 @@ export interface Addon {
   allowed_unit_ids?: string[] | null;
   content_translations?: AddonTranslations;
   vat_rate?: VatRate | null;
+  /** Explicit catalog role; never inferred from names, prices or age text. */
+  pricing_role?: "extra" | "manual_child_price";
+}
+
+export function addonAvailableForPartyPricing(
+  addon: Pick<Addon, "pricing_role">,
+  partyPricingEnabled = false,
+): boolean {
+  return !(partyPricingEnabled && addon.pricing_role === "manual_child_price");
 }
 
 export function addonAvailableForUnit(
@@ -94,7 +103,7 @@ export function priceAddons(
   selections: AddonSelection[],
   available: Addon[],
   nights: number,
-  stay?: { checkin: string; checkout: string; unitId?: string },
+  stay?: { checkin: string; checkout: string; unitId?: string; partyPricingEnabled?: boolean },
 ): PricedAddon[] {
   const byId = new Map(available.filter((a) => a.active).map((a) => [a.id, a]));
   const priced: PricedAddon[] = [];
@@ -110,6 +119,7 @@ export function priceAddons(
       quantity < 1 ||
       quantity > (addon.max_quantity ?? 20) ||
       addon.internal_only ||
+      !addonAvailableForPartyPricing(addon, stay?.partyPricingEnabled) ||
       !addonAvailableForUnit(addon, stay?.unitId) ||
       (stay && !addonAvailableForStay(addon, stay.checkin, stay.checkout))
     )

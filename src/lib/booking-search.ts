@@ -26,6 +26,8 @@ export type SearchUnit = {
   partyPricingEnabled?: boolean;
   adultPrices?: number[];
   childPricePerNight?: number;
+  childPriceBasis?: "per_night" | "per_booking";
+  childPricePerBooking?: number;
   childFreeThroughAge?: number;
   childMaxAge?: number;
 };
@@ -92,6 +94,8 @@ export function findAvailableStays(units: SearchUnit[], search: StaySearch) {
           party_pricing_enabled: unit.partyPricingEnabled,
           adult_prices: unit.adultPrices,
           child_price_per_night: unit.childPricePerNight,
+          child_price_basis: unit.childPriceBasis,
+          child_price_per_booking: unit.childPricePerBooking,
           child_free_through_age: unit.childFreeThroughAge,
           child_max_age: unit.childMaxAge,
         };
