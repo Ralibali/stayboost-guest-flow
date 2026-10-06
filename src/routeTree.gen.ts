@@ -21,6 +21,7 @@ import { Route as VillkorRouteImport } from './routes/villkor'
 import { Route as AppIndexRouteImport } from './routes/app/index'
 import { Route as AppArbeteRouteImport } from './routes/app/arbete'
 import { Route as AppBokningarRouteImport } from './routes/app/bokningar'
+import { Route as AppConciergeRouteImport } from './routes/app/concierge'
 import { Route as AppIdagRouteImport } from './routes/app/idag'
 import { Route as AppInkorgRouteImport } from './routes/app/inkorg'
 import { Route as AppInstallningarRouteImport } from './routes/app/installningar'
@@ -114,6 +115,11 @@ const AppArbeteRoute = AppArbeteRouteImport.update({
 const AppBokningarRoute = AppBokningarRouteImport.update({
   id: '/bokningar',
   path: '/bokningar',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppConciergeRoute = AppConciergeRouteImport.update({
+  id: '/concierge',
+  path: '/concierge',
   getParentRoute: () => AppRoute,
 } as any)
 const AppIdagRoute = AppIdagRouteImport.update({
@@ -294,6 +300,7 @@ export interface FileRoutesByFullPath {
   '/villkor': typeof VillkorRoute
   '/app/arbete': typeof AppArbeteRoute
   '/app/bokningar': typeof AppBokningarRoute
+  '/app/concierge': typeof AppConciergeRoute
   '/app/idag': typeof AppIdagRoute
   '/app/inkorg': typeof AppInkorgRoute
   '/app/installningar': typeof AppInstallningarRoute
@@ -339,6 +346,7 @@ export interface FileRoutesByTo {
   '/villkor': typeof VillkorRoute
   '/app/arbete': typeof AppArbeteRoute
   '/app/bokningar': typeof AppBokningarRoute
+  '/app/concierge': typeof AppConciergeRoute
   '/app/idag': typeof AppIdagRoute
   '/app/inkorg': typeof AppInkorgRoute
   '/app/installningar': typeof AppInstallningarRoute
@@ -387,6 +395,7 @@ export interface FileRoutesById {
   '/villkor': typeof VillkorRoute
   '/app/arbete': typeof AppArbeteRoute
   '/app/bokningar': typeof AppBokningarRoute
+  '/app/concierge': typeof AppConciergeRoute
   '/app/idag': typeof AppIdagRoute
   '/app/inkorg': typeof AppInkorgRoute
   '/app/installningar': typeof AppInstallningarRoute
@@ -436,6 +445,7 @@ export interface FileRouteTypes {
     | '/villkor'
     | '/app/arbete'
     | '/app/bokningar'
+    | '/app/concierge'
     | '/app/idag'
     | '/app/inkorg'
     | '/app/installningar'
@@ -481,6 +491,7 @@ export interface FileRouteTypes {
     | '/villkor'
     | '/app/arbete'
     | '/app/bokningar'
+    | '/app/concierge'
     | '/app/idag'
     | '/app/inkorg'
     | '/app/installningar'
@@ -528,6 +539,7 @@ export interface FileRouteTypes {
     | '/villkor'
     | '/app/arbete'
     | '/app/bokningar'
+    | '/app/concierge'
     | '/app/idag'
     | '/app/inkorg'
     | '/app/installningar'
@@ -664,6 +676,13 @@ declare module '@tanstack/react-router' {
       path: '/bokningar'
       fullPath: '/app/bokningar'
       preLoaderRoute: typeof AppBokningarRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/app/concierge': {
+      id: '/app/concierge'
+      path: '/concierge'
+      fullPath: '/app/concierge'
+      preLoaderRoute: typeof AppConciergeRouteImport
       parentRoute: typeof AppRoute
     }
     '/app/idag': {
@@ -903,6 +922,7 @@ declare module '@tanstack/react-router' {
 interface AppRouteChildren {
   AppArbeteRoute: typeof AppArbeteRoute
   AppBokningarRoute: typeof AppBokningarRoute
+  AppConciergeRoute: typeof AppConciergeRoute
   AppIdagRoute: typeof AppIdagRoute
   AppInkorgRoute: typeof AppInkorgRoute
   AppInstallningarRoute: typeof AppInstallningarRoute
@@ -923,6 +943,7 @@ interface AppRouteChildren {
 const AppRouteChildren: AppRouteChildren = {
   AppArbeteRoute: AppArbeteRoute,
   AppBokningarRoute: AppBokningarRoute,
+  AppConciergeRoute: AppConciergeRoute,
   AppIdagRoute: AppIdagRoute,
   AppInkorgRoute: AppInkorgRoute,
   AppInstallningarRoute: AppInstallningarRoute,
