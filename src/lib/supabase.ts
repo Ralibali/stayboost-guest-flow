@@ -313,6 +313,8 @@ export type Addon = {
   available_from: string | null;
   available_to: string | null;
   max_quantity: number;
+  unit_scope?: "all" | "selected";
+  addon_units?: { unit_id: string }[];
   active: boolean;
   sort_order: number;
 };

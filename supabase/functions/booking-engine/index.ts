@@ -87,12 +87,15 @@ Deno.serve(async (req) => {
         .order("id")
         .range(from, to),
     );
-  const loadAddons = (propertyId: string) =>
-    collectPages<Addon>((from, to) =>
+  const loadAddons = async (propertyId: string): Promise<Addon[]> => {
+    const stored = await collectPages<Addon & {
+      unit_scope: "all" | "selected";
+      addon_units: { unit_id: string }[];
+    }>((from, to) =>
       admin
         .from("addons")
         .select(
-          "id, name, description, price, price_type, fulfillment_type, image_url, active, sort_order, internal_only, available_from, available_to, max_quantity",
+          "id, name, description, price, price_type, fulfillment_type, image_url, active, sort_order, internal_only, available_from, available_to, max_quantity, unit_scope, addon_units(unit_id)",
         )
         .eq("property_id", propertyId)
         .eq("active", true)
@@ -100,6 +103,13 @@ Deno.serve(async (req) => {
         .order("id")
         .range(from, to),
     );
+    return stored.map((addon) => ({
+      ...addon,
+      allowed_unit_ids: addon.unit_scope === "selected"
+        ? (addon.addon_units ?? []).map((link) => link.unit_id)
+        : null,
+    }));
+  };
 
   // ---------------- GET: ledighet + priser + boendeprofil ----------------
   if (req.method === "GET") {
@@ -230,6 +240,7 @@ Deno.serve(async (req) => {
           availableTo: a.available_to,
           maxQuantity: a.max_quantity,
           fulfillmentType: a.fulfillment_type,
+          allowedUnitIds: a.allowed_unit_ids,
         })),
     });
   }
@@ -392,6 +403,7 @@ Deno.serve(async (req) => {
     const pricedAddons = priceAddons(rawSelections, availableAddons ?? [], quote.nights, {
       checkin,
       checkout,
+      unitId: unit.id,
     });
     if (pricedAddons.length !== rawSelections.length) return json({ error: "invalid_addons" }, 400);
     const addonsTotal = sumAddons(pricedAddons);

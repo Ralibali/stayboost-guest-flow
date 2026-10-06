@@ -134,6 +134,7 @@ export function isBookingEngineResponse(value: unknown): boolean {
         text(addon.name) &&
         optionalText(addon.description) &&
         optionalText(addon.imageUrl) &&
+        optionalArray(addon.allowedUnitIds, (id) => text(id) && id.trim().length > 0) &&
         finite(addon.price) &&
         ["per_booking", "per_night"].includes(String(addon.priceType)) &&
         finite(addon.maxQuantity) &&
