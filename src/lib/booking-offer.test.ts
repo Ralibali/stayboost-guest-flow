@@ -6,6 +6,7 @@ import {
   bookingOfferNeedsRefresh,
   fetchBookingOffer,
   reconcileBookingAddonQuantities,
+  type EngineAddon,
   type EngineData,
 } from "./booking-offer";
 
@@ -42,6 +43,47 @@ const offer = (): EngineData => ({
     },
   ],
   addons: [],
+});
+
+describe("reconciling extras when accommodation changes", () => {
+  const base: EngineAddon = {
+    id: "breakfast",
+    name: "Breakfast",
+    description: null,
+    price: 120,
+    priceType: "per_booking",
+    imageUrl: null,
+    availableFrom: null,
+    availableTo: null,
+    maxQuantity: 4,
+  };
+  const catalog: EngineAddon[] = [
+    base,
+    { ...base, id: "pets", allowedUnitIds: ["tent-3"] },
+    { ...base, id: "all", allowedUnitIds: null },
+    { ...base, id: "unmapped", allowedUnitIds: [] },
+  ];
+  const change = (selected: Record<string, number>, unitId: string | null, addons = catalog) =>
+    reconcileBookingAddonQuantities(addons, selected, "2027-07-01", "2027-07-03", unitId);
+
+  it("removes pets when leaving its allowed tent without restoring them on a later return", () => {
+    const tent3 = change({ breakfast: 2, pets: 1, all: 1, unmapped: 1 }, "tent-3");
+    expect(tent3).toEqual({ breakfast: 2, pets: 1, all: 1 });
+    const tent1 = change(tent3, "tent-1");
+    expect(tent1).toEqual({ breakfast: 2, all: 1 });
+    expect(change(tent1, "tent-3")).toEqual({ breakfast: 2, all: 1 });
+  });
+
+  it("removes a stale choice when refreshed settings restrict it to another tent", () => {
+    const original = [{ ...base, id: "pets" }];
+    expect(change({ pets: 1 }, "tent-1", original)).toEqual({ pets: 1 });
+    expect(change({ pets: 1 }, "tent-1", catalog)).toEqual({});
+  });
+
+  it("fails closed for restricted extras when the selected accommodation disappears", () => {
+    expect(change({ pets: 1, breakfast: 2 }, null)).toEqual({ breakfast: 2 });
+    expect(change({ pets: 1, breakfast: 2 }, "replacement-tent")).toEqual({ breakfast: 2 });
+  });
 });
 const total = (data: EngineData) => {
   const unit = data.units[0];

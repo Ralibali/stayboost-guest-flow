@@ -19,6 +19,18 @@ export interface Addon {
   available_to?: string | null;
   max_quantity?: number;
   fulfillment_type?: "arrival" | "each_morning" | "departure";
+  /** null/absent = all units; an empty selection is unavailable everywhere. */
+  allowed_unit_ids?: string[] | null;
+}
+
+export function addonAvailableForUnit(
+  addon: Pick<Addon, "allowed_unit_ids">,
+  unitId?: string | null,
+): boolean {
+  return (
+    addon.allowed_unit_ids == null ||
+    (typeof unitId === "string" && addon.allowed_unit_ids.includes(unitId))
+  );
 }
 
 /** Perioden gäller vistelsens nätter, inte dagen då bokningen görs. */
@@ -78,7 +90,7 @@ export function priceAddons(
   selections: AddonSelection[],
   available: Addon[],
   nights: number,
-  stay?: { checkin: string; checkout: string },
+  stay?: { checkin: string; checkout: string; unitId?: string },
 ): PricedAddon[] {
   const byId = new Map(available.filter((a) => a.active).map((a) => [a.id, a]));
   const priced: PricedAddon[] = [];
@@ -94,6 +106,7 @@ export function priceAddons(
       quantity < 1 ||
       quantity > (addon.max_quantity ?? 20) ||
       addon.internal_only ||
+      !addonAvailableForUnit(addon, stay?.unitId) ||
       (stay && !addonAvailableForStay(addon, stay.checkin, stay.checkout))
     )
       continue;

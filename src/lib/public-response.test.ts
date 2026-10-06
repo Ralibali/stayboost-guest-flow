@@ -71,6 +71,27 @@ describe("public API response resilience", () => {
     expect(isBookingEngineResponse(engine)).toBe(true);
     expect(isBookingEngineResponse({ ...engine, units: [] })).toBe(true);
   });
+  it("validates unit restrictions while preserving legacy and empty-selection semantics", () => {
+    const addon = {
+      id: "pets",
+      name: "Pets",
+      description: null,
+      imageUrl: null,
+      price: 295,
+      priceType: "per_booking",
+      maxQuantity: 1,
+      availableFrom: null,
+      availableTo: null,
+    };
+    const response = (allowedUnitIds: unknown) => ({
+      ...engine,
+      addons: [{ ...addon, allowedUnitIds }],
+    });
+    for (const allowed of [undefined, null, [], ["tent-3"]])
+      expect(isBookingEngineResponse(response(allowed))).toBe(true);
+    for (const invalid of ["tent-3", {}, [null], [1], [""], ["  "]])
+      expect(isBookingEngineResponse(response(invalid))).toBe(false);
+  });
   it("validates optional localized content and the public gallery without accepting source metadata", () => {
     const content = { en: { name: " Tent ", description: " Full text\n\nSecond paragraph. " } };
     const gallery = [

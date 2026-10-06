@@ -2,6 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 import { ImagePlus, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase, useProperty, useSession, type Addon } from "@/lib/supabase";
+import { AddonUnitScopeSelector } from "@/components/app/AddonUnitScopeSelector";
+import {
+  addonUnitIds,
+  selectedAddonUnitIds,
+  saveAddonWithUnits,
+  type AddonUnitScope,
+} from "@/lib/addon-unit-scope";
 
 export const Route = createFileRoute("/app/tillval")({
   component: AddonsPage,
@@ -18,6 +25,8 @@ type Draft = {
   available_from: string;
   available_to: string;
   max_quantity: number;
+  unit_scope: AddonUnitScope;
+  unit_ids: string[];
 };
 
 const EMPTY: Draft = {
@@ -31,13 +40,15 @@ const EMPTY: Draft = {
   available_from: "",
   available_to: "",
   max_quantity: 20,
+  unit_scope: "all",
+  unit_ids: [],
 };
 
 const fmtKr = (n: number) => `${n.toLocaleString("sv-SE")} kr`;
 
 function AddonsPage() {
   const session = useSession();
-  const { property } = useProperty(session);
+  const { property, units } = useProperty(session);
   const [addons, setAddons] = useState<Addon[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -52,7 +63,7 @@ function AddonsPage() {
     if (!supabase || !property) return;
     const { data, error } = await supabase
       .from("addons")
-      .select("*")
+      .select("*, addon_units(unit_id)")
       .eq("property_id", property.id)
       .order("sort_order")
       .order("created_at");
@@ -99,7 +110,18 @@ function AddonsPage() {
   };
 
   const save = async () => {
-    if (!supabase || !property || !draft.name.trim()) return;
+    if (!supabase || !property || !draft.name.trim() || saving || uploading) return;
+    let unitIds: string[] | null;
+    try {
+      unitIds = selectedAddonUnitIds(
+        draft.unit_scope,
+        draft.unit_ids,
+        units.map((unit) => unit.id),
+      );
+    } catch (error) {
+      setActionError((error as Error).message);
+      return;
+    }
     if (
       (draft.available_from || draft.available_to) &&
       (!draft.available_from || !draft.available_to || draft.available_to < draft.available_from)
@@ -127,7 +149,6 @@ function AddonsPage() {
     setSaving(true);
     setActionError(null);
     const row = {
-      property_id: property.id,
       name: draft.name.trim(),
       description: draft.description.trim() || null,
       price,
@@ -139,16 +160,21 @@ function AddonsPage() {
       available_to: draft.available_to || null,
       max_quantity: draft.max_quantity,
     };
-    const result = editingId
-      ? await supabase.from("addons").update(row).eq("id", editingId)
-      : await supabase.from("addons").insert({ ...row, sort_order: addons.length });
-    setSaving(false);
-    if (result.error) {
-      setActionError(`Kunde inte spara tillvalet: ${result.error.message}`);
-      return;
+    try {
+      await saveAddonWithUnits(
+        supabase,
+        property.id,
+        editingId,
+        editingId ? row : { ...row, sort_order: addons.length },
+        unitIds,
+      );
+      reset();
+      void load();
+    } catch {
+      setActionError("Tillvalet kunde inte sparas. Kontrollera enheterna och försök igen.");
+    } finally {
+      setSaving(false);
     }
-    reset();
-    load();
   };
 
   const startEdit = (addon: Addon) => {
@@ -164,6 +190,8 @@ function AddonsPage() {
       available_from: addon.available_from ?? "",
       available_to: addon.available_to ?? "",
       max_quantity: addon.max_quantity ?? 20,
+      unit_scope: addon.unit_scope ?? "all",
+      unit_ids: addonUnitIds(addon) ?? [],
     });
     setShowForm(true);
     setActionError(null);
@@ -226,7 +254,10 @@ function AddonsPage() {
       )}
 
       {showForm && (
-        <section className="mt-6 rounded-2xl border border-[color:var(--line)] bg-white p-6">
+        <fieldset
+          disabled={saving || uploading}
+          className="mt-6 min-w-0 rounded-2xl border border-[color:var(--line)] bg-white p-6"
+        >
           <div className="flex items-center justify-between">
             <h2 className="text-[15px] font-bold">
               {editingId ? "Redigera tillval" : "Nytt tillval"}
@@ -302,6 +333,15 @@ function AddonsPage() {
                 Planen gäller nya köp.
               </p>
             </label>
+            <AddonUnitScopeSelector
+              scope={draft.unit_scope}
+              selected={draft.unit_ids}
+              units={units}
+              disabled={saving || uploading}
+              onChange={(scope, unitIds) =>
+                setDraft((current) => ({ ...current, unit_scope: scope, unit_ids: unitIds }))
+              }
+            />
             <fieldset className="space-y-3 rounded-xl border p-4">
               <legend className="px-1 text-sm font-semibold">När kan tillvalet bokas?</legend>
               <div className="grid gap-3 sm:grid-cols-2">
@@ -398,7 +438,12 @@ function AddonsPage() {
             <div className="flex gap-2 pt-1">
               <button
                 onClick={save}
-                disabled={saving || !draft.name.trim()}
+                disabled={
+                  saving ||
+                  uploading ||
+                  !draft.name.trim() ||
+                  (draft.unit_scope === "selected" && !draft.unit_ids.length)
+                }
                 className="btn-primary flex-1 justify-center !rounded-xl !py-2.5 disabled:opacity-40"
               >
                 {saving ? "Sparar…" : editingId ? "Spara ändringar" : "Lägg till"}
@@ -411,7 +456,7 @@ function AddonsPage() {
               </button>
             </div>
           </div>
-        </section>
+        </fieldset>
       )}
 
       <div className="mt-6 divide-y divide-[color:var(--line)] border-y border-[color:var(--line)]">
@@ -437,6 +482,16 @@ function AddonsPage() {
                 {addon.internal_only ? "Endast internt · " : ""}Max {addon.max_quantity ?? 20} st
                 {addon.available_from ? ` · ${addon.available_from}–${addon.available_to}` : ""}
               </p>
+              <p className="text-xs text-[color:var(--ink)]/60">
+                {addon.unit_scope === "selected"
+                  ? `Utvalda enheter: ${
+                      units
+                        .filter((unit) => addonUnitIds(addon)?.includes(unit.id))
+                        .map((unit) => unit.name)
+                        .join(", ") || "Inga enheter valda"
+                    }`
+                  : "Alla enheter"}
+              </p>
               {addon.description && (
                 <p className="mt-0.5 line-clamp-1 text-[13px] text-[color:var(--ink)]/55">
                   {addon.description}
@@ -450,6 +505,7 @@ function AddonsPage() {
             <div className="flex shrink-0 items-center gap-1">
               <button
                 onClick={() => toggleActive(addon)}
+                disabled={saving || uploading}
                 role="switch"
                 aria-checked={addon.active}
                 title={addon.active ? "Aktiv" : "Dold"}
@@ -461,6 +517,7 @@ function AddonsPage() {
               </button>
               <button
                 onClick={() => startEdit(addon)}
+                disabled={saving || uploading}
                 className="grid h-9 w-9 place-items-center rounded-full text-[color:var(--ink)]/50 hover:bg-[color:var(--bg)]"
                 title="Redigera"
               >
@@ -469,12 +526,14 @@ function AddonsPage() {
               {confirmDelete === addon.id ? (
                 <button
                   onClick={() => remove(addon)}
+                  disabled={saving || uploading}
                   className="rounded-full bg-red-600 px-3 py-1.5 text-[12px] font-bold text-white"
                 >
                   Bekräfta
                 </button>
               ) : (
                 <button
+                  disabled={saving || uploading}
                   onClick={() => {
                     setConfirmDelete(addon.id);
                     setTimeout(

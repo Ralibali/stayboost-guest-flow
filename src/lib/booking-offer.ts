@@ -6,7 +6,10 @@ import type {
 import { rangesOverlap } from "../../supabase/functions/_shared/pricing";
 import { checkAvailabilityRules, type RateRule } from "../../supabase/functions/_shared/rate-rules";
 import { nightsBetween } from "../../supabase/functions/_shared/pricing";
-import { addonAvailableForStay } from "../../supabase/functions/_shared/addons";
+import {
+  addonAvailableForStay,
+  addonAvailableForUnit,
+} from "../../supabase/functions/_shared/addons";
 
 export type EngineUnit = {
   id: string;
@@ -44,6 +47,7 @@ export type EngineAddon = {
   availableTo: string | null;
   maxQuantity: number;
   fulfillmentType?: "arrival" | "each_morning" | "departure";
+  allowedUnitIds?: string[] | null;
 };
 
 export type EngineData = {
@@ -141,12 +145,14 @@ export function reconcileBookingAddonQuantities(
   selected: Record<string, number>,
   checkin: string,
   checkout: string,
+  unitId?: string | null,
 ): Record<string, number> {
   return Object.fromEntries(
     addons.flatMap((addon) => {
       const quantity = Math.min(selected[addon.id] ?? 0, addon.maxQuantity);
       if (
         quantity <= 0 ||
+        !addonAvailableForUnit({ allowed_unit_ids: addon.allowedUnitIds }, unitId) ||
         !addonAvailableForStay(
           {
             available_from: addon.availableFrom,

@@ -20,7 +20,10 @@ import {
 import { normalizeGuestPhone } from "../../../supabase/functions/_shared/guest-contact";
 import { stockholmDay } from "../../../supabase/functions/_shared/guest-stay";
 import { sanitizedHttpsUrl } from "../../../supabase/functions/_shared/public-links";
-import { addonAvailableForStay } from "../../../supabase/functions/_shared/addons";
+import {
+  addonAvailableForStay,
+  addonAvailableForUnit,
+} from "../../../supabase/functions/_shared/addons";
 import { Link, createFileRoute } from "@tanstack/react-router";
 import { AnimatePresence, motion } from "framer-motion";
 import {
@@ -441,17 +444,19 @@ function PublicBookingPage() {
     );
   }, [unit, quote]);
 
-  const availableAddons = (data?.addons ?? []).filter((addon) =>
-    addonAvailableForStay(
-      {
-        available_from: addon.availableFrom,
-        available_to: addon.availableTo,
-        price_type: addon.priceType,
-        fulfillment_type: addon.fulfillmentType,
-      },
-      checkin ?? "",
-      checkout ?? "",
-    ),
+  const availableAddons = (data?.addons ?? []).filter(
+    (addon) =>
+      addonAvailableForUnit({ allowed_unit_ids: addon.allowedUnitIds }, unitId) &&
+      addonAvailableForStay(
+        {
+          available_from: addon.availableFrom,
+          available_to: addon.availableTo,
+          price_type: addon.priceType,
+          fulfillment_type: addon.fulfillmentType,
+        },
+        checkin ?? "",
+        checkout ?? "",
+      ),
   );
 
   const chosenAddons = useMemo(() => {
@@ -504,6 +509,15 @@ function PublicBookingPage() {
 
   const selectUnit = (next: EngineUnit) => {
     setUnitId(next.id);
+    setAddonQty((current) =>
+      reconcileBookingAddonQuantities(
+        data?.addons ?? [],
+        current,
+        checkin ?? "",
+        checkout ?? "",
+        next.id,
+      ),
+    );
     setGuests((current) => Math.max(1, Math.min(current, next.maxGuests)));
     resetDates();
   };
@@ -642,10 +656,11 @@ function PublicBookingPage() {
           try {
             const fresh = await fetchBookingOffer(FUNCTIONS_BASE, slug);
             setData(fresh);
-            setAddonQty((current) =>
-              reconcileBookingAddonQuantities(fresh.addons, current, checkin, checkout),
-            );
             const refreshedUnit = fresh.units.find((candidate) => candidate.id === unit.id);
+            const nextUnitId = refreshedUnit?.id ?? fresh.units[0]?.id ?? null;
+            setAddonQty((current) =>
+              reconcileBookingAddonQuantities(fresh.addons, current, checkin, checkout, nextUnitId),
+            );
             if (refreshedUnit) {
               setGuests((current) => Math.min(current, refreshedUnit.maxGuests));
             } else {
