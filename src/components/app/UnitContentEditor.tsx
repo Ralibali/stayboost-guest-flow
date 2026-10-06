@@ -209,7 +209,7 @@ export function UnitContentEditor({ unit, onSaved }: { unit: Unit; onSaved: () =
         )}
         {(language === "da" || language === "no") && (
           <p className="text-[12px] text-[color:var(--ink)]/60">
-            Texten sparas här. Bokningens språkval är svenska, engelska och tyska.
+            Gästen kan välja svenska, engelska, tyska, danska och norska i bokningen.
           </p>
         )}
       </div>

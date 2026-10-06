@@ -73,7 +73,7 @@ describe("addon catalog text and included VAT", () => {
     expect(html).toContain(exact);
     expect(html).toContain('<option value="" selected="">Ej angivet</option>');
     expect(html).toContain('<option value="0">0 %</option>');
-    expect(html).toContain("Danska och norska bevaras här");
+    expect(html).toContain("Gästen kan välja svenska, engelska, tyska, danska och norska");
   });
 
   it("only publishes frozen guest fields and never adds current VAT to old purchases", () => {

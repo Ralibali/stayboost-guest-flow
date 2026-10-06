@@ -39,6 +39,24 @@ const labels = {
     image: "Bild",
     of: "von",
   },
+  da: {
+    details: "Se alle billeder og læs mere",
+    gallery: "Billeder af overnatningsstedet",
+    previous: "Forrige billede",
+    next: "Næste billede",
+    amenities: "Alle faciliteter",
+    image: "Billede",
+    of: "af",
+  },
+  no: {
+    details: "Se alle bilder og les mer",
+    gallery: "Bilder av overnattingsstedet",
+    previous: "Forrige bilde",
+    next: "Neste bilde",
+    amenities: "Alle fasiliteter",
+    image: "Bilde",
+    of: "av",
+  },
 };
 
 export function UnitDetails({ unit, lang }: { unit: EngineUnit; lang: Lang }) {

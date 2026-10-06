@@ -1,3 +1,5 @@
+import { isLang, type Lang } from "./boka-i18n";
+
 export const GLAMPING_ORIGIN = "https://goglampingsweden.se";
 // This public property identifier must work in published builds without a host override.
 export const GOGLAMPING_PROPERTY_SLUG =
@@ -25,9 +27,9 @@ export function glampingEmbedTarget(
   }
 }
 
-export function bookingLanguage(search: string): "sv" | "en" | "de" | null {
+export function bookingLanguage(search: string): Lang | null {
   const lang = new URLSearchParams(search).get("lang");
-  return lang === "sv" || lang === "en" || lang === "de" ? lang : null;
+  return isLang(lang) ? lang : null;
 }
 
 export function isHostedStripeCheckout(value: unknown): value is string {

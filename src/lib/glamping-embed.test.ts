@@ -59,7 +59,8 @@ describe("Glamping embed contract", () => {
     expect(isGlampingProperty("", undefined)).toBe(false);
   });
   it("only accepts supported languages", () => {
-    for (const lang of ["sv", "en", "de"]) expect(bookingLanguage(`?lang=${lang}`)).toBe(lang);
+    for (const lang of ["sv", "en", "de", "da", "no"])
+      expect(bookingLanguage(`?lang=${lang}`)).toBe(lang);
     expect(bookingLanguage("?lang=unknown")).toBeNull();
     expect(bookingLanguage("")).toBeNull();
   });

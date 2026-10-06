@@ -48,9 +48,13 @@ export function localizedAddonText(
   );
 }
 
-export function addonVatLabel(rate: VatRate | null | undefined, language: "sv" | "en" | "de") {
+export function addonVatLabel(rate: VatRate | null | undefined, language: ContentLanguage) {
   if (rate == null) return null;
-  return { sv: `Inkl. ${rate} % moms`, en: `Includes ${rate}% VAT`, de: `Inkl. ${rate} % MwSt.` }[
-    language
-  ];
+  return {
+    sv: `Inkl. ${rate} % moms`,
+    en: `Includes ${rate}% VAT`,
+    de: `Inkl. ${rate} % MwSt.`,
+    da: `Inkl. ${rate} % moms`,
+    no: `Inkl. ${rate} % mva.`,
+  }[language];
 }

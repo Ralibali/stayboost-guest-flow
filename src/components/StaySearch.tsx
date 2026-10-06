@@ -5,7 +5,7 @@ import {
   type SearchUnit,
   type StaySuggestion,
 } from "@/lib/booking-search";
-import type { Lang } from "@/lib/boka-i18n";
+import { LOCALES, type Lang } from "@/lib/boka-i18n";
 import { stockholmDay } from "../../supabase/functions/_shared/guest-stay";
 import { partySize, type BookingParty } from "../../supabase/functions/_shared/pricing";
 import { PartySelector } from "./PartySelector";
@@ -57,6 +57,36 @@ const labels = {
     paused: "Buchungen sind vorübergehend pausiert.",
     notice: "Verfügbarkeit und Preis werden bei der Buchung erneut geprüft.",
   },
+  da: {
+    title: "Find dit ophold",
+    intro: "Søg for hele selskabet. Er datoerne optaget, foreslår vi nærliggende datoer.",
+    arrival: "Ønsket indtjekning",
+    nights: "Nætter",
+    guests: "Gæster",
+    search: "Søg ledige ophold",
+    exact: "Ledigt på dine datoer",
+    nearby: "Prøv disse datoer",
+    none: "Intet ophold matcher inden for 14 dage fra dit valg. Prøv andre datoer, eller kontakt overnatningsstedet.",
+    choose: "Vælg ophold",
+    total: "Samlet pris for overnatning inklusive rengøring. Tilvalg betales særskilt.",
+    paused: "Booking er midlertidigt sat på pause.",
+    notice: "Tilgængelighed og pris kontrolleres igen, når du booker.",
+  },
+  no: {
+    title: "Finn ditt opphold",
+    intro: "Søk for hele reisefølget. Er datoene opptatt, foreslår vi nærliggende datoer.",
+    arrival: "Ønsket innsjekking",
+    nights: "Netter",
+    guests: "Gjester",
+    search: "Søk ledige opphold",
+    exact: "Ledig på datoene dine",
+    nearby: "Prøv disse datoene",
+    none: "Ingen opphold passer innen 14 dager fra valget ditt. Prøv andre datoer, eller kontakt overnattingsstedet.",
+    choose: "Velg opphold",
+    total: "Samlet pris for overnatting, inkludert rengjøring. Valgfrie tillegg betales separat.",
+    paused: "Bestilling er midlertidig satt på pause.",
+    notice: "Tilgjengelighet og pris kontrolleres på nytt når du bestiller.",
+  },
 };
 
 export function StaySearch({
@@ -103,7 +133,7 @@ export function StaySearch({
       })
     : null;
   const stays = result ? (result.exact.length ? result.exact : result.nearby) : [];
-  const locale = { sv: "sv-SE", en: "en-GB", de: "de-DE" }[lang];
+  const locale = LOCALES[lang];
   const date = (value: string) =>
     new Date(`${value}T12:00:00Z`).toLocaleDateString(locale, {
       day: "numeric",
