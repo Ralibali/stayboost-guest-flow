@@ -11,6 +11,10 @@ import { collectPages } from "../../supabase/functions/_shared/pagination";
 import { sanitizedHttpsUrl } from "../../supabase/functions/_shared/public-links";
 import { channelInventoryFresh } from "../../supabase/functions/_shared/channel-freshness";
 import { projectUnitContent } from "../../supabase/functions/_shared/unit-content";
+import {
+  localizedAddonText,
+  projectAddonContent,
+} from "../../supabase/functions/_shared/addon-content";
 
 type Row = Record<string, unknown>;
 const source = readFileSync(
@@ -162,6 +166,8 @@ function fixture(scope: "all" | "selected" = "selected", unitIds = ["tent3"]) {
     sanitizedHttpsUrl,
     channelInventoryFresh,
     projectUnitContent,
+    localizedAddonText,
+    projectAddonContent,
   };
   let handler!: (request: Request) => Promise<Response>;
   new Function("Deno", ...Object.keys(bindings), compiled)(
@@ -276,4 +282,45 @@ it("rejects a catalog ID belonging to another property", async () => {
   expect((await f.post("tent3")).status).toBe(400);
   expect(f.tables.bookings).toEqual([]);
   expect(f.createCheckoutSession).not.toHaveBeenCalled();
+});
+
+it("projects exact localized catalog content without private metadata and snapshots included VAT without raising the price", async () => {
+  const f = fixture();
+  const description = "  Whole description 💚\n\nLast line.  ";
+  f.tables.addons[0].content_translations = {
+    sv: { name: "Husdjur", description: "Svensk text" },
+    en: { name: "Pet companion", description, source_archive: "PRIVATE" },
+    da: { name: "Kæledyr", description: "Dansk tekst" },
+  };
+  f.tables.addons[0].vat_rate = 12;
+  f.tables.addons[0].source_archive = "PRIVATE";
+  const catalog = await (await f.get()).json();
+  expect(catalog.addons[0]).toMatchObject({
+    contentTranslations: { en: { name: "Pet companion", description }, da: { name: "Kæledyr" } },
+    vatRate: 12,
+  });
+  expect(JSON.stringify(catalog)).not.toContain("PRIVATE");
+  const response = await f.post("tent3", {
+    language: "en",
+    vatRate: 0,
+    contentTranslations: { en: { name: "FORGED" } },
+  });
+  expect(response.status).toBe(200);
+  const quote = f.tables.bookings[0].quote_snapshot as { addons: Row[]; grandTotal: number };
+  expect(quote.addons[0]).toMatchObject({
+    name: "Pet companion",
+    description,
+    vatRate: 12,
+    taxInclusive: true,
+    unitPrice: 499,
+    priceType: "per_booking",
+    lineTotal: 499,
+  });
+  expect(quote.grandTotal).toBe(1499);
+  expect(f.createCheckoutSession).toHaveBeenCalledWith(
+    expect.objectContaining({ amountSek: 1499 }),
+  );
+  f.tables.addons[0].vat_rate = 25;
+  f.tables.addons[0].content_translations = {};
+  expect(quote.addons[0]).toMatchObject({ name: "Pet companion", vatRate: 12 });
 });

@@ -3,12 +3,14 @@ import { ImagePlus, Loader2, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase, useProperty, useSession, type Addon } from "@/lib/supabase";
 import { AddonUnitScopeSelector } from "@/components/app/AddonUnitScopeSelector";
+import { AddonContentFields } from "@/components/app/AddonContentFields";
+import { isAddonCatalogConflict, saveAddonCatalog } from "@/lib/addon-catalog-save";
 import {
-  addonUnitIds,
-  selectedAddonUnitIds,
-  saveAddonWithUnits,
-  type AddonUnitScope,
-} from "@/lib/addon-unit-scope";
+  isAddonTranslations,
+  type AddonTranslations,
+  type VatRate,
+} from "../../../supabase/functions/_shared/addon-content";
+import { addonUnitIds, selectedAddonUnitIds, type AddonUnitScope } from "@/lib/addon-unit-scope";
 
 export const Route = createFileRoute("/app/tillval")({
   component: AddonsPage,
@@ -17,6 +19,8 @@ export const Route = createFileRoute("/app/tillval")({
 type Draft = {
   name: string;
   description: string;
+  content_translations: AddonTranslations;
+  vat_rate: VatRate | null;
   price: string;
   price_type: "per_booking" | "per_night";
   fulfillment_type: "arrival" | "each_morning" | "departure";
@@ -32,6 +36,8 @@ type Draft = {
 const EMPTY: Draft = {
   name: "",
   description: "",
+  content_translations: { sv: { name: "", description: null } },
+  vat_rate: null,
   price: "",
   price_type: "per_booking",
   fulfillment_type: "arrival",
@@ -58,6 +64,7 @@ function AddonsPage() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const originalRevision = useRef<number | null | undefined>(null);
 
   const load = useCallback(async () => {
     if (!supabase || !property) return;
@@ -103,6 +110,7 @@ function AddonsPage() {
   };
 
   const reset = () => {
+    originalRevision.current = null;
     setDraft(EMPTY);
     setEditingId(null);
     setShowForm(false);
@@ -111,6 +119,12 @@ function AddonsPage() {
 
   const save = async () => {
     if (!supabase || !property || !draft.name.trim() || saving || uploading) return;
+    if (!isAddonTranslations(draft.content_translations) || !draft.content_translations.sv) {
+      setActionError(
+        "Varje tillagt språk behöver ett namn. Kontrollera språktexterna; ingen text har kortats.",
+      );
+      return;
+    }
     let unitIds: string[] | null;
     try {
       unitIds = selectedAddonUnitIds(
@@ -149,8 +163,10 @@ function AddonsPage() {
     setSaving(true);
     setActionError(null);
     const row = {
-      name: draft.name.trim(),
-      description: draft.description.trim() || null,
+      name: draft.content_translations.sv.name,
+      description: draft.content_translations.sv.description,
+      content_translations: draft.content_translations,
+      vat_rate: draft.vat_rate,
       price,
       price_type: draft.price_type,
       fulfillment_type: draft.fulfillment_type,
@@ -161,27 +177,38 @@ function AddonsPage() {
       max_quantity: draft.max_quantity,
     };
     try {
-      await saveAddonWithUnits(
+      await saveAddonCatalog(
         supabase,
         property.id,
         editingId,
+        originalRevision.current,
         editingId ? row : { ...row, sort_order: addons.length },
         unitIds,
       );
       reset();
       void load();
-    } catch {
-      setActionError("Tillvalet kunde inte sparas. Kontrollera enheterna och försök igen.");
+    } catch (error) {
+      setActionError(
+        isAddonCatalogConflict(error)
+          ? "Tillvalet har ändrats i ett annat fönster. Ditt utkast finns kvar; kopiera det innan du laddar om sidan."
+          : "Tillvalet kunde inte sparas. Ditt utkast finns kvar. Kontrollera uppgifterna och försök igen.",
+      );
     } finally {
       setSaving(false);
     }
   };
 
   const startEdit = (addon: Addon) => {
+    originalRevision.current = addon.catalog_revision;
     setEditingId(addon.id);
     setDraft({
       name: addon.name,
       description: addon.description ?? "",
+      content_translations: {
+        ...addon.content_translations,
+        sv: addon.content_translations?.sv ?? { name: addon.name, description: addon.description },
+      },
+      vat_rate: addon.vat_rate ?? null,
       price: String(addon.price),
       price_type: addon.price_type,
       fulfillment_type: addon.fulfillment_type ?? "arrival",
@@ -199,20 +226,45 @@ function AddonsPage() {
   };
 
   const toggleActive = async (addon: Addon) => {
-    if (!supabase) return;
+    if (!supabase || !property || saving || uploading) return;
+    setSaving(true);
     setActionError(null);
-    setAddons((current) =>
-      current.map((item) => (item.id === addon.id ? { ...item, active: !item.active } : item)),
-    );
-    const { error } = await supabase
-      .from("addons")
-      .update({ active: !addon.active })
-      .eq("id", addon.id);
-    if (error) {
-      setAddons((current) =>
-        current.map((item) => (item.id === addon.id ? { ...item, active: addon.active } : item)),
+    const translations = {
+      ...addon.content_translations,
+      sv: addon.content_translations?.sv ?? { name: addon.name, description: addon.description },
+    };
+    try {
+      await saveAddonCatalog(
+        supabase,
+        property.id,
+        addon.id,
+        addon.catalog_revision,
+        {
+          name: translations.sv.name,
+          description: translations.sv.description,
+          content_translations: translations,
+          vat_rate: addon.vat_rate ?? null,
+          price: addon.price,
+          price_type: addon.price_type,
+          fulfillment_type: addon.fulfillment_type ?? "arrival",
+          image_url: addon.image_url,
+          internal_only: addon.internal_only ?? false,
+          available_from: addon.available_from,
+          available_to: addon.available_to,
+          max_quantity: addon.max_quantity ?? 20,
+          active: !addon.active,
+        },
+        addonUnitIds(addon),
       );
-      setActionError(`Kunde inte ändra tillvalet: ${error.message}`);
+      await load();
+    } catch (error) {
+      setActionError(
+        isAddonCatalogConflict(error)
+          ? "Tillvalet har ändrats i ett annat fönster. Ladda om sidan innan du försöker igen."
+          : "Kunde inte ändra tillvalet. Försök igen.",
+      );
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -272,18 +324,19 @@ function AddonsPage() {
           </div>
 
           <div className="mt-4 space-y-3">
-            <input
-              value={draft.name}
-              onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              placeholder="Namn"
-              className="inp"
-            />
-            <textarea
-              value={draft.description}
-              onChange={(e) => setDraft({ ...draft, description: e.target.value })}
-              placeholder="Kort beskrivning"
-              rows={3}
-              className="inp resize-none"
+            <AddonContentFields
+              key={editingId ?? "new"}
+              translations={draft.content_translations}
+              vatRate={draft.vat_rate}
+              onTranslations={(translations) =>
+                setDraft((current) => ({
+                  ...current,
+                  content_translations: translations,
+                  name: translations.sv?.name ?? "",
+                  description: translations.sv?.description ?? "",
+                }))
+              }
+              onVatRate={(vatRate) => setDraft((current) => ({ ...current, vat_rate: vatRate }))}
             />
             <div className="grid grid-cols-2 gap-3">
               <input
@@ -500,6 +553,9 @@ function AddonsPage() {
               <p className="mt-0.5 text-[13px] font-medium text-[color:var(--brass)]">
                 {fmtKr(addon.price)}
                 {addon.price_type === "per_night" && "/natt"}
+                {addon.vat_rate != null
+                  ? ` · Inkl. ${addon.vat_rate} % moms`
+                  : " · Moms ej angiven"}
               </p>
             </div>
             <div className="flex shrink-0 items-center gap-1">

@@ -1,3 +1,5 @@
+import { projectAddonContent } from "./addon-content.ts";
+
 export type StayPhase = "before" | "arrival" | "during" | "departure" | "finished" | "no_show";
 export function stockholmDay(now = new Date()): string {
   return new Intl.DateTimeFormat("en-CA", {
@@ -69,6 +71,15 @@ export function guestAddon(
   return {
     id: row.id,
     name: row.title,
+    ...(Object.hasOwn(details, "content_translations")
+      ? {
+          description: typeof details.description === "string" ? details.description : null,
+          ...projectAddonContent({
+            content_translations: details.content_translations,
+            vat_rate: details.tax_inclusive === true ? details.vat_rate : null,
+          }),
+        }
+      : {}),
     quantity: details.quantity,
     dueDate: row.due_date,
     status: row.status,
