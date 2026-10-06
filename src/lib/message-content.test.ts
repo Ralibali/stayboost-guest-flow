@@ -171,6 +171,34 @@ describe("bounded multilingual message rendering", () => {
     expect(result.html).not.toContain("tracker");
     expect(result.text).toContain("A & B\nLink (https://example.test/)");
   });
+  it.each([
+    "font-family: 'times new roman', times; font-size: 12pt;",
+    "font-size: 12pt; font-family: 'times new roman', times;",
+  ])("renders the observed review-template font stack: %s", (style) => {
+    const result = renderMessageContent(
+      { body: `<p style="${style}">Tack för besöket.</p>`, body_format: "html" },
+      booking,
+      property,
+    );
+    expect(result.html).toContain("font-family:&#39;times new roman&#39;, times");
+    expect(result.html).toContain("font-size:12pt");
+    expect(result.text).toBe("Tack för besöket.");
+  });
+  it.each([
+    "font-family: 'times new roman', times, url(https://tracker.test)",
+    "font-family: 'times new roman', times; background:url(https://tracker.test)",
+    "font-family: 'times new roman', times; color:expression(attack())",
+    "font-family: 'times new roman', times !important",
+    "font-family: 'times new roman', times; @import 'https://tracker.test'",
+  ])("keeps unsafe CSS outside the newly allowed font stack: %s", (style) => {
+    expect(() =>
+      renderMessageContent(
+        { body: `<p style="${style}">Text</p>`, body_format: "html" },
+        booking,
+        property,
+      ),
+    ).toThrow("message_style_invalid");
+  });
   it("bounds malformed and deeply nested HTML without executing anything", () => {
     expect(() =>
       renderMessageContent(

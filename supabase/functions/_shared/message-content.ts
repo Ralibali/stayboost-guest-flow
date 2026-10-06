@@ -161,9 +161,10 @@ function safeStyle(value: string): string {
     const valid =
       (name === "font-size" && /^(?:[8-9]|[1-3][0-9]|40)(?:pt|px)$/.test(content)) ||
       (name === "font-family" &&
-        /^(?:arial|helvetica|sans-serif|serif|verdana|georgia|times new roman)(?:,\s*(?:arial|helvetica|sans-serif|serif|verdana|georgia|times new roman))*$/.test(
-          content,
-        )) ||
+        (content === "'times new roman', times" ||
+          /^(?:arial|helvetica|sans-serif|serif|verdana|georgia|times new roman)(?:,\s*(?:arial|helvetica|sans-serif|serif|verdana|georgia|times new roman))*$/.test(
+            content,
+          ))) ||
       (name === "text-align" && /^(left|right|center|justify)$/.test(content)) ||
       (name === "font-weight" && /^(normal|bold|[1-9]00)$/.test(content)) ||
       (name === "text-decoration" && /^(none|underline|line-through)$/.test(content)) ||
