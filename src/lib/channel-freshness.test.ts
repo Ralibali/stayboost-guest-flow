@@ -1,3 +1,4 @@
+import { stripeConfigForProperty } from "../../supabase/functions/_shared/stripe-config";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { ScriptTarget, transpileModule } from "typescript";
@@ -134,6 +135,7 @@ function engine(connections: ChannelFreshness[] | null, channelError: unknown = 
   }).outputText;
   let handler!: (request: Request) => Promise<Response>;
   const bindings = {
+    stripeConfigForProperty,
     createClient: () => client,
     channelInventoryFresh,
     stockholmDay,

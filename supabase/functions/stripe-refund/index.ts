@@ -1,5 +1,6 @@
+import { stripeConfigForProperty } from "../_shared/stripe-config.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { createFullRefund, retrieveRefund } from "../_shared/stripe.ts";
+import { createFullRefund, retrieveRefund, stripeRequestHeaders } from "../_shared/stripe.ts";
 import {
   PaymentTransitionError,
   joinedPropertyOwnerId,
@@ -52,7 +53,7 @@ Deno.serve(async (req) => {
   const { data: booking, error: readError } = await admin
     .from("bookings")
     .select(
-      "id, payment_method, payment_status, payment_amount, payment_ref, stripe_session_id, stripe_payment_intent_id, stripe_refund_id, properties!inner(owner_id)",
+      "id, property_id, payment_method, payment_status, payment_amount, payment_ref, stripe_session_id, stripe_payment_intent_id, stripe_refund_id, properties!inner(owner_id)",
     )
     .eq("id", body.bookingId)
     .maybeSingle();
@@ -61,6 +62,8 @@ Deno.serve(async (req) => {
     return json({ error: "not_found" }, 404);
   }
   if (booking.payment_method !== "stripe") return json({ error: "wrong_payment_method" }, 400);
+  const stripeConfig = stripeConfigForProperty(booking.property_id, (name) => Deno.env.get(name));
+  if (!stripeConfig) return json({ error: "stripe_not_configured" }, 503);
   if (booking.payment_status === "refunded") {
     return json({
       ok: true,
@@ -73,11 +76,10 @@ Deno.serve(async (req) => {
     return json({ error: "not_refundable" }, 409);
   }
 
-  const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
-  if (!stripeKey) return json({ error: "stripe_not_configured" }, 500);
+  const stripeKey = stripeConfig.secretKey;
   if (!booking.stripe_session_id) return json({ error: "missing_session" }, 400);
 
-  const store = supabasePaymentStore(admin);
+  const store = supabasePaymentStore(admin, booking.property_id);
   try {
     let current = await store.read(booking.id);
     if (!current) return json({ error: "not_found" }, 404);
@@ -103,7 +105,7 @@ Deno.serve(async (req) => {
     if (!paymentIntentId) {
       const sessionResp = await fetch(
         `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(booking.stripe_session_id)}`,
-        { headers: { Authorization: `Bearer ${stripeKey}` } },
+        { headers: stripeRequestHeaders(stripeKey) },
       );
       const session = await sessionResp.json();
       if (!sessionResp.ok || !session.payment_intent) {
@@ -179,7 +181,6 @@ Deno.serve(async (req) => {
     return json(
       {
         error: e instanceof PaymentTransitionError ? e.code : "refund_failed",
-        detail: String(e),
         retrySafe: true,
       },
       e instanceof PaymentTransitionError ? e.status : 502,

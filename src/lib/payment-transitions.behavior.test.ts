@@ -1,7 +1,8 @@
+import { stripeConfigForProperty } from "../../supabase/functions/_shared/stripe-config";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { transpileModule, ScriptTarget } from "typescript";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   applyCheckoutEvent,
   applyManualPaymentAction,
@@ -224,7 +225,9 @@ describe("refund truth", () => {
 
 type Row = Record<string, unknown>;
 function mockDatabase() {
-  const bookings = new Map<string, Row>([[BOOKING.id, { ...BOOKING }]]);
+  const bookings = new Map<string, Row>([
+    [BOOKING.id, { ...BOOKING, property_id: "11111111-1111-4111-8111-111111111111" }],
+  ]);
   const events = new Map<string, Row>();
   let failReads = 0;
   const client = {
@@ -285,7 +288,10 @@ function mockDatabase() {
   };
 }
 
-async function webhookHandler(db: ReturnType<typeof mockDatabase>) {
+async function webhookHandler(
+  db: ReturnType<typeof mockDatabase>,
+  envPatch: Record<string, string | undefined> = {},
+) {
   let handler!: (request: Request) => Promise<Response>;
   const source = readFileSync(
     resolve("supabase/functions/stripe-webhook/index.ts"),
@@ -296,6 +302,7 @@ async function webhookHandler(db: ReturnType<typeof mockDatabase>) {
   }).outputText;
   new Function(
     "Deno",
+    "stripeConfigForProperty",
     "createClient",
     "verifyStripeSignature",
     "retrieveRefund",
@@ -310,8 +317,19 @@ async function webhookHandler(db: ReturnType<typeof mockDatabase>) {
       serve: (callback: typeof handler) => {
         handler = callback;
       },
-      env: { get: (key: string) => (key === "STRIPE_WEBHOOK_SECRET" ? "whsec_test" : "test") },
+      env: {
+        get: (key: string) =>
+          (
+            ({
+              STRIPE_SECRET_KEY: "rk_test_mock",
+              STRIPE_WEBHOOK_SECRET: "whsec_test",
+              STRIPE_PROPERTY_ID: "11111111-1111-4111-8111-111111111111",
+              ...envPatch,
+            }) as Record<string, string | undefined>
+          )[key],
+      },
     },
+    stripeConfigForProperty,
     () => db.client,
     verifyStripeSignature,
     retrieveRefund,
@@ -324,10 +342,18 @@ async function webhookHandler(db: ReturnType<typeof mockDatabase>) {
   return handler;
 }
 
-async function signedRequest(eventId = "evt_1", session = SESSION) {
+async function signedRequest(
+  eventId = "evt_1",
+  session = SESSION,
+  eventType = "checkout.session.completed",
+  envelope: Record<string, unknown> = {},
+) {
   const body = JSON.stringify({
     id: eventId,
-    type: "checkout.session.completed",
+    type: eventType,
+    livemode: false,
+    created: Math.floor(Date.now() / 1000),
+    ...envelope,
     data: { object: session },
   });
   const timestamp = Math.floor(Date.now() / 1000);
@@ -353,7 +379,166 @@ async function signedRequest(eventId = "evt_1", session = SESSION) {
 }
 
 describe("signed webhook delivery and ledger retries", () => {
-  afterEach(() => vi.restoreAllMocks());
+  it("acknowledges unpaid completion without fulfillment, then applies asynchronous success once", async () => {
+    const db = mockDatabase();
+    const handler = await webhookHandler(db);
+    const pending = await handler(
+      await signedRequest("evt_pending", { ...SESSION, payment_status: "unpaid" }),
+    );
+    expect(pending.status).toBe(200);
+    expect((await pending.json()).outcome).toBe("awaiting_payment");
+    expect(db.bookings.get(BOOKING.id)).toMatchObject({
+      payment_status: "pending",
+      payment_expires_at: BOOKING.payment_expires_at,
+    });
+    const paid = await handler(
+      await signedRequest("evt_async", SESSION, "checkout.session.async_payment_succeeded"),
+    );
+    expect(paid.status).toBe(200);
+    expect(db.bookings.get(BOOKING.id)).toMatchObject({
+      status: "confirmed",
+      payment_status: "paid",
+    });
+    const duplicate = await handler(
+      await signedRequest("evt_async", SESSION, "checkout.session.async_payment_succeeded"),
+    );
+    expect((await duplicate.json()).duplicate).toBe(true);
+  });
+
+  it("releases a failed async payment and keeps any later verified money as refund_pending", async () => {
+    const db = mockDatabase();
+    const handler = await webhookHandler(db);
+    expect(
+      (
+        await handler(
+          await signedRequest(
+            "evt_failed",
+            { ...SESSION, payment_status: "unpaid" },
+            "checkout.session.async_payment_failed",
+          ),
+        )
+      ).status,
+    ).toBe(200);
+    expect(db.bookings.get(BOOKING.id)).toMatchObject({
+      status: "cancelled",
+      payment_status: "expired",
+    });
+    expect(
+      (
+        await handler(
+          await signedRequest("evt_paid", SESSION, "checkout.session.async_payment_succeeded"),
+        )
+      ).status,
+    ).toBe(200);
+    expect(db.bookings.get(BOOKING.id)).toMatchObject({
+      status: "cancelled",
+      payment_status: "refund_pending",
+    });
+  });
+
+  it("ignores a delayed async failure after successful payment", async () => {
+    const db = mockDatabase();
+    const handler = await webhookHandler(db);
+    await handler(await signedRequest());
+    await handler(
+      await signedRequest(
+        "evt_failed",
+        { ...SESSION, payment_status: "unpaid" },
+        "checkout.session.async_payment_failed",
+      ),
+    );
+    expect(db.bookings.get(BOOKING.id)).toMatchObject({
+      status: "confirmed",
+      payment_status: "paid",
+    });
+  });
+
+  it("keeps a payment that actually succeeds after the finite hold actionable for refund even before cron runs", async () => {
+    const db = mockDatabase();
+    const handler = await webhookHandler(db);
+    vi.setSystemTime("2026-09-29T13:00:00Z");
+    await handler(
+      await signedRequest("evt_late", SESSION, "checkout.session.async_payment_succeeded"),
+    );
+    expect(db.bookings.get(BOOKING.id)).toMatchObject({
+      status: "cancelled",
+      payment_status: "refund_pending",
+    });
+  });
+
+  it("uses signed event time so transport delay alone does not turn an on-time payment into a refund", async () => {
+    const db = mockDatabase();
+    const handler = await webhookHandler(db);
+    vi.setSystemTime("2026-09-29T13:00:00Z");
+    await handler(
+      await signedRequest("evt_delayed", SESSION, "checkout.session.completed", {
+        created: Date.parse(NOW) / 1000,
+      }),
+    );
+    expect(db.bookings.get(BOOKING.id)).toMatchObject({
+      status: "confirmed",
+      payment_status: "paid",
+      payment_paid_at: NOW,
+    });
+  });
+
+  it.each([{ livemode: true }, { account: "acct_connected" }])(
+    "rejects a different Stripe mode/account before any ledger write",
+    async (envelope) => {
+      const db = mockDatabase();
+      const handler = await webhookHandler(db);
+      expect(
+        (
+          await handler(
+            await signedRequest("evt_wrong", SESSION, "checkout.session.completed", envelope),
+          )
+        ).status,
+      ).toBe(400);
+      expect(db.events.size).toBe(0);
+      expect(db.bookings.get(BOOKING.id)?.payment_status).toBe("pending");
+    },
+  );
+
+  it("never loads another property's booking through the scoped payment store", async () => {
+    const db = mockDatabase();
+    db.bookings.get(BOOKING.id)!.property_id = "22222222-2222-4222-8222-222222222222";
+    const handler = await webhookHandler(db);
+    const response = await handler(await signedRequest());
+    expect((await response.json()).ignored).toBe("booking_not_found");
+    expect(db.bookings.get(BOOKING.id)?.payment_status).toBe("pending");
+    expect(db.events.get("evt_1")?.booking_id).toBeUndefined();
+  });
+
+  it("accepts the matching signature when secret rotation sends another v1 first", async () => {
+    const db = mockDatabase();
+    const handler = await webhookHandler(db);
+    const request = await signedRequest();
+    const original = request.headers.get("stripe-signature")!;
+    request.headers.set(
+      "stripe-signature",
+      original.replace(",v1=", ",v1=wrong_previous_secret,v1="),
+    );
+    expect((await handler(request)).status).toBe(200);
+  });
+
+  it.each(["STRIPE_PROPERTY_ID", "STRIPE_WEBHOOK_SECRET", "STRIPE_SECRET_KEY"])(
+    "fails closed before ledger writes when %s is absent",
+    async (field) => {
+      const db = mockDatabase();
+      const handler = await webhookHandler(db, { [field]: undefined });
+      expect((await handler(await signedRequest())).status).toBe(503);
+      expect(db.events.size).toBe(0);
+    },
+  );
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(NOW);
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.useRealTimers();
+  });
 
   it("resumes the same signed event after a transient DB failure", async () => {
     const db = mockDatabase();
