@@ -92,6 +92,32 @@ describe("public API response resilience", () => {
     for (const invalid of ["tent-3", {}, [null], [1], [""], ["  "]])
       expect(isBookingEngineResponse(response(invalid))).toBe(false);
   });
+  it("rejects malformed addon translations or VAT before public rendering", () => {
+    const addon = {
+      id: "extra",
+      name: "Extra",
+      price: 100,
+      priceType: "per_booking",
+      maxQuantity: 1,
+    };
+    const response = (patch: object) => ({ ...engine, addons: [{ ...addon, ...patch }] });
+    expect(
+      isBookingEngineResponse(
+        response({
+          contentTranslations: { en: { name: "Full name", description: " Full text\n " } },
+          vatRate: 12,
+        }),
+      ),
+    ).toBe(true);
+    for (const vatRate of [6, "12", false, {}])
+      expect(isBookingEngineResponse(response({ vatRate }))).toBe(false);
+    for (const contentTranslations of [
+      [],
+      { fr: { name: "Name", description: null } },
+      { en: { name: "Name", description: null, source_id: "private" } },
+    ])
+      expect(isBookingEngineResponse(response({ contentTranslations }))).toBe(false);
+  });
   it("validates optional localized content and the public gallery without accepting source metadata", () => {
     const content = { en: { name: " Tent ", description: " Full text\n\nSecond paragraph. " } };
     const gallery = [

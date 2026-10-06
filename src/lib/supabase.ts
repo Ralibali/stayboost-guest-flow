@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient, type Session } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
+import type { AddonTranslations, VatRate } from "../../supabase/functions/_shared/addon-content";
 import type {
   UnitGalleryImage,
   UnitTranslations,
@@ -305,6 +306,9 @@ export type Addon = {
   property_id: string;
   name: string;
   description: string | null;
+  content_translations?: AddonTranslations;
+  vat_rate?: VatRate | null;
+  catalog_revision?: number;
   price: number;
   price_type: "per_booking" | "per_night";
   fulfillment_type: "arrival" | "each_morning" | "departure";

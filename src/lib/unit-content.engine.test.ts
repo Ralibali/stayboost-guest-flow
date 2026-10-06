@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { ScriptTarget, transpileModule } from "typescript";
 import { expect, it } from "vitest";
 import { projectUnitContent } from "../../supabase/functions/_shared/unit-content";
+import { projectAddonContent } from "../../supabase/functions/_shared/addon-content";
 import { collectPages } from "../../supabase/functions/_shared/pagination";
 import { stockholmDay } from "../../supabase/functions/_shared/guest-stay";
 import { sanitizedHttpsUrl } from "../../supabase/functions/_shared/public-links";
@@ -101,6 +102,7 @@ it("the actual booking GET publishes complete content only through its explicit 
     channelInventoryFresh,
     rulesForUnit,
     projectUnitContent,
+    projectAddonContent,
   };
   let handler!: (request: Request) => Promise<Response>;
   new Function("Deno", ...Object.keys(bindings), code)(

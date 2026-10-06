@@ -22,6 +22,7 @@ import { collectPages } from "../_shared/pagination.ts";
 import { sanitizedHttpsUrl } from "../_shared/public-links.ts";
 import { channelInventoryFresh } from "../_shared/channel-freshness.ts";
 import { projectUnitContent } from "../_shared/unit-content.ts";
+import { localizedAddonText, projectAddonContent } from "../_shared/addon-content.ts";
 
 // Publik bokningsmotor. All prissättning, kapacitet och tillgänglighet
 // verifieras server-side. Databastriggern serialiserar samtidiga direktbokningar.
@@ -88,14 +89,16 @@ Deno.serve(async (req) => {
         .range(from, to),
     );
   const loadAddons = async (propertyId: string): Promise<Addon[]> => {
-    const stored = await collectPages<Addon & {
-      unit_scope: "all" | "selected";
-      addon_units: { unit_id: string }[];
-    }>((from, to) =>
+    const stored = await collectPages<
+      Addon & {
+        unit_scope: "all" | "selected";
+        addon_units: { unit_id: string }[];
+      }
+    >((from, to) =>
       admin
         .from("addons")
         .select(
-          "id, name, description, price, price_type, fulfillment_type, image_url, active, sort_order, internal_only, available_from, available_to, max_quantity, unit_scope, addon_units(unit_id)",
+          "id, name, description, content_translations, vat_rate, price, price_type, fulfillment_type, image_url, active, sort_order, internal_only, available_from, available_to, max_quantity, unit_scope, addon_units(unit_id)",
         )
         .eq("property_id", propertyId)
         .eq("active", true)
@@ -105,9 +108,10 @@ Deno.serve(async (req) => {
     );
     return stored.map((addon) => ({
       ...addon,
-      allowed_unit_ids: addon.unit_scope === "selected"
-        ? (addon.addon_units ?? []).map((link) => link.unit_id)
-        : null,
+      allowed_unit_ids:
+        addon.unit_scope === "selected"
+          ? (addon.addon_units ?? []).map((link) => link.unit_id)
+          : null,
     }));
   };
 
@@ -241,6 +245,7 @@ Deno.serve(async (req) => {
           maxQuantity: a.max_quantity,
           fulfillmentType: a.fulfillment_type,
           allowedUnitIds: a.allowed_unit_ids,
+          ...projectAddonContent(a),
         })),
     });
   }
@@ -473,14 +478,20 @@ Deno.serve(async (req) => {
           },
           party: party ?? { adults: guests, childrenAges: [] },
           ...quote,
-          addons: pricedAddons.map((line) => ({
-            id: line.addon.id,
-            name: line.addon.name,
-            quantity: line.quantity,
-            unitPrice: line.addon.price,
-            fulfillmentType: line.addon.fulfillment_type ?? "arrival",
-            lineTotal: line.lineTotal,
-          })),
+          addons: pricedAddons.map((line) => {
+            const content = projectAddonContent(line.addon);
+            return {
+              id: line.addon.id,
+              ...localizedAddonText({ ...line.addon, ...content }, language),
+              ...content,
+              taxInclusive: content.vatRate == null ? null : true,
+              quantity: line.quantity,
+              unitPrice: line.addon.price,
+              priceType: line.addon.price_type,
+              fulfillmentType: line.addon.fulfillment_type ?? "arrival",
+              lineTotal: line.lineTotal,
+            };
+          }),
           addonsTotal,
           grandTotal,
         },
@@ -560,7 +571,8 @@ Deno.serve(async (req) => {
           guestToken: booking.guest_token,
           price: quote,
           addons: pricedAddons.map((p) => ({
-            name: p.addon.name,
+            name: localizedAddonText({ ...p.addon, ...projectAddonContent(p.addon) }, language)
+              .name,
             quantity: p.quantity,
             lineTotal: p.lineTotal,
           })),
@@ -603,7 +615,7 @@ Deno.serve(async (req) => {
       guestToken: booking.guest_token,
       price: quote,
       addons: pricedAddons.map((p) => ({
-        name: p.addon.name,
+        name: localizedAddonText({ ...p.addon, ...projectAddonContent(p.addon) }, language).name,
         quantity: p.quantity,
         lineTotal: p.lineTotal,
       })),

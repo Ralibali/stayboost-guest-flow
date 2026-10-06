@@ -1,4 +1,5 @@
 import { isUnitTranslations } from "../../supabase/functions/_shared/unit-content";
+import { isAddonTranslations, isVatRate } from "../../supabase/functions/_shared/addon-content";
 import { sanitizedHttpsUrl } from "../../supabase/functions/_shared/public-links";
 
 const record = (value: unknown): value is Record<string, unknown> =>
@@ -61,6 +62,9 @@ export function isGuestResponse(value: unknown): boolean {
       record(addon) &&
       text(addon.id) &&
       text(addon.name) &&
+      optionalText(addon.description) &&
+      (addon.contentTranslations == null || isAddonTranslations(addon.contentTranslations)) &&
+      (addon.vatRate == null || isVatRate(addon.vatRate)) &&
       finite(addon.quantity) &&
       day(addon.dueDate) &&
       text(addon.status) &&
@@ -133,6 +137,8 @@ export function isBookingEngineResponse(value: unknown): boolean {
         text(addon.id) &&
         text(addon.name) &&
         optionalText(addon.description) &&
+        (addon.contentTranslations == null || isAddonTranslations(addon.contentTranslations)) &&
+        (addon.vatRate == null || isVatRate(addon.vatRate)) &&
         optionalText(addon.imageUrl) &&
         optionalArray(addon.allowedUnitIds, (id) => text(id) && id.trim().length > 0) &&
         finite(addon.price) &&

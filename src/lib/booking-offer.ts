@@ -1,4 +1,5 @@
 import { isBookingEngineResponse } from "./public-response";
+import type { AddonTranslations, VatRate } from "../../supabase/functions/_shared/addon-content";
 import type {
   PublicUnitImage,
   UnitTranslations,
@@ -48,6 +49,8 @@ export type EngineAddon = {
   maxQuantity: number;
   fulfillmentType?: "arrival" | "each_morning" | "departure";
   allowedUnitIds?: string[] | null;
+  contentTranslations?: AddonTranslations;
+  vatRate?: VatRate | null;
 };
 
 export type EngineData = {

@@ -1,3 +1,5 @@
+import type { AddonTranslations, VatRate } from "./addon-content.ts";
+
 /**
  * Tillval (add-ons): typer + prisberäkning.
  * Ren TS utan Deno-beroenden — delas av edge functions och vitest.
@@ -21,6 +23,8 @@ export interface Addon {
   fulfillment_type?: "arrival" | "each_morning" | "departure";
   /** null/absent = all units; an empty selection is unavailable everywhere. */
   allowed_unit_ids?: string[] | null;
+  content_translations?: AddonTranslations;
+  vat_rate?: VatRate | null;
 }
 
 export function addonAvailableForUnit(

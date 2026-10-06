@@ -18,6 +18,10 @@ import {
   type EngineUnit,
 } from "@/lib/booking-offer";
 import { normalizeGuestPhone } from "../../../supabase/functions/_shared/guest-contact";
+import {
+  addonVatLabel,
+  localizedAddonText,
+} from "../../../supabase/functions/_shared/addon-content";
 import { stockholmDay } from "../../../supabase/functions/_shared/guest-stay";
 import { sanitizedHttpsUrl } from "../../../supabase/functions/_shared/public-links";
 import {
@@ -329,6 +333,10 @@ function PublicBookingPage() {
             units: sourceData.units.map((candidate) => ({
               ...candidate,
               ...localizedUnitText(candidate, lang),
+            })),
+            addons: sourceData.addons.map((addon) => ({
+              ...addon,
+              ...localizedAddonText(addon, lang),
             })),
           }
         : null,
@@ -1177,7 +1185,7 @@ function PublicBookingPage() {
                               <p className="text-[14px] font-bold">{addon.name}</p>
                               {addon.description ? (
                                 <p
-                                  className="mt-1 line-clamp-2 text-[12px] leading-relaxed"
+                                  className="mt-1 whitespace-pre-wrap text-[12px] leading-relaxed"
                                   style={{ color: C.muted }}
                                 >
                                   {addon.description}
@@ -1193,6 +1201,11 @@ function PublicBookingPage() {
                                   : ""}
                             </p>
                           </div>
+                          {addonVatLabel(addon.vatRate, lang) && (
+                            <p className="mt-1 text-right text-[11px]" style={{ color: C.muted }}>
+                              {addonVatLabel(addon.vatRate, lang)}
+                            </p>
+                          )}
                           <div className="mt-3 flex items-center justify-end gap-2">
                             {qty === 0 ? (
                               <button

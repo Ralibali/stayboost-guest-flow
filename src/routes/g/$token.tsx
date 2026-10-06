@@ -8,6 +8,12 @@ import { LANGS, LOCALES, detectLang, persistLang, type Lang } from "@/lib/boka-i
 import { bookingLanguage, isHostedStripeCheckout } from "@/lib/glamping-embed";
 import { getGuestStrings } from "@/lib/guest-i18n";
 import { isGuestResponse } from "@/lib/public-response";
+import {
+  addonVatLabel,
+  localizedAddonText,
+  type AddonTranslations,
+  type VatRate,
+} from "../../../supabase/functions/_shared/addon-content";
 
 export const Route = createFileRoute("/g/$token")({
   component: GuestPage,
@@ -33,6 +39,9 @@ type GuestData = {
   addons?: {
     id: string;
     name: string;
+    description?: string | null;
+    contentTranslations?: AddonTranslations;
+    vatRate?: VatRate | null;
     quantity: number;
     dueDate: string;
     status: string;
@@ -413,8 +422,18 @@ function GuestPage() {
                 style={{ borderColor: C.line }}
               >
                 <h3 className="font-semibold">
-                  {addon.name} · {addon.quantity} {t.quantity}
+                  {localizedAddonText(addon, lang).name} · {addon.quantity} {t.quantity}
                 </h3>
+                {localizedAddonText(addon, lang).description && (
+                  <p className="mt-2 whitespace-pre-wrap text-sm" style={{ color: C.muted }}>
+                    {localizedAddonText(addon, lang).description}
+                  </p>
+                )}
+                {addonVatLabel(addon.vatRate, lang) && (
+                  <p className="mt-1 text-xs" style={{ color: C.muted }}>
+                    {addonVatLabel(addon.vatRate, lang)}
+                  </p>
+                )}
                 <p className="mt-1 text-sm">
                   {addon.contextChanged
                     ? t.addonChanged
