@@ -287,13 +287,25 @@ export const RATE_RULE_LABELS: Record<RateRuleKind, string> = {
 export type MessageTemplate = {
   id: string;
   property_id: string;
-  trigger_type: "booking_created" | "pre_arrival" | "checkin_day" | "post_stay";
+  name: string;
+  revision: number;
+  trigger_type: "booking_created" | "pre_arrival" | "checkin_day" | "post_stay" | "manual";
   offset_days: number;
   send_time: string;
   channel: "email" | "sms" | "both";
   subject: string | null;
   body: string;
+  body_format: "text" | "html";
+  content_translations: Partial<
+    Record<"sv" | "en" | "de" | "da" | "no", { subject: string; body: string }>
+  >;
   enabled: boolean;
+  source_archive_id: string | null;
+  source_template_id: string | null;
+  source_schedule_archive_id: string | null;
+  source_metadata: Record<string, unknown>;
+  source_reviewed_at: string | null;
+  activation_starts_at: string | null;
 };
 
 export const TRIGGER_LABELS: Record<MessageTemplate["trigger_type"], string> = {
@@ -301,6 +313,7 @@ export const TRIGGER_LABELS: Record<MessageTemplate["trigger_type"], string> = {
   pre_arrival: "Inför ankomst",
   checkin_day: "Incheckningsdagen",
   post_stay: "Efter vistelsen",
+  manual: "Manuell mall",
 };
 
 export type Addon = {
