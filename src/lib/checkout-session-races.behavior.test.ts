@@ -1,3 +1,4 @@
+import { stripeConfigForProperty } from "../../supabase/functions/_shared/stripe-config";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { ScriptTarget, transpileModule } from "typescript";
@@ -43,7 +44,7 @@ function database(initialBooking: Row | null = null) {
     writes: [] as string[],
   };
   const property = {
-    id: "property",
+    id: "11111111-1111-4111-8111-111111111111",
     name: "Glamping",
     slug: "glamping",
     max_stay: 30,
@@ -186,7 +187,12 @@ function database(initialBooking: Row | null = null) {
 }
 
 const compiled = new Map<string, string>();
-function handlerFor(slug: string, bindings: Record<string, unknown>) {
+function handlerFor(
+  slug: string,
+  bindings: Record<string, unknown>,
+  envPatch: Record<string, string | undefined> = {},
+) {
+  bindings = { stripeConfigForProperty, ...bindings };
   if (!compiled.has(slug)) {
     const source = readFileSync(resolve(`supabase/functions/${slug}/index.ts`), "utf8").replace(
       /import[\s\S]*?from\s+["'][^"']+["'];\s*/g,
@@ -205,30 +211,47 @@ function handlerFor(slug: string, bindings: Record<string, unknown>) {
       serve: (callback: typeof handler) => {
         handler = callback;
       },
-      env: { get: (key: string) => (key === "STRIPE_SECRET_KEY" ? "sk_test_mock" : undefined) },
+      env: {
+        get: (key: string) =>
+          (
+            ({
+              STRIPE_SECRET_KEY: "sk_test_mock",
+              STRIPE_WEBHOOK_SECRET: "whsec_test",
+              STRIPE_PROPERTY_ID: "11111111-1111-4111-8111-111111111111",
+              ...envPatch,
+            }) as Record<string, string | undefined>
+          )[key],
+      },
     },
     ...Object.values(bindings),
   );
   return handler;
 }
 
-function engine(db: ReturnType<typeof database>) {
+function engine(
+  db: ReturnType<typeof database>,
+  envPatch: Record<string, string | undefined> = {},
+) {
   const createCheckoutSession = vi.fn(async () => SESSION);
   const expireCheckoutSession = vi.fn(async () => undefined);
-  const handler = handlerFor("booking-engine", {
-    createClient: () => db.client,
-    ...pricing,
-    ...rules,
-    ...addons,
-    createCheckoutSession,
-    expireCheckoutSession,
-    appBaseUrl,
-    normalizeGuestPhone,
-    stockholmDay,
-    collectPages,
-    sanitizedHttpsUrl,
-    channelInventoryFresh,
-  });
+  const handler = handlerFor(
+    "booking-engine",
+    {
+      createClient: () => db.client,
+      ...pricing,
+      ...rules,
+      ...addons,
+      createCheckoutSession,
+      expireCheckoutSession,
+      appBaseUrl,
+      normalizeGuestPhone,
+      stockholmDay,
+      collectPages,
+      sanitizedHttpsUrl,
+      channelInventoryFresh,
+    },
+    envPatch,
+  );
   const request = () =>
     handler(
       new Request("https://example.test/booking-engine", {
@@ -252,6 +275,7 @@ function engine(db: ReturnType<typeof database>) {
 
 const pendingBooking = () => ({
   id: "booking",
+  property_id: "11111111-1111-4111-8111-111111111111",
   source: "direct",
   status: "confirmed",
   payment_method: "stripe",

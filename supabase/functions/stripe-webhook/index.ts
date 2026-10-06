@@ -1,3 +1,4 @@
+import { stripeConfigForProperty } from "../_shared/stripe-config.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { retrieveRefund, verifyStripeSignature } from "../_shared/stripe.ts";
 import {
@@ -16,8 +17,11 @@ Deno.serve(async (req) => {
       headers: { "Content-Type": "application/json" },
     });
   if (req.method !== "POST") return json({ error: "method_not_allowed" }, 405);
-  const secret = Deno.env.get("STRIPE_WEBHOOK_SECRET") ?? "";
-  if (!secret) return json({ error: "webhook_not_configured" }, 500);
+  const config = stripeConfigForProperty(Deno.env.get("STRIPE_PROPERTY_ID")?.trim() ?? "", (name) =>
+    Deno.env.get(name),
+  );
+  if (!config) return json({ error: "webhook_not_configured" }, 503);
+  const secret = config.webhookSecret;
   const rawBody = await req.text();
   if (!(await verifyStripeSignature(rawBody, req.headers.get("stripe-signature") ?? "", secret))) {
     return json({ error: "invalid_signature" }, 400);
@@ -28,9 +32,24 @@ Deno.serve(async (req) => {
   } catch {
     return json({ error: "invalid_body" }, 400);
   }
+  if (
+    !event ||
+    typeof event !== "object" ||
+    !Number.isSafeInteger(event.created) ||
+    event.created < 0 ||
+    event.created > Math.floor(Date.now() / 1000) + 300
+  )
+    return json({ error: "invalid_event" }, 400);
   const eventId = String(event?.id ?? "");
   if (!eventId) return json({ error: "missing_event_id" }, 400);
-  const checkout = ["checkout.session.completed", "checkout.session.expired"].includes(event.type);
+  if (event.livemode !== config.livemode || event.account != null)
+    return json({ error: "stripe_account_mode_mismatch" }, 400);
+  const checkout = [
+    "checkout.session.completed",
+    "checkout.session.expired",
+    "checkout.session.async_payment_succeeded",
+    "checkout.session.async_payment_failed",
+  ].includes(event.type);
   const refundEvent = ["refund.created", "refund.updated", "refund.failed"].includes(event.type);
   if (!checkout && !refundEvent) return json({ ok: true, ignored: event.type ?? "unknown" });
   const object = event.data?.object ?? {};
@@ -45,7 +64,7 @@ Deno.serve(async (req) => {
     Deno.env.get("SUPABASE_URL")!,
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
   );
-  const store = supabasePaymentStore(admin);
+  const store = supabasePaymentStore(admin, config.propertyId);
   const finishEvent = async (outcome: string, error: string | null = null, retryable = false) => {
     const { error: ledgerError } = await admin
       .from("stripe_webhook_events")
@@ -88,8 +107,13 @@ Deno.serve(async (req) => {
         store,
         bookingId,
         object,
-        event.type === "checkout.session.completed",
+        event.type === "checkout.session.completed" && object.payment_status === "unpaid"
+          ? "awaiting_payment"
+          : ["checkout.session.completed", "checkout.session.async_payment_succeeded"].includes(
+              event.type,
+            ),
         new Date().toISOString(),
+        new Date(event.created * 1000).toISOString(),
       );
       await finishEvent(result.outcome);
       return json({
@@ -100,8 +124,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
-    if (!stripeKey) throw new PaymentTransitionError("stripe_not_configured");
+    const stripeKey = config.secretKey;
     // Stripe may deliver refund events out of order. Fetch the current refund so
     // a delayed pending event cannot overwrite a completed refund.
     const refund = await retrieveRefund(stripeKey, String(object.id ?? ""));
@@ -130,7 +153,7 @@ Deno.serve(async (req) => {
     const status = error instanceof PaymentTransitionError ? error.status : 503;
     const retryable = status >= 500;
     try {
-      await finishEvent(code, String(error), retryable);
+      await finishEvent(code, code, retryable);
     } catch {
       return json({ error: "event_ledger_failed" }, 503);
     }

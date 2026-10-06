@@ -1,3 +1,4 @@
+import { stripeConfigForProperty } from "../../supabase/functions/_shared/stripe-config";
 import { readFileSync } from "node:fs";
 import { ScriptTarget, transpileModule } from "typescript";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
@@ -25,9 +26,13 @@ const compiled = transpileModule(source, {
   compilerOptions: { target: ScriptTarget.ES2022 },
 }).outputText;
 
-function fixture(scope: "all" | "selected" = "selected", unitIds = ["tent3"]) {
+function fixture(
+  scope: "all" | "selected" = "selected",
+  unitIds = ["tent3"],
+  envPatch: Record<string, string | undefined> = {},
+) {
   const property = {
-    id: "property",
+    id: "11111111-1111-4111-8111-111111111111",
     name: "Glamping",
     slug: "glamping",
     booking_enabled: true,
@@ -148,11 +153,12 @@ function fixture(scope: "all" | "selected" = "selected", unitIds = ["tent3"]) {
       return query;
     },
   };
-  const createCheckoutSession = vi.fn(async () => ({
+  const createCheckoutSession = vi.fn(async (_params: Record<string, unknown>) => ({
     id: "cs_mock",
     url: "https://checkout.stripe.com/mock",
   }));
   const bindings = {
+    stripeConfigForProperty,
     createClient: () => client,
     ...pricing,
     ...rules,
@@ -175,7 +181,17 @@ function fixture(scope: "all" | "selected" = "selected", unitIds = ["tent3"]) {
       serve: (callback: typeof handler) => {
         handler = callback;
       },
-      env: { get: (key: string) => (key === "STRIPE_SECRET_KEY" ? "sk_test_mock" : undefined) },
+      env: {
+        get: (key: string) =>
+          (
+            ({
+              STRIPE_SECRET_KEY: "sk_test_mock",
+              STRIPE_WEBHOOK_SECRET: "whsec_test",
+              STRIPE_PROPERTY_ID: "11111111-1111-4111-8111-111111111111",
+              ...envPatch,
+            }) as Record<string, string | undefined>
+          )[key],
+      },
     },
     ...Object.values(bindings),
   );
@@ -413,3 +429,49 @@ it("projects exact localized catalog content without private metadata and snapsh
   f.tables.addons[0].content_translations = {};
   expect(quote.addons[0]).toMatchObject({ name: "Pet companion", vatRate: 12 });
 });
+
+it.each([
+  { STRIPE_PROPERTY_ID: undefined },
+  { STRIPE_PROPERTY_ID: "22222222-2222-4222-8222-222222222222" },
+  { STRIPE_WEBHOOK_SECRET: undefined },
+  { STRIPE_SECRET_KEY: undefined },
+])(
+  "hides and rejects Stripe before reservation writes for incomplete/wrong merchant scope %j",
+  async (env) => {
+    const f = fixture("all", [], env);
+    expect((await (await f.get()).json()).property.stripeAvailable).toBe(false);
+    const response = await f.post("tent1");
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual({ error: "payment_method_unavailable" });
+    expect(f.tables.bookings).toHaveLength(0);
+    expect(f.tables.booking_addons).toHaveLength(0);
+    expect(f.createCheckoutSession).not.toHaveBeenCalled();
+  },
+);
+
+it("offers Stripe when the exact merchant property has both server credentials", async () => {
+  const f = fixture("all", []);
+  expect((await (await f.get()).json()).property.stripeAvailable).toBe(true);
+});
+
+it.each(["da", "no"])(
+  "preserves %s in the frozen addon quote and Stripe return URLs",
+  async (language) => {
+    const f = fixture("all", []);
+    f.tables.addons[0].content_translations = {
+      sv: { name: "Svenska", description: "Original" },
+      [language]: { name: "Translated pet", description: "Localized description" },
+    };
+    const response = await f.post("tent1", { language });
+    expect(response.status).toBe(200);
+    expect(f.tables.bookings[0]).toMatchObject({
+      quote_snapshot: {
+        language,
+        addons: [{ name: "Translated pet", description: "Localized description" }],
+      },
+    });
+    const params = f.createCheckoutSession.mock.calls[0][0];
+    expect(new URL(String(params.successUrl)).searchParams.get("lang")).toBe(language);
+    expect(new URL(String(params.cancelUrl)).searchParams.get("lang")).toBe(language);
+  },
+);

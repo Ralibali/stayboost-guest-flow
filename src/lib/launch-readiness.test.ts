@@ -1,3 +1,4 @@
+import { stripeReadiness } from "../../supabase/functions/_shared/stripe-config";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { ScriptTarget, transpileModule } from "typescript";
@@ -45,7 +46,9 @@ const handlerFor = (
         async maybeSingle() {
           return {
             data:
-              filters.id === "property" && filters.owner_id === "owner" ? { id: "property" } : null,
+              filters.id === "11111111-1111-4111-8111-111111111111" && filters.owner_id === "owner"
+                ? { id: "11111111-1111-4111-8111-111111111111" }
+                : null,
             error: null,
           };
         },
@@ -73,7 +76,7 @@ const handlerFor = (
     compilerOptions: { target: ScriptTarget.ES2022 },
   }).outputText;
   let handler!: (request: Request) => Promise<Response>;
-  new Function("Deno", "createClient", "emailProviderConfigured", code)(
+  new Function("Deno", "createClient", "emailProviderConfigured", "stripeReadiness", code)(
     {
       serve: (fn: typeof handler) => {
         handler = fn;
@@ -82,8 +85,9 @@ const handlerFor = (
     },
     () => client,
     emailProviderConfigured,
+    stripeReadiness,
   );
-  const request = (propertyId = "property") =>
+  const request = (propertyId = "11111111-1111-4111-8111-111111111111") =>
     handler(
       new Request("https://example.com/booking-import", {
         method: "POST",
@@ -183,10 +187,10 @@ describe("launch readiness for the actual enabled message channels", () => {
   it("counts enabled SMS and both only for the owned property without leaking credentials or causing sends", async () => {
     const edge = handlerFor(
       [
-        { property_id: "property", enabled: true, channel: "sms" },
-        { property_id: "property", enabled: true, channel: "both" },
-        { property_id: "property", enabled: true, channel: "email" },
-        { property_id: "property", enabled: false, channel: "sms" },
+        { property_id: "11111111-1111-4111-8111-111111111111", enabled: true, channel: "sms" },
+        { property_id: "11111111-1111-4111-8111-111111111111", enabled: true, channel: "both" },
+        { property_id: "11111111-1111-4111-8111-111111111111", enabled: true, channel: "email" },
+        { property_id: "11111111-1111-4111-8111-111111111111", enabled: false, channel: "sms" },
         { property_id: "other", enabled: true, channel: "sms" },
       ],
       false,
@@ -218,4 +222,30 @@ describe("launch readiness for the actual enabled message channels", () => {
     expect((await edge.request("other-property")).status).toBe(403);
     expect(edge.calls).toEqual(["properties"]);
   });
+});
+
+describe("property-scoped Stripe readiness", () => {
+  const env = {
+    STRIPE_SECRET_KEY: "rk_test_SECRET",
+    STRIPE_WEBHOOK_SECRET: "whsec_SECRET",
+    STRIPE_PROPERTY_ID: "11111111-1111-4111-8111-111111111111",
+  };
+  it("reports the selected property's complete config without exposing values", async () => {
+    const payload = await (await handlerFor([], false, env).request()).json();
+    expect(payload).toMatchObject({ stripeConfigured: true, stripeWebhookConfigured: true });
+    expect(JSON.stringify(payload)).not.toMatch(/SECRET|11111111/);
+  });
+  it.each([undefined, "22222222-2222-4222-8222-222222222222", "*"])(
+    "never borrows another property's merchant credentials (%s)",
+    async (scope) => {
+      const { STRIPE_PROPERTY_ID: _old, ...keys } = env;
+      const payload = await (
+        await handlerFor([], false, {
+          ...keys,
+          ...(scope ? { STRIPE_PROPERTY_ID: scope } : {}),
+        }).request()
+      ).json();
+      expect(payload).toMatchObject({ stripeConfigured: false, stripeWebhookConfigured: false });
+    },
+  );
 });

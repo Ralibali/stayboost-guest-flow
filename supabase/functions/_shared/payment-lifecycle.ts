@@ -73,13 +73,27 @@ export async function applyCheckoutEvent(
   store: PaymentStore,
   bookingId: string,
   session: CheckoutEventSession,
-  completed: boolean,
+  completed: boolean | "awaiting_payment",
   nowIso: string,
+  paymentOccurredAtIso = nowIso,
 ): Promise<{ outcome: string; booking: PaymentBooking }> {
   for (let attempt = 0; attempt < 4; attempt++) {
     const booking = await store.read(bookingId);
     if (!booking) throw new PaymentTransitionError("booking_not_found", 404);
-    validateCheckout(booking, session, completed);
+    validateCheckout(booking, session, completed === true);
+    if (completed === "awaiting_payment") {
+      // An unpaid completed session is not fulfillment. Keep the finite inventory
+      // hold; a later success after expiry is recorded for refund, never revived.
+      if (
+        session.payment_status !== "unpaid" ||
+        session.currency !== "sek" ||
+        booking.payment_amount === null ||
+        !Number.isSafeInteger(session.amount_total) ||
+        session.amount_total !== Math.round(booking.payment_amount * 100)
+      )
+        throw new PaymentTransitionError("payment_mismatch", 400);
+      return { outcome: "awaiting_payment", booking };
+    }
     if (!completed) {
       if (booking.payment_status !== "pending")
         return { outcome: `expiry_ignored_${booking.payment_status}`, booking };
@@ -99,15 +113,22 @@ export async function applyCheckoutEvent(
     if (!["pending", "expired"].includes(booking.payment_status))
       throw new PaymentTransitionError("invalid_payment_state", 409);
 
-    const late = booking.status !== "confirmed" || booking.payment_status === "expired";
+    const late =
+      booking.status !== "confirmed" ||
+      booking.payment_status === "expired" ||
+      (booking.payment_expires_at !== null &&
+        Date.parse(booking.payment_expires_at) <= Date.parse(paymentOccurredAtIso));
     const patch: Record<string, unknown> = {
       payment_status: late ? "refund_pending" : "paid",
-      payment_paid_at: nowIso,
+      payment_paid_at: paymentOccurredAtIso,
       payment_expires_at: null,
       stripe_payment_intent_id:
         typeof session.payment_intent === "string" ? session.payment_intent : null,
     };
-    if (late) patch.payment_refund_requested_at = nowIso;
+    if (late) {
+      patch.status = "cancelled";
+      patch.payment_refund_requested_at = nowIso;
+    }
     const updated = await store.compareAndSet(booking, patch);
     if (updated)
       return { outcome: late ? "late_payment_refund_pending" : "paid", booking: updated };
@@ -166,7 +187,10 @@ export async function persistStripeRefund(
 }
 
 export type ManualPaymentAction =
-  "cancel_booking" | "mark_swish_paid" | "request_swish_refund" | "confirm_swish_refunded";
+  | "cancel_booking"
+  | "mark_swish_paid"
+  | "request_swish_refund"
+  | "confirm_swish_refunded";
 
 export async function applyManualPaymentAction(
   store: PaymentStore,
@@ -237,14 +261,15 @@ const PAYMENT_COLUMNS =
   "id,source,status,payment_method,payment_status,payment_amount,payment_ref,payment_expires_at,stripe_session_id,stripe_payment_intent_id,stripe_refund_id";
 
 /** Kept here so all payment writers use the same compare-and-set predicates. */
-export function supabasePaymentStore(client: { from(table: string): any }): PaymentStore {
+export function supabasePaymentStore(
+  client: { from(table: string): any },
+  propertyId?: string,
+): PaymentStore {
   return {
     async read(id) {
-      const { data, error } = await client
-        .from("bookings")
-        .select(PAYMENT_COLUMNS)
-        .eq("id", id)
-        .maybeSingle();
+      let query = client.from("bookings").select(PAYMENT_COLUMNS).eq("id", id);
+      if (propertyId !== undefined) query = query.eq("property_id", propertyId);
+      const { data, error } = await query.maybeSingle();
       if (error) throw new Error(error.message);
       return data as PaymentBooking | null;
     },
@@ -256,6 +281,7 @@ export function supabasePaymentStore(client: { from(table: string): any }): Paym
         .eq("status", booking.status)
         .eq("payment_method", booking.payment_method)
         .eq("payment_status", booking.payment_status);
+      if (propertyId !== undefined) query = query.eq("property_id", propertyId);
       for (const field of [
         "stripe_session_id",
         "stripe_refund_id",

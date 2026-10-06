@@ -3,6 +3,13 @@
  * Rena funktioner utan Deno-beroenden — delas av edge functions och vitest.
  */
 
+export const STRIPE_API_VERSION = "2026-08-26.dahlia";
+export const STRIPE_INTEGRATION_IDENTIFIER = "stayboost-guest-kynrptlz";
+
+export function stripeRequestHeaders(secretKey: string): Record<string, string> {
+  return { Authorization: `Bearer ${secretKey}`, "Stripe-Version": STRIPE_API_VERSION };
+}
+
 export interface CheckoutParams {
   secretKey: string;
   amountSek: number;
@@ -14,6 +21,7 @@ export interface CheckoutParams {
   customerEmail?: string | null;
   expiresAtUnix?: number | null;
   idempotencyKey?: string | null;
+  paymentMethodConfiguration?: string;
 }
 
 /** Bygg form-encoded body för POST /v1/checkout/sessions. */
@@ -23,7 +31,16 @@ export function checkoutBody(p: CheckoutParams): string {
   params.set("success_url", p.successUrl);
   params.set("cancel_url", p.cancelUrl);
   params.set("client_reference_id", p.bookingId);
-  params.set("payment_method_types[0]", "card");
+  // Payment methods are selected in the merchant Dashboard. Webhooks also handle
+  // delayed success/failure without reopening expired inventory.
+  params.set("integration_identifier", STRIPE_INTEGRATION_IDENTIFIER);
+  if (p.paymentMethodConfiguration) {
+    if (!/^pmc_[a-zA-Z0-9]+$/.test(p.paymentMethodConfiguration))
+      throw new Error("invalid_payment_method_configuration");
+    params.set("payment_method_configuration", p.paymentMethodConfiguration);
+  }
+  // Keep the server quote and verified webhook amount in SEK.
+  params.set("adaptive_pricing[enabled]", "false");
   params.set("line_items[0][quantity]", "1");
   params.set("line_items[0][price_data][currency]", "sek");
   params.set("line_items[0][price_data][unit_amount]", String(Math.round(p.amountSek * 100)));
@@ -47,7 +64,7 @@ export interface CheckoutSession {
 /** Skapa en Checkout Session hos Stripe. Kastar vid fel. */
 export async function createCheckoutSession(p: CheckoutParams): Promise<CheckoutSession> {
   const headers: Record<string, string> = {
-    Authorization: `Bearer ${p.secretKey}`,
+    ...stripeRequestHeaders(p.secretKey),
     "Content-Type": "application/x-www-form-urlencoded",
   };
   if (p.idempotencyKey) headers["Idempotency-Key"] = p.idempotencyKey;
@@ -71,7 +88,7 @@ export async function expireCheckoutSession(secretKey: string, sessionId: string
     `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}/expire`,
     {
       method: "POST",
-      headers: { Authorization: `Bearer ${secretKey}` },
+      headers: stripeRequestHeaders(secretKey),
     },
   );
   if (response.ok) return;
@@ -98,7 +115,7 @@ export async function retrieveRefund(
 ): Promise<StripeRefundDetails> {
   const response = await fetch(
     `https://api.stripe.com/v1/refunds/${encodeURIComponent(refundId)}`,
-    { headers: { Authorization: `Bearer ${secretKey}` } },
+    { headers: stripeRequestHeaders(secretKey) },
   );
   const data = await response.json();
   if (!response.ok) throw new Error(data?.error?.message ?? `Stripe svarade ${response.status}`);
@@ -128,7 +145,7 @@ export async function createFullRefund(params: {
   const response = await fetch("https://api.stripe.com/v1/refunds", {
     method: "POST",
     headers: {
-      Authorization: `Bearer ${params.secretKey}`,
+      ...stripeRequestHeaders(params.secretKey),
       "Content-Type": "application/x-www-form-urlencoded",
       "Idempotency-Key": params.idempotencyKey,
     },
@@ -184,11 +201,16 @@ export async function verifyStripeSignature(
   toleranceSec = 300,
 ): Promise<boolean> {
   const timestamp = signatureHeaderValue(header, "t");
-  const signature = signatureHeaderValue(header, "v1");
-  if (!timestamp || !signature) return false;
+  const signatures = header
+    .split(",")
+    .map((part) => part.trim())
+    .filter((part) => part.startsWith("v1="))
+    .map((part) => part.slice(3));
+  if (!timestamp || !signatures.length) return false;
   const unixTimestamp = Number(timestamp);
-  if (!Number.isFinite(unixTimestamp)) return false;
+  if (!Number.isSafeInteger(unixTimestamp)) return false;
   if (Math.abs(Math.floor(Date.now() / 1000) - unixTimestamp) > toleranceSec) return false;
   const expected = await hmacSha256Hex(secret, `${timestamp}.${rawBody}`);
-  return timingSafeEqual(expected, signature);
+  // Stripe sends one v1 signature per active signing secret during rotation.
+  return signatures.some((signature) => timingSafeEqual(expected, signature));
 }

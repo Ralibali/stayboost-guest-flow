@@ -1,3 +1,4 @@
+import { stripeConfigForProperty } from "../_shared/stripe-config.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import {
   nightsBetween,
@@ -206,7 +207,9 @@ Deno.serve(async (req) => {
         checkoutTime: property.checkout_time,
         swishNumber: property.swish_number,
         swishHoldMinutes: property.swish_hold_minutes,
-        stripeAvailable: Boolean(Deno.env.get("STRIPE_SECRET_KEY")),
+        stripeAvailable: Boolean(
+          stripeConfigForProperty(property.id, (name) => Deno.env.get(name)),
+        ),
       },
       units: (units ?? []).map((u) => ({
         id: u.id,
@@ -292,7 +295,7 @@ Deno.serve(async (req) => {
       .toLowerCase();
     const guestPhoneRaw = String(body?.guest_phone ?? "").trim();
     const normalizedPhone = guestPhoneRaw ? normalizeGuestPhone(guestPhoneRaw) : null;
-    const language = ["sv", "en", "de"].includes(body?.language) ? body.language : "sv";
+    const language = ["sv", "en", "de", "da", "no"].includes(body?.language) ? body.language : "sv";
 
     if (!ISO_DATE.test(checkin ?? "") || !ISO_DATE.test(checkout ?? "") || checkout <= checkin) {
       return json({ error: "invalid_dates" }, 400);
@@ -427,8 +430,9 @@ Deno.serve(async (req) => {
     }
 
     const requested = String(body?.paymentMethod ?? "");
-    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY") ?? "";
-    const stripeOk = Boolean(stripeKey);
+    const stripeConfig = stripeConfigForProperty(property.id, (name) => Deno.env.get(name));
+    const stripeKey = stripeConfig?.secretKey ?? "";
+    const stripeOk = stripeConfig !== null;
     const swishOk = Boolean(property.swish_number);
     let paymentMethod: "none" | "swish" | "stripe" = "none";
     if (requested === "stripe" && stripeOk) paymentMethod = "stripe";
@@ -544,9 +548,10 @@ Deno.serve(async (req) => {
     if (paymentMethod === "stripe") {
       let createdSessionId: string | null = null;
       try {
-        const appBase = appBaseUrl(Deno.env.get("PUBLIC_APP_URL"), req.headers.get("origin"));
+        const appBase = appBaseUrl(Deno.env.get("PUBLIC_APP_URL"));
         const session = await createCheckoutSession({
           secretKey: stripeKey,
+          paymentMethodConfiguration: stripeConfig?.paymentMethodConfiguration,
           amountSek: grandTotal,
           description: `${unit.name} · ${checkin}–${checkout}`,
           paymentRef,
@@ -587,7 +592,7 @@ Deno.serve(async (req) => {
           paymentExpiresAt,
           checkoutUrl: session.url,
         });
-      } catch (e) {
+      } catch {
         // Om Stripe redan hunnit skapa en session måste den stängas innan vi tar bort
         // bokningen. Misslyckas stängningen behåller vi reservationen till dess DB-expiry
         // så en orphaned Checkout URL aldrig kan sälja samma datum parallellt.
@@ -601,7 +606,7 @@ Deno.serve(async (req) => {
               .eq("status", "confirmed")
               .eq("payment_status", "pending");
           } catch {
-            return json({ error: "stripe_binding_failed", detail: String(e) }, 502);
+            return json({ error: "stripe_binding_failed" }, 502);
           }
         } else {
           await admin
@@ -611,7 +616,7 @@ Deno.serve(async (req) => {
             .eq("status", "confirmed")
             .eq("payment_status", "pending");
         }
-        return json({ error: "stripe_failed", detail: String(e) }, 502);
+        return json({ error: "stripe_failed" }, 502);
       }
     }
 
