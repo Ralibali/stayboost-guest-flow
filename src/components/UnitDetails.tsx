@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import type { EngineUnit } from "@/lib/booking-offer";
 import type { Lang } from "@/lib/boka-i18n";
-import { unitDisplayImages } from "../../supabase/functions/_shared/unit-content";
+import { unitAmenityLabel, unitDisplayImages } from "../../supabase/functions/_shared/unit-content";
 
 const labels = {
   sv: {
@@ -177,7 +177,7 @@ export function UnitDetails({ unit, lang }: { unit: EngineUnit; lang: Lang }) {
                   key={`${amenity}-${position}`}
                   className="rounded-full bg-[#E9F0EC] px-3 py-1.5 text-[12px]"
                 >
-                  {amenity}
+                  {unitAmenityLabel(amenity, lang)}
                 </li>
               ))}
             </ul>

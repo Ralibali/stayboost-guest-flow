@@ -4,6 +4,7 @@ import { PartySelector } from "@/components/PartySelector";
 import { UnitDetails } from "@/components/UnitDetails";
 import {
   localizedUnitText,
+  unitAmenityLabel,
   unitDisplayImages,
 } from "../../../supabase/functions/_shared/unit-content";
 import { childSupplementLabel, partyLabels } from "@/lib/party-i18n";
@@ -1603,7 +1604,7 @@ function UnitCard({
                   className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold"
                   style={{ color: C.muted }}
                 >
-                  {amenity}
+                  {unitAmenityLabel(amenity, lang)}
                 </span>
               ))}
             </div>
