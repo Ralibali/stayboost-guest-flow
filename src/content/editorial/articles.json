@@ -1,5 +1,46 @@
 [
   {
+    "slug": "oversatt-gastinformation-samma-besked",
+    "title": "Översätt gästinformationen utan att ändra beskedet",
+    "metaDescription": "Håll tider, platsnamn och kontaktvägar samstämmiga när gästinformationen finns på flera språk. En praktisk rutin för original, översättning och kontroll.",
+    "intro": "När en gästinstruktion finns på flera språk behöver versionerna säga samma sak. En språkligt smidig text hjälper inte om tiden, platsen eller nästa steg har ändrats i översättningen. Börja därför med ett tydligt original och en liten kontrollista över de uppgifter som måste följa med oförändrade i betydelse.\n\nGuiden gäller praktiska gästbesked som boendet redan har beslutat om. Den bedömer inte översättningar av avtal, säkerhetsinstruktioner eller andra texter som kan kräva särskild sakkunskap. Verksamhetens ansvariga avgör vilken granskning som behövs.",
+    "sections": [
+      {
+        "heading": "Gör originalet tydligt innan ni översätter",
+        "content": "Välj en avgränsad instruktion och skriv vilket nästa steg gästen ska kunna ta. Förklara platsen och använd tydliga benämningar på de saker gästen faktiskt möter. Uttryck som ”där borta” eller interna rumsnamn blir svåra att översätta om sammanhanget saknas redan i originalet.\n\nSamla oklarheter hos den som ansvarar för beskedet. Översättaren ska inte behöva bestämma vilken tid som gäller eller om ett erbjudande är bekräftat. Om originalet ändras under arbetet behöver samtliga versioner jämföras med den senast beslutade texten."
+      },
+      {
+        "heading": "Markera uppgifterna som bär instruktionen",
+        "content": "Lista tider, datum, platsnamn, kontaktvägar och villkor som påverkar vad gästen ska göra. För varje punkt, fråga vilken betydelse läsaren behöver förstå. Ett platsnamn kan behöva stå kvar som på skylten samtidigt som dess funktion förklaras på det andra språket.\n\nAnvänd tydliga datum när det behövs och kontrollera att en översatt tidsangivelse inte blir tvetydig. Granska också skillnaden mellan exempelvis en möjlighet, ett önskemål och ett bekräftat besked. De orden kan ändra förväntningarna även när resten av meningen är korrekt."
+      },
+      {
+        "heading": "Låt någon som behärskar språket kontrollera nästa steg",
+        "content": "Be granskaren läsa texten utan att samtidigt få en muntlig förklaring. Fråga vad personen skulle göra, var och när. Jämför svaret med det beslutade originalet. En kontroll som bara letar stavfel kan missa att instruktionens innebörd har flyttats.\n\nOm ett översättningsverktyg används, behandla resultatet som ett utkast tills lämplig kontroll är gjord. Markera en språkversion som behöver granskning i det interna arbetet. Påstå inte att den är kvalitetssäkrad bara för att den låter flytande eller har översatts tillbaka till svenska."
+      },
+      {
+        "heading": "Håll språkversionerna kopplade till samma besked",
+        "content": "Spara originalets versionsdatum, vilka språk som finns och vem som följer upp en ändring. Skriv var respektive text används, exempelvis i en guide, på en skylt eller i en mall. Använd [inventeringen av gästinformation](/blogg/inventera-gastinformation-kanaler) för att hitta kopiorna.\n\nNär ett besked ändras, markera alla berörda språkversioner för kontroll. Skilj text som fortfarande går att uppdatera från meddelanden som redan har skickats. Låt ansvarig bedöma om gäster som fått ett tidigare besked behöver ny information."
+      },
+      {
+        "heading": "Provläs det gästen faktiskt möter",
+        "content": "Öppna den färdiga sidan eller läs utskriften. Finns hela instruktionen med, fungerar kontaktlänken och stämmer benämningarna med platsen? Om texten klippts i presentationen behöver det rättas även om översättningsdokumentet i sig är korrekt.\n\nDu kan [utforska StayBoosts produktdemo](/produkten) när ni ser över hur gästinformationen presenteras. AI-assisterad originalguide med en manuell kontrollrutin. Texten utlovar ingen automatisk översättning, språkgranskning eller synkronisering mellan språkversioner i StayBoost."
+      }
+    ],
+    "ctaHref": "/produkten",
+    "ctaLabel": "Öppna produktdemon",
+    "editorial": {
+      "createdWith": "ChatGPT",
+      "aiAssisted": true,
+      "searchIntent": "Hålla en beslutad praktisk gästinstruktion innehållsmässigt likvärdig mellan språkversioner, med kontroll av betydelse och gemensam uppdatering.",
+      "sourceUrls": [
+        "https://stayboost.se/produkten"
+      ],
+      "sourceCheckedAt": "2026-10-08T07:20:27.247238+00:00",
+      "publishedAt": "2026-10-08T07:20:27.247238+00:00"
+    },
+    "publishedDate": "2026-10-08"
+  },
+  {
     "slug": "tillfalligt-gastbesked-giltighetstid",
     "title": "Ge tillfälliga gästbesked ett tydligt slutdatum",
     "metaDescription": "Samla ansvar, giltighetstid och platser där ett tillfälligt gästbesked visas. En arbetsmall för att ändra och ta bort information vid rätt tillfälle.",
