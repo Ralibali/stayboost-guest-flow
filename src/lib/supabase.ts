@@ -349,28 +349,46 @@ export function useSession() {
       setSession(null);
       return;
     }
-    supabase.auth.getSession().then(({ data }) => setSession(data.session));
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s));
-    return () => sub.subscription.unsubscribe();
+    let alive = true;
+    let receivedAuthEvent = false;
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => {
+      receivedAuthEvent = true;
+      if (alive) setSession(s);
+    });
+    supabase.auth
+      .getSession()
+      .then(({ data }) => {
+        if (alive && !receivedAuthEvent) setSession(data.session);
+      })
+      .catch(() => {
+        if (alive && !receivedAuthEvent) setSession(null);
+      });
+    return () => {
+      alive = false;
+      sub.subscription.unsubscribe();
+    };
   }, []);
   return session;
 }
 
 /** Anläggningen som den inloggade äger (null = saknas, undefined = laddar). */
 export function useProperty(session: Session | null | undefined) {
-  const [property, setProperty] = useState<Property | null | undefined>(undefined);
-  const [units, setUnits] = useState<Unit[]>([]);
+  const [result, setResult] = useState<{
+    session: Session;
+    property: Property | null | undefined;
+    units: Unit[];
+    error: string | null;
+  } | null>(null);
   const [reloadTick, setReloadTick] = useState(0);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!supabase || !session) {
-      setProperty(session === null ? null : undefined);
+      setResult(null);
       return;
     }
     let alive = true;
     (async () => {
-      setError(null);
+      setResult({ session, property: undefined, units: [], error: null });
       const { data: props, error: propertyError } = await supabase
         .from("properties")
         .select("*")
@@ -378,11 +396,16 @@ export function useProperty(session: Session | null | undefined) {
         .limit(1);
       if (!alive) return;
       if (propertyError) {
-        setError("Anläggningen kunde inte hämtas. Försök igen.");
+        setResult({
+          session,
+          property: undefined,
+          units: [],
+          error: "Anläggningen kunde inte hämtas. Försök igen.",
+        });
         return;
       }
       const p = (props?.[0] as Property | undefined) ?? null;
-      setProperty(p);
+      setResult({ session, property: p, units: [], error: null });
       if (p) {
         const { data: us, error: unitsError } = await supabase
           .from("units")
@@ -391,22 +414,37 @@ export function useProperty(session: Session | null | undefined) {
           .order("sort_order")
           .order("created_at");
         if (alive) {
-          if (unitsError) setError("Boendena kunde inte hämtas. Försök igen.");
-          else setUnits((us as Unit[]) ?? []);
+          setResult({
+            session,
+            property: p,
+            units: unitsError ? [] : ((us as Unit[]) ?? []),
+            error: unitsError ? "Boendena kunde inte hämtas. Försök igen." : null,
+          });
         }
-      } else {
-        setUnits([]);
       }
     })().catch(() => {
       if (alive)
-        setError("Anläggningen kunde inte hämtas. Kontrollera anslutningen och försök igen.");
+        setResult({
+          session,
+          property: undefined,
+          units: [],
+          error: "Anläggningen kunde inte hämtas. Kontrollera anslutningen och försök igen.",
+        });
     });
     return () => {
       alive = false;
     };
   }, [session, reloadTick]);
 
-  return { property, units, error, reload: () => setReloadTick((t) => t + 1) };
+  // A new session must see loading in its first render, before effects run.
+  // Neither a previous owner's data nor a logged-out null may drive routing.
+  const current = session && result?.session === session ? result : null;
+  return {
+    property: session === null ? null : current?.property,
+    units: current?.units ?? [],
+    error: current?.error ?? null,
+    reload: () => setReloadTick((t) => t + 1),
+  };
 }
 
 export const guestPageUrl = (token: string) => `${window.location.origin}/g/${token}`;

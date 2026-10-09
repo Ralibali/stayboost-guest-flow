@@ -14,6 +14,7 @@ function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const onLoginPage = location.pathname === "/app/login";
+  const onOnboardingPage = location.pathname === "/app/onboarding";
 
   useEffect(() => {
     if (!supabaseConfigured) return;
@@ -23,11 +24,13 @@ function AppLayout() {
   }, [session, onLoginPage, navigate]);
 
   useEffect(() => {
-    if (!supabaseConfigured || !session || property !== null) return;
-    if (property === null && location.pathname !== "/app/onboarding" && !onLoginPage) {
+    if (!supabaseConfigured || !session) return;
+    if (property === null && !onOnboardingPage && !onLoginPage) {
       navigate({ to: "/app/onboarding" });
+    } else if (property && onOnboardingPage) {
+      navigate({ to: "/app", replace: true });
     }
-  }, [session, property, location.pathname, onLoginPage, navigate]);
+  }, [session, property, onOnboardingPage, onLoginPage, navigate]);
 
   if (!supabaseConfigured) {
     return (
@@ -66,7 +69,11 @@ function AppLayout() {
       </div>
     );
 
-  if (session === undefined || (session && property === undefined)) {
+  if (
+    session === undefined ||
+    (session && property === undefined) ||
+    (property && onOnboardingPage)
+  ) {
     return (
       <div className="grid min-h-[60vh] place-items-center">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-[color:var(--line)] border-t-[color:var(--forest)]" />
