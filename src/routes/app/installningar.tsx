@@ -1,5 +1,7 @@
 import { PartyPricing } from "@/components/app/PartyPricing";
 import { UnitContentEditor } from "@/components/app/UnitContentEditor";
+import { PropertyGuestInfoEditor } from "@/components/app/PropertyGuestInfoEditor";
+import { propertySettingsPatch } from "@/lib/property-guest-info-save";
 import { projectUnitContent } from "../../../supabase/functions/_shared/unit-content";
 import { SUPABASE_URL } from "@/lib/supabase-config";
 import { BookingSettings } from "@/components/app/BookingSettings";
@@ -77,7 +79,8 @@ function SettingsPage() {
   const save = async () => {
     if (!supabase) return;
     setActionError(null);
-    const { id, owner_id, ...patch } = form;
+    const id = form.id;
+    const patch = propertySettingsPatch(form);
     const rawTermsUrl = (form.booking_terms_url ?? "").trim();
     const termsUrl = sanitizedHttpsUrl(rawTermsUrl);
     if (rawTermsUrl && !termsUrl) {
@@ -220,22 +223,6 @@ function SettingsPage() {
             />
           </Field>
         </div>
-        <Field label="Vägbeskrivning">
-          <textarea
-            value={form.directions ?? ""}
-            onChange={set("directions")}
-            rows={3}
-            className="inp resize-none"
-          />
-        </Field>
-        <Field label="Husregler">
-          <textarea
-            value={form.house_rules ?? ""}
-            onChange={set("house_rules")}
-            rows={3}
-            className="inp resize-none"
-          />
-        </Field>
         <Field label="Länk till boendets bokningsvillkor">
           <input
             type="url"
@@ -307,6 +294,18 @@ function SettingsPage() {
           {saved ? "✓ Sparat" : "Spara anläggningen"}
         </button>
       </section>
+
+      <PropertyGuestInfoEditor
+        key={`guest-info:${session?.user.id}:${property.id}`}
+        property={property}
+        onSaved={(snapshot) =>
+          setForm((current) =>
+            current?.id === property.id && current.owner_id === property.owner_id
+              ? { ...current, ...snapshot }
+              : current,
+          )
+        }
+      />
 
       <section className="card-surface mt-5 p-6">
         <h2 className="text-[16px] font-bold">Din bokningssida</h2>

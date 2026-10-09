@@ -9,6 +9,10 @@ import { bookingLanguage, isHostedStripeCheckout } from "@/lib/glamping-embed";
 import { getGuestStrings } from "@/lib/guest-i18n";
 import { isGuestResponse } from "@/lib/public-response";
 import {
+  localizedPropertyGuestInfo,
+  type GuestInfoTranslations,
+} from "../../../supabase/functions/_shared/property-guest-info";
+import {
   addonVatLabel,
   localizedAddonText,
   type AddonTranslations,
@@ -61,6 +65,7 @@ type GuestData = {
     wifi_name: string | null;
     wifi_password: string | null;
     house_rules: string | null;
+    guestInfoTranslations?: GuestInfoTranslations;
     contact_phone: string | null;
     swish_number: string | null;
   };
@@ -240,6 +245,7 @@ function GuestPage() {
     );
 
   const p = data.property;
+  const guestInfo = localizedPropertyGuestInfo(p, lang);
   const payment = data.payment;
   const expired =
     payment?.status === "expired" ||
@@ -517,8 +523,8 @@ function GuestPage() {
             </div>
           </section>
         )}
-        {p.directions && <Section title={t.directions}>{p.directions}</Section>}
-        {p.house_rules && <Section title={t.houseRules}>{p.house_rules}</Section>}
+        {guestInfo.directions && <Section title={t.directions}>{guestInfo.directions}</Section>}
+        {guestInfo.house_rules && <Section title={t.houseRules}>{guestInfo.house_rules}</Section>}
         {p.contact_phone && (
           <a
             href={`tel:${p.contact_phone.replace(/\s/g, "")}`}
