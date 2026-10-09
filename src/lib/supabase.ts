@@ -388,7 +388,11 @@ export function useProperty(session: Session | null | undefined) {
     }
     let alive = true;
     (async () => {
-      setResult({ session, property: undefined, units: [], error: null });
+      setResult((previous) =>
+        previous?.property && previous.session.user.id === session.user.id
+          ? { ...previous, session, error: null }
+          : { session, property: undefined, units: [], error: null },
+      );
       const { data: props, error: propertyError } = await supabase
         .from("properties")
         .select("*")
@@ -405,7 +409,15 @@ export function useProperty(session: Session | null | undefined) {
         return;
       }
       const p = (props?.[0] as Property | undefined) ?? null;
-      setResult({ session, property: p, units: [], error: null });
+      setResult((previous) => ({
+        session,
+        property: p,
+        units:
+          p && previous?.session === session && previous.property?.id === p.id
+            ? previous.units
+            : [],
+        error: null,
+      }));
       if (p) {
         const { data: us, error: unitsError } = await supabase
           .from("units")
@@ -436,13 +448,18 @@ export function useProperty(session: Session | null | undefined) {
     };
   }, [session, reloadTick]);
 
-  // A new session must see loading in its first render, before effects run.
-  // Neither a previous owner's data nor a logged-out null may drive routing.
-  const current = session && result?.session === session ? result : null;
+  // Never let a previous owner's data or a stale null drive the first render.
+  // Keep an already known same-owner property during refresh so drafts stay mounted.
+  const current =
+    session &&
+    result &&
+    (result.session === session || (result.property && result.session.user.id === session.user.id))
+      ? result
+      : null;
   return {
     property: session === null ? null : current?.property,
     units: current?.units ?? [],
-    error: current?.error ?? null,
+    error: current && current.session === session ? current.error : null,
     reload: () => setReloadTick((t) => t + 1),
   };
 }

@@ -176,6 +176,20 @@ describe("session-bound property snapshots", () => {
     renders.length = 0;
   });
 
+  it("keeps a known same-owner property mounted during token refresh", async () => {
+    await act(async () => root.render(<Probe session={owner} />));
+    await act(async () => propertyQuery.resolve({ data: [property], error: null }));
+    const nextQuery = deferred<QueryResult<Property>>();
+    mocks.properties.mockReturnValue(nextQuery.promise);
+    renders.length = 0;
+    await act(async () => root.render(<Probe session={{ ...owner, access_token: "refreshed" }} />));
+    expect(renders.length).toBeGreaterThan(0);
+    for (const result of renders)
+      expect(result).toMatchObject({ property, units: [unit], error: null });
+    await act(async () => nextQuery.resolve({ data: [property], error: null }));
+    expect(renders.at(-1)).toMatchObject({ property, units: [unit], error: null });
+  });
+
   it("hides the previous owner's data in the first render of a different session", async () => {
     await act(async () => root.render(<Probe session={owner} />));
     await act(async () => propertyQuery.resolve({ data: [property], error: null }));
