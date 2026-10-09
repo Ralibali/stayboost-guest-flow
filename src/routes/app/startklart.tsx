@@ -213,10 +213,13 @@ function LaunchPage() {
         </ul>
         <StripeReadinessDetails readiness={connections} />
         <StripeConnectionCheck
-          key={`${session?.user.id}:${property.id}`}
+          key={`stripe-read:${session?.user.id}:${property.id}`}
           propertyId={property.id}
         />
-        <StripeCheckoutCheck key={`${session?.user.id}:${property.id}`} propertyId={property.id} />
+        <StripeCheckoutCheck
+          key={`stripe-checkout:${session?.user.id}:${property.id}`}
+          propertyId={property.id}
+        />
         {smsReadiness.required && !smsReadiness.ok && (
           <p role="alert" className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-950">
             Aktiva gästmeddelanden använder SMS, men SMS-tjänsten är inte konfigurerad. Anslut
