@@ -259,16 +259,45 @@ export function renderMessageContent(
     }
   }
   const infoText = rows.map(([key, value]) => `${key}: ${value}`).join("\n");
-  const infoHtml = `<table><tbody>${rows.map(([key, value]) => `<tr><th>${escape(key)}</th><td>${escape(value)}</td></tr>`).join("")}</tbody></table>`;
-  const expand = (input: string, html: boolean): string => {
-    const parts = input.split("%bookinginfo%");
-    return parts
+  const trustedGuestUrl = () => {
+    const url = new URL(guestUrl);
+    if (
+      url.protocol !== "https:" ||
+      url.username ||
+      url.password ||
+      url.hash ||
+      url.search !== (legacy ? "" : `?lang=${lang}`) ||
+      /[\u0000-\u0020\u007f]/.test(guestUrl) ||
+      !booking.guest_token ||
+      !url.pathname.endsWith(`/g/${encodeURIComponent(booking.guest_token)}`)
+    )
+      throw new MessageContentError("message_guest_link_invalid");
+    return url.href;
+  };
+  const guestLinkHtml = () => {
+    const url = escape(trustedGuestUrl());
+    return `<a href="${url}" rel="noopener noreferrer">${url}</a>`;
+  };
+  const infoHtml = () =>
+    `<table><tbody>${rows.map(([key, value]) => `<tr><th>${escape(key)}</th><td>${key === labels[lang][6] ? guestLinkHtml() : escape(value)}</td></tr>`).join("")}</tbody></table>`;
+  const expand = (input: string, html: boolean, insideLink = false): string => {
+    // Only these explicit body tokens may emit trusted markup. Attribute values
+    // and interpolated guest data never go through this expansion a second time.
+    return input
+      .split(/(%bookinginfo%|\{\{\s*gästsida_länk\s*\}\})/g)
       .map((part) => {
+        const bookingInfo = part === "%bookinginfo%";
+        const guestLink = /^\{\{\s*gästsida_länk\s*\}\}$/.test(part);
+        if (bookingInfo || guestLink) {
+          if (html && insideLink) throw new MessageContentError("message_guest_link_nested");
+          const url = trustedGuestUrl();
+          return bookingInfo ? (html ? infoHtml() : infoText) : html ? guestLinkHtml() : url;
+        }
         if (part.match(tokenPattern)) throw new MessageContentError("message_placeholder_unknown");
         const rendered = renderTemplate(part, vars);
         return html ? escape(rendered) : rendered;
       })
-      .join(html ? infoHtml : infoText);
+      .join("");
   };
   if (subjectSource.includes("%bookinginfo%") || /[\r\n]/.test(subjectSource))
     throw new MessageContentError("message_subject_invalid");
@@ -280,11 +309,12 @@ export function renderMessageContent(
   const visit = (
     node: DefaultTreeAdapterMap["childNode"],
     depth: number,
+    insideLink = false,
   ): { html: string; text: string } => {
     if (++visited > 10000 || depth > 60) throw new MessageContentError("message_html_too_complex");
     if (node.nodeName === "#text") {
       const value = (node as DefaultTreeAdapterMap["textNode"]).value;
-      return { html: expand(value, true), text: expand(value, false) };
+      return { html: expand(value, true, insideLink), text: expand(value, false) };
     }
     if (node.nodeName === "#comment") return { html: "", text: "" };
     if (
@@ -310,7 +340,9 @@ export function renderMessageContent(
       // Editor-only class/id/data attributes are deliberately not emitted.
     }
     if (node.tagName === "a") attrs.push('rel="noopener noreferrer"');
-    const children = node.childNodes.map((child) => visit(child, depth + 1));
+    const children = node.childNodes.map((child) =>
+      visit(child, depth + 1, insideLink || node.tagName === "a"),
+    );
     const childText = children.map((child) => child.text).join("");
     const linkText = href && childText.trim() !== href ? ` (${href})` : "";
     const attributes = attrs.length ? ` ${attrs.join(" ")}` : "";
