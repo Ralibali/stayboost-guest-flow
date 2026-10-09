@@ -2,12 +2,16 @@
 type Env = (name: string) => string | undefined;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+export function normalizeStripeSecret(value: string | undefined): string {
+  return value?.trim() ?? "";
+}
+
 function stripeEnvironment(env: Env) {
   // Normalize copy/paste padding once, before both validation and actual use.
   return {
     propertyId: env("STRIPE_PROPERTY_ID")?.trim() ?? "",
-    secretKey: env("STRIPE_SECRET_KEY")?.trim() ?? "",
-    webhookSecret: env("STRIPE_WEBHOOK_SECRET")?.trim() ?? "",
+    secretKey: normalizeStripeSecret(env("STRIPE_SECRET_KEY")),
+    webhookSecret: normalizeStripeSecret(env("STRIPE_WEBHOOK_SECRET")),
     paymentMethodConfiguration: env("STRIPE_PAYMENT_METHOD_CONFIGURATION_ID")?.trim() || undefined,
   };
 }

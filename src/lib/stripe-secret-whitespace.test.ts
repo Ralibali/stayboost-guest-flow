@@ -3,11 +3,14 @@ import { readFileSync } from "node:fs";
 import { ScriptTarget, transpileModule } from "typescript";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+  normalizeStripeSecret,
   stripeConfigForProperty,
   stripeReadiness,
 } from "../../supabase/functions/_shared/stripe-config";
 import * as stripe from "../../supabase/functions/_shared/stripe";
 import * as lifecycle from "../../supabase/functions/_shared/payment-lifecycle";
+import * as guestCheckout from "../../supabase/functions/_shared/guest-checkout";
+import * as guestStay from "../../supabase/functions/_shared/guest-stay";
 
 const PROPERTY = "11111111-1111-4111-8111-111111111111";
 const WEBHOOK_SECRET = "whsec_synthetic";
@@ -167,5 +170,113 @@ describe("actual webhook uses the normalized signing secret", () => {
     expect(await invalid.json()).toEqual({ error: "invalid_signature" });
     expect(runtime.createClient).not.toHaveBeenCalled();
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("actual guest payment resume uses the same secret normalization", () => {
+  const token = "a".repeat(24);
+  function runtime(bookingPatch = {}) {
+    const booking = {
+      id: "synthetic-booking",
+      property_id: PROPERTY,
+      status: "confirmed",
+      payment_method: "stripe",
+      payment_status: "pending",
+      payment_amount: 329,
+      payment_ref: "SB-SYNTHETIC",
+      payment_expires_at: new Date(Date.now() + 30 * 60_000).toISOString(),
+      stripe_session_id: "cs_synthetic",
+      ...bookingPatch,
+    };
+    const query = {
+      select: () => query,
+      eq: (field: string, value: string) => {
+        expect(field).toBe("guest_token");
+        expect(value).toBe(token);
+        return query;
+      },
+      maybeSingle: async () => ({ data: booking, error: null }),
+    };
+    const from = vi.fn((table: string) => {
+      expect(table).toBe("bookings");
+      return query;
+    });
+    const source = readFileSync(
+      new URL("../../supabase/functions/guest-page/index.ts", import.meta.url),
+      "utf8",
+    ).replace(/import[\s\S]*?from\s+["'][^"']+["'];\s*/g, "");
+    const code = transpileModule(source, {
+      compilerOptions: { target: ScriptTarget.ES2022 },
+    }).outputText;
+    const bindings = {
+      createClient: () => ({ from }),
+      normalizeStripeSecret,
+      ...guestCheckout,
+      ...guestStay,
+    };
+    let handler!: (request: Request) => Promise<Response>;
+    new Function("Deno", ...Object.keys(bindings), code)(
+      { serve: (fn: typeof handler) => (handler = fn), env: { get: environment() } },
+      ...Object.values(bindings),
+    );
+    return {
+      from,
+      request: (guestToken = token) =>
+        handler(
+          new Request("https://example.test/guest-page", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ token: guestToken, action: "resume_payment" }),
+          }),
+        ),
+    };
+  }
+
+  function provider(sessionPatch = {}) {
+    const fetch = vi.fn(async (_url: string, _init?: RequestInit) =>
+      Response.json({
+        id: "cs_synthetic",
+        client_reference_id: "synthetic-booking",
+        metadata: { booking_id: "synthetic-booking", payment_ref: "SB-SYNTHETIC" },
+        currency: "sek",
+        amount_total: 32900,
+        status: "open",
+        payment_status: "unpaid",
+        expires_at: Math.floor(Date.now() / 1000) + 1800,
+        url: "https://checkout.stripe.com/c/pay/synthetic",
+        ...sessionPatch,
+      }),
+    );
+    vi.stubGlobal("fetch", fetch);
+    return fetch;
+  }
+
+  it("retrieves only the existing token-bound session using the normalized key", async () => {
+    const fetch = provider();
+    const response = await runtime().request();
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({
+      checkoutUrl: "https://checkout.stripe.com/c/pay/synthetic",
+    });
+    expect(fetch).toHaveBeenCalledOnce();
+    expect(fetch.mock.calls[0][0]).toBe("https://api.stripe.com/v1/checkout/sessions/cs_synthetic");
+    expect(fetch.mock.calls[0][1]?.method).toBeUndefined();
+    expect(fetch.mock.calls[0][1]?.headers).toEqual({ Authorization: "Bearer rk_live_synthetic" });
+  });
+
+  it("keeps token and pending-payment guards ahead of provider access", async () => {
+    const fetch = provider();
+    const invalidToken = runtime();
+    expect((await invalidToken.request("invalid")).status).toBe(400);
+    expect(invalidToken.from).not.toHaveBeenCalled();
+    expect((await runtime({ payment_status: "paid" }).request()).status).toBe(409);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+
+  it("still withholds another booking's provider session", async () => {
+    provider({ client_reference_id: "another-booking" });
+    const response = await runtime().request();
+    expect(response.status).toBe(409);
+    expect(await response.json()).toEqual({ error: "checkout_not_pending" });
   });
 });
