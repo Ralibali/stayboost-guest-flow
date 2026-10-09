@@ -1,6 +1,7 @@
 import { createClient, type SupabaseClient, type Session } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import type { AddonTranslations, VatRate } from "../../supabase/functions/_shared/addon-content";
+import type { GuestInfoTranslations } from "../../supabase/functions/_shared/property-guest-info";
 import type {
   UnitGalleryImage,
   UnitTranslations,
@@ -34,6 +35,7 @@ export type Property = {
   wifi_name: string | null;
   wifi_password: string | null;
   house_rules: string | null;
+  guest_info_translations?: GuestInfoTranslations;
   contact_phone: string | null;
   review_url: string | null;
   swish_number: string | null;

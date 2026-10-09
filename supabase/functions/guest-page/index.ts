@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { guestAccessAllowed, guestAddon, stayPhase } from "../_shared/guest-stay.ts";
 import { pendingCheckoutAllowed, resumeCheckout } from "../_shared/guest-checkout.ts";
 import { normalizeStripeSecret } from "../_shared/stripe-config.ts";
+import { projectPropertyGuestInfo } from "../_shared/property-guest-info.ts";
 
 // Publik gästsida. Tokenen i länken är nyckeln; endast kuraterade fält lämnar servern.
 
@@ -47,7 +48,7 @@ Deno.serve(async (req) => {
   const { data, error } = await admin
     .from("bookings")
     .select(
-      "id, external_id, unit_id, property_id, stay_status, guest_name, checkin_date, checkout_date, status, payment_method, payment_status, payment_amount, payment_ref, payment_expires_at, stripe_session_id, unit:units(name, door_code, checkin_instructions), property:properties(name, slug, checkin_time, checkout_time, directions, wifi_name, wifi_password, house_rules, contact_phone, swish_number)",
+      "id, external_id, unit_id, property_id, stay_status, guest_name, checkin_date, checkout_date, status, payment_method, payment_status, payment_amount, payment_ref, payment_expires_at, stripe_session_id, unit:units(name, door_code, checkin_instructions), property:properties(name, slug, checkin_time, checkout_time, directions, guest_info_translations, wifi_name, wifi_password, house_rules, contact_phone, swish_number)",
     )
     .eq("guest_token", token)
     .maybeSingle();
@@ -97,7 +98,15 @@ Deno.serve(async (req) => {
         }
       : null,
     property: {
-      ...property,
+      name: property.name,
+      slug: property.slug,
+      checkin_time: property.checkin_time,
+      checkout_time: property.checkout_time,
+      directions: property.directions,
+      house_rules: property.house_rules,
+      contact_phone: property.contact_phone,
+      swish_number: property.swish_number,
+      guestInfoTranslations: projectPropertyGuestInfo(property.guest_info_translations),
       wifi_name: access ? property.wifi_name : null,
       wifi_password: access ? property.wifi_password : null,
     },

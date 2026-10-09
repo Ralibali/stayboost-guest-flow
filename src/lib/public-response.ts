@@ -1,6 +1,7 @@
 import { isUnitTranslations } from "../../supabase/functions/_shared/unit-content";
 import { isAddonTranslations, isVatRate } from "../../supabase/functions/_shared/addon-content";
 import { sanitizedHttpsUrl } from "../../supabase/functions/_shared/public-links";
+import { isGuestInfoTranslations } from "../../supabase/functions/_shared/property-guest-info";
 
 const record = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
@@ -25,6 +26,8 @@ export function isGuestResponse(value: unknown): boolean {
     !text(property.name) ||
     !text(property.checkin_time) ||
     !text(property.checkout_time) ||
+    (property.guestInfoTranslations !== undefined &&
+      !isGuestInfoTranslations(property.guestInfoTranslations)) ||
     ![
       "slug",
       "directions",
