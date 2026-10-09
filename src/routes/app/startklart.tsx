@@ -5,6 +5,7 @@ import { supabase, useProperty, useSession } from "@/lib/supabase";
 import { prepareSirvoyImport } from "@/lib/sirvoy-cutover";
 import { SirvoyArchive } from "@/components/app/SirvoyArchive";
 import { SirvoySourceRecords } from "@/components/app/SirvoySourceRecords";
+import { StripeReadinessDetails } from "@/components/app/StripeReadinessDetails";
 import { sanitizedHttpsUrl } from "../../../supabase/functions/_shared/public-links";
 import {
   isLaunchReadiness,
@@ -208,6 +209,7 @@ function LaunchPage() {
             </li>
           ))}
         </ul>
+        <StripeReadinessDetails readiness={connections} />
         {smsReadiness.required && !smsReadiness.ok && (
           <p role="alert" className="mt-3 rounded-xl bg-amber-50 p-3 text-sm text-amber-950">
             Aktiva gästmeddelanden använder SMS, men SMS-tjänsten är inte konfigurerad. Anslut
