@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/lib/supabase";
-import { readStripeDiagnostic, stripeDiagnosticLabels } from "@/lib/stripe-diagnostic";
-import type { StripeDiagnosticResult } from "../../../supabase/functions/_shared/stripe-diagnostic";
+import { readStripeCheckoutCheck, stripeCheckoutCheckLabels } from "@/lib/stripe-checkout-check";
+import type { StripeCheckoutDiagnosticResult } from "../../../supabase/functions/_shared/stripe-checkout-diagnostic";
 
-export function StripeConnectionCheck({ propertyId }: { propertyId: string }) {
-  return <ConnectionCheck key={propertyId} propertyId={propertyId} />;
+export function StripeCheckoutCheck({ propertyId }: { propertyId: string }) {
+  return <CheckoutCheck key={propertyId} propertyId={propertyId} />;
 }
 
-function ConnectionCheck({ propertyId }: { propertyId: string }) {
-  const [result, setResult] = useState<StripeDiagnosticResult | null>(null);
+function CheckoutCheck({ propertyId }: { propertyId: string }) {
+  const [result, setResult] = useState<StripeCheckoutDiagnosticResult | null>(null);
   const [error, setError] = useState(false);
   const [busy, setBusy] = useState(false);
   const alive = useRef(false);
@@ -28,11 +28,12 @@ function ConnectionCheck({ propertyId }: { propertyId: string }) {
     setError(false);
     setResult(null);
     try {
-      const { data, error: requestError } = await supabase.functions.invoke("booking-import", {
-        body: { propertyId, action: "stripe_diagnostic" },
-      });
-      const parsed = readStripeDiagnostic(data);
-      if (requestError || !parsed) throw new Error("stripe_diagnostic_unavailable");
+      const { data, error: requestError } = await supabase.functions.invoke(
+        "stripe-checkout-diagnostic",
+        { body: { propertyId } },
+      );
+      const parsed = readStripeCheckoutCheck(data);
+      if (requestError || !parsed) throw new Error("stripe_checkout_check_unavailable");
       if (alive.current) setResult(parsed);
     } catch {
       if (alive.current) setError(true);
@@ -43,7 +44,7 @@ function ConnectionCheck({ propertyId }: { propertyId: string }) {
   };
 
   return (
-    <div className="mt-4 space-y-2 text-sm">
+    <div className="mt-4 space-y-2 border-t border-line pt-4 text-sm">
       <Button
         type="button"
         variant="outline"
@@ -51,17 +52,21 @@ function ConnectionCheck({ propertyId }: { propertyId: string }) {
         disabled={busy}
         onClick={() => void check()}
       >
-        {busy ? "Kontrollerar Stripe…" : "Kontrollera Stripe-anslutning"}
+        {busy ? "Kontrollerar provsession…" : "Kontrollera skapande och stängning i Stripe"}
       </Button>
       <p className="text-xs leading-relaxed text-ink/60">
-        Kontrollen provar endast autentisering och läsåtkomst till Checkout. Den verifierar inte
-        rätten att skapa betalningar, en genomförd betalning eller betalningsbekräftelser. Inga
-        bokningar eller betalningar skapas.
+        Kontrollen skapar en obetald provsession i ditt anslutna Stripe-konto och försöker stänga
+        den direkt. Ett tidigare försök kan återanvändas. Ingen gästbokning skapas, ingen betalning
+        genomförs och inga meddelanden skickas.
+      </p>
+      <p className="text-xs leading-relaxed text-ink/60">
+        Resultatet verifierar inte en genomförd betalning, återbetalning eller signerad
+        betalningsbekräftelse.
       </p>
       <div role="status" aria-live="polite">
         {result ? (
           <p>
-            {stripeDiagnosticLabels[result.status]}
+            {stripeCheckoutCheckLabels[result.status]}
             <span className="mt-1 block text-xs text-ink/60">
               Kontrollerad{" "}
               {new Date(result.checkedAt).toLocaleString("sv-SE", {
@@ -76,7 +81,7 @@ function ConnectionCheck({ propertyId }: { propertyId: string }) {
       </div>
       {error ? (
         <p role="alert" className="text-red-700">
-          Kontrollen kunde inte hämtas. Försök igen eller logga in på nytt.
+          Kontrollens resultat kunde inte hämtas. Kontrollera igen eller logga in på nytt.
         </p>
       ) : null}
     </div>
