@@ -1,4 +1,5 @@
 import { stripeReadiness } from "../_shared/stripe-config.ts";
+import { diagnoseStripeConnection } from "../_shared/stripe-diagnostic.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { emailProviderConfigured } from "../_shared/email-provider.ts";
 const cors = {
@@ -39,6 +40,13 @@ Deno.serve(async (req) => {
     .maybeSingle();
   if (propertyError) return json({ error: "database_unavailable" }, 503);
   if (!property) return json({ error: "not_authorized" }, 403);
+  if (body.action === "stripe_diagnostic") {
+    const response = json(
+      await diagnoseStripeConnection(property.id, (name) => Deno.env.get(name)),
+    );
+    response.headers.set("Cache-Control", "no-store");
+    return response;
+  }
   if (body.action === "readiness") {
     const { count: enabledSmsTemplates, error: templateError } = await admin
       .from("message_templates")
