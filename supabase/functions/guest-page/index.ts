@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 import { guestAccessAllowed, guestAddon, stayPhase } from "../_shared/guest-stay.ts";
 import { pendingCheckoutAllowed, resumeCheckout } from "../_shared/guest-checkout.ts";
+import { normalizeStripeSecret } from "../_shared/stripe-config.ts";
 
 // Publik gästsida. Tokenen i länken är nyckeln; endast kuraterade fält lämnar servern.
 
@@ -55,7 +56,10 @@ Deno.serve(async (req) => {
   if (!data) return json({ error: "not_found" }, 404);
   if (action === "resume_payment") {
     try {
-      const checkoutUrl = await resumeCheckout(data, Deno.env.get("STRIPE_SECRET_KEY") ?? "");
+      const checkoutUrl = await resumeCheckout(
+        data,
+        normalizeStripeSecret(Deno.env.get("STRIPE_SECRET_KEY")),
+      );
       return checkoutUrl ? json({ checkoutUrl }) : json({ error: "checkout_not_pending" }, 409);
     } catch {
       return json({ error: "checkout_unavailable" }, 503);
