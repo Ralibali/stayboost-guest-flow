@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "status": "draft",
+  "writtenAt": "2026-10-10T08:50:49.988416+00:00",
+  "repository": "Ralibali/stayboost-guest-flow",
+  "publicationGate": "Earliest 2026-10-12, at least two Stockholm calendar days after the previous original is live. Require fresh current main, inventory, sources and previous-article checks. No publication dates while draft.",
+  "sourceReview": {
+    "checkedAt": "2026-10-10T08:50:49.988416+00:00",
+    "distinctIntent": "Genomföra en konkret läs- och länkkontroll av bekräftad gästinformation på mobil, skilt från inventering, översättning och intern informationsgranskning.",
+    "note": "Original manual guide. Owned product path verified live on Oct10. Recheck offer and links before publication. No claimed product automation or customer results."
+  },
+  "article": {
+    "slug": "provlasa-gastinformation-mobiltelefon",
+    "title": "Provläs gästinformationen på en mobil innan den skickas",
+    "metaDescription": "Kontrollera att gästen hittar rätt besked och kan följa länkar på mobilen. En praktisk genomgång med exempeldata före publicering.",
+    "intro": "En gästtext kan se tydlig ut i ett redigeringsfönster men vara svårare att använda på en telefon. Långa rubriker, otydliga länkar och viktig information långt ned kan göra att gästen missar nästa steg. Provläs därför den färdiga vyn i det format där den ska användas.\n\nBörja med ett avgränsat besked, exempelvis praktisk ankomstinformation som verksamheten redan har bekräftat. Guiden handlar om en manuell kontroll av läsbarhet och väg genom innehållet. Den bedömer inte teknisk tillgänglighet enligt någon standard och ersätter inte granskning av säkerhetsinformation, avtal eller andra särskilda instruktioner.",
+    "sections": [
+      {
+        "heading": "Välj en uppgift som gästen ska kunna lösa",
+        "content": "Skriv en konkret fråga före genomgången: var ska gästen börja läsa, vilket besked ska hittas och vad ska personen göra därefter? Välj något som går att kontrollera utan verkliga bokningar, kunduppgifter eller betalningar. Använd en tillåten förhandsvisning och tydligt fiktiva exempel där det behövs.\n\nLåt gärna en kollega pröva uppgiften utan att få veta var svaret finns. Be personen beskriva vad den skulle göra efter att ha läst. Om svaret avviker från verksamhetens avsikt behöver ni först förstå vilken formulering eller placering som gjorde beskedet oklart, innan ni lägger till mer text."
+      },
+      {
+        "heading": "Läs från första skärmen till nästa steg",
+        "content": "Öppna den faktiska vyn på en telefon eller i en relevant mobilvisning. Kontrollera vad som syns först och om rubriken hjälper läsaren förstå vilket besked sidan gäller. Läs i vanlig ordning och notera var du behöver leta, gå tillbaka eller tolka en hänvisning till något som ännu inte har visats.\n\nKontrollera också text som bryts över flera rader och uppgifter som ligger i utfällbara delar. En uppgift kan finnas på sidan utan att vara lätt att upptäcka. Skriv ned den konkreta observationen, exempelvis att kontaktvägen hittas först efter flera likartade rubriker, i stället för det allmänna omdömet att sidan känns rörig."
+      },
+      {
+        "heading": "Pröva länkar utan att utföra riktiga åtgärder",
+        "content": "Följ de vanliga informationslänkar som gästen ska använda och kontrollera att de leder till det som länktexten utlovar. Notera om en ny flik öppnas, om sidan kräver en inloggning eller om destinationen inte längre visar det förväntade innehållet. Be ansvarig kontrollera sådant du saknar tillgång till.\n\nStanna före åtgärder som skapar bokningar, skickar meddelanden eller påverkar riktiga uppgifter. Använd godkända testvägar när en sådan funktion behöver provas. För själva läskontrollen räcker det att tydligt dokumentera var nästa steg finns och vilka delar som fortfarande kräver en separat funktionskontroll."
+      },
+      {
+        "heading": "Skriv en kort åtgärdslista och kontrollera om",
+        "content": "Samla varje iakttagelse med plats, vad som hände, föreslagen ändring och ansvarig. Skilj innehållsfrågor från tekniska frågor så att rätt person kan agera. Efter ändringen behöver samma läsuppgift provas igen; en sparad textändring bevisar inte att den färdiga mobilvyn blev begripligare.\n\nAnvänd er [inventering av gästinformationens kanaler](/blogg/inventera-gastinformation-kanaler) för att hitta andra versioner som berörs. Du kan [utforska StayBoosts produktdemo](/produkten) när du bedömer gästvyerna. AI-assisterad originalguide med en manuell kontrollrutin. Den utlovar ingen automatisk länkgranskning eller kvalitetscertifiering i StayBoost."
+      }
+    ],
+    "ctaHref": "/produkten",
+    "ctaLabel": "Öppna produktdemon",
+    "editorial": {
+      "createdWith": "ChatGPT",
+      "aiAssisted": true,
+      "searchIntent": "Genomföra en konkret läs- och länkkontroll av bekräftad gästinformation på mobil, skilt från inventering, översättning och intern informationsgranskning.",
+      "sourceUrls": [
+        "https://stayboost.se/produkten"
+      ],
+      "sourceCheckedAt": "2026-10-10T08:50:49.988416+00:00"
+    }
+  }
+}
