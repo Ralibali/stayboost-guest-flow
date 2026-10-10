@@ -2,28 +2,42 @@
 type Env = (name: string) => string | undefined;
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-export function stripeReadiness(propertyId: string, env: Env) {
-  const configuredProperty = env("STRIPE_PROPERTY_ID")?.trim() ?? "";
-  const scoped = UUID.test(configuredProperty) && configuredProperty === propertyId;
-  const key = env("STRIPE_SECRET_KEY") ?? "";
-  const methodConfiguration = env("STRIPE_PAYMENT_METHOD_CONFIGURATION_ID")?.trim() ?? "";
-  const validMethodConfiguration =
-    !methodConfiguration || /^pmc_[a-zA-Z0-9]+$/.test(methodConfiguration);
+export function normalizeStripeSecret(value: string | undefined): string {
+  return value?.trim() ?? "";
+}
+
+function stripeEnvironment(env: Env) {
+  // Normalize copy/paste padding once, before both validation and actual use.
   return {
-    stripeConfigured: scoped && validMethodConfiguration && /^(?:sk|rk)_(?:live|test)_.+/.test(key),
-    stripeWebhookConfigured: scoped && /^whsec_.+/.test(env("STRIPE_WEBHOOK_SECRET") ?? ""),
+    propertyId: env("STRIPE_PROPERTY_ID")?.trim() ?? "",
+    secretKey: normalizeStripeSecret(env("STRIPE_SECRET_KEY")),
+    webhookSecret: normalizeStripeSecret(env("STRIPE_WEBHOOK_SECRET")),
+    paymentMethodConfiguration: env("STRIPE_PAYMENT_METHOD_CONFIGURATION_ID")?.trim() || undefined,
   };
 }
 
-export function stripeConfigForProperty(propertyId: string, env: Env) {
-  const ready = stripeReadiness(propertyId, env);
-  if (!ready.stripeConfigured || !ready.stripeWebhookConfigured) return null;
-  const secretKey = env("STRIPE_SECRET_KEY")!;
+function readiness(propertyId: string, config: ReturnType<typeof stripeEnvironment>) {
+  const scoped = UUID.test(config.propertyId) && config.propertyId === propertyId;
+  const methodConfiguration = config.paymentMethodConfiguration;
+  const validMethodConfiguration =
+    !methodConfiguration || /^pmc_[a-zA-Z0-9]+$/.test(methodConfiguration);
   return {
-    propertyId,
-    secretKey,
-    webhookSecret: env("STRIPE_WEBHOOK_SECRET")!,
-    livemode: /^(?:sk|rk)_live_/.test(secretKey),
-    paymentMethodConfiguration: env("STRIPE_PAYMENT_METHOD_CONFIGURATION_ID")?.trim() || undefined,
+    stripeConfigured:
+      scoped && validMethodConfiguration && /^(?:sk|rk)_(?:live|test)_\S+$/.test(config.secretKey),
+    stripeWebhookConfigured: scoped && /^whsec_\S+$/.test(config.webhookSecret),
+  };
+}
+
+export function stripeReadiness(propertyId: string, env: Env) {
+  return readiness(propertyId, stripeEnvironment(env));
+}
+
+export function stripeConfigForProperty(propertyId: string, env: Env) {
+  const config = stripeEnvironment(env);
+  const ready = readiness(propertyId, config);
+  if (!ready.stripeConfigured || !ready.stripeWebhookConfigured) return null;
+  return {
+    ...config,
+    livemode: /^(?:sk|rk)_live_/.test(config.secretKey),
   };
 }

@@ -61,6 +61,26 @@ describe("public API response resilience", () => {
     expect(isGuestResponse(guest)).toBe(true);
     expect(isGuestResponse({ ...guest, addons: [] })).toBe(true);
   });
+  it("accepts only the new generic language contract while retaining old responses", () => {
+    const good = { en: { directions: "Arrival", house_rules: null } };
+    expect(
+      isGuestResponse({ ...guest, property: { ...guest.property, guestInfoTranslations: good } }),
+    ).toBe(true);
+    for (const invalid of [
+      null,
+      [],
+      { fr: good.en },
+      { en: { ...good.en, door_code: "private" } },
+      { en: { directions: {} } },
+    ]) {
+      expect(
+        isGuestResponse({
+          ...guest,
+          property: { ...guest.property, guestInfoTranslations: invalid },
+        }),
+      ).toBe(false);
+    }
+  });
   it("rejects fields that would crash the guest renderer on refresh", () => {
     expect(isGuestResponse({ ...guest, property: null })).toBe(false);
     expect(isGuestResponse({ ...guest, payment: { ...guest.payment, amount: {} } })).toBe(false);

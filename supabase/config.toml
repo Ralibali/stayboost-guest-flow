@@ -84,3 +84,7 @@ verify_jwt = true
 # Searchable source evidence; handler checks the authenticated property owner.
 [functions.sirvoy-records]
 verify_jwt = true
+
+# Explicit owner-only unpaid Checkout creation/expiry, separate from read diagnostics.
+[functions.stripe-checkout-diagnostic]
+verify_jwt = true
