@@ -11,6 +11,7 @@ const read = (path: string) => readFileSync(join(root, path), "utf8");
 const migration = read("supabase/migrations/20260830210000_canonical_booking_write_lock.sql");
 const bookingEngine = read("supabase/functions/booking-engine/index.ts");
 const icalSync = read("supabase/functions/ical-sync/index.ts");
+const icalWriter = read("supabase/migrations/20261014135301_ical_sync_claims.sql");
 const sirvoyWebhook = read("supabase/functions/sirvoy-webhook/index.ts");
 const bookingsUi = read("src/routes/app/bokningar.tsx");
 
@@ -57,8 +58,9 @@ describe("BP-1 canonical booking write lock", () => {
     expect(bookingEngine).toContain('.from("bookings")');
     expect(bookingEngine).toContain('source: "direct"');
 
-    expect(icalSync).toContain('.from("bookings")');
-    expect(icalSync).toContain('source: "ical"');
+    expect(icalSync).toContain('admin.rpc("write_ical_sync_booking"');
+    expect(icalWriter).toContain("insert into public.bookings(property_id,unit_id,source,");
+    expect(icalWriter).toContain("values(s.property_id,s.unit_id,'ical',s.id,p_uid,");
 
     expect(sirvoyWebhook).toContain('.from("bookings")');
     expect(sirvoyWebhook).toContain('source: "sirvoy"');
