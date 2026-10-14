@@ -7,6 +7,7 @@ import {
   type IcsClosedRule,
 } from "../../supabase/functions/_shared/ics-export";
 import { isBlockEvent, parseIcs } from "../../supabase/functions/_shared/ics";
+import { calendarExportUrl } from "./ical-export-url";
 
 const TOKEN = "a".repeat(24);
 const PROPERTY = "11111111-1111-4111-8111-111111111111";
@@ -56,7 +57,12 @@ function runtime(
       ];
   const tables: Record<string, Row[]> = {
     units,
-    bookings: options.bookings ?? [],
+    bookings: (options.bookings ?? []).map((row) => ({ property_id: PROPERTY, ...row })),
+    ical_export_bookings: (options.bookings ?? []).map((row) => ({
+      property_id: PROPERTY,
+      booking_com_origin: false,
+      ...row,
+    })),
     rate_rules: options.rules ?? [],
   };
   const client = {
@@ -163,8 +169,8 @@ function runtime(
   );
   return {
     calls,
-    request: (token = TOKEN) =>
-      handler(new Request(`https://example.test/ical-export?token=${token}`)),
+    request: (token = TOKEN, query = "") =>
+      handler(new Request(`https://example.test/ical-export?token=${token}${query}`)),
   };
 }
 
@@ -364,4 +370,117 @@ describe("closed-rule iCal date and identity semantics", () => {
       expect(() => closedRuleEvents([rule], UNIT)).toThrow("invalid_closed_range");
     },
   );
+});
+
+describe("Booking.com destination export", () => {
+  const booking = (id: string, patch: Row = {}): Row => ({
+    id,
+    unit_id: UNIT,
+    status: "confirmed",
+    checkin_date: "2027-06-17",
+    checkout_date: "2027-06-20",
+    ...patch,
+  });
+  it("does not echo Booking.com imports or Sirvoy Booking.com holds, but retains direct, other-channel and unknown-origin blocks plus closures", async () => {
+    const fixture = runtime({
+      bookings: [
+        booking("booking-import", { booking_com_origin: true }),
+        booking("sirvoy-original", { booking_com_origin: true }),
+        booking("website"),
+        booking("airbnb"),
+        booking("unknown", { guest_name: "Booking.com" }),
+        booking("cancelled", { status: "cancelled" }),
+        booking("other-tent", { unit_id: OTHER_UNIT }),
+        booking("other-property", { property_id: "other" }),
+      ],
+      rules: [ruleRow()],
+    });
+    const response = await fixture.request(TOKEN, "&destination=booking");
+    expect(response.status).toBe(200);
+    const body = await response.text();
+    const events = parseIcs(body);
+    expect(events.map((e) => e.uid).sort()).toEqual(
+      [
+        "website@stayboost",
+        "airbnb@stayboost",
+        "unknown@stayboost",
+        `closed-winter-${UNIT}@stayboost`,
+      ].sort(),
+    );
+    expect(body).not.toMatch(/Booking\.com|sirvoy|guest|booking-import|other-/i);
+    expect(fixture.calls.some((c) => c.table === "bookings")).toBe(false);
+    expect(fixture.calls.find((c) => c.table === "ical_export_bookings")?.selected).toBe(
+      "id, checkin_date, checkout_date",
+    );
+    // Existing generic subscribers retain their original complete feed.
+    const generic = parseIcs(await (await fixture.request()).text());
+    expect(generic.some((e) => e.uid === "booking-import@stayboost")).toBe(true);
+    expect(generic.some((e) => e.uid === "sirvoy-original@stayboost")).toBe(true);
+  });
+  it("keeps a direct booking UID stable when dates change and removes it on cancellation without reflecting a cancelled OTA reservation", async () => {
+    const read = async (rows: Row[]) =>
+      parseIcs(
+        await (await runtime({ bookings: rows }).request(TOKEN, "&destination=booking")).text(),
+      );
+    const initial = await read([booking("website"), booking("ota", { booking_com_origin: true })]);
+    const moved = await read([
+      booking("website", { checkin_date: "2027-06-21", checkout_date: "2027-06-24" }),
+      booking("ota", { booking_com_origin: true, status: "cancelled" }),
+    ]);
+    expect(initial).toHaveLength(1);
+    expect(moved).toHaveLength(1);
+    expect(moved[0]).toMatchObject({
+      uid: initial[0].uid,
+      startDate: "2027-06-21",
+      endDate: "2027-06-24",
+    });
+    expect(
+      await read([
+        booking("website", { status: "cancelled" }),
+        booking("ota", { booking_com_origin: true, status: "cancelled" }),
+      ]),
+    ).toEqual([]);
+  });
+  it("reads all destination-filtered pages and fails closed if the origin view is unavailable", async () => {
+    const rows = Array.from({ length: 1001 }, (_, i) =>
+      booking(`b${String(i).padStart(4, "0")}`, { booking_com_origin: i % 2 === 0 }),
+    );
+    const fixture = runtime({ bookings: rows, pageLimit: 100 });
+    const response = await fixture.request(TOKEN, "&destination=booking");
+    expect(response.status).toBe(200);
+    expect(parseIcs(await response.text())).toHaveLength(500);
+    expect(
+      fixture.calls.filter((c) => c.table === "ical_export_bookings").map((c) => c.from),
+    ).toEqual([0, 100, 200, 300, 400]);
+    const failed = await runtime({ failure: { table: "ical_export_bookings" } }).request(
+      TOKEN,
+      "&destination=booking",
+    );
+    expect(failed.status).toBe(503);
+    expect(await failed.text()).toBe("calendar_unavailable");
+  });
+  it.each(["&destination=", "&destination=unknown", "&destination=booking&destination=booking"])(
+    "rejects ambiguous or unsupported destination %s before database access",
+    async (query) => {
+      const fixture = runtime();
+      expect((await fixture.request(TOKEN, query)).status).toBe(400);
+      expect(fixture.calls).toEqual([]);
+    },
+  );
+  it("requires the same private unit token for the destination feed", async () => {
+    const fixture = runtime();
+    expect((await fixture.request("bad", "&destination=booking")).status).toBe(400);
+    expect((await fixture.request("b".repeat(24), "&destination=booking")).status).toBe(404);
+    expect(fixture.calls.every((c) => c.table === "units")).toBe(true);
+  });
+  it("builds a distinct Booking.com URL while preserving existing generic URLs", () => {
+    expect(calendarExportUrl("https://example.test/", TOKEN)).toBe(
+      `https://example.test/functions/v1/ical-export?token=${TOKEN}`,
+    );
+    expect(calendarExportUrl("https://example.test", TOKEN, "booking")).toBe(
+      `https://example.test/functions/v1/ical-export?token=${TOKEN}&destination=booking`,
+    );
+    expect(calendarExportUrl("", TOKEN, "booking")).toBe("");
+    expect(calendarExportUrl("https://example.test", "", "booking")).toBe("");
+  });
 });
