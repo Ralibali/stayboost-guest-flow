@@ -705,13 +705,27 @@ function SettingsPage() {
                   <UnitContentEditor unit={u} onSaved={reload} />
 
                   <button
-                    onClick={() => copyFeed(u.id, icalExportUrl(u))}
+                    onClick={() => copyFeed(`${u.id}-booking`, icalExportUrl(u, "booking"))}
                     className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-[color:var(--brass)] hover:underline"
                   >
-                    {copiedFeed === u.id ? <Check size={13} /> : <Copy size={13} />}
-                    {copiedFeed === u.id
+                    {copiedFeed === `${u.id}-booking` ? <Check size={13} /> : <Copy size={13} />}
+                    {copiedFeed === `${u.id}-booking`
+                      ? "Booking.com-länk kopierad"
+                      : "Kopiera iCal-länk till Booking.com"}
+                  </button>
+                  <p className="mt-1 text-[12px] text-[color:var(--ink)]/60">
+                    Booking.com-länken undantar bokningar med bekräftat ursprung i Booking.com, så
+                    att de inte skickas tillbaka som nya spärrar. iCal överför upptagna datum och
+                    uppdateras med fördröjning.
+                  </p>
+                  <button
+                    onClick={() => copyFeed(`${u.id}-all`, icalExportUrl(u))}
+                    className="mt-2 flex items-center gap-1.5 text-[12px] font-medium text-[color:var(--brass)] hover:underline"
+                  >
+                    {copiedFeed === `${u.id}-all` ? <Check size={13} /> : <Copy size={13} />}
+                    {copiedFeed === `${u.id}-all`
                       ? "Exportlänk kopierad"
-                      : "Kopiera iCal-exportlänk till Airbnb/Booking"}
+                      : "Kopiera allmän iCal-länk (alla bokningar)"}
                   </button>
                 </div>
               </div>

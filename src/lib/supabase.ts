@@ -9,6 +9,7 @@ import type {
 } from "../../supabase/functions/_shared/unit-content";
 
 import { SUPABASE_URL, SUPABASE_PUBLIC_KEY } from "./supabase-config";
+import { calendarExportUrl } from "./ical-export-url";
 
 const url = SUPABASE_URL;
 const anonKey = SUPABASE_PUBLIC_KEY;
@@ -109,11 +110,9 @@ export type Unit = {
   child_max_age: number;
 };
 
-/** Publik iCal-exportlänk för en enhet (klistras in i Airbnb/Booking). */
-export const icalExportUrl = (unit: Unit) => {
-  const base = SUPABASE_URL.replace(/\/$/, "");
-  return base ? `${base}/functions/v1/ical-export?token=${unit.ical_feed_token}` : "";
-};
+/** Token-skyddad export. Välj Booking.com-länken för tvåvägssynk med Booking.com. */
+export const icalExportUrl = (unit: Unit, destination?: "booking") =>
+  calendarExportUrl(SUPABASE_URL, unit.ical_feed_token, destination);
 
 export type Booking = {
   id: string;
