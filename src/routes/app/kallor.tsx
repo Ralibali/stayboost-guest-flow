@@ -1,3 +1,4 @@
+import { icalSourceFresh } from "../../../supabase/functions/_shared/ical-freshness";
 import { createFileRoute } from "@tanstack/react-router";
 import { AlertTriangle, Link2, Pause, Play, RefreshCw, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -61,7 +62,7 @@ function SourcesPage() {
   const [name, setName] = useState("");
   const [url, setUrl] = useState("");
   const [unitId, setUnitId] = useState("");
-  const [channelType, setChannelType] = useState<IcalChannelType>("sirvoy");
+  const [channelType, setChannelType] = useState<IcalChannelType>("booking");
   const [syncing, setSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -98,11 +99,15 @@ function SourcesPage() {
       name: name.trim(),
       url: url.trim(),
       channel_type: channelType,
+      paused: true,
     });
     if (error) setError(error.message);
     else {
       setName("");
       setUrl("");
+      setSyncResult(
+        "Kalendern har sparats pausad. Kontrollera kopplingen och befintliga bokningar innan du startar synkningen.",
+      );
       load();
     }
   };
@@ -168,23 +173,10 @@ function SourcesPage() {
     load();
   };
 
-  const sirvoySources = useMemo(
-    () =>
-      sources.filter((source) => (source.channel_type ?? inferChannelType(source)) === "sirvoy"),
-    [sources],
-  );
-  const lastSirvoySync = useMemo(() => {
-    const times = sirvoySources
-      .map((source) => source.last_success_at ?? source.last_synced_at)
-      .filter((value): value is string => Boolean(value))
-      .map((value) => new Date(value).getTime());
-    return times.length ? new Date(Math.max(...times)).toISOString() : null;
-  }, [sirvoySources]);
   const unhealthyUnits = useMemo(() => {
     const map = new Map<string, string>();
     for (const source of sources) {
-      const health = classifyIcalHealth(source);
-      if (health === "red" && source.unit?.name) map.set(source.unit_id, source.unit.name);
+      if (!icalSourceFresh(source)) map.set(source.unit_id, source.unit?.name ?? "Boendet");
     }
     return Array.from(map.values());
   }, [sources]);
@@ -196,28 +188,30 @@ function SourcesPage() {
       <p className="eyebrow">Integrationer</p>
       <h1 className="mt-2 font-[Fraunces] text-3xl font-semibold">iCal-källor</h1>
       <p className="mt-1 text-[14px] text-[color:var(--ink)]/65">
-        Lägg till en exportkalender per boende och kanal. Automatisk synkning bör köras var femtonde
-        minut.
+        Lägg till kanalens exportkalender för varje boende. StayBoost hämtar aktiva kalendrar
+        ungefär var femtonde minut. Nya kopplingar sparas pausade.
       </p>
 
       <div className="card-surface mt-5 border-l-4 border-[color:var(--forest)] p-5">
         <p className="text-[12px] font-semibold uppercase tracking-wide text-[color:var(--forest)]">
-          Sirvoy-parallelläge
+          Tvåvägs kalenderkoppling
         </p>
         <p className="mt-1.5 text-[14px] leading-relaxed text-[color:var(--ink)]/80">
-          Sirvoy är fortsatt primär channel manager mot Booking.com och Airbnb. StayBoost tar emot
-          direktbokningar och importerar Sirvoys iCal-flöden för att blockera dubbelbokningar.
+          Lägg även in StayBoosts exportlänk hos kanalen. iCal uppdateras med fördröjning åt båda
+          håll och överför inte priser eller betalningar. Kanalens eget hämtningsintervall gäller
+          där.
         </p>
         <p className="mt-2 text-[13px] text-[color:var(--ink)]/60">
-          Senaste lyckade Sirvoy-synk: <strong>{formatDateTime(lastSirvoySync)}</strong>
-          {sirvoySources.length === 0 && " — ingen Sirvoy-källa registrerad ännu."}
+          Ett boende kan inte direktbokas när en ansluten kalender är pausad, har synkfel eller
+          saknar en lyckad synk de senaste 20 minuterna. Starta kopplingen först när befintliga
+          bokningar är kontrollerade och synka sedan.
         </p>
         {unhealthyUnits.length > 0 && (
           <div className="mt-3 flex items-start gap-2 rounded-xl bg-red-50 px-3.5 py-2.5 text-[13px] text-red-800">
             <AlertTriangle size={16} className="mt-0.5 shrink-0" />
             <span>
-              Överväg att pausa direktbokningar för <strong>{unhealthyUnits.join(", ")}</strong>{" "}
-              tills kalendersynken fungerar igen — annars riskerar du dubbelbokning.
+              Direktbokning är spärrad för: <strong>{unhealthyUnits.join(", ")}</strong>.
+              Kontrollera källorna och synka igen.
             </span>
           </div>
         )}
@@ -246,7 +240,7 @@ function SourcesPage() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Etikett, t.ex. Sirvoy Sjöbris"
+            placeholder="Etikett, t.ex. Booking.com Sjöbris"
             className="inp"
           />
           <input
@@ -261,7 +255,7 @@ function SourcesPage() {
             disabled={!name.trim() || !url.trim() || !unitId}
             className="btn-primary !rounded-xl !px-4 !py-2.5 text-[13px] disabled:opacity-40"
           >
-            <Link2 size={15} /> Lägg till
+            <Link2 size={15} /> Spara pausad
           </button>
         </div>
         {error && (
@@ -351,10 +345,10 @@ function SourcesPage() {
                   <button
                     onClick={() => togglePause(source)}
                     className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--line)] px-3 py-1.5 text-[12px] font-semibold text-[color:var(--ink)]/70 hover:bg-[color:var(--bg)]"
-                    aria-label={source.paused ? "Återaktivera källa" : "Pausa källa"}
+                    aria-label={source.paused ? "Starta källa" : "Pausa källa"}
                   >
                     {source.paused ? <Play size={13} /> : <Pause size={13} />}
-                    {source.paused ? "Återaktivera" : "Pausa"}
+                    {source.paused ? "Starta synkning" : "Pausa"}
                   </button>
                   <button
                     onClick={() => remove(source)}

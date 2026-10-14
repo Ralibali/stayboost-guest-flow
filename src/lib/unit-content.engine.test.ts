@@ -1,3 +1,4 @@
+import { icalUnitFresh } from "../../supabase/functions/_shared/ical-freshness";
 import { stripeConfigForProperty } from "../../supabase/functions/_shared/stripe-config";
 import { readFileSync } from "node:fs";
 import { ScriptTarget, transpileModule } from "typescript";
@@ -102,6 +103,7 @@ it("the actual booking GET publishes complete content only through its explicit 
     stockholmDay,
     sanitizedHttpsUrl,
     channelInventoryFresh,
+    icalUnitFresh,
     rulesForUnit,
     projectUnitContent,
     projectAddonContent,

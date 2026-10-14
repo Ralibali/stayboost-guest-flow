@@ -191,20 +191,24 @@ describe("recovering an outdated booking offer", () => {
     ).rejects.toMatchObject({ kind: "temporary" });
   });
 
-  it("retains the host contact when channels become unavailable during checkout", async () => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          error: "channel_sync_required",
-          property: { contactEmail: "host@example.test" },
-        }),
-        { status: 503 },
-      ),
-    );
-    await expect(
-      fetchBookingOffer("https://example.test", "glamping", undefined, fetcher),
-    ).rejects.toEqual(new BookingOfferError("channel", "host@example.test"));
-  });
+  it.each(["channel_sync_required", "ical_sync_required"])(
+    "retains the host contact when %s interrupts checkout",
+    async (error) => {
+      expect(bookingOfferNeedsRefresh(error)).toBe(true);
+      const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+        new Response(
+          JSON.stringify({
+            error,
+            property: { contactEmail: "host@example.test" },
+          }),
+          { status: 503 },
+        ),
+      );
+      await expect(
+        fetchBookingOffer("https://example.test", "glamping", undefined, fetcher),
+      ).rejects.toEqual(new BookingOfferError("channel", "host@example.test"));
+    },
+  );
 
   it.each(["invalid_phone", "terms_required", "email_required", "stripe_failed", "rate_limited"])(
     "keeps the offer when %s does not report a stale quote",

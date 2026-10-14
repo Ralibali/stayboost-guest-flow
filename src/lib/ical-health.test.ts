@@ -40,11 +40,11 @@ describe("classifyIcalHealth", () => {
     expect(classifyIcalHealth(source, NOW)).toBe("yellow");
   });
 
-  it("är gul om senaste lyckade synk är äldre än sex timmar", () => {
+  it("är röd om senaste lyckade synk är äldre än 35 minuter", () => {
     const source = makeSource({
-      last_success_at: new Date(NOW.getTime() - 7 * 60 * 60_000).toISOString(),
+      last_success_at: new Date(NOW.getTime() - 36 * 60_000).toISOString(),
     });
-    expect(classifyIcalHealth(source, NOW)).toBe("yellow");
+    expect(classifyIcalHealth(source, NOW)).toBe("red");
   });
 
   it("är grön vid färsk lyckad synk och inga fel", () => {
@@ -54,12 +54,12 @@ describe("classifyIcalHealth", () => {
     expect(classifyIcalHealth(source, NOW)).toBe("green");
   });
 
-  it("faller tillbaka på last_status='ok' + last_synced_at när last_success_at saknas", () => {
+  it("kräver uttrycklig lyckad synk även när gammalt last_status säger ok", () => {
     const source = makeSource({
       last_status: "ok (12 event, +0 nya, 0 uppdaterade, 0 avbokade)",
       last_synced_at: new Date(NOW.getTime() - 5 * 60_000).toISOString(),
     });
-    expect(classifyIcalHealth(source, NOW)).toBe("green");
+    expect(classifyIcalHealth(source, NOW)).toBe("yellow");
   });
 
   it("är gul när källan aldrig synkats", () => {
