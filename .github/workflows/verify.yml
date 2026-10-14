@@ -61,6 +61,7 @@ jobs:
           supabase/functions/channel-sync/index.ts
           supabase/functions/channex-webhook/index.ts
           supabase/functions/send-scheduled-messages/index.ts
+          supabase/functions/chat-message/index.ts
 
       - name: Check Guest AI function
         run: deno check supabase/functions/guest-ai-draft/index.ts

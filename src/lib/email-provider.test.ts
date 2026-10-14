@@ -121,3 +121,97 @@ describe("provider request contracts", () => {
     },
   );
 });
+
+describe("optional chat reply-to and persisted identity", () => {
+  it("rejects a non-UUID chat key for Brevo instead of pretending it provides deduplication", () => {
+    expect(() =>
+      buildEmailRequest(getEmailProvider(environment(brevo))!, {
+        ...message,
+        deliveryKind: "chat",
+        deliveryId: "not-a-persisted-chat-uuid",
+      }),
+    ).toThrow("invalid_email_delivery_id");
+  });
+  it.each([brevo, resend])(
+    "preserves scheduled request bytes when chat fields are absent %j",
+    (env) => {
+      const config = getEmailProvider(environment(env))!;
+      const request = buildEmailRequest(config, message);
+      const expected =
+        config.provider === "resend"
+          ? {
+              from: "Bergs Slussar Glamping <host@example.test>",
+              to: [message.recipientEmail],
+              subject: message.subject,
+              text: message.text,
+            }
+          : {
+              sender: { email: "host@example.test", name: message.fallbackSenderName },
+              to: [{ email: message.recipientEmail, name: message.recipientName }],
+              subject: message.subject,
+              textContent: message.text,
+            };
+      expect(request.options.body).toBe(JSON.stringify(expected));
+    },
+  );
+
+  it.each([brevo, resend])(
+    "uses stable chat identity, distinct from scheduled delivery %j",
+    (env) => {
+      const config = getEmailProvider(environment(env))!;
+      const notification = {
+        ...message,
+        deliveryKind: "chat" as const,
+        replyToEmail: "visitor@example.test",
+        replyToName: "Åsa Visitor",
+      };
+      const first = buildEmailRequest(config, notification);
+      expect(buildEmailRequest(config, notification)).toEqual(first);
+      const body = JSON.parse(String(first.options.body));
+      if (config.provider === "resend") {
+        expect(body.reply_to).toBe("visitor@example.test");
+        expect(new Headers(first.options.headers).get("Idempotency-Key")).toBe(
+          `stayboost-chat/${message.deliveryId}`,
+        );
+      } else {
+        expect(body.replyTo).toEqual({ email: "visitor@example.test", name: "Åsa Visitor" });
+        expect(body.headers.idempotencyKey).toBe(message.deliveryId);
+      }
+      expect(first.options.body).not.toBe(buildEmailRequest(config, message).options.body);
+      expect(
+        buildEmailRequest(config, {
+          ...notification,
+          deliveryId: "00000000-0000-0000-0000-000000000002",
+        }),
+      ).not.toEqual(first);
+    },
+  );
+
+  it.each([
+    { replyToEmail: "invalid" },
+    { replyToEmail: "visitor@example.test,other@example.test" },
+    { replyToEmail: "Visitor <visitor@example.test>" },
+    { replyToEmail: "visitor@example.test\r\nBcc: other@example.test" },
+    { replyToEmail: "vis\0itor@example.test" },
+    { replyToEmail: "visitor@example.test", replyToName: "Visitor\nBcc: other" },
+    { replyToEmail: "visitor@example.test", replyToName: "<other@example.test>" },
+    { replyToEmail: "visitor@example.test", replyToName: "Vis\u007fitor" },
+    { replyToName: "Name without address" },
+  ])("rejects unsafe optional reply-to on both providers %j", (reply) => {
+    for (const env of [brevo, resend])
+      expect(() =>
+        buildEmailRequest(getEmailProvider(environment(env))!, { ...message, ...reply }),
+      ).toThrow("invalid_email_reply_to");
+  });
+
+  it.each([brevo, resend])("requires a bounded persisted chat identity %j", (env) => {
+    for (const deliveryId of ["", "contains\ncontrol", "x".repeat(257)])
+      expect(() =>
+        buildEmailRequest(getEmailProvider(environment(env))!, {
+          ...message,
+          deliveryKind: "chat",
+          deliveryId,
+        }),
+      ).toThrow("invalid_email_delivery_id");
+  });
+});
