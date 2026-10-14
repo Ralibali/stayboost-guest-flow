@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
   const destination = params.get("destination");
   if (
     params.getAll("destination").length > 1 ||
-    (destination !== null && destination !== "booking")
+    (destination !== null && destination !== "booking" && destination !== "airbnb")
   ) {
     return new Response("invalid_destination", { status: 400 });
   }
@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
         // The private view knows exact source provenance, including original
         // Sirvoy holds before iCal adoption. Unknown origins stay blocked.
         let query = admin
-          .from(destination === "booking" ? "ical_export_bookings" : "bookings")
+          .from(destination !== null ? "ical_export_bookings" : "bookings")
           .select("id, checkin_date, checkout_date", { count: "exact" })
           .eq("property_id", unit.property_id)
           .eq("unit_id", unit.id)
@@ -84,6 +84,7 @@ Deno.serve(async (req) => {
           .order("id")
           .range(from, to);
         if (destination === "booking") query = query.eq("booking_com_origin", false);
+        if (destination === "airbnb") query = query.eq("airbnb_origin", false);
         return query;
       }),
       readAll<IcsClosedRule>((from, to) =>
