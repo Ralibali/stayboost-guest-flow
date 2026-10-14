@@ -1,3 +1,4 @@
+import { icalUnitFresh } from "../../supabase/functions/_shared/ical-freshness";
 import { stripeConfigForProperty } from "../../supabase/functions/_shared/stripe-config";
 import { readFileSync } from "node:fs";
 import { ScriptTarget, transpileModule } from "typescript";
@@ -171,6 +172,7 @@ function fixture(
     collectPages,
     sanitizedHttpsUrl,
     channelInventoryFresh,
+    icalUnitFresh,
     projectUnitContent,
     localizedAddonText,
     projectAddonContent,

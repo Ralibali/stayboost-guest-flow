@@ -56,6 +56,23 @@ function runtime(
   };
   const writes: Array<{ table: string; patch: Row }> = [];
   const client = {
+    async rpc(name: string, args: Row) {
+      if (name === "claim_ical_sync")
+        return {
+          data: { token: "private-test-claim", source: tables.ical_sources[0] },
+          error: null,
+        };
+      if (name === "finish_ical_sync") return { data: true, error: null };
+      if (name === "write_ical_sync_booking") {
+        const patch = args.p_patch as Row;
+        writes.push({ table: "bookings", patch: { ...patch } });
+        if (args.p_booking_id)
+          Object.assign(tables.bookings.find((b) => b.id === args.p_booking_id)!, patch);
+        else tables.bookings.push({ id: "new", ...patch, ical_uid: args.p_uid });
+        return { data: args.p_booking_id ?? "new", error: null };
+      }
+      throw new Error(`Unexpected RPC ${name}`);
+    },
     from(table: string) {
       const filters: Array<(row: Row) => boolean> = [];
       let selected = "";

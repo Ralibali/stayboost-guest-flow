@@ -104,7 +104,9 @@ export async function fetchBookingOffer(
   const payload = await response.json();
   if (!response.ok)
     throw new BookingOfferError(
-      payload?.error === "channel_sync_required" ? "channel" : "temporary",
+      ["channel_sync_required", "ical_sync_required"].includes(payload?.error)
+        ? "channel"
+        : "temporary",
       typeof payload?.property?.contactEmail === "string" ? payload.property.contactEmail : null,
     );
   if (!isBookingEngineResponse(payload)) throw new BookingOfferError("temporary");
@@ -129,6 +131,7 @@ export function bookingOfferNeedsRefresh(error: unknown): boolean {
     "unit_not_found",
     "booking_paused",
     "channel_sync_required",
+    "ical_sync_required",
     "channel_sync_in_progress",
   ].includes(String(error));
 }

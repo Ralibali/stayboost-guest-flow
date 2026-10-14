@@ -21,6 +21,7 @@ import { normalizeGuestPhone } from "../_shared/guest-contact.ts";
 import { stockholmDay } from "../_shared/guest-stay.ts";
 import { collectPages } from "../_shared/pagination.ts";
 import { sanitizedHttpsUrl } from "../_shared/public-links.ts";
+import { icalUnitFresh, type IcalFreshnessSource } from "../_shared/ical-freshness.ts";
 import { channelInventoryFresh } from "../_shared/channel-freshness.ts";
 import { projectUnitContent } from "../_shared/unit-content.ts";
 import { localizedAddonText, projectAddonContent } from "../_shared/addon-content.ts";
@@ -51,7 +52,7 @@ Deno.serve(async (req) => {
   const json = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), {
       status,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      headers: { ...corsHeaders, "Content-Type": "application/json", "Cache-Control": "no-store" },
     });
 
   const admin = createClient(
@@ -75,6 +76,15 @@ Deno.serve(async (req) => {
       return false;
     }
   };
+  const loadIcalSources = (propertyId: string) =>
+    collectPages<IcalFreshnessSource>((from, to) =>
+      admin
+        .from("ical_sources")
+        .select("id, property_id, unit_id, paused, last_success_at, consecutive_failures")
+        .eq("property_id", propertyId)
+        .order("id")
+        .range(from, to),
+    );
   const loadRules = (propertyId: string, fromDate: string) =>
     collectPages<RateRule>((from, to) =>
       admin
@@ -153,6 +163,24 @@ Deno.serve(async (req) => {
       .order("sort_order");
     if (unitsError) return json({ error: unitsError.message }, 500);
 
+    let icalSources: IcalFreshnessSource[];
+    try {
+      icalSources = await loadIcalSources(property.id);
+    } catch {
+      return json({ error: "ical_sync_required" }, 503);
+    }
+    const availableUnits = (units ?? []).filter((unit) =>
+      icalUnitFresh(icalSources, property.id, unit.id),
+    );
+    if ((units?.length ?? 0) > 0 && availableUnits.length === 0)
+      return json(
+        {
+          error: "ical_sync_required",
+          property: { name: property.name, contactEmail: property.contact_email },
+        },
+        503,
+      );
+
     const today = stockholmDay();
     const until = stockholmDay(new Date(Date.now() + 365 * 86400000));
     let bookings: { unit_id: string | null; checkin_date: string; checkout_date: string }[];
@@ -211,7 +239,7 @@ Deno.serve(async (req) => {
           stripeConfigForProperty(property.id, (name) => Deno.env.get(name)),
         ),
       },
-      units: (units ?? []).map((u) => ({
+      units: availableUnits.map((u) => ({
         id: u.id,
         name: u.name,
         description: u.description,
@@ -343,6 +371,12 @@ Deno.serve(async (req) => {
       .maybeSingle();
     if (unitError) return json({ error: "booking_unavailable" }, 503);
     if (!unit) return json({ error: "unit_not_found" }, 404);
+    try {
+      if (!icalUnitFresh(await loadIcalSources(property.id), property.id, unit.id))
+        return json({ error: "ical_sync_required" }, 503);
+    } catch {
+      return json({ error: "ical_sync_required" }, 503);
+    }
 
     const party: BookingParty | null =
       unit.party_pricing_enabled || body?.adults != null || body?.childrenAges != null
@@ -516,6 +550,8 @@ Deno.serve(async (req) => {
       .single();
 
     if (error) {
+      if (error.message.includes("ical_sync_required"))
+        return json({ error: "ical_sync_required" }, 503);
       if (
         error.message.includes("channel_sync_in_progress") ||
         error.message.includes("channel_inventory_syncing")
