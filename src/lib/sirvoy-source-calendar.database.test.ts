@@ -102,6 +102,7 @@ async function fixture(
     mismatchedPeriod?: boolean;
     confirmed?: string;
     total?: string;
+    bookingSource?: string;
   } = {},
 ) {
   await service();
@@ -146,6 +147,7 @@ async function fixture(
         Confirmed: options.confirmed ?? "Ja",
         Email: "synthetic@example.com",
         Phone: "+46700000000",
+        "Booking source": options.bookingSource ?? "",
       },
     ],
     pid,
@@ -178,6 +180,7 @@ beforeAll(async () => {
     "20260721000000_addons.sql",
     "20260721120000_chat.sql",
     "20260722100000_production_hardening.sql",
+    "20260723000000_ical_source_health.sql",
     "20260830210000_canonical_booking_write_lock.sql",
     "20260830230000_payment_lifecycle.sql",
     "20260906233429_operator_management.sql",
@@ -196,6 +199,7 @@ beforeAll(async () => {
     "20261005160835_sirvoy_source_archive.sql",
     "20261005172512_sirvoy_searchable_source_records.sql",
     "20261005174946_sirvoy_source_calendar_import.sql",
+    "20261014133737_ical_export_destination.sql",
   ])
     await db.exec(read(name));
   await service();
@@ -542,5 +546,119 @@ describe("Source-linked future Sirvoy calendar import", () => {
     expect(
       (await db.query("select * from bookings where property_id=$1", [otherProperty])).rows,
     ).toEqual([]);
+  });
+});
+
+describe("service-only iCal destination projection", () => {
+  const projected = async (id: string) =>
+    row<{ booking_com_origin: boolean }>(
+      "select booking_com_origin from ical_export_bookings where id=$1",
+      [id],
+    );
+  it("classifies exact immutable Booking.com source holds before and after iCal binding without modifying bookings or source evidence", async () => {
+    const fixtureRows = await fixture({ bookingSource: "Booking.com" });
+    const id = (await importRows(fixtureRows.pairs)).result.bookingIds[0];
+    expect(await projected(id)).toEqual({ booking_com_origin: true });
+    const before = await row("select to_jsonb(b) as value from bookings b where id=$1", [id]);
+    const src = await row<{ id: string }>(
+      "insert into ical_sources(property_id,unit_id,name,url,channel_type) select property_id,unit_id,'Synthetic Booking','https://example.test/calendar','booking' from bookings where id=$1 returning id",
+      [id],
+    );
+    await db.query(
+      "update bookings set ical_source_id=$1,ical_uid='opaque-provider-uid' where id=$2",
+      [src.id, id],
+    );
+    expect(await projected(id)).toEqual({ booking_com_origin: true });
+    const after = await row<{ value: Record<string, unknown> }>(
+      "select to_jsonb(b) as value from bookings b where id=$1",
+      [id],
+    );
+    expect(after.value).toMatchObject({
+      source: "manual",
+      payment_status: "none",
+      payment_amount: null,
+      communications_enabled: false,
+    });
+    const {
+      ical_source_id: _oldSource,
+      ical_uid: _oldUid,
+      updated_at: _oldTime,
+      ...original
+    } = before.value as Record<string, unknown>;
+    const {
+      ical_source_id: _source,
+      ical_uid: _uid,
+      updated_at: _time,
+      ...remaining
+    } = after.value;
+    expect(remaining).toEqual(original);
+    await db.query("update bookings set status='cancelled' where id=$1", [id]);
+    expect(
+      await row("select status,booking_com_origin from ical_export_bookings where id=$1", [id]),
+    ).toEqual({ status: "cancelled", booking_com_origin: true });
+  });
+  it.each(["", "Direct", "booking.com", "Booking.com "])(
+    "retains unknown or nonexact origin %j as occupied rather than guessing",
+    async (bookingSource) => {
+      const source = await fixture({ bookingSource });
+      const id = (await importRows(source.pairs)).result.bookingIds[0];
+      expect(await projected(id)).toEqual({ booking_com_origin: false });
+    },
+  );
+  it("recognizes a current Booking.com iCal source, including when paused, and rejects cross-property provenance", async () => {
+    const source = await fixture();
+    const id = (await importRows(source.pairs)).result.bookingIds[0];
+    const own = await row<{ id: string }>(
+      "insert into ical_sources(property_id,unit_id,name,url,channel_type,paused) select property_id,unit_id,'Synthetic Booking','https://example.test/calendar','booking',true from bookings where id=$1 returning id",
+      [id],
+    );
+    await db.query("update bookings set ical_source_id=$1,ical_uid='uid' where id=$2", [
+      own.id,
+      id,
+    ]);
+    expect(await projected(id)).toEqual({ booking_com_origin: true });
+    const foreignProperty = await row<{ id: string }>(
+      "insert into properties(owner_id,name) values($1,'Other calendar property') returning id",
+      [OTHER],
+    );
+    await db.query("insert into units(property_id,name) values($1,'Other tent')", [
+      foreignProperty.id,
+    ]);
+    const foreign = await row<{ id: string }>(
+      "insert into ical_sources(property_id,unit_id,name,url,channel_type) select property_id,id,'Other Booking','https://example.test/calendar','booking' from units where property_id=$1 limit 1 returning id",
+      [foreignProperty.id],
+    );
+    await db.query("update bookings set ical_source_id=$1 where id=$2", [foreign.id, id]);
+    expect(await projected(id)).toEqual({ booking_com_origin: false });
+  });
+  it("exposes only dates and the origin boolean to service role, with no browser grants or definer bypass", async () => {
+    await service();
+    expect(Object.keys(await row("select * from ical_export_bookings limit 1")).sort()).toEqual(
+      [
+        "id",
+        "property_id",
+        "unit_id",
+        "status",
+        "checkin_date",
+        "checkout_date",
+        "booking_com_origin",
+      ].sort(),
+    );
+    expect(
+      await row(
+        "select reloptions from pg_class where oid='public.ical_export_bookings'::regclass",
+      ),
+    ).toEqual({ reloptions: ["security_invoker=true"] });
+    for (const actor of [OWNER, OTHER]) {
+      await owner(actor);
+      await expect(db.query("select * from ical_export_bookings")).rejects.toThrow(
+        /permission denied/,
+      );
+    }
+    await db.exec("reset role; set role anon;");
+    await expect(db.query("select * from ical_export_bookings")).rejects.toThrow(
+      /permission denied/,
+    );
+    await service();
   });
 });

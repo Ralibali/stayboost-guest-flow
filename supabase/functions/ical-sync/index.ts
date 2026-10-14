@@ -191,7 +191,7 @@ Deno.serve(async (req) => {
       const { data: existing, error: existingError } = await admin
         .from("bookings")
         .select(
-          "id, ical_uid, guest_name, checkin_date, checkout_date, status, ical_missing_since, ical_missing_count, ical_cancelled_at, ical_cancel_reason",
+          "id, ical_uid, guest_name, checkin_date, checkout_date, status, ical_missing_since, ical_missing_count, ical_cancelled_at, ical_cancel_reason, source_accommodation_record_id",
         )
         .eq("ical_source_id", source.id);
       if (existingError) throw existingError;
@@ -297,6 +297,7 @@ Deno.serve(async (req) => {
           previousMissingCount: booking.ical_missing_count,
           nowIso,
           policy: disappearancePolicy,
+          sourceLinked: Boolean(booking.source_accommodation_record_id),
         });
         const patch: Record<string, unknown> = {
           ical_missing_since: decision.missingSince,
