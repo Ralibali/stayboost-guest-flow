@@ -33,6 +33,8 @@ export function nextMissingObservation(input: {
   previousMissingCount: number | null | undefined;
   nowIso: string;
   policy: IcalDisappearancePolicy;
+  /** A documentary source hold needs explicit cancellation evidence, not absence. */
+  sourceLinked?: boolean;
 }) {
   const missingCount = Math.max(0, Math.floor(input.previousMissingCount ?? 0)) + 1;
   const parsedPrevious = input.previousMissingSince
@@ -42,6 +44,15 @@ export function nextMissingObservation(input: {
     ? input.previousMissingSince!
     : input.nowIso;
   const elapsedMs = Math.max(0, new Date(input.nowIso).getTime() - new Date(missingSince).getTime());
+
+  if (input.sourceLinked) {
+    return {
+      missingSince,
+      missingCount,
+      shouldCancel: false,
+      reason: "source_hold_protected" as const,
+    };
+  }
 
   if (input.policy === "sirvoy") {
     return {
