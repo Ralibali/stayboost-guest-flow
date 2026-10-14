@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { chatEmailBody, chatEmailSubject, validateChatInput } from "../_shared/chat.ts";
-import { sendBrevoEmail } from "../_shared/email.ts";
+import { buildEmailRequest, getEmailProvider } from "../_shared/email-provider.ts";
 
 // StayBoost: publik chatt-endpoint (verify_jwt = false, se config.toml).
 //  GET  ?slug=<anläggningens slug> → widgetens publika konfiguration
@@ -91,15 +91,15 @@ Deno.serve(async (req) => {
       .single();
     if (error) return json({ error: error.message }, 500);
 
-    // Mejla ägaren om mottagaradress + Brevo är konfigurerat.
-    const brevoKey = Deno.env.get("BREVO_API_KEY") ?? "";
-    if (p.chat_email && brevoKey) {
+    // Samma uttryckliga leverantörsval som schemalagda mejl, alltid efter inkorgen.
+    const emailConfig = getEmailProvider((name) => Deno.env.get(name));
+    if (p.chat_email && emailConfig) {
       try {
-        await sendBrevoEmail({
-          apiKey: brevoKey,
-          senderEmail: Deno.env.get("BREVO_SENDER_EMAIL") ?? "",
-          senderName: `${p.name} · chatt`,
-          toEmail: p.chat_email,
+        const email = buildEmailRequest(emailConfig, {
+          deliveryId: msg.id,
+          deliveryKind: "chat",
+          fallbackSenderName: `${p.name} · chatt`,
+          recipientEmail: p.chat_email,
           subject: chatEmailSubject(p.name, validated.name),
           text: chatEmailBody({
             propertyName: p.name,
@@ -111,10 +111,22 @@ Deno.serve(async (req) => {
           replyToEmail: validated.email,
           replyToName: validated.name ?? undefined,
         });
-        await admin.from("chat_messages").update({ emailed: true }).eq("id", msg.id);
-      } catch (e) {
-        // Meddelandet är säkert i inkorgen — logga och svara ändå ok.
-        console.error("chatt-mejl misslyckades", e);
+        const response = await fetch(email.url, {
+          ...email.options,
+          redirect: "error",
+          signal: AbortSignal.timeout(8_000),
+        });
+        // Provider bodies may contain private details; neither read nor log them.
+        await response.body?.cancel().catch(() => {});
+        if (!response.ok) throw new Error("chat_email_provider_rejected");
+        const { error: markError } = await admin
+          .from("chat_messages")
+          .update({ emailed: true })
+          .eq("id", msg.id);
+        if (markError) console.error("chat_email_receipt_not_saved");
+      } catch {
+        // Inbox-first: failures (including uncertain delivery) never resend here.
+        console.error("chat_email_notification_failed");
       }
     }
 

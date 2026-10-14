@@ -7,6 +7,8 @@ export type EmailProviderConfiguration = {
   senderName?: string;
 };
 const EMAIL = /^[^\s<>@,]+@[^\s<>@,]+\.[^\s<>@,]+$/;
+const hasHeaderControl = (value: string) =>
+  [...value].some((character) => character.charCodeAt(0) < 32 || character.charCodeAt(0) === 127);
 
 /** Missing selection preserves existing Brevo deployments; never guess from a key. */
 export function getEmailProvider(env: EmailEnvironment): EmailProviderConfiguration | null {
@@ -30,20 +32,42 @@ export function buildEmailRequest(
   config: EmailProviderConfiguration,
   message: {
     deliveryId: string;
+    deliveryKind?: "scheduled" | "chat";
     recipientEmail: string;
     recipientName?: string;
     subject: string;
     text: string;
     html?: string;
     fallbackSenderName?: string;
+    replyToEmail?: string;
+    replyToName?: string;
   },
 ): { provider: "Brevo" | "Resend"; url: string; options: RequestInit } {
   const senderName = config.senderName ?? message.fallbackSenderName;
+  if (
+    (message.replyToEmail !== undefined &&
+      (!EMAIL.test(message.replyToEmail) || hasHeaderControl(message.replyToEmail))) ||
+    (message.replyToName !== undefined &&
+      (!message.replyToEmail ||
+        /[<>]/.test(message.replyToName) ||
+        hasHeaderControl(message.replyToName)))
+  )
+    throw new Error("invalid_email_reply_to");
+  // Persisted queue/chat identity, never a request or attempt ID. Keep the
+  // scheduled default unchanged for existing delivery retries.
+  const idempotencyKey = `stayboost-${message.deliveryKind ?? "scheduled"}/${message.deliveryId}`;
+  if (
+    (config.provider === "resend" || message.deliveryKind === "chat") &&
+    (!/^[A-Za-z0-9_-]+$/.test(message.deliveryId) || idempotencyKey.length > 256)
+  )
+    throw new Error("invalid_email_delivery_id");
+  if (
+    config.provider === "brevo" &&
+    message.deliveryKind === "chat" &&
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(message.deliveryId)
+  )
+    throw new Error("invalid_email_delivery_id");
   if (config.provider === "resend") {
-    // The queue's delivery identity survives retries; an attempt/lease ID does not.
-    const idempotencyKey = `stayboost-scheduled/${message.deliveryId}`;
-    if (!/^[A-Za-z0-9_-]+$/.test(message.deliveryId) || idempotencyKey.length > 256)
-      throw new Error("invalid_email_delivery_id");
     const safeName = senderName?.replace(/[<>\r\n]/g, " ").trim();
     return {
       provider: "Resend",
@@ -60,6 +84,7 @@ export function buildEmailRequest(
           to: [message.recipientEmail],
           subject: message.subject,
           text: message.text,
+          ...(message.replyToEmail === undefined ? {} : { reply_to: message.replyToEmail }),
           ...(message.html === undefined ? {} : { html: message.html }),
         }),
       },
@@ -76,6 +101,13 @@ export function buildEmailRequest(
         to: [{ email: message.recipientEmail, name: message.recipientName }],
         subject: message.subject,
         textContent: message.text,
+        ...(message.replyToEmail === undefined
+          ? {}
+          : { replyTo: { email: message.replyToEmail, name: message.replyToName } }),
+        // Brevo's idempotency contract requires a UUID; the saved chat ID is stable.
+        ...(message.deliveryKind === "chat"
+          ? { headers: { idempotencyKey: message.deliveryId } }
+          : {}),
         ...(message.html === undefined ? {} : { htmlContent: message.html }),
       }),
     },
