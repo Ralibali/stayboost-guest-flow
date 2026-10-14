@@ -110,8 +110,8 @@ export type Unit = {
   child_max_age: number;
 };
 
-/** Token-skyddad export. Välj Booking.com-länken för tvåvägssynk med Booking.com. */
-export const icalExportUrl = (unit: Unit, destination?: "booking") =>
+/** Token-skyddad export. Välj kanalens egen länk för tvåvägssynk. */
+export const icalExportUrl = (unit: Unit, destination?: "booking" | "airbnb") =>
   calendarExportUrl(SUPABASE_URL, unit.ical_feed_token, destination);
 
 export type Booking = {

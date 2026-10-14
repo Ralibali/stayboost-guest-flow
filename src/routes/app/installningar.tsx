@@ -719,6 +719,20 @@ function SettingsPage() {
                     uppdateras med fördröjning.
                   </p>
                   <button
+                    onClick={() => copyFeed(`${u.id}-airbnb`, icalExportUrl(u, "airbnb"))}
+                    className="mt-3 flex items-center gap-1.5 text-[12px] font-medium text-[color:var(--brass)] hover:underline"
+                  >
+                    {copiedFeed === `${u.id}-airbnb` ? <Check size={13} /> : <Copy size={13} />}
+                    {copiedFeed === `${u.id}-airbnb`
+                      ? "Airbnb-länk kopierad"
+                      : "Kopiera iCal-länk till Airbnb"}
+                  </button>
+                  <p className="mt-1 text-[12px] text-[color:var(--ink)]/60">
+                    Airbnb-länken undantar bokningar med bekräftat ursprung i Airbnb, så att de inte
+                    skickas tillbaka som nya spärrar. iCal överför upptagna datum och uppdateras med
+                    fördröjning.
+                  </p>
+                  <button
                     onClick={() => copyFeed(`${u.id}-all`, icalExportUrl(u))}
                     className="mt-2 flex items-center gap-1.5 text-[12px] font-medium text-[color:var(--brass)] hover:underline"
                   >

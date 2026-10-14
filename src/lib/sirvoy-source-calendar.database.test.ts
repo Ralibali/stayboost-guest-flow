@@ -200,6 +200,7 @@ beforeAll(async () => {
     "20261005172512_sirvoy_searchable_source_records.sql",
     "20261005174946_sirvoy_source_calendar_import.sql",
     "20261014133737_ical_export_destination.sql",
+    "20261014141121_ical_airbnb_export_destination.sql",
   ])
     await db.exec(read(name));
   await service();
@@ -555,6 +556,54 @@ describe("service-only iCal destination projection", () => {
       "select booking_com_origin from ical_export_bookings where id=$1",
       [id],
     );
+  it.each([
+    ["Airbnb", true],
+    ["airbnb", false],
+    ["Airbnb ", false],
+    ["BookVisit", false],
+    ["", false],
+  ])("recognizes only the exact immutable Airbnb source %j", async (bookingSource, expected) => {
+    const source = await fixture({ bookingSource });
+    const id = (await importRows(source.pairs)).result.bookingIds[0];
+    const before = await row("select to_jsonb(b) as value from bookings b where id=$1", [id]);
+    expect(
+      await row("select booking_com_origin,airbnb_origin from ical_export_bookings where id=$1", [
+        id,
+      ]),
+    ).toEqual({ booking_com_origin: false, airbnb_origin: expected });
+    expect(await row("select to_jsonb(b) as value from bookings b where id=$1", [id])).toEqual(
+      before,
+    );
+  });
+  it("recognizes a paused Airbnb iCal source only within the booking property", async () => {
+    const source = await fixture();
+    const id = (await importRows(source.pairs)).result.bookingIds[0];
+    const own = await row<{ id: string }>(
+      "insert into ical_sources(property_id,unit_id,name,url,channel_type,paused) select property_id,unit_id,'Synthetic Airbnb','https://example.test/calendar','airbnb',true from bookings where id=$1 returning id",
+      [id],
+    );
+    await db.query(
+      "update bookings set ical_source_id=$1,ical_uid='synthetic-airbnb' where id=$2",
+      [own.id, id],
+    );
+    const flags = () =>
+      row("select booking_com_origin,airbnb_origin from ical_export_bookings where id=$1", [id]);
+    expect(await flags()).toEqual({ booking_com_origin: false, airbnb_origin: true });
+    const foreignProperty = await row<{ id: string }>(
+      "insert into properties(owner_id,name) values($1,'Other Airbnb property') returning id",
+      [OTHER],
+    );
+    const foreignUnit = await row<{ id: string }>(
+      "insert into units(property_id,name) values($1,'Other tent') returning id",
+      [foreignProperty.id],
+    );
+    const foreign = await row<{ id: string }>(
+      "insert into ical_sources(property_id,unit_id,name,url,channel_type) values($1,$2,'Other Airbnb','https://example.test/calendar','airbnb') returning id",
+      [foreignProperty.id, foreignUnit.id],
+    );
+    await db.query("update bookings set ical_source_id=$1 where id=$2", [foreign.id, id]);
+    expect(await flags()).toEqual({ booking_com_origin: false, airbnb_origin: false });
+  });
   it("classifies exact immutable Booking.com source holds before and after iCal binding without modifying bookings or source evidence", async () => {
     const fixtureRows = await fixture({ bookingSource: "Booking.com" });
     const id = (await importRows(fixtureRows.pairs)).result.bookingIds[0];
@@ -642,6 +691,7 @@ describe("service-only iCal destination projection", () => {
         "checkin_date",
         "checkout_date",
         "booking_com_origin",
+        "airbnb_origin",
       ].sort(),
     );
     expect(
