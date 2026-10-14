@@ -41,8 +41,16 @@ async function readAll<T>(
 }
 
 Deno.serve(async (req) => {
-  const token = new URL(req.url).searchParams.get("token") ?? "";
+  const params = new URL(req.url).searchParams;
+  const token = params.get("token") ?? "";
   if (!/^[0-9a-f]{24}$/.test(token)) return new Response("invalid_token", { status: 400 });
+  const destination = params.get("destination");
+  if (
+    params.getAll("destination").length > 1 ||
+    (destination !== null && destination !== "booking")
+  ) {
+    return new Response("invalid_destination", { status: 400 });
+  }
 
   try {
     const admin = createClient(
@@ -62,17 +70,22 @@ Deno.serve(async (req) => {
     const since = new Date(now - 30 * 86400000).toISOString().slice(0, 10);
     const until = new Date(now + 365 * 86400000).toISOString().slice(0, 10);
     const [bookings, rules] = await Promise.all([
-      readAll<{ id: string; checkin_date: string; checkout_date: string }>((from, to) =>
-        admin
-          .from("bookings")
+      readAll<{ id: string; checkin_date: string; checkout_date: string }>((from, to) => {
+        // The private view knows exact source provenance, including original
+        // Sirvoy holds before iCal adoption. Unknown origins stay blocked.
+        let query = admin
+          .from(destination === "booking" ? "ical_export_bookings" : "bookings")
           .select("id, checkin_date, checkout_date", { count: "exact" })
+          .eq("property_id", unit.property_id)
           .eq("unit_id", unit.id)
           .eq("status", "confirmed")
           .gte("checkout_date", since)
           .lte("checkin_date", until)
           .order("id")
-          .range(from, to),
-      ),
+          .range(from, to);
+        if (destination === "booking") query = query.eq("booking_com_origin", false);
+        return query;
+      }),
       readAll<IcsClosedRule>((from, to) =>
         admin
           .from("rate_rules")
