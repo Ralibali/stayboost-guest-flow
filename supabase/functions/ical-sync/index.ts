@@ -391,8 +391,8 @@ Deno.serve(async (req) => {
 
       await finish(
         `ok (${activeEvents.length} aktiva event${blockEvents.length ? `, ${blockEvents.length} kalenderstängningar` : ""}, +${created} nya, ${updated} uppdaterade, ${cancelled} avbokade${protectedMissing > 0 ? `, ⚠ ${protectedMissing} försvinnanden skyddade (${disappearancePolicy})` : ""}${conflicts > 0 ? `, ⚠ ${conflicts} konflikter importerade` : ""}${protectedMissingBlocks > 0 ? `, ⚠ ${protectedMissingBlocks} kalenderstängningar saknas och behålls för granskning` : ""})`,
-        response.headers.get("etag"),
-        response.headers.get("last-modified"),
+        protectedMissingBlocks > 0 ? null : response.headers.get("etag"),
+        protectedMissingBlocks > 0 ? null : response.headers.get("last-modified"),
       );
       results.push({
         source: source.name,

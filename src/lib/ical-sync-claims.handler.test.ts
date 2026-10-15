@@ -93,6 +93,8 @@ function runtime(
         if (options.failFinish) return { data: null, error: { message: TOKEN } };
         feed.last_success_at = args.p_success ? "new-success" : null;
         feed.http_etag = args.p_success ? args.p_etag : null;
+        feed.http_last_modified = args.p_success ? args.p_last_modified : null;
+        feed.http_etag = args.p_success ? args.p_etag : null;
         return { data: true, error: null };
       }
       throw new Error(`Unexpected RPC ${name}`);
@@ -376,4 +378,22 @@ it("does not publish freshness if preserved Sirvoy closure coverage cannot be ch
   const f = runtime({ channelType: "sirvoy", calendar: calendar(), failBlockCount: true });
   expect((await f.run()).body.results[0].ok).toBe(false);
   expect(f.feed.last_success_at).toBeNull();
+});
+
+it("re-fetches the full Sirvoy feed while missing closures need review instead of losing the warning to 304", async () => {
+  const f = runtime({
+    channelType: "sirvoy",
+    calendar: calendar(),
+    missingBlocks: 1,
+    priorSuccess: true,
+  });
+  expect((await f.run()).body.results[0].protectedMissingBlocks).toBe(1);
+  expect(f.calls.at(-1)?.args).toMatchObject({ p_etag: null, p_last_modified: null });
+  expect(f.network[0].headers["If-None-Match"]).toBe("prior-etag");
+  expect((await f.run()).body.results[0].protectedMissingBlocks).toBe(1);
+  expect(f.network[1].headers["If-None-Match"]).toBeUndefined();
+  expect(f.network[1].headers["If-Modified-Since"]).toBeUndefined();
+  expect(f.calls.at(-1)?.args.p_status).toContain(
+    "1 kalenderstängningar saknas och behålls för granskning",
+  );
 });
