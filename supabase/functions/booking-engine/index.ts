@@ -550,6 +550,7 @@ Deno.serve(async (req) => {
       .single();
 
     if (error) {
+      if (error.message.includes("booking_closed")) return json({ error: "closed" }, 409);
       if (error.message.includes("ical_sync_required"))
         return json({ error: "ical_sync_required" }, 503);
       if (

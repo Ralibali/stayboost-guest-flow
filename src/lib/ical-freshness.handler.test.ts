@@ -56,7 +56,7 @@ function fixture(feeds: Row[] = []) {
     bookings: [],
   };
   const reads: Array<{ table: string; fields: string; filters: Row; range: number[] }> = [];
-  const state = { failFrom: null as number | null, insertError: false };
+  const state = { failFrom: null as number | null, insertError: null as string | null };
   const client = {
     from(table: string) {
       const read = { table, fields: "", filters: {} as Row, range: [0, Infinity] };
@@ -66,7 +66,7 @@ function fixture(feeds: Row[] = []) {
         if (table === "ical_sources" && state.failFrom != null && read.range[0] >= state.failFrom)
           return { data: null, error: { message: "private database error" } };
         if (inserted && table === "bookings") {
-          if (state.insertError) return { data: null, error: { message: "ical_sync_required" } };
+          if (state.insertError) return { data: null, error: { message: state.insertError } };
           const booking = { id: "booking", guest_token: "synthetic-token", ...inserted };
           tables.bookings.push(booking);
           return { data: booking, error: null };
@@ -255,9 +255,18 @@ it("does not miss an unhealthy source beyond the first 1000 rows", async () => {
 });
 it("maps the atomic database guard to the same safe unavailable response after a fresh preflight", async () => {
   const f = fixture([fresh()]);
-  f.state.insertError = true;
+  f.state.insertError = "ical_sync_required";
   const response = await f.post();
   expect(response.status).toBe(503);
   expect(await response.json()).toEqual({ error: "ical_sync_required" });
+  expect(fetch).not.toHaveBeenCalled();
+});
+it("returns a safe closed response when a closure commits after the availability preflight", async () => {
+  const f = fixture([fresh()]);
+  f.state.insertError = "booking_closed";
+  const response = await f.post();
+  expect(response.status).toBe(409);
+  expect(await response.json()).toEqual({ error: "closed" });
+  expect(f.tables.bookings).toEqual([]);
   expect(fetch).not.toHaveBeenCalled();
 });

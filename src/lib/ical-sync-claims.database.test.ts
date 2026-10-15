@@ -207,6 +207,7 @@ beforeAll(async () => {
     "20261014134140_ical_booking_freshness.sql",
     "20261014135301_ical_sync_claims.sql",
     "20261015153633_sirvoy_calendar_incoming.sql",
+    "20261015163226_closed_rule_booking_guard.sql",
   ])
     await db.exec(read(name));
   await service();
@@ -728,6 +729,23 @@ it("imports and updates a future Sirvoy block as one unit-specific closure witho
   expect(await rule(r)).toMatchObject({ date_from: "2099-08-02", date_to: "2099-08-04" });
   expect(await bookingRow(f.booking)).toEqual(before);
   expect((await row<{ n: number }>("select count(*)::int n from bookings")).n).toBe(1);
+});
+it("rechecks an imported closure at direct admission with source fences and inventory locks installed", async () => {
+  const f = await sirvoyFeed();
+  await adoptExport(f);
+  await db.query("update ical_sources set paused=false where id=$1", [f.feed]);
+  const c = (await claim(f.feed))!;
+  await block(f.feed, c.token);
+  await rejected(
+    () =>
+      db.query(
+        "insert into bookings(property_id,unit_id,source,guest_name,guests,checkin_date,checkout_date) values($1,$2,'direct','Synthetic',1,'2099-08-03','2099-08-04')",
+        [property, f.unit],
+      ),
+    "booking_closed",
+  );
+  expect((await row<{ n: number }>("select count(*)::int n from bookings")).n).toBe(1);
+  expect((await row<{ n: number }>("select count(*)::int n from scheduled_messages")).n).toBe(0);
 });
 it("protects calendar rule identity against owner edits, detachment and deletion", async () => {
   const f = await sirvoyFeed();
