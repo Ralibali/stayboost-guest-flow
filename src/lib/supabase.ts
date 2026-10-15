@@ -257,6 +257,7 @@ export type RateRuleKind =
   | "no_departure";
 
 export type RateRule = {
+  ical_source_id?: string | null;
   id: string;
   property_id: string;
   unit_id: string | null;
