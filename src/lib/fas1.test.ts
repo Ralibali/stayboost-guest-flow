@@ -131,12 +131,14 @@ describe("iCal-export (flöde till Airbnb/Booking)", () => {
       [
         {
           uid: "bok-1@stayboost",
+          updatedAt: "2026-07-01T10:00:00Z",
           startDate: "2026-08-10",
           endDate: "2026-08-13",
           summary: "Bokad",
         },
         {
           uid: "bok-2@stayboost",
+          updatedAt: "2026-07-02T10:00:00Z",
           startDate: "2026-09-01",
           endDate: "2026-09-05",
           summary: "Bokad",
