@@ -201,6 +201,7 @@ beforeAll(async () => {
     "20261005174946_sirvoy_source_calendar_import.sql",
     "20261014133737_ical_export_destination.sql",
     "20261014141121_ical_airbnb_export_destination.sql",
+    "20261015154002_ical_export_updated_at.sql",
   ])
     await db.exec(read(name));
   await service();
@@ -567,6 +568,12 @@ describe("service-only iCal destination projection", () => {
     const id = (await importRows(source.pairs)).result.bookingIds[0];
     const before = await row("select to_jsonb(b) as value from bookings b where id=$1", [id]);
     expect(
+      await row(
+        "select v.updated_at=b.updated_at as exact_revision from ical_export_bookings v join bookings b using(id) where v.id=$1",
+        [id],
+      ),
+    ).toEqual({ exact_revision: true });
+    expect(
       await row("select booking_com_origin,airbnb_origin from ical_export_bookings where id=$1", [
         id,
       ]),
@@ -680,7 +687,7 @@ describe("service-only iCal destination projection", () => {
     await db.query("update bookings set ical_source_id=$1 where id=$2", [foreign.id, id]);
     expect(await projected(id)).toEqual({ booking_com_origin: false });
   });
-  it("exposes only dates and the origin boolean to service role, with no browser grants or definer bypass", async () => {
+  it("exposes only dates, revision time and origin booleans to service role, with no browser grants or definer bypass", async () => {
     await service();
     expect(Object.keys(await row("select * from ical_export_bookings limit 1")).sort()).toEqual(
       [
@@ -692,6 +699,7 @@ describe("service-only iCal destination projection", () => {
         "checkout_date",
         "booking_com_origin",
         "airbnb_origin",
+        "updated_at",
       ].sort(),
     );
     expect(

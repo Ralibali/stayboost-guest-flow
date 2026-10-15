@@ -9,6 +9,7 @@ import {
 import { isBlockEvent, parseIcs } from "../../supabase/functions/_shared/ics";
 import { calendarExportUrl } from "./ical-export-url";
 
+const UPDATED_AT = "2026-10-05T10:11:12.123456+00:00";
 const TOKEN = "a".repeat(24);
 const PROPERTY = "11111111-1111-4111-8111-111111111111";
 const UNIT = "22222222-2222-4222-8222-222222222222";
@@ -21,6 +22,7 @@ const closure = (patch: Partial<IcsClosedRule> = {}): IcsClosedRule => ({
   active: true,
   date_from: "2026-09-30",
   date_to: "2027-05-30",
+  updated_at: UPDATED_AT,
   ...patch,
 });
 const ruleRow = (patch: Row = {}): Row => ({
@@ -57,9 +59,14 @@ function runtime(
       ];
   const tables: Record<string, Row[]> = {
     units,
-    bookings: (options.bookings ?? []).map((row) => ({ property_id: PROPERTY, ...row })),
+    bookings: (options.bookings ?? []).map((row) => ({
+      property_id: PROPERTY,
+      updated_at: UPDATED_AT,
+      ...row,
+    })),
     ical_export_bookings: (options.bookings ?? []).map((row) => ({
       property_id: PROPERTY,
+      updated_at: UPDATED_AT,
       booking_com_origin: false,
       airbnb_origin: false,
       ...row,
@@ -181,6 +188,71 @@ beforeEach(() => {
 });
 afterEach(() => vi.useRealTimers());
 
+describe("RFC 5545 persisted event revision timestamps", () => {
+  it.each(["", "&destination=booking", "&destination=airbnb"])(
+    "exports one UTC DTSTAMP per event and keeps it stable across repeated requests: %s",
+    async (destination) => {
+      const booking = {
+        id: "direct",
+        unit_id: UNIT,
+        status: "confirmed",
+        checkin_date: "2027-06-17",
+        checkout_date: "2027-06-20",
+        updated_at: "2026-10-05T01:02:03.987654+02:00",
+      };
+      const fixture = runtime({ bookings: [booking], rules: [ruleRow()] });
+      const first = await (await fixture.request(TOKEN, destination)).text();
+      const components = first.split("BEGIN:VEVENT\r\n").slice(1);
+      expect(components).toHaveLength(2);
+      for (const component of components) {
+        expect(component.match(/^DTSTAMP:/gm)).toHaveLength(1);
+        expect(component).toMatch(/^DTSTAMP:\d{8}T\d{6}Z\r?$/m);
+      }
+      expect(components.find((c) => c.includes("UID:direct@stayboost"))).toContain(
+        "DTSTAMP:20261004T230203Z\r\n",
+      );
+      expect(components.find((c) => c.includes("SUMMARY:Closed"))).toContain(
+        "DTSTAMP:20261005T101112Z\r\n",
+      );
+      expect(first).not.toContain("METHOD:");
+      vi.setSystemTime(new Date("2026-10-07T16:00:00Z"));
+      expect(await (await fixture.request(TOKEN, destination)).text()).toBe(first);
+
+      const changed = runtime({
+        bookings: [{ ...booking, updated_at: "2026-10-06T12:30:00Z" }],
+        rules: [ruleRow({ updated_at: "2026-10-06T13:00:00Z" })],
+      });
+      const next = await (await changed.request(TOKEN, destination)).text();
+      expect(next).toContain("DTSTAMP:20261006T123000Z\r\n");
+      expect(next).toContain("DTSTAMP:20261006T130000Z\r\n");
+      expect(parseIcs(next)).toEqual(parseIcs(first)); // Only revision metadata changed.
+    },
+  );
+
+  it.each([null, undefined, "invalid", "2026-10-05T10:00:00", "2026-13-05T10:00:00Z"])(
+    "fails closed when persisted revision time is missing or invalid: %j",
+    async (updated_at) => {
+      const rule = await runtime({ rules: [ruleRow({ updated_at })] }).request();
+      expect(rule.status).toBe(503);
+      expect(await rule.text()).toBe("calendar_unavailable");
+      const booking = await runtime({
+        bookings: [
+          {
+            id: "direct",
+            unit_id: UNIT,
+            status: "confirmed",
+            checkin_date: "2027-06-17",
+            checkout_date: "2027-06-20",
+            updated_at,
+          },
+        ],
+      }).request(TOKEN, "&destination=booking");
+      expect(booking.status).toBe(503);
+      expect(await booking.text()).toBe("calendar_unavailable");
+    },
+  );
+});
+
 describe("actual iCal export includes scoped closures without exposing private source text", () => {
   it("exports winter and selected-unit closures alongside confirmed bookings, excluding other properties/units and non-night restrictions", async () => {
     const fixture = runtime({
@@ -242,7 +314,7 @@ describe("actual iCal export includes scoped closures without exposing private s
     ).toBe(true);
     expect(text).not.toMatch(/Private|private@example|other-property|other-unit|inactive/);
     expect(fixture.calls.find((call) => call.table === "rate_rules")?.selected).toBe(
-      "id, unit_id, kind, active, date_from, date_to",
+      "id, unit_id, kind, active, date_from, date_to, updated_at",
     );
   });
 
@@ -315,7 +387,7 @@ describe("actual iCal export includes scoped closures without exposing private s
     expect(failed.calls).toHaveLength(1);
   });
 
-  it("still returns a valid empty calendar after complete successful reads", async () => {
+  it("still returns an empty feed after complete successful reads", async () => {
     const response = await runtime().request();
     expect(response.status).toBe(200);
     expect(parseIcs(await response.text())).toEqual([]);
@@ -416,7 +488,7 @@ describe.each([
     );
     expect(fixture.calls.some((c) => c.table === "bookings")).toBe(false);
     expect(fixture.calls.find((c) => c.table === "ical_export_bookings")?.selected).toBe(
-      "id, checkin_date, checkout_date",
+      "id, checkin_date, checkout_date, updated_at",
     );
     // Existing generic subscribers retain their original complete feed.
     const generic = parseIcs(await (await fixture.request()).text());

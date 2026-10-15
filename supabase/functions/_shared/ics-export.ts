@@ -7,6 +7,7 @@ export interface IcsOutEvent {
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD (exklusiv, som i iCal)
   summary: string;
+  updatedAt: string; // Persisted last revision, not the time the feed is requested.
 }
 
 export interface IcsClosedRule {
@@ -16,6 +17,7 @@ export interface IcsClosedRule {
   active: boolean;
   date_from: string;
   date_to: string;
+  updated_at: string;
 }
 
 /** Only closed nights can be represented by an opaque iCal event, not CTA/CTD. */
@@ -46,11 +48,22 @@ export function closedRuleEvents(rules: IcsClosedRule[], unitId: string): IcsOut
     if (!/^\d{4}-\d{2}-\d{2}$/.test(endDate)) throw new Error("invalid_closed_range");
     const uid = `closed-${rule.id}-${unitId}@stayboost`;
     const previous = events.get(uid);
-    if (previous && (previous.startDate !== rule.date_from || previous.endDate !== endDate)) {
+    if (
+      previous &&
+      (previous.startDate !== rule.date_from ||
+        previous.endDate !== endDate ||
+        previous.updatedAt !== rule.updated_at)
+    ) {
       throw new Error("conflicting_closed_range");
     }
     // Stable identity survives renames/date edits; never expose rule names or private notes.
-    events.set(uid, { uid, startDate: rule.date_from, endDate, summary: "Closed" });
+    events.set(uid, {
+      uid,
+      startDate: rule.date_from,
+      endDate,
+      summary: "Closed",
+      updatedAt: rule.updated_at,
+    });
   }
   return [...events.values()];
 }
@@ -76,6 +89,22 @@ export function foldLine(line: string): string {
 
 const toIcsDate = (iso: string) => iso.replace(/-/g, "");
 
+function toIcsTimestamp(value: string): string {
+  // RFC 5545 3.8.7.2: without METHOD, DTSTAMP is the component's last revision.
+  // Require an explicit zone so server locale can never change the exported instant.
+  if (
+    typeof value !== "string" ||
+    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(value)
+  ) {
+    throw new Error("invalid_event_timestamp");
+  }
+  const timestamp = new Date(value);
+  if (!Number.isFinite(timestamp.getTime())) throw new Error("invalid_event_timestamp");
+  const utc = timestamp.toISOString();
+  if (!/^\d{4}-/.test(utc)) throw new Error("invalid_event_timestamp");
+  return utc.replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+}
+
 export function buildIcs(events: IcsOutEvent[], calendarName: string): string {
   const lines = [
     "BEGIN:VCALENDAR",
@@ -88,6 +117,7 @@ export function buildIcs(events: IcsOutEvent[], calendarName: string): string {
     lines.push(
       "BEGIN:VEVENT",
       foldLine(`UID:${e.uid}`),
+      `DTSTAMP:${toIcsTimestamp(e.updatedAt)}`,
       `DTSTART;VALUE=DATE:${toIcsDate(e.startDate)}`,
       `DTEND;VALUE=DATE:${toIcsDate(e.endDate)}`,
       foldLine(`SUMMARY:${icsEscape(e.summary)}`),
