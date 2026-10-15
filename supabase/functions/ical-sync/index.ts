@@ -234,6 +234,40 @@ Deno.serve(async (req) => {
       if (startedEvents !== endedEvents || parsedEvents.length !== startedEvents) {
         throw new Error("kalendern innehåller ofullständiga bokningshändelser");
       }
+      if (new Set(parsedEvents.map((event) => event.uid)).size !== parsedEvents.length) {
+        throw new Error("kalendern innehåller dubbla händelseidentifierare");
+      }
+      // Sirvoy exports real unavailable dates as Closed events. Keep these out
+      // of customer bookings, but apply them through the same fenced attempt.
+      const blockEvents =
+        source.channel_type === "sirvoy" ? parsedEvents.filter((event) => isBlockEvent(event)) : [];
+      for (const event of blockEvents) {
+        const block = await Promise.resolve(
+          admin.rpc("write_ical_sync_block", {
+            p_source_id: source.id,
+            p_token: claimToken,
+            p_uid: event.uid,
+            p_start: event.startDate,
+            p_end: event.endDate,
+            p_cancelled: event.status === "CANCELLED",
+          }),
+        ).catch(() => ({ data: null, error: true }));
+        if (block.error) throw new Error("kalenderns stängda datum kunde inte sparas");
+      }
+      let protectedMissingBlocks = 0;
+      if (source.channel_type === "sirvoy") {
+        const missing = await Promise.resolve(
+          admin.rpc("count_missing_ical_sync_blocks", {
+            p_source_id: source.id,
+            p_token: claimToken,
+            p_seen_uids: blockEvents.map((event) => event.uid),
+          }),
+        ).catch(() => ({ data: null, error: true }));
+        if (missing.error || !Number.isInteger(missing.data) || missing.data < 0) {
+          throw new Error("kalenderns tidigare stängningar kunde inte kontrolleras");
+        }
+        protectedMissingBlocks = missing.data;
+      }
       const reservationEvents = parsedEvents.filter((event) => !isBlockEvent(event));
       const activeEvents = reservationEvents.filter((event) => event.status !== "CANCELLED");
       const explicitCancelledEvents = reservationEvents.filter(
@@ -356,7 +390,7 @@ Deno.serve(async (req) => {
       }
 
       await finish(
-        `ok (${activeEvents.length} aktiva event, +${created} nya, ${updated} uppdaterade, ${cancelled} avbokade${protectedMissing > 0 ? `, ⚠ ${protectedMissing} försvinnanden skyddade (${disappearancePolicy})` : ""}${conflicts > 0 ? `, ⚠ ${conflicts} konflikter importerade` : ""})`,
+        `ok (${activeEvents.length} aktiva event${blockEvents.length ? `, ${blockEvents.length} kalenderstängningar` : ""}, +${created} nya, ${updated} uppdaterade, ${cancelled} avbokade${protectedMissing > 0 ? `, ⚠ ${protectedMissing} försvinnanden skyddade (${disappearancePolicy})` : ""}${conflicts > 0 ? `, ⚠ ${conflicts} konflikter importerade` : ""}${protectedMissingBlocks > 0 ? `, ⚠ ${protectedMissingBlocks} kalenderstängningar saknas och behålls för granskning` : ""})`,
         response.headers.get("etag"),
         response.headers.get("last-modified"),
       );
@@ -369,6 +403,8 @@ Deno.serve(async (req) => {
         conflicts,
         protectedMissing,
         disappearancePolicy: missingCandidates.length > 0 ? disappearancePolicy : undefined,
+        calendarBlocks: blockEvents.length,
+        protectedMissingBlocks,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { beforeAll, afterAll, beforeEach, afterEach, expect, it } from "vitest";
 import { PGlite } from "@electric-sql/pglite";
+import { checkAvailabilityRules, type RateRule } from "../../supabase/functions/_shared/rate-rules";
 import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto";
 import {
   parseSirvoySource,
@@ -205,6 +206,7 @@ beforeAll(async () => {
     "20261014133639_sirvoy_ical_adoption.sql",
     "20261014134140_ical_booking_freshness.sql",
     "20261014135301_ical_sync_claims.sql",
+    "20261015153633_sirvoy_calendar_incoming.sql",
   ])
     await db.exec(read(name));
   await service();
@@ -610,4 +612,210 @@ it("still rejects removing a source that has an immutable adoption audit", async
   expect(
     await row("select count(*)::int count from ical_source_adoptions where source_id=$1", [f.feed]),
   ).toEqual({ count: 1 });
+});
+
+async function sirvoyFeed() {
+  const f = await prepare();
+  await db.query("update ical_sources set channel_type='sirvoy' where id=$1", [f.feed]);
+  const evidence = {
+    ...f.evidence,
+    provider_reference: f.ref,
+    reference_evidence_kind: "sirvoy_native_feed",
+    native_event_summary: `Booking ${f.ref}`,
+  };
+  return { ...f, evidence };
+}
+const adoptExport = async (f: Awaited<ReturnType<typeof sirvoyFeed>>, evidence = f.evidence) =>
+  (
+    await row<{ result: Record<string, unknown> }>(
+      "select adopt_sirvoy_export_booking($1,$2,$3,$4) result",
+      [OWNER, f.booking, f.feed, evidence],
+    )
+  ).result;
+const block = (
+  feed: string,
+  token: string,
+  uid = "closed-source",
+  start = "2099-08-01",
+  end = "2099-08-04",
+  cancelled = false,
+) =>
+  row<{ id: string | null }>("select write_ical_sync_block($1,$2,$3,$4,$5,$6) id", [
+    feed,
+    token,
+    uid,
+    start,
+    end,
+    cancelled,
+  ]);
+const rule = (id: string) =>
+  row<{ date_from: string; date_to: string; active: boolean; unit_id: string; kind: string }>(
+    "select *, date_from::text, date_to::text from rate_rules where id=$1",
+    [id],
+  );
+it("explicit Sirvoy export adoption preserves every unrelated booking field and is idempotent", async () => {
+  const f = await sirvoyFeed();
+  const before = await bookingRow(f.booking);
+  expect(await adoptExport(f)).toMatchObject({ adopted: true, duplicate: false });
+  expect(await adoptExport(f)).toMatchObject({ adopted: true, duplicate: true });
+  const after = await bookingRow(f.booking);
+  for (const key of Object.keys(before))
+    if (!["ical_source_id", "ical_uid", "updated_at"].includes(key))
+      expect(after[key], key).toEqual(before[key]);
+  expect(after.ical_source_id).toBe(f.feed);
+  expect((await row<{ n: number }>("select count(*)::int n from scheduled_messages")).n).toBe(0);
+});
+it.each([
+  "native_event_summary",
+  "provider_reference",
+  "sirvoy_booking_reference",
+  "checkin_date",
+  "feed_url_sha256",
+])("rejects Sirvoy adoption with mismatched %s", async (key) => {
+  const f = await sirvoyFeed();
+  await rejected(() => adoptExport(f, { ...f.evidence, [key]: "wrong" }), "source_adoption_");
+  expect((await bookingRow(f.booking)).ical_source_id).toBeNull();
+});
+it("keeps Sirvoy source paused until all original source holds are bound", async () => {
+  const f = await sirvoyFeed();
+  await rejected(
+    () => db.query("update ical_sources set paused=false where id=$1", [f.feed]),
+    "ical_source_adoption_required",
+  );
+  await adoptExport(f);
+  await db.query("update ical_sources set paused=false where id=$1", [f.feed]);
+  expect(await claim(f.feed)).not.toBeNull();
+});
+it("denies owner adoption and cross-property actor even with complete evidence", async () => {
+  const f = await sirvoyFeed();
+  await owner();
+  await rejected(() => adoptExport(f), "permission denied");
+  await service();
+  await rejected(
+    () =>
+      row("select adopt_sirvoy_export_booking($1,$2,$3,$4)", [
+        OTHER,
+        f.booking,
+        f.feed,
+        f.evidence,
+      ]),
+    "not_authorized",
+  );
+});
+it("imports and updates a future Sirvoy block as one unit-specific closure without customer bookings", async () => {
+  const f = await sirvoyFeed();
+  await adoptExport(f);
+  await db.query("update ical_sources set paused=false where id=$1", [f.feed]);
+  const before = await bookingRow(f.booking);
+  const c = (await claim(f.feed))!;
+  const r = (await block(f.feed, c.token)).id!;
+  expect(await rule(r)).toMatchObject({
+    kind: "closed",
+    unit_id: f.unit,
+    date_from: "2099-08-01",
+    date_to: "2099-08-03",
+    active: true,
+  });
+  const storedRule = (await rule(r)) as unknown as RateRule;
+  expect(checkAvailabilityRules([storedRule], f.unit, ["2099-08-03"], "2099-08-04")).toMatchObject({
+    kind: "closed",
+  });
+  expect(checkAvailabilityRules([storedRule], f.unit, ["2099-08-04"], "2099-08-05")).toBeNull();
+  expect(
+    checkAvailabilityRules([storedRule], "other-unit", ["2099-08-03"], "2099-08-04"),
+  ).toBeNull();
+  expect((await block(f.feed, c.token, "closed-source", "2099-08-02", "2099-08-05")).id).toBe(r);
+  expect(await rule(r)).toMatchObject({ date_from: "2099-08-02", date_to: "2099-08-04" });
+  expect(await bookingRow(f.booking)).toEqual(before);
+  expect((await row<{ n: number }>("select count(*)::int n from bookings")).n).toBe(1);
+});
+it("protects calendar rule identity against owner edits, detachment and deletion", async () => {
+  const f = await sirvoyFeed();
+  await adoptExport(f);
+  await db.query("update ical_sources set paused=false where id=$1", [f.feed]);
+  const c = (await claim(f.feed))!;
+  const id = (await block(f.feed, c.token)).id!;
+  await owner();
+  for (const sql of [
+    "update rate_rules set active=false where id=$1",
+    "update rate_rules set ical_source_id=null,ical_uid=null where id=$1",
+    "delete from rate_rules where id=$1",
+  ])
+    await rejected(() => db.query(sql, [id]), "ical_rule_requires_sync");
+  await service();
+  expect((await rule(id)).active).toBe(true);
+});
+it("old claims cannot mutate blocks after takeover, failure or pause", async () => {
+  const f = await sirvoyFeed();
+  await adoptExport(f);
+  await db.query("update ical_sources set paused=false where id=$1", [f.feed]);
+  const first = (await claim(f.feed))!;
+  const id = (await block(f.feed, first.token)).id!;
+  await expire(f.feed);
+  const next = (await claim(f.feed))!;
+  await rejected(
+    () => block(f.feed, first.token, "closed-source", "2099-08-01", "2099-08-02", true),
+    "ical_claim_lost",
+  );
+  expect((await rule(id)).active).toBe(true);
+  await finish(f.feed, next.token, false, "failed");
+  await rejected(() => block(f.feed, next.token), "ical_claim_lost");
+  const third = (await claim(f.feed))!;
+  await db.query("update ical_sources set paused=true where id=$1", [f.feed]);
+  await rejected(() => block(f.feed, third.token), "ical_claim_lost");
+});
+it("only explicit cancellation deactivates its own block; a missing block and unrelated manual rule survive", async () => {
+  const f = await sirvoyFeed();
+  await adoptExport(f);
+  await db.query("update ical_sources set paused=false where id=$1", [f.feed]);
+  const manual = (
+    await row<{ id: string }>(
+      "insert into rate_rules(property_id,kind,date_from,date_to,name) values($1,'closed','2099-08-01','2099-08-09','Manual') returning id",
+      [property],
+    )
+  ).id;
+  const c = (await claim(f.feed))!;
+  const id = (await block(f.feed, c.token)).id!;
+  await finish(f.feed, c.token);
+  const next = (await claim(f.feed))!;
+  await finish(f.feed, next.token);
+  expect((await rule(id)).active).toBe(true);
+  const third = (await claim(f.feed))!;
+  await block(f.feed, third.token, "closed-source", "2099-08-01", "2099-08-04", true);
+  expect((await rule(id)).active).toBe(false);
+  expect((await rule(manual)).active).toBe(true);
+});
+it("rejects invalid and foreign-source blocks before altering inventory", async () => {
+  const { feed } = await liveSource();
+  const c = (await claim(feed))!;
+  await rejected(() => block(feed, c.token), "ical_block_source_invalid");
+  const f = await sirvoyFeed();
+  await adoptExport(f);
+  await db.query("update ical_sources set paused=false where id=$1", [f.feed]);
+  const next = (await claim(f.feed))!;
+  await rejected(
+    () => block(f.feed, next.token, "uid", "2099-08-01", "2099-08-01"),
+    "ical_block_invalid",
+  );
+  await rejected(() => block(f.feed, c.token), "ical_claim_lost");
+});
+
+it("reports only missing active future closures from the claimed source and denies unfenced inspection", async () => {
+  const f = await sirvoyFeed();
+  await adoptExport(f);
+  await db.query("update ical_sources set paused=false where id=$1", [f.feed]);
+  const c = (await claim(f.feed))!;
+  await block(f.feed, c.token, "present");
+  await block(f.feed, c.token, "missing");
+  await block(f.feed, c.token, "past", "2020-01-01", "2020-01-02");
+  const count = async (token: string, seen: string[]) =>
+    row<{ n: number }>("select count_missing_ical_sync_blocks($1,$2,$3) n", [f.feed, token, seen]);
+  expect((await count(c.token, ["present"])).n).toBe(1);
+  expect((await count(c.token, [])).n).toBe(2);
+  await block(f.feed, c.token, "missing", "2099-08-01", "2099-08-04", true);
+  expect((await count(c.token, ["present"])).n).toBe(0);
+  await expire(f.feed);
+  await rejected(() => count(c.token, []), "ical_claim_lost");
+  await owner();
+  await rejected(() => count(c.token, []), "permission denied");
 });

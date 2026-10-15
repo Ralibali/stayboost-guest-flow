@@ -494,45 +494,52 @@ function RateRulesPage() {
               </p>
               {r.note && <p className="mt-0.5 text-[12px] text-[color:var(--ink)]/50">{r.note}</p>}
             </div>
-            <div className="flex shrink-0 items-center gap-1">
-              <button
-                onClick={() => toggleActive(r)}
-                role="switch"
-                aria-checked={r.active}
-                title={r.active ? "Aktiv" : "Pausad"}
-                className={`relative h-6 w-11 rounded-full transition ${r.active ? "bg-[color:var(--forest)]" : "bg-[color:var(--ink)]/20"}`}
-              >
-                <span
-                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${r.active ? "left-[22px]" : "left-0.5"}`}
-                />
-              </button>
-              <button
-                onClick={() => startEdit(r)}
-                title="Redigera"
-                className="grid h-9 w-9 place-items-center rounded-full text-[color:var(--ink)]/50 hover:bg-[color:var(--bg)]"
-              >
-                <Pencil size={15} />
-              </button>
-              {confirmDelete === r.id ? (
+            {r.ical_source_id ? (
+              <span className="text-xs text-ink/60">Styrs av kalenderkällan</span>
+            ) : (
+              <div className="flex shrink-0 items-center gap-1">
                 <button
-                  onClick={() => remove(r)}
-                  className="rounded-full bg-red-600 px-3 py-1.5 text-[12px] font-bold text-white"
+                  onClick={() => toggleActive(r)}
+                  role="switch"
+                  aria-checked={r.active}
+                  title={r.active ? "Aktiv" : "Pausad"}
+                  className={`relative h-6 w-11 rounded-full transition ${r.active ? "bg-[color:var(--forest)]" : "bg-[color:var(--ink)]/20"}`}
                 >
-                  Bekräfta
+                  <span
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${r.active ? "left-[22px]" : "left-0.5"}`}
+                  />
                 </button>
-              ) : (
                 <button
-                  onClick={() => {
-                    setConfirmDelete(r.id);
-                    setTimeout(() => setConfirmDelete((cur) => (cur === r.id ? null : cur)), 3000);
-                  }}
-                  title="Ta bort"
-                  className="grid h-9 w-9 place-items-center rounded-full text-[color:var(--ink)]/50 hover:bg-red-50 hover:text-red-600"
+                  onClick={() => startEdit(r)}
+                  title="Redigera"
+                  className="grid h-9 w-9 place-items-center rounded-full text-[color:var(--ink)]/50 hover:bg-[color:var(--bg)]"
                 >
-                  <Trash2 size={15} />
+                  <Pencil size={15} />
                 </button>
-              )}
-            </div>
+                {confirmDelete === r.id ? (
+                  <button
+                    onClick={() => remove(r)}
+                    className="rounded-full bg-red-600 px-3 py-1.5 text-[12px] font-bold text-white"
+                  >
+                    Bekräfta
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setConfirmDelete(r.id);
+                      setTimeout(
+                        () => setConfirmDelete((cur) => (cur === r.id ? null : cur)),
+                        3000,
+                      );
+                    }}
+                    title="Ta bort"
+                    className="grid h-9 w-9 place-items-center rounded-full text-[color:var(--ink)]/50 hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                )}
+              </div>
+            )}
           </article>
         ))}
       </div>
