@@ -47,7 +47,7 @@ Deno.serve(async (req) => {
   const destination = params.get("destination");
   if (
     params.getAll("destination").length > 1 ||
-    (destination !== null && destination !== "booking")
+    (destination !== null && destination !== "booking" && destination !== "airbnb")
   ) {
     return new Response("invalid_destination", { status: 400 });
   }
@@ -70,26 +70,29 @@ Deno.serve(async (req) => {
     const since = new Date(now - 30 * 86400000).toISOString().slice(0, 10);
     const until = new Date(now + 365 * 86400000).toISOString().slice(0, 10);
     const [bookings, rules] = await Promise.all([
-      readAll<{ id: string; checkin_date: string; checkout_date: string }>((from, to) => {
-        // The private view knows exact source provenance, including original
-        // Sirvoy holds before iCal adoption. Unknown origins stay blocked.
-        let query = admin
-          .from(destination === "booking" ? "ical_export_bookings" : "bookings")
-          .select("id, checkin_date, checkout_date", { count: "exact" })
-          .eq("property_id", unit.property_id)
-          .eq("unit_id", unit.id)
-          .eq("status", "confirmed")
-          .gte("checkout_date", since)
-          .lte("checkin_date", until)
-          .order("id")
-          .range(from, to);
-        if (destination === "booking") query = query.eq("booking_com_origin", false);
-        return query;
-      }),
+      readAll<{ id: string; checkin_date: string; checkout_date: string; updated_at: string }>(
+        (from, to) => {
+          // The private view knows exact source provenance, including original
+          // Sirvoy holds before iCal adoption. Unknown origins stay blocked.
+          let query = admin
+            .from(destination !== null ? "ical_export_bookings" : "bookings")
+            .select("id, checkin_date, checkout_date, updated_at", { count: "exact" })
+            .eq("property_id", unit.property_id)
+            .eq("unit_id", unit.id)
+            .eq("status", "confirmed")
+            .gte("checkout_date", since)
+            .lte("checkin_date", until)
+            .order("id")
+            .range(from, to);
+          if (destination === "booking") query = query.eq("booking_com_origin", false);
+          if (destination === "airbnb") query = query.eq("airbnb_origin", false);
+          return query;
+        },
+      ),
       readAll<IcsClosedRule>((from, to) =>
         admin
           .from("rate_rules")
-          .select("id, unit_id, kind, active, date_from, date_to", { count: "exact" })
+          .select("id, unit_id, kind, active, date_from, date_to, updated_at", { count: "exact" })
           .eq("property_id", unit.property_id)
           .eq("active", true)
           .eq("kind", "closed")
@@ -106,6 +109,7 @@ Deno.serve(async (req) => {
         startDate: b.checkin_date,
         endDate: b.checkout_date,
         summary: "Bokad",
+        updatedAt: b.updated_at,
       })),
       ...closedRuleEvents(rules, unit.id),
     ].sort((a, b) => a.startDate.localeCompare(b.startDate) || a.uid.localeCompare(b.uid));

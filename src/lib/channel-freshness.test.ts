@@ -1,3 +1,4 @@
+import { icalUnitFresh } from "../../supabase/functions/_shared/ical-freshness";
 import { stripeConfigForProperty } from "../../supabase/functions/_shared/stripe-config";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -138,6 +139,7 @@ function engine(connections: ChannelFreshness[] | null, channelError: unknown = 
     stripeConfigForProperty,
     createClient: () => client,
     channelInventoryFresh,
+    icalUnitFresh,
     stockholmDay,
     normalizeGuestPhone,
     nightsBetween,

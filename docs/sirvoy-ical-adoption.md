@@ -45,3 +45,56 @@ URL/unit/channel identity cannot be reassigned. Normal server synchronization ma
 update the same booking or apply explicit `STATUS:CANCELLED`. Mere disappearance
 does not cancel documentary source holds; it records missing observations for
 operator review. Existing original archive rows and payment guards are retained.
+
+## Sirvoy's own room export
+
+Use `channel_type=sirvoy`, not `booking`, for an aggregate Sirvoy room calendar.
+`adopt_sirvoy_export_booking` is a separate trusted-operator RPC with the same
+paused-source, closed-sales, actor/property, one-room, immutable source and date
+checks. Its evidence has the ten fields above plus `native_event_summary`:
+
+- `provider_reference` and `sirvoy_booking_reference` must both equal the
+  original Sirvoy booking reference.
+- `native_event_summary` must be the observed exact `Booking <reference>` text.
+- `reference_evidence_kind` is `sirvoy_native_feed`; retain the actual feed bytes
+  and their SHA-256. UID text is observed, never inferred from that reference.
+
+A source cannot be resumed while its unit has unbound future source holds.
+Bind all reviewed holds in one guarded transaction and verify all unrelated
+booking fields before resuming. The RPC does not fetch or authenticate the
+external feed: the operator must review the actual retained evidence first.
+
+Sirvoy `Closed` events are imported as unit-scoped `closed` rate rules through
+the existing fenced sync claim. ICS `DTEND` is exclusive, so the stored rule's
+inclusive `date_to` is one day earlier. No customer booking, payment or message
+is created for a closure. The source/UID pair is unique; a later event updates
+only that rule's dates and active status. Calendar rules cannot be edited or
+deleted through the ordinary owner rule editor. Existing manual/source-imported
+rules are never overwritten.
+
+Mere disappearance of a Sirvoy booking or closure does not reopen inventory.
+Missing active future closures appear as a protected count in the sync result
+and as an operator-review warning in the persisted source status.
+An explicit `STATUS:CANCELLED` can cancel the linked booking or disable the
+calendar's own closure. A missing event requires operator review; if the provider
+only removes cancelled events, that review remains part of operations. A failed
+or partial import leaves freshness invalid, including failures storing closures.
+
+Incoming synchronization is not a two-way cutover. Do not open shared direct
+inventory until the outbound path to the active channel manager is independently
+verified. Existing manual winter restrictions remain effective even if the
+calendar's duplicate winter closure later changes or disappears.
+
+### Reviewed release of a missing closure
+
+The ordinary price-rule editor intentionally cannot override calendar-owned
+closures. Until a dedicated review UI exists, a trusted operator must retain
+fresh evidence from Sirvoy that the specific block has ended, keep direct sales
+closed, and check the exact source/unit/UID and current rule row in a guarded
+transaction. Use the existing `claim_ical_sync` / `write_ical_sync_block` fence
+with `p_cancelled=true` for that one reviewed rule, then finish with
+`p_success=false` and a sanitized review status, and leave the source paused.
+This is an operator-confirmed release, not proof that an ICS cancellation was
+received. Keep the evidence and before/after hashes privately. Resume only after
+a fresh complete import; a still-present Closed event reactivates the rule.
+Never deactivate the independent manually imported winter rules in this process.

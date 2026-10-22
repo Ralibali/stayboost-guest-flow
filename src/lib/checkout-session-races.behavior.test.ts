@@ -1,3 +1,4 @@
+import { icalUnitFresh } from "../../supabase/functions/_shared/ical-freshness";
 import { stripeConfigForProperty } from "../../supabase/functions/_shared/stripe-config";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
@@ -249,6 +250,7 @@ function engine(
       collectPages,
       sanitizedHttpsUrl,
       channelInventoryFresh,
+      icalUnitFresh,
     },
     envPatch,
   );

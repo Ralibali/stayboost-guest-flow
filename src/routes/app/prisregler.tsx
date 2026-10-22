@@ -47,7 +47,27 @@ const EMPTY: Draft = {
 };
 
 const fmtDate = (iso: string) =>
-  new Date(iso + "T00:00").toLocaleDateString("sv-SE", { day: "numeric", month: "short" });
+  new Date(iso + "T00:00").toLocaleDateString("sv-SE", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
+function isSirvoyProvenanceNote(note: string | null): boolean {
+  if (!note) return false;
+  try {
+    const value: unknown = JSON.parse(note);
+    return (
+      typeof value === "object" &&
+      value !== null &&
+      !Array.isArray(value) &&
+      "source_system" in value &&
+      value.source_system === "Sirvoy"
+    );
+  } catch {
+    return false;
+  }
+}
 
 const kindHelp: Record<RateRuleKind, string> = {
   price_override: "Anger ett fast nattpris i kronor för perioden.",
@@ -64,6 +84,7 @@ function RateRulesPage() {
   const [rules, setRules] = useState<RateRule[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editingImportedNote, setEditingImportedNote] = useState(false);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
@@ -91,6 +112,7 @@ function RateRulesPage() {
   const reset = () => {
     setDraft(EMPTY);
     setEditingId(null);
+    setEditingImportedNote(false);
     setShowForm(false);
     setActionError(null);
   };
@@ -164,7 +186,8 @@ function RateRulesPage() {
       min_stay: draft.kind === "min_stay" ? Math.max(1, Math.round(Number(draft.min_stay))) : null,
       priority: Math.round(Number(draft.priority) || 0),
       active: draft.active,
-      note: draft.note.trim() || null,
+      // Source provenance is not editable copy; leave its stored bytes untouched.
+      ...(editingImportedNote ? {} : { note: draft.note.trim() || null }),
     };
     const result = editingId
       ? await supabase.from("rate_rules").update(row).eq("id", editingId)
@@ -180,6 +203,7 @@ function RateRulesPage() {
 
   const startEdit = (rule: RateRule) => {
     setEditingId(rule.id);
+    setEditingImportedNote(isSirvoyProvenanceNote(rule.note));
     setDraft({
       name: rule.name ?? "",
       kind: rule.kind,
@@ -427,15 +451,21 @@ function RateRulesPage() {
               Aktiv
             </label>
 
-            <label className="col-span-full text-[13px] font-medium">
-              Intern notering (valfritt)
-              <textarea
-                value={draft.note}
-                onChange={(e) => setDraft({ ...draft, note: e.target.value })}
-                rows={2}
-                className="inp mt-1 resize-none"
-              />
-            </label>
+            {editingImportedNote ? (
+              <p className="col-span-full text-[13px] text-[color:var(--ink)]/60">
+                Importerad från Sirvoy
+              </p>
+            ) : (
+              <label className="col-span-full text-[13px] font-medium">
+                Intern notering (valfritt)
+                <textarea
+                  value={draft.note}
+                  onChange={(e) => setDraft({ ...draft, note: e.target.value })}
+                  rows={2}
+                  className="inp mt-1 resize-none"
+                />
+              </label>
+            )}
 
             <p className="col-span-full rounded-lg bg-[color:var(--bg)] px-3 py-2 text-[12.5px] text-[color:var(--ink)]/70">
               {kindHelp[draft.kind]}
@@ -492,47 +522,58 @@ function RateRulesPage() {
                 {fmtDate(r.date_from)}–{fmtDate(r.date_to)} · {unitName(r.unit_id)} ·{" "}
                 <span className="font-medium text-[color:var(--brass)]">{summary(r)}</span>
               </p>
-              {r.note && <p className="mt-0.5 text-[12px] text-[color:var(--ink)]/50">{r.note}</p>}
-            </div>
-            <div className="flex shrink-0 items-center gap-1">
-              <button
-                onClick={() => toggleActive(r)}
-                role="switch"
-                aria-checked={r.active}
-                title={r.active ? "Aktiv" : "Pausad"}
-                className={`relative h-6 w-11 rounded-full transition ${r.active ? "bg-[color:var(--forest)]" : "bg-[color:var(--ink)]/20"}`}
-              >
-                <span
-                  className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${r.active ? "left-[22px]" : "left-0.5"}`}
-                />
-              </button>
-              <button
-                onClick={() => startEdit(r)}
-                title="Redigera"
-                className="grid h-9 w-9 place-items-center rounded-full text-[color:var(--ink)]/50 hover:bg-[color:var(--bg)]"
-              >
-                <Pencil size={15} />
-              </button>
-              {confirmDelete === r.id ? (
-                <button
-                  onClick={() => remove(r)}
-                  className="rounded-full bg-red-600 px-3 py-1.5 text-[12px] font-bold text-white"
-                >
-                  Bekräfta
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    setConfirmDelete(r.id);
-                    setTimeout(() => setConfirmDelete((cur) => (cur === r.id ? null : cur)), 3000);
-                  }}
-                  title="Ta bort"
-                  className="grid h-9 w-9 place-items-center rounded-full text-[color:var(--ink)]/50 hover:bg-red-50 hover:text-red-600"
-                >
-                  <Trash2 size={15} />
-                </button>
+              {r.note && (
+                <p className="mt-0.5 text-[12px] text-[color:var(--ink)]/50">
+                  {isSirvoyProvenanceNote(r.note) ? "Importerad från Sirvoy" : r.note}
+                </p>
               )}
             </div>
+            {r.ical_source_id ? (
+              <span className="text-xs text-ink/60">Styrs av kalenderkällan</span>
+            ) : (
+              <div className="flex shrink-0 items-center gap-1">
+                <button
+                  onClick={() => toggleActive(r)}
+                  role="switch"
+                  aria-checked={r.active}
+                  title={r.active ? "Aktiv" : "Pausad"}
+                  className={`relative h-6 w-11 rounded-full transition ${r.active ? "bg-[color:var(--forest)]" : "bg-[color:var(--ink)]/20"}`}
+                >
+                  <span
+                    className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-all ${r.active ? "left-[22px]" : "left-0.5"}`}
+                  />
+                </button>
+                <button
+                  onClick={() => startEdit(r)}
+                  title="Redigera"
+                  className="grid h-9 w-9 place-items-center rounded-full text-[color:var(--ink)]/50 hover:bg-[color:var(--bg)]"
+                >
+                  <Pencil size={15} />
+                </button>
+                {confirmDelete === r.id ? (
+                  <button
+                    onClick={() => remove(r)}
+                    className="rounded-full bg-red-600 px-3 py-1.5 text-[12px] font-bold text-white"
+                  >
+                    Bekräfta
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => {
+                      setConfirmDelete(r.id);
+                      setTimeout(
+                        () => setConfirmDelete((cur) => (cur === r.id ? null : cur)),
+                        3000,
+                      );
+                    }}
+                    title="Ta bort"
+                    className="grid h-9 w-9 place-items-center rounded-full text-[color:var(--ink)]/50 hover:bg-red-50 hover:text-red-600"
+                  >
+                    <Trash2 size={15} />
+                  </button>
+                )}
+              </div>
+            )}
           </article>
         ))}
       </div>

@@ -767,7 +767,8 @@ function PublicBookingPage() {
         )
           setFormError(t.errDates);
         if (payload.error === "booking_paused") setFormError(t.errPaused);
-        if (payload.error === "channel_sync_required") setFormError(t.channelSyncBody);
+        if (["channel_sync_required", "ical_sync_required"].includes(payload.error))
+          setFormError(t.channelSyncBody);
         if (payload.error === "channel_sync_in_progress") setFormError(t.channelSyncRetry);
         if (payload.error === "price_changed")
           setFormError(t.errPriceChanged(fmtKr(payload.grandTotal)));

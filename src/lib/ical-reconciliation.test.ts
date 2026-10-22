@@ -13,6 +13,7 @@ const root = join(here, "../..");
 const read = (path: string) => readFileSync(join(root, path), "utf8");
 const sync = read("supabase/functions/ical-sync/index.ts");
 const migration = read("supabase/migrations/20260830220000_ical_reconciliation_guard.sql");
+const icalWriter = read("supabase/migrations/20261014135301_ical_sync_claims.sql");
 
 describe("BP-2 iCal disappearance reconciliation", () => {
   it("never cancels on the first successful fetch where a UID is missing", () => {
@@ -127,7 +128,8 @@ describe("BP-2 iCal disappearance reconciliation", () => {
   it("imports external overlaps instead of silently dropping their source truth", () => {
     expect(sync).toContain("Externa krockar måste importeras, inte döljas");
     expect(sync).toContain("conflicts++");
-    expect(sync).toContain('source: "ical"');
+    expect(sync).toContain("await writeBooking(null, event.uid,");
+    expect(icalWriter).toContain("values(s.property_id,s.unit_id,'ical',s.id,p_uid,");
     expect(sync).not.toContain("konflikten — den ska synas,\n          // inte försvinna tyst");
   });
 

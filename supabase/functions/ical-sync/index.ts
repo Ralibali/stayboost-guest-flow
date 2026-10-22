@@ -127,13 +127,65 @@ Deno.serve(async (req) => {
   const today = new Date().toISOString().slice(0, 10);
   const results: Array<Record<string, unknown>> = [];
 
-  for (const source of sources ?? []) {
+  for (const candidate of sources ?? []) {
+    let source = candidate;
+    let claimToken: string | null = null;
     let created = 0;
     let updated = 0;
     let cancelled = 0;
     let conflicts = 0;
     let protectedMissing = 0;
     try {
+      const claim = await Promise.resolve(
+        admin.rpc("claim_ical_sync", {
+          p_source_id: source.id,
+          p_owner_id: ownerFilter,
+        }),
+      ).catch(() => ({ data: null, error: true }));
+      if (claim.error) throw new Error("kalendersynken kunde inte låsas");
+      if (!claim.data) {
+        results.push({
+          source: source.name,
+          ok: false,
+          skipped: true,
+          error: "synk pågår eller källan är pausad",
+        });
+        continue;
+      }
+      claimToken = claim.data.token;
+      source = { ...source, ...claim.data.source };
+      const writeBooking = async (
+        bookingId: string | null,
+        uid: string,
+        patch: Record<string, unknown>,
+      ) => {
+        const result = await Promise.resolve(
+          admin.rpc("write_ical_sync_booking", {
+            p_source_id: source.id,
+            p_token: claimToken,
+            p_booking_id: bookingId,
+            p_uid: uid,
+            p_patch: patch,
+          }),
+        ).catch(() => ({ data: null, error: true }));
+        if (result.error || !result.data)
+          throw new Error("kalenderändringen kunde inte sparas med aktuellt synklås");
+      };
+      const finish = async (status: string, etag: string | null, lastModified: string | null) => {
+        const result = await Promise.resolve(
+          admin.rpc("finish_ical_sync", {
+            p_source_id: source.id,
+            p_token: claimToken,
+            p_success: true,
+            p_status: status,
+            p_etag: etag,
+            p_last_modified: lastModified,
+          }),
+        ).catch(() => ({ data: false, error: true }));
+        if (result.error || result.data !== true)
+          throw new Error("kalendersynken kunde inte färdigställas");
+        claimToken = null;
+      };
       if (!safeFeedUrl(source.url)) throw new Error("otillåten kalender-URL");
 
       const controller = new AbortController();
@@ -152,16 +204,10 @@ Deno.serve(async (req) => {
       const nowIso = new Date().toISOString();
 
       if (response.status === 304) {
-        await admin
-          .from("ical_sources")
-          .update({
-            last_synced_at: nowIso,
-            last_attempt_at: nowIso,
-            last_success_at: nowIso,
-            consecutive_failures: 0,
-            last_status: "ok (304 not modified)",
-          })
-          .eq("id", source.id);
+        if (!source.http_etag && !source.http_last_modified) {
+          throw new Error("kalendern måste hämtas fullständigt efter ofärdig synk");
+        }
+        await finish("ok (304 not modified)", source.http_etag, source.http_last_modified);
         results.push({
           source: source.name,
           ok: true,
@@ -182,7 +228,47 @@ Deno.serve(async (req) => {
       if (rawCalendar.length > 2_000_000) throw new Error("kalenderfilen är för stor");
       assertCalendarDocument(rawCalendar);
 
-      const reservationEvents = parseIcs(rawCalendar).filter((event) => !isBlockEvent(event));
+      const parsedEvents = parseIcs(rawCalendar);
+      const startedEvents = rawCalendar.match(/^BEGIN:VEVENT\r?$/gim)?.length ?? 0;
+      const endedEvents = rawCalendar.match(/^END:VEVENT\r?$/gim)?.length ?? 0;
+      if (startedEvents !== endedEvents || parsedEvents.length !== startedEvents) {
+        throw new Error("kalendern innehåller ofullständiga bokningshändelser");
+      }
+      if (new Set(parsedEvents.map((event) => event.uid)).size !== parsedEvents.length) {
+        throw new Error("kalendern innehåller dubbla händelseidentifierare");
+      }
+      // Sirvoy exports real unavailable dates as Closed events. Keep these out
+      // of customer bookings, but apply them through the same fenced attempt.
+      const blockEvents =
+        source.channel_type === "sirvoy" ? parsedEvents.filter((event) => isBlockEvent(event)) : [];
+      for (const event of blockEvents) {
+        const block = await Promise.resolve(
+          admin.rpc("write_ical_sync_block", {
+            p_source_id: source.id,
+            p_token: claimToken,
+            p_uid: event.uid,
+            p_start: event.startDate,
+            p_end: event.endDate,
+            p_cancelled: event.status === "CANCELLED",
+          }),
+        ).catch(() => ({ data: null, error: true }));
+        if (block.error) throw new Error("kalenderns stängda datum kunde inte sparas");
+      }
+      let protectedMissingBlocks = 0;
+      if (source.channel_type === "sirvoy") {
+        const missing = await Promise.resolve(
+          admin.rpc("count_missing_ical_sync_blocks", {
+            p_source_id: source.id,
+            p_token: claimToken,
+            p_seen_uids: blockEvents.map((event) => event.uid),
+          }),
+        ).catch(() => ({ data: null, error: true }));
+        if (missing.error || !Number.isInteger(missing.data) || missing.data < 0) {
+          throw new Error("kalenderns tidigare stängningar kunde inte kontrolleras");
+        }
+        protectedMissingBlocks = missing.data;
+      }
+      const reservationEvents = parsedEvents.filter((event) => !isBlockEvent(event));
       const activeEvents = reservationEvents.filter((event) => event.status !== "CANCELLED");
       const explicitCancelledEvents = reservationEvents.filter(
         (event) => event.status === "CANCELLED",
@@ -218,12 +304,7 @@ Deno.serve(async (req) => {
             if ((overlapping ?? []).length > 0) conflicts++;
           }
 
-          const { error } = await admin.from("bookings").insert({
-            property_id: source.property_id,
-            unit_id: source.unit_id,
-            source: "ical",
-            ical_source_id: source.id,
-            ical_uid: event.uid,
+          await writeBooking(null, event.uid, {
             guest_name: guestNameFrom(event.summary),
             checkin_date: event.startDate,
             checkout_date: event.endDate,
@@ -232,7 +313,6 @@ Deno.serve(async (req) => {
             ical_cancelled_at: null,
             ical_cancel_reason: null,
           });
-          if (error) throw error;
           created++;
           continue;
         }
@@ -250,8 +330,7 @@ Deno.serve(async (req) => {
         if (previous.ical_cancel_reason) patch.ical_cancel_reason = null;
 
         if (Object.keys(patch).length > 0) {
-          const { error } = await admin.from("bookings").update(patch).eq("id", previous.id);
-          if (error) throw error;
+          await writeBooking(previous.id, event.uid, patch);
           updated++;
         }
       }
@@ -260,17 +339,13 @@ Deno.serve(async (req) => {
       for (const event of explicitCancelledEvents) {
         const previous = byUid.get(event.uid);
         if (!previous || previous.status === "cancelled") continue;
-        const { error } = await admin
-          .from("bookings")
-          .update({
-            status: "cancelled",
-            ical_missing_since: null,
-            ical_missing_count: 0,
-            ical_cancelled_at: nowIso,
-            ical_cancel_reason: "explicit",
-          })
-          .eq("id", previous.id);
-        if (error) throw error;
+        await writeBooking(previous.id, event.uid, {
+          status: "cancelled",
+          ical_missing_since: null,
+          ical_missing_count: 0,
+          ical_cancelled_at: nowIso,
+          ical_cancel_reason: "explicit",
+        });
         cancelled++;
       }
 
@@ -311,22 +386,14 @@ Deno.serve(async (req) => {
         } else {
           protectedMissing++;
         }
-        const { error } = await admin.from("bookings").update(patch).eq("id", booking.id);
-        if (error) throw error;
+        await writeBooking(booking.id, booking.ical_uid, patch);
       }
 
-      await admin
-        .from("ical_sources")
-        .update({
-          last_synced_at: nowIso,
-          last_attempt_at: nowIso,
-          last_success_at: nowIso,
-          http_etag: response.headers.get("etag") ?? source.http_etag,
-          http_last_modified: response.headers.get("last-modified") ?? source.http_last_modified,
-          consecutive_failures: 0,
-          last_status: `ok (${activeEvents.length} aktiva event, +${created} nya, ${updated} uppdaterade, ${cancelled} avbokade${protectedMissing > 0 ? `, ⚠ ${protectedMissing} försvinnanden skyddade (${disappearancePolicy})` : ""}${conflicts > 0 ? `, ⚠ ${conflicts} konflikter importerade` : ""})`,
-        })
-        .eq("id", source.id);
+      await finish(
+        `ok (${activeEvents.length} aktiva event${blockEvents.length ? `, ${blockEvents.length} kalenderstängningar` : ""}, +${created} nya, ${updated} uppdaterade, ${cancelled} avbokade${protectedMissing > 0 ? `, ⚠ ${protectedMissing} försvinnanden skyddade (${disappearancePolicy})` : ""}${conflicts > 0 ? `, ⚠ ${conflicts} konflikter importerade` : ""}${protectedMissingBlocks > 0 ? `, ⚠ ${protectedMissingBlocks} kalenderstängningar saknas och behålls för granskning` : ""})`,
+        protectedMissingBlocks > 0 ? null : response.headers.get("etag"),
+        protectedMissingBlocks > 0 ? null : response.headers.get("last-modified"),
+      );
       results.push({
         source: source.name,
         ok: true,
@@ -336,19 +403,33 @@ Deno.serve(async (req) => {
         conflicts,
         protectedMissing,
         disappearancePolicy: missingCandidates.length > 0 ? disappearancePolicy : undefined,
+        calendarBlocks: blockEvents.length,
+        protectedMissingBlocks,
       });
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
-      const nowIso = new Date().toISOString();
-      await admin
-        .from("ical_sources")
-        .update({
-          last_synced_at: nowIso,
-          last_attempt_at: nowIso,
-          consecutive_failures: (source.consecutive_failures ?? 0) + 1,
-          last_status: `fel: ${message}`,
-        })
-        .eq("id", source.id);
+      if (claimToken) {
+        // A failed result write cannot preserve old freshness: claim already
+        // cleared it. A lost claim must not change its successor's result.
+        const failure = await Promise.resolve(
+          admin.rpc("finish_ical_sync", {
+            p_source_id: source.id,
+            p_token: claimToken,
+            p_success: false,
+            p_status: `fel: ${message}`.slice(0, 2048),
+            p_etag: null,
+            p_last_modified: null,
+          }),
+        ).catch(() => ({ data: false, error: true }));
+        if (failure.error || failure.data !== true) {
+          results.push({
+            source: source.name,
+            ok: false,
+            error: "synken avbröts; kalendertillgängligheten kunde inte bekräftas",
+          });
+          continue;
+        }
+      }
       results.push({ source: source.name, ok: false, error: message });
     }
   }

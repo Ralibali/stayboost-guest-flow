@@ -1,3 +1,4 @@
+import { icalSourceFresh, ICAL_MAX_AGE_MS } from "../../supabase/functions/_shared/ical-freshness";
 import { createClient, type SupabaseClient, type Session } from "@supabase/supabase-js";
 import { useEffect, useState } from "react";
 import type { AddonTranslations, VatRate } from "../../supabase/functions/_shared/addon-content";
@@ -109,8 +110,8 @@ export type Unit = {
   child_max_age: number;
 };
 
-/** Token-skyddad export. Välj Booking.com-länken för tvåvägssynk med Booking.com. */
-export const icalExportUrl = (unit: Unit, destination?: "booking") =>
+/** Token-skyddad export. Välj kanalens egen länk för tvåvägssynk. */
+export const icalExportUrl = (unit: Unit, destination?: "booking" | "airbnb") =>
   calendarExportUrl(SUPABASE_URL, unit.ical_feed_token, destination);
 
 export type Booking = {
@@ -226,8 +227,7 @@ export function inferChannelType(source: Pick<IcalSource, "name" | "url">): Ical
 
 export type IcalHealth = "green" | "yellow" | "red" | "paused";
 
-/** Klassificerar en källas hälsa. Röd vid ≥2 fel i följd, gul vid ett fel
- *  eller synk äldre än 6 timmar, grön vid färsk lyckad synk. */
+/** Same success criterion as direct-booking admission; critical follows ops at 35 minutes. */
 export function classifyIcalHealth(
   source: Pick<
     IcalSource,
@@ -236,15 +236,14 @@ export function classifyIcalHealth(
   now: Date = new Date(),
 ): IcalHealth {
   if (source.paused) return "paused";
-  const failures = source.consecutive_failures ?? 0;
-  if (failures >= 2) return "red";
-  const lastOk =
-    source.last_success_at ??
-    (source.last_status?.toLowerCase().startsWith("ok") ? source.last_synced_at : null);
-  const ageMs = lastOk ? now.getTime() - new Date(lastOk).getTime() : Infinity;
-  const sixHours = 6 * 60 * 60 * 1000;
-  if (failures >= 1 || ageMs > sixHours) return "yellow";
-  return "green";
+  if (icalSourceFresh(source, now.getTime())) return "green";
+  const age = source.last_success_at ? now.getTime() - Date.parse(source.last_success_at) : NaN;
+  if (
+    source.consecutive_failures >= 2 ||
+    (Number.isFinite(age) && age > ICAL_MAX_AGE_MS + 15 * 60_000)
+  )
+    return "red";
+  return "yellow";
 }
 
 /* ---------- Prisregler (datumstyrda) ---------- */
@@ -258,6 +257,7 @@ export type RateRuleKind =
   | "no_departure";
 
 export type RateRule = {
+  ical_source_id?: string | null;
   id: string;
   property_id: string;
   unit_id: string | null;
