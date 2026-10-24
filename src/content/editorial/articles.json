@@ -1,5 +1,42 @@
 [
   {
+    "slug": "aterkommande-gastfragor-forbattra-information",
+    "title": "Använd återkommande gästfrågor för att förbättra informationen",
+    "metaDescription": "Samla frågor utan onödiga personuppgifter och välj vilken information som behöver bli tydligare. En manuell rutin för små boenden.",
+    "intro": "När samma fråga återkommer kan det bero på att svaret saknas, är otydligt eller finns på en plats gästen inte hittar. Fler standardsvar löser inte alltid problemet. En liten genomgång av frågorna kan hjälpa er välja vilken information som bör ändras först.\n\nDen här guiden beskriver en manuell arbetsrutin för ett mindre boende. Den kräver inte att ni samlar gästernas meddelanden i ett nytt system. Dokumentera själva informationsbehovet och undvik onödiga personuppgifter, bokningsreferenser eller privata detaljer i arbetslistan.",
+    "sections": [
+      {
+        "heading": "Skriv frågans innebörd med egna ord",
+        "content": "Välj en avgränsad period och notera vilken praktisk uppgift gästen behövde få klarhet i. Skriv exempelvis fråga om var bilen får stå, i stället för att kopiera hela meddelandet. Lägg till vilken del av vistelsen frågan gällde och i vilken kanal den kom, om det behövs för genomgången.\n\nMarkera om ni saknar underlag för att avgöra varför frågan uppstod. Att någon frågar betyder inte automatiskt att informationen är fel eller att personen har läst den. Frågeloggen ska hjälpa er undersöka ett behov, inte värdera gästen eller bygga en profil över enskilda personer."
+      },
+      {
+        "heading": "Skilj ett saknat svar från ett svårtillgängligt svar",
+        "content": "För varje återkommande fråga, leta efter det besked ni redan lämnar. Kontrollera om uppgiften finns, om den fortfarande gäller och om den går att hitta där gästen rimligen behöver den. Ett korrekt besked i en äldre text kan ändå vara svårt att använda under själva ankomsten.\n\nSkriv vilken typ av förbättring ni överväger: komplettera saknad uppgift, förtydliga formuleringen eller göra rätt information lättare att hitta. Om beskedet beror på bokningens villkor behöver ansvarig först kontrollera vad som gäller. Ett allmänt svar får inte ersätta en individuell överenskommelse."
+      },
+      {
+        "heading": "Välj en förändring och utse en ansvarig",
+        "content": "Prioritera en fråga som ni kan ge ett tydligt och bekräftat svar på. Bestäm vilken text som ska ändras, vem som kontrollerar sakuppgiften och var ändringen behöver genomföras. Om samma besked finns i flera kanaler behöver även de versionerna granskas.\n\nBe någon som inte skrev texten provläsa den utan muntliga förklaringar. Guiden om att [provläsa gästinformationen på en mobil](/blogg/provlasa-gastinformation-mobiltelefon) beskriver hur läsning och länkar kan kontrolleras i en konkret situation. Det är ett annat steg än att bestämma vilket informationsbehov ni vill lösa."
+      },
+      {
+        "heading": "Följ upp utan att dra för stora slutsatser",
+        "content": "Skriv när texten ändrades och när ni ska titta på frågorna igen. Jämför periodernas förutsättningar innan ni tolkar en skillnad. Färre frågor under en lugnare vecka visar inte i sig att textändringen var orsaken. En enkel logg ger underlag för nästa bedömning, inte ett säkert effektmått.\n\nBehåll den formulering som fungerar och fortsätt med nästa tydliga fråga. Rensa arbetsmaterialet när det inte längre behövs enligt boendets rutiner. Utforska [StayBoosts produktvisning](/produkten) för att se det aktuella upplägget för gästinformation. Rutinen i artikeln är manuell och innebär inget löfte om automatisk frågeanalys, besparingar eller färre kundärenden."
+      }
+    ],
+    "ctaHref": "/produkten",
+    "ctaLabel": "Öppna produktdemon",
+    "editorial": {
+      "createdWith": "ChatGPT",
+      "aiAssisted": true,
+      "searchIntent": "Prioritera förbättringar i befintlig gästinformation med en enkel anonymiserad frågelogg, utan att påstå automatisk analys eller dokumenterade resultat.",
+      "sourceUrls": [
+        "https://stayboost.se/produkten"
+      ],
+      "sourceCheckedAt": "2026-10-24T07:24:24.850365+00:00",
+      "publishedAt": "2026-10-24T07:24:24.850365+00:00"
+    },
+    "publishedDate": "2026-10-24"
+  },
+  {
     "slug": "provlasa-gastinformation-mobiltelefon",
     "title": "Provläs gästinformationen på en mobil innan den skickas",
     "metaDescription": "Kontrollera att gästen hittar rätt besked och kan följa länkar på mobilen. En praktisk genomgång med exempeldata före publicering.",
