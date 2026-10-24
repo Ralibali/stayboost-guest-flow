@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "status": "draft",
+  "writtenAt": "2026-10-24T07:57:02.890182+00:00",
+  "repository": "Ralibali/stayboost-guest-flow",
+  "publicationGate": "Tidigast 2026-10-26 och minst två kalenderdagar i Europe/Stockholm efter senaste verkliga originalpublicering. Kontrollera tidigare läsflöde, aktuell main, hela inventeringen, källor och produkt igen. Utkastet har inget publiceringsdatum och får inte importeras i den publika samlingen.",
+  "sourceReview": {
+    "checkedAt": "2026-10-24T07:57:02.890182+00:00",
+    "distinctIntent": "Planera en manuell reservväg till nödvändig gästinformation när mobilen inte kan användas, skilt från att förbättra den mobila sidans läsbarhet.",
+    "note": "Egen arbetsmall. Den länkade produktvägen kontrollerad i webbläsare i denna körning; kontrollera på nytt före publicering. Inga påhittade funktioner, resultat eller boendevillkor."
+  },
+  "article": {
+    "slug": "gastinformation-utan-mobil",
+    "title": "Gästinformation när mobilen inte går att använda",
+    "metaDescription": "Planera ett begripligt alternativ när gästen inte kan läsa information i mobilen. En manuell genomgång för små boenden, utan tekniska löften.",
+    "intro": "Ett urladdat batteri eller en telefon som inte kan användas ska inte göra det oklart vart gästen ska vända sig. Gå igenom vilken information som behövs och hur boendet kan lämna den på ett annat sätt. Den här mallen är skriven med AI-stöd av ChatGPT och beskriver en manuell reservrutin.",
+    "sections": [
+      {
+        "heading": "Välj en konkret situation",
+        "contentMarkdown": "Börja med ett enda läge, till exempel en gäst som anländer utan att kunna öppna informationen i sin telefon. Skriv vilka frågor personen behöver få svar på då. Håll dem skilda från information som kan vänta tills gästen har kommit till rätt plats.\n\nUtgå från era faktiska ankomstrutiner. En papperslapp hjälper inte om den finns inne i ett utrymme som gästen ännu inte kommer åt. Beskriv var gästen befinner sig och vilken kontaktväg som verkligen kan användas där."
+      },
+      {
+        "heading": "Skilj allmän information från personliga uppgifter",
+        "contentMarkdown": "En gemensam reservtext kan exempelvis beskriva var receptionen finns och hur personal kontaktas. Uppgifter som gäller en viss bokning behöver hanteras enligt boendets befintliga rutiner. Lägg inte privata kontaktuppgifter eller tillträdeskoder i en allmänt synlig instruktion.\n\nKontrollera vad någon annan kan läsa om materialet ligger framme. Reservlösningen ska inte skapa en ny spridning av uppgifter bara för att den är enkel att skriva ut. Vid osäkerhet behöver ansvarig person avgöra hur informationen ska lämnas."
+      },
+      {
+        "heading": "Ge personalen en gemensam väg",
+        "contentMarkdown": "Bestäm vem som hjälper gästen i den valda situationen och vad kollegan behöver kontrollera innan information lämnas. Skriv hänvisningen till den befintliga rutinen så att personalen inte behöver improvisera ett nytt arbetssätt.\n\nGå igenom även tider när den vanliga kontaktpersonen inte är på plats. Ange bara alternativ som boendet faktiskt har ordnat. Lova inte bemanning, svarstid eller tillgång till en lokal som ni inte kan upprätthålla."
+      },
+      {
+        "heading": "Prova reservinformationen utan telefonen",
+        "contentMarkdown": "Be en kollega gå igenom det tänkta förloppet med telefonen undanlagd. Kan personen hitta nästa steg från den information som finns på plats? Notera var hen behöver fråga någon eller var texten hänvisar tillbaka till mobilen.\n\nDet är en genomgång av den egna rutinen, inte ett dokumenterat kundtest. Skriv ner de oklarheter ni hittar och rätta dem innan materialet används. Om information lämnas muntligt behöver även personalens instruktion vara begriplig och aktuell."
+      },
+      {
+        "heading": "Håll alternativen uppdaterade tillsammans",
+        "contentMarkdown": "När ordinarie gästinformation ändras, kontrollera om reservtexten berörs. Ge materialet en ansvarig och ett datum för senaste kontroll. Ta bort ersatta papperskopior från de platser där personal eller gäster annars kan använda dem av misstag.\n\nUtforska [StayBoosts produktdemo](/produkten) när ni planerar den digitala gästinformationen. Den här guiden påstår inte att produkten har ett offlineläge eller automatiskt skriver ut reservmaterial. Poängen är att ni själva har bestämt hur den viktiga informationen når gästen även i den valda undantagssituationen."
+      }
+    ],
+    "ctaHref": "/produkten",
+    "ctaLabel": "Öppna produktdemon",
+    "editorial": {
+      "createdWith": "ChatGPT",
+      "aiAssisted": true,
+      "searchIntent": "Planera en manuell reservväg till nödvändig gästinformation när mobilen inte kan användas, skilt från att förbättra den mobila sidans läsbarhet.",
+      "sourceUrls": [
+        "https://stayboost.se/produkten"
+      ],
+      "sourceCheckedAt": "2026-10-24T07:57:02.890182+00:00"
+    }
+  }
+}
