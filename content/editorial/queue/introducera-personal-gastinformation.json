@@ -1,0 +1,42 @@
+{
+  "slug": "introducera-personal-gastinformation",
+  "title": "Låt ny personal öva på att hitta rätt gästbesked",
+  "metaDescription": "En introduktionsövning för små boenden: hitta aktuell gästinformation, avgör när besked behöver kontrolleras och följ upp det som var svårt att hitta.",
+  "intro": "Den som är ny på ett boende behöver kunna hitta rätt besked, även när svaret inte finns i minnet. En kort övning med vanliga situationer visar var informationen är svår att hitta. Den här arbetsmallen är skriven med AI-stöd av ChatGPT och beskriver en manuell introduktion, inte en automatisk utbildningsfunktion i StayBoost.",
+  "sections": [
+    {
+      "heading": "Välj tre vanliga frågor från vardagen",
+      "content": "Utgå från frågor som personalen faktiskt får. Välj gärna en fråga före ankomst, en under vistelsen och en inför avresa. Använd påhittade exempel utan riktiga gästuppgifter. Övningen behöver inte använda en aktiv bokning för att vara begriplig.\n\nSkriv vilket svar som är aktuellt och var underlaget finns innan övningen börjar. Annars riskerar introduktionen att handla om vilket besked den erfarna kollegan råkar minnas. Kontrollera att svaret gäller det aktuella boendet och perioden."
+    },
+    {
+      "heading": "Låt personen visa vägen till svaret",
+      "content": "Be den nya kollegan hitta underlaget i de verktyg och instruktioner som faktiskt används. Ge tid att läsa och fråga. Anteckna vilken sökväg som var svår, vilken rubrik som var otydlig och om två källor gav olika besked.\n\nSkilj problem med åtkomst från problem med innehållet. Om en medarbetare inte kan öppna en behövlig sida ska ansvarig kontrollera den vanliga behörighetsrutinen. Att dela någon annans inloggning är inte en del av den här övningen."
+    },
+    {
+      "heading": "Öva på att avvakta ett besked",
+      "content": "Lägg till ett exempel där svaret inte framgår. Personen ska kunna säga vad som behöver kontrolleras och vem som ansvarar för det, i stället för att fylla i luckan. Bestäm hur gästen får återkoppling enligt era befintliga rutiner.\n\nPröva också skillnaden mellan ett önskemål och en bekräftad överenskommelse. En fråga om en anpassning betyder inte att den redan är beslutad. Den nya kollegan behöver känna igen när någon med rätt ansvar måste avgöra frågan."
+    },
+    {
+      "heading": "Kontrollera hur beskedet låter för gästen",
+      "content": "Be kollegan formulera ett kort svar med det verifierade underlaget som stöd. Lyssna efter ord som kan skapa nya löften om tider, priser eller tillgång. Rätta svaret mot den aktuella informationen, inte mot en formulering som känns mer säljande.\n\nOm svaret behöver vara på ett annat språk ska samma besked behållas. Ord som kanske, bekräftat och på förfrågan kan ha praktisk betydelse. Använd den etablerade rutinen för att kontrollera sådana formuleringar."
+    },
+    {
+      "heading": "Förbättra introduktionen efter övningen",
+      "content": "Välj den största svårigheten och rätta den där grundinformationen finns. En tydligare rubrik eller länk kan hjälpa fler än den nyanställda. Skapa inte en extra lista med avvikande besked bara för att introduktionen behöver gå snabbt.\n\nVisa sedan hur gästens och personalens vyer hänger ihop i [StayBoosts produktdemo](/produkten). Använd demon som orientering och era verkliga rutiner som beslutsunderlag. Följ upp en ny situation senare, så att ni ser om förbättringen gjorde informationen lättare att hitta."
+    }
+  ],
+  "ctaHref": "/produkten",
+  "ctaLabel": "Öppna produktdemon",
+  "editorial": {
+    "createdWith": "ChatGPT",
+    "aiAssisted": true,
+    "searchIntent": "Introducera en ny medarbetare i boendets befintliga gästinformation genom praktiska sökuppgifter, skilt från skiftbyte och att skapa nya svar.",
+    "sourceUrls": [
+      "https://stayboost.se/produkten"
+    ],
+    "sourceCheckedAt": "2026-10-29T21:54:08.914127+00:00"
+  },
+  "status": "draft",
+  "written_at": "2026-10-29T21:54:08.914127+00:00",
+  "publication_gate": "Opublicerat utkast. Kontrollera aktuell main, hela inventeringen, källor och föregående läsflöde före publicering. Minst två kalenderdagar i Europe/Stockholm efter senaste verkliga originalpublicering."
+}
