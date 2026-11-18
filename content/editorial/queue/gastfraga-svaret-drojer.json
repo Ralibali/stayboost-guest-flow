@@ -1,0 +1,38 @@
+{
+  "slug": "gastfraga-svaret-drojer",
+  "title": "När gästen väntar på svar: ge ett tydligt mellanbesked",
+  "metaDescription": "En mall för små boenden när en gästfråga behöver kontrolleras. Skriv vad som är mottaget, vem som återkommer och hur nästa besked ska ges.",
+  "intro": "En gästfråga kan behöva kontrolleras med en kollega eller en annan verksamhet. Då kan ett kort mellanbesked hjälpa gästen förstå vad som händer. Beskedet ska beskriva det personalen faktiskt kan lova och skilja väntan på svar från en bekräftad överenskommelse. Texten är skriven med AI-stöd av ChatGPT.",
+  "sections": [
+    {
+      "heading": "Bekräfta vilken fråga ni har tagit emot",
+      "content": "Återge frågan kort och neutralt. Om den innehåller flera delar, visa vilken del som är besvarad och vilken som fortfarande behöver kontrolleras. Be om ett förtydligande när det behövs för att kunna ta nästa steg.\n\nEtt mellanbesked ska inte skapa ett nytt löfte om att ett önskemål kan uppfyllas. Orden mottaget, kontrolleras och bekräftat behöver betyda olika saker även när svaret ska hållas kort."
+    },
+    {
+      "heading": "Bestäm vem som äger återkopplingen",
+      "content": "Utse en person eller ansvarig roll som följer upp frågan. Om svaret ligger hos en extern aktör behöver någon på boendet ändå veta hur gästen ska få återkoppling. Att vidarebefordra frågan avslutar inte automatiskt ansvaret för det egna beskedet.\n\nSkriv nästa steg i den befintliga arbetsrutinen så att det överlever ett skiftbyte. Använd bara de uppgifter som behövs för att hitta rätt fråga. Undvik att sprida gästinformation till fler kanaler än arbetet kräver."
+    },
+    {
+      "heading": "Lova bara en tid ni kan hålla",
+      "content": "Skilj tid för nästa återkoppling från tid för ett slutligt svar. Ni kan ibland lova att återkomma med status utan att ännu veta när frågan blir löst. Säg det tydligt om så är fallet.\n\nEtt exempel att anpassa är: Vi har tagit emot din fråga om [ämne]. [Ansvarig roll] kontrollerar uppgiften. Du får nästa besked via [kanal] vid [överenskommen tid]. Fyll bara i en tid och kanal som faktiskt fungerar enligt boendets rutiner."
+    },
+    {
+      "heading": "Avsluta med ett nytt, sammanhängande besked",
+      "content": "När svaret kommer, återknyt till den ursprungliga frågan. Ange vad som nu är bekräftat och om gästen behöver göra något. Låt inte ett gammalt mellanbesked ligga kvar som om frågan fortfarande väntade på svar.\n\nOm samma fråga ofta kräver kompletteringar kan ni förbättra grundinformationen efteråt. Använd [StayBoosts produktdemo](/produkten) för att orientera er i gäst- och personalvyerna, och pröva arbetsmallen mot era egna rutiner. Artikeln beskriver ett manuellt arbetssätt och lovar ingen automatisk återkopplingsfunktion."
+    }
+  ],
+  "ctaHref": "/produkten",
+  "ctaLabel": "Utforska produktdemon",
+  "editorial": {
+    "createdWith": "ChatGPT",
+    "aiAssisted": true,
+    "searchIntent": "Skriva och följa upp ett mellanbesked när ett gästärende saknar slutligt svar, skilt från personalintroduktion och bekräftade önskemål.",
+    "sourceUrls": [
+      "https://stayboost.se/produkten"
+    ],
+    "sourceReviewStatus": "Kontrollera aktuella källor och erbjudande före publicering."
+  },
+  "status": "draft",
+  "written_at": "2026-11-18T10:15:22.218848+00:00",
+  "publication_gate": "Opublicerat utkast. Läs aktuell main och hela inventeringen, kontrollera källor och produktlänkar på nytt och verifiera föregående läsflöde före publicering. Minst två kalenderdagar efter senaste verkliga originalpublicering i Europe/Stockholm. Inget publiceringsdatum är satt."
+}
