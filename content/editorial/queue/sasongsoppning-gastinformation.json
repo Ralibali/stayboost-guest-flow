@@ -1,0 +1,44 @@
+{
+  "slug": "sasongsoppning-gastinformation",
+  "title": "Inför säsongsöppningen: prova gästinformationen från början till slut",
+  "metaDescription": "Gör ett praktiskt genomgångspass inför säsongsöppningen. Kontrollera kontaktvägar, tider och första gästens resa innan gammal information återanvänds.",
+  "intro": "Inför en ny säsong är det lätt att återanvända texter som fortfarande ser välbekanta ut. Prova i stället en sammanhängande gästresa med ett bestämt datum och kontrollera beskeden på vägen. Texten är skriven med AI-stöd av ChatGPT.",
+  "sections": [
+    {
+      "heading": "Välj en konkret ankomstdag",
+      "content": "Utgå från ett datum som boendet planerar att ta emot gäster och skriv en enkel provresa från bokningsbesked till avresa. Följ vilka uppgifter gästen behöver i varje steg. Kontrollera om texten gäller det valda datumet eller råkar beskriva förra säsongen.\n\nAnvänd ett påhittat bokningsexempel utan personuppgifter. Poängen är att kontrollera informationen och arbetsgången, inte att göra en riktig bokning eller utlösa meddelanden till en gäst."
+    },
+    {
+      "heading": "Kontrollera sådant som kan ha bytt ansvarig",
+      "content": "Gå igenom kontaktvägar, bemanning, nyckelhantering och lokala instruktioner. Be den som ansvarar för varje punkt bekräfta att uppgiften fortfarande gäller. Skilj bekräftade besked från planer som ännu kan ändras.\n\nOm en tjänst eller aktivitet nämns, kontrollera om den finns tillgänglig under det valda datumet. En tidigare publicerad text är inte i sig ett nytt besked om öppettider eller utbud. Markera frågan som öppen tills rätt person har lämnat svar."
+    },
+    {
+      "heading": "Låt någon följa provresan utan förklaringar",
+      "content": "Be en kollega läsa underlaget i samma ordning som gästen skulle möta det. Notera var kollegan måste fråga vad en formulering betyder eller leta efter ett saknat besked. Svara inte åt texten under själva genomgången; skriv ner frågan först.\n\nAnvänd sedan [mallen för ankomstinformation](/blogg/ankomstinformation-gaster-mall) för att fylla luckorna. Kontrollera även att uppgifter om sen ankomst och kontakt utanför ordinarie tider inte motsäger varandra. Lova inte tillgänglighet som bemanningen inte har bekräftat."
+    },
+    {
+      "heading": "Gör en avprickning före första utskicket",
+      "content": "Skriv vad som ändrades, vem som bekräftade uppgiften och var den nya versionen finns. Kontrollera att schemalagda eller sparade texter inte fortfarande innehåller den äldre formuleringen. Bestäm vem som gör den sista avstämningen före säsongens första gästbesked.\n\n[StayBoosts produktdemo](/produkten) visar produktens upplägg. Arbetsmallen här är en manuell genomgång och innebär inte att någon automatisk säsongskontroll är aktiverad. Anpassa stegen till de kanaler och verktyg boendet faktiskt använder."
+    }
+  ],
+  "ctaHref": "/produkten",
+  "ctaLabel": "Utforska produktdemon",
+  "editorial": {
+    "createdWith": "ChatGPT",
+    "aiAssisted": true,
+    "searchIntent": "Göra ett sammanhållet öppningsprov med ett framtida gästdatum; skilt från löpande kanalinventering, personalintroduktion och mobilprovläsning.",
+    "sourceUrls": [
+      "https://stayboost.se/produkten"
+    ],
+    "sourceCheckedAt": null
+  },
+  "status": "draft",
+  "written_at": "2026-11-21T13:52:08.517352+00:00",
+  "publication_gate": {
+    "earliest_date": "2026-11-23",
+    "timezone": "Europe/Stockholm",
+    "requires_fresh_inventory_source_product_and_live_checks": true,
+    "note": "Utkast utan publiceringsdatum. Kontrollera verklig senaste publicering före användning."
+  },
+  "review_notes": "Originalutkast av ChatGPT. Källor och produktväg måste läsas på nytt före publicering; inga externa sakpåståenden eller produktfunktioner ska anses godkända genom detta köutkast."
+}
